@@ -1,0 +1,39 @@
+{
+  "name": "metaboost",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Metaboost HTTP API and Next.js app",
+  "engines": {
+    "node": ">=24.0.0"
+  },
+  "workspaces": [
+    "apps/api",
+    "apps/web",
+    "apps/web/sidecar"
+  ],
+  "devDependencies": {
+    "@eslint/js": "^9.39.2",
+    "concurrently": "^9.2.1",
+    "@types/node": "^24.10.12",
+    "eslint": "^9.39.2",
+    "eslint-config-prettier": "^10.1.8",
+    "globals": "^17.2.0",
+    "prettier": "^3.4.2",
+    "typescript": "^5.9.2",
+    "typescript-eslint": "^8.18.0"
+  },
+  "scripts": {
+    "build": "npm run build --workspaces --if-present",
+    "lint": "eslint . --max-warnings 0",
+    "lint:fix": "eslint . --fix",
+    "prettier:check": "prettier --check .",
+    "prettier:write": "prettier --write .",
+    "dev:api": "npm run dev -w apps/api",
+    "dev:web": "npm run dev -w apps/web",
+    "dev:web-sidecar": "npm run build -w @metaboost/web-sidecar && npm run dev:sidecar -w apps/web",
+    "dev:all": "npm run build -w @metaboost/web-sidecar && concurrently -n api,sidecar,web -c blue,cyan,green \"npm run dev:api\" \"sleep 2 && npm run dev:sidecar -w apps/web\" \"sleep 5 && npm run dev -w apps/web\"",
+    "dev:api:watch": "npm run dev:watch -w apps/api",
+    "dev:web:watch": "npm run dev:watch -w apps/web",
+    "dev:all:watch": "npm run build -w @metaboost/web-sidecar && concurrently -n api,sidecar,web -c blue,cyan,green \"npm run dev:api:watch\" \"sleep 2 && npm run dev:sidecar:watch -w apps/web\" \"sleep 5 && npm run dev:web:watch\""
+  }
+}

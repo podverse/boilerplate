@@ -1,0 +1,12 @@
+node_modules/
+**/dist/
+**/.next/
+out/
+package-lock.json
+**/*.tsbuildinfo
+.env
+.env.*
+.env.local
+**/.env
+**/.env.*
+.llm/plans/

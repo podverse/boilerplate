@@ -1,0 +1,29 @@
+{
+  "name": "@metaboost/web",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "build": "next build --webpack",
+    "dev": "env PORT=4100 next dev --webpack",
+    "dev:sidecar": "env PORT=4101 node -r dotenv/config sidecar/dist/server.js",
+    "dev:sidecar:watch": "concurrently -n tsc,sidecar \"npm run build:watch -w @metaboost/web-sidecar\" \"npx nodemon --delay 1000ms --watch sidecar/dist --exec 'env PORT=4101 node -r dotenv/config sidecar/dist/server.js'\"",
+    "dev:watch": "env PORT=4100 next dev --webpack",
+    "start": "next start",
+    "lint": "eslint ./src --max-warnings 0",
+    "lint:fix": "eslint ./src --fix"
+  },
+  "dependencies": {
+    "next": "^16.1.6",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4"
+  },
+  "devDependencies": {
+    "@types/node": "^24.10.12",
+    "concurrently": "^9.2.1",
+    "nodemon": "^3.1.10",
+    "@types/react": "^19.2.11",
+    "@types/react-dom": "^19.2.2",
+    "dotenv": "^16.4.5",
+    "typescript": "^5.9.2"
+  }
+}

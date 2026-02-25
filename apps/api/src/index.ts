@@ -1,0 +1,56 @@
+import path from 'path';
+import { fileURLToPath } from 'url';
+import express, { type Request, type Response } from 'express';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+const loadEnv = async (): Promise<void> => {
+  if (process.env.NODE_ENV !== 'production') {
+    try {
+      const dotenv = await import('dotenv');
+      const envPath = path.resolve(__dirname, '..', '.env');
+      dotenv.config({ path: envPath });
+    } catch {
+      // dotenv optional in dev
+    }
+  }
+};
+
+const run = async (): Promise<void> => {
+  await loadEnv();
+
+  const { validateStartupRequirements } = await import('./lib/startup/validation.js');
+  validateStartupRequirements();
+
+  const { config } = await import('./config/index.js');
+
+  const app = express();
+  app.use(express.json());
+
+  app.get('/health', (_req: Request, res: Response): void => {
+    res.json({ status: 'ok', app: config.appName });
+  });
+
+  app.get('/', (_req: Request, res: Response): void => {
+    res.json({
+      message: `Hello from ${config.appName}`,
+      env: { port: config.port },
+    });
+  });
+
+  const server = app.listen(config.port, () => {
+    console.log(`${config.appName} API listening on port ${config.port}`);
+  });
+
+  process.on('SIGINT', () => {
+    server.close(() => process.exit(0));
+  });
+  process.on('SIGTERM', () => {
+    server.close(() => process.exit(0));
+  });
+};
+
+run().catch((err) => {
+  console.error(err);
+  process.exit(1);
+});
