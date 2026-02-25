@@ -1,0 +1,37 @@
+---
+description: LLM history tracking for code and plan changes
+globs:
+  - "apps/api/**/*.ts"
+  - "apps/web/**/*.ts"
+  - "apps/web/**/*.tsx"
+  - "apps/web/sidecar/**/*.ts"
+  - ".llm/plans/**/*.md"
+  - "scripts/**/*.sh"
+  - "scripts/**/*.ts"
+alwaysApply: false
+---
+
+# History Tracking
+
+When modifying files in this workspace, update `.llm/history/active/[feature]/[feature]-part-01.md` (or the latest part file):
+
+```markdown
+### Session N - YYYY-MM-DD
+#### Prompt (Developer|Agent)
+[Exact verbatim prompt]
+#### Key Decisions
+- Decision 1
+#### Files Created/Modified
+- path/to/file.ts
+```
+
+## 10-Session Limit
+
+Each history file is limited to **10 sessions**. When adding session 11, create a new part file (e.g. `[feature]-part-02.md`).
+
+## File Naming
+
+- `.llm/history/active/[feature]/[feature]-part-01.md` (sessions 1-10)
+- `[feature]-part-02.md` (sessions 11-20), etc.
+
+End response with history confirmation. If working on files not matched by the globs above (e.g. `docs/*.md`), still update history when making substantive changes.
