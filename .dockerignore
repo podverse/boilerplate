@@ -10,7 +10,5 @@ out
 .git
 .direnv
 *.md
-!infra/README.md
-!apps/**/README.md
 TODOS
 .llm

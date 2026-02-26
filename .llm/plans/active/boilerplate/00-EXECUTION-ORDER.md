@@ -19,8 +19,8 @@ All plans: `.llm/plans/active/boilerplate/`
 | [08-makefiles.md](../../completed/boilerplate/08-makefiles.md) (completed) | Root Makefile and local infra targets |
 | [09-gitflow-test.md](../../completed/boilerplate/09-gitflow-test.md) (completed) | Gitflow and /test CI |
 | [10-git-labels.md](../../completed/boilerplate/10-git-labels.md) (completed) | Git labels and generation |
-| [11-helpers-package.md](11-helpers-package.md) | Move validate env to helpers package |
-| [12-orm-package.md](12-orm-package.md) | ORM package |
+| [11-helpers-package.md](../../completed/boilerplate/11-helpers-package.md) (completed) | Move validate env to helpers package |
+| [12-orm-package.md](../../completed/boilerplate/12-orm-package.md) (completed) | ORM package |
 | [13-alpha-publish-stub.md](13-alpha-publish-stub.md) | Alpha publish stub |
 | [14-joi-validation.md](14-joi-validation.md) | Joi validation |
 | [15-auth-handling.md](15-auth-handling.md) | Auth handling |
@@ -60,10 +60,10 @@ After Phase 2:
 
 - **09-gitflow-test**, **10-git-labels** – Run in parallel. (completed)
 
-## Phase 4: Packages (sequential)
+## Phase 4: Packages (sequential) — complete
 
-- **11-helpers-package** – Run first.
-- **12-orm-package** – After 11.
+- **11-helpers-package** – Run first. (completed)
+- **12-orm-package** – After 11. (completed)
 
 ## Phase 5: Alpha stub
 

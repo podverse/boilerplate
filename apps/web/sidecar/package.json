@@ -4,6 +4,9 @@
   "private": true,
   "type": "module",
   "description": "Runtime-config sidecar for Boilerplate web",
+  "dependencies": {
+    "@boilerplate/helpers": "*"
+  },
   "scripts": {
     "build": "tsc",
     "build:watch": "tsc --watch --preserveWatchOutput",

@@ -7,6 +7,12 @@ networks:
     name: boilerplate_local_network
     external: true
 
+volumes:
+  boilerplate_postgres_data:
+    name: boilerplate_postgres_data
+  boilerplate_valkey_data:
+    name: boilerplate_valkey_data
+
 services:
   postgres:
     image: postgres:18.1
@@ -14,33 +20,43 @@ services:
     env_file:
       - infra/config/local/db.env
     volumes:
+      - boilerplate_postgres_data:/var/lib/postgresql
+      - ./infra/database/combined/01_create_users.sh:/docker-entrypoint-initdb.d/01_create_users.sh:ro
       - ./infra/database/combined/init_database.sql:/docker-entrypoint-initdb.d/init_database.sql:ro
     ports:
       - 127.0.0.1:5433:5432
     networks:
       - boilerplate_local_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"${POSTGRES_USER:-postgres}\""]
+      interval: 2s
+      timeout: 5s
+      retries: 10
+      start_period: 15s
     logging:
-      driver: 'json-file'
+      driver: "json-file"
       options:
-        max-file: '1'
+        max-file: "1"
         max-size: 50m
 
   valkey:
     image: valkey/valkey:7-alpine
     container_name: boilerplate_local_valkey
+    volumes:
+      - boilerplate_valkey_data:/data
     ports:
       - 127.0.0.1:6380:6379
     networks:
       - boilerplate_local_network
     healthcheck:
-      test: ['CMD', 'valkey-cli', 'ping']
+      test: ["CMD", "valkey-cli", "ping"]
       interval: 5s
       timeout: 3s
       retries: 3
     logging:
-      driver: 'json-file'
+      driver: "json-file"
       options:
-        max-file: '1'
+        max-file: "1"
         max-size: 50m
 
   boilerplate_local_api:
@@ -51,6 +67,11 @@ services:
     container_name: boilerplate_local_api
     env_file:
       - infra/config/local/api.env
+    depends_on:
+      postgres:
+        condition: service_healthy
+      valkey:
+        condition: service_healthy
     networks:
       boilerplate_local_network:
         aliases:
@@ -58,11 +79,12 @@ services:
     ports:
       - 127.0.0.1:4000:4000
     logging:
-      driver: 'json-file'
+      driver: "json-file"
       options:
-        max-file: '1'
+        max-file: "1"
         max-size: 50m
 
+  # Sidecar: not exposed to host; only web container uses it via RUNTIME_CONFIG_URL.
   boilerplate_local_web_sidecar:
     build:
       context: .
@@ -72,15 +94,16 @@ services:
     env_file:
       - infra/config/local/web.env
     environment:
-      PORT: '4101'
+      PORT: "4101"
+    depends_on:
+      boilerplate_local_api:
+        condition: service_started
     networks:
       - boilerplate_local_network
-    ports:
-      - 127.0.0.1:4101:4101
     logging:
-      driver: 'json-file'
+      driver: "json-file"
       options:
-        max-file: '1'
+        max-file: "1"
         max-size: 50m
 
   boilerplate_local_web:
@@ -90,18 +113,19 @@ services:
     image: boilerplate-web:latest
     container_name: boilerplate_local_web
     depends_on:
-      - boilerplate_local_web_sidecar
+      boilerplate_local_web_sidecar:
+        condition: service_started
     env_file:
       - infra/config/local/web.env
     environment:
-      PORT: '4100'
-      RUNTIME_CONFIG_URL: 'http://boilerplate_local_web_sidecar:4101'
+      PORT: "4100"
+      RUNTIME_CONFIG_URL: "http://boilerplate_local_web_sidecar:4101"
     networks:
       - boilerplate_local_network
     ports:
       - 127.0.0.1:4100:4100
     logging:
-      driver: 'json-file'
+      driver: "json-file"
       options:
-        max-file: '1'
+        max-file: "1"
         max-size: 50m

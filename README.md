@@ -10,6 +10,8 @@ HTTP API and Next.js app. Structure and tooling mirror the Podverse monorepo whe
 
 ## Setup
 
+**Quick path (clone → running):** See [docs/QUICK-START.md](docs/QUICK-START.md) (Make + Docker for Postgres/Valkey, API and web on host).
+
 **With Nix (Linux / macOS):** If you use [direnv](https://direnv.net/), run `direnv allow` in the repo root once. The flake provides Node 24 and the shell loads automatically. Without direnv: `nix develop` to enter the dev shell.
 
 ```bash
@@ -61,8 +63,9 @@ Default branch is **develop**; open PRs against `develop`. Use `npm run start-fe
 - `npm run dev:api:watch` – API with auto-rebuild on change (tsc --watch + nodemon)
 - `npm run dev:web:watch` – Web (Next.js dev; already hot-reloads)
 - `npm run dev:all:watch` – API, sidecar, and web with auto-rebuild on change
-- `npm run lint` / `npm run lint:fix` – ESLint
-- `npm run prettier:check` / `npm run prettier:write` – Prettier
+- `npm run lint` – ESLint + Prettier check (TS/JS, YAML, JSON, MD, etc.)
+- `npm run lint:fix` – ESLint --fix + Prettier --write (fixes all supported files, including docker-compose)
+- `npm run prettier:check` / `npm run prettier:write` – Prettier only
 
 **Version bump:** Run `./scripts/publish/bump-version.sh` when cutting a release. It updates root and all workspace `package.json` versions, then commits and pushes (no npm publish or image push).
 

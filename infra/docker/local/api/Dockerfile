@@ -4,9 +4,13 @@ FROM node:24-slim
 WORKDIR /app
 
 COPY package.json package-lock.json tsconfig.base.json ./
+COPY packages/ ./packages/
 COPY apps/ ./apps/
 
-RUN npm ci --ignore-scripts && npm run build -w @boilerplate/api
+RUN npm ci --ignore-scripts && \
+  npm run build -w @boilerplate/helpers && \
+  npm run build -w @boilerplate/orm && \
+  npm run build -w @boilerplate/api
 
 EXPOSE 4000
 

@@ -7,6 +7,8 @@
     "node": ">=24.0.0"
   },
   "workspaces": [
+    "packages/helpers",
+    "packages/orm",
     "apps/api",
     "apps/web",
     "apps/web/sidecar"
@@ -25,17 +27,17 @@
   "scripts": {
     "start-feature": "bash scripts/start-feature.sh",
     "build": "npm run build --workspaces --if-present",
-    "lint": "eslint . --max-warnings 0",
-    "lint:fix": "eslint . --fix",
-    "type-check": "npm run type-check -w @boilerplate/api -w @boilerplate/web -w @boilerplate/web-sidecar",
+    "lint": "eslint . --max-warnings 0 && prettier --check .",
+    "lint:fix": "eslint . --fix && prettier --write .",
+    "type-check": "npm run type-check -w @boilerplate/helpers -w @boilerplate/orm -w @boilerplate/api -w @boilerplate/web -w @boilerplate/web-sidecar",
     "prettier:check": "prettier --check .",
     "prettier:write": "prettier --write .",
     "dev:api": "npm run dev -w apps/api",
     "dev:web": "npm run dev -w apps/web",
     "dev:web-sidecar": "npm run build -w @boilerplate/web-sidecar && npm run dev:sidecar -w apps/web",
-    "dev:all": "npm run build -w @boilerplate/web-sidecar && concurrently -n api,sidecar,web -c blue,cyan,green \"npm run dev:api\" \"sleep 2 && npm run dev:sidecar -w apps/web\" \"sleep 5 && npm run dev -w apps/web\"",
+    "dev:all": "npm run build -w @boilerplate/helpers && sleep 1 && npm run build -w @boilerplate/orm && sleep 1 && npm run build -w @boilerplate/web-sidecar && sleep 1 && concurrently -n api,web-sidecar,web -c blue,cyan,green \"npm run dev:api\" \"sleep 2 && npm run dev:sidecar -w apps/web\" \"sleep 5 && npm run dev -w apps/web\"",
     "dev:api:watch": "npm run dev:watch -w apps/api",
     "dev:web:watch": "npm run dev:watch -w apps/web",
-    "dev:all:watch": "npm run build -w @boilerplate/web-sidecar && concurrently -n api,sidecar,web -c blue,cyan,green \"npm run dev:api:watch\" \"sleep 2 && npm run dev:sidecar:watch -w apps/web\" \"sleep 5 && npm run dev:web:watch\""
+    "dev:all:watch": "npm run build -w @boilerplate/helpers && sleep 1 && npm run build -w @boilerplate/orm && sleep 1 && npm run build -w @boilerplate/web-sidecar && sleep 1 && concurrently -n helpers,orm,api,web-sidecar,web -c blue,cyan,green,magenta,yellow \"npm run build:watch -w @boilerplate/helpers\" \"sleep 2 && npm run build:watch -w @boilerplate/orm\" \"sleep 4 && npm run dev:api:watch\" \"sleep 6 && npm run dev:sidecar:watch -w apps/web\" \"sleep 8 && npm run dev:web:watch\""
   }
 }

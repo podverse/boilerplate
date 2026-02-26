@@ -1,3 +1,3 @@
 # Boilerplate root Makefile
-# Includes Makefile.local (validate, audit, local Docker targets).
-include Makefile.local
+# Includes makefiles/local (validate, audit, env, local Docker targets).
+include makefiles/local/Makefile.local.mk

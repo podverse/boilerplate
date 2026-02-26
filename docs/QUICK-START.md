@@ -1,0 +1,95 @@
+# Quick Start
+
+Shortest path from a fresh clone to a running local instance. Two options: **API + web on host**
+(with Postgres and Valkey in Docker) or **everything in Docker**. Uses Make where possible.
+
+## Prerequisites
+
+- **Docker** (required for both paths)
+- **Make**
+- **Node.js 24+** (only for “on host” path; e.g. `nvm use` or `direnv allow` if using the repo
+  flake)
+
+## Path A: API and web on host (Postgres and Valkey in Docker)
+
+```bash
+git clone <repo-url> boilerplate && cd boilerplate
+npm install
+make env_setup
+```
+
+Edit `apps/api/.env`: set `DB_HOST=localhost`, `DB_PORT=5433`, `VALKEY_HOST=localhost`,
+`VALKEY_PORT=6380` (so the API on your machine talks to Postgres/Valkey in Docker).
+
+```bash
+make local_infra_up
+npm run dev:all
+```
+
+- **API:** http://localhost:4000
+- **Web:** http://localhost:4100
+- **Sidecar:** http://localhost:4101 (runtime config for web)
+
+To run with auto-rebuild on file changes:
+
+```bash
+npm run dev:all:watch
+```
+
+## Path B: Everything in Docker
+
+Same clone and env setup, then run the full stack (API, web, sidecar, Postgres, Valkey) in
+containers. The sidecar is not exposed to the host; only the web container uses it.
+
+```bash
+git clone <repo-url> boilerplate && cd boilerplate
+make env_setup
+make local_all_up
+```
+
+- **API:** http://localhost:4000
+- **Web:** http://localhost:4100
+- Postgres (5433) and Valkey (6380) are on the host for tools if needed; sidecar is
+  internal-only.
+
+Teardown is the same as Path A: `make local_down`.
+
+## Teardown
+
+Stop and remove containers and network (volumes are kept; Postgres and Valkey data persist):
+
+```bash
+make local_down
+```
+
+To also remove volumes (e.g. for a clean DB and Valkey state), use either:
+
+```bash
+make local_down_volumes
+```
+
+or the combined full teardown:
+
+```bash
+make local_clean
+```
+
+(`local_clean` runs `local_down` then `local_down_volumes`.) The next time you start Postgres, init scripts will run again on first boot.
+
+## Clean restart
+
+To tear down and start again:
+
+- **Path A:** `make local_down` then `make local_infra_up` and `npm run dev:all`
+- **Path B:** `make local_down` then `make local_all_up`
+
+For a **clean** restart (no existing DB or Valkey data), run `make local_clean` (or `make local_down_volumes`) before starting again.
+
+To remove local .env files and recreate them from templates (e.g. to test a clean env setup), run `make local_env_remove` (type **Y** when prompted), then `make env_setup`.
+
+## Reference
+
+- **Env templates:** `infra/config/env-templates/`. Local overrides (gitignored):
+  `infra/config/local/`. To remove all local .env files: `make local_env_remove` (prompts for Y).
+- **Single README:** Only the root [README.md](../README.md) is named README; other docs use
+  full-path names (e.g. [INFRA.md](../infra/INFRA.md), [INFRA-DOCKER-LOCAL.md](../infra/docker/local/INFRA-DOCKER-LOCAL.md)).

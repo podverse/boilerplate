@@ -1,6 +1,7 @@
 import path from 'path';
 import { fileURLToPath } from 'url';
-import express, { type Request, type Response } from 'express';
+import express from 'express';
+import type { Request, Response } from 'express';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -21,6 +22,9 @@ const run = async (): Promise<void> => {
 
   const { validateStartupRequirements } = await import('./lib/startup/validation.js');
   validateStartupRequirements();
+
+  const { appDataSource } = await import('@boilerplate/orm');
+  await appDataSource.initialize();
 
   const { config } = await import('./config/index.js');
 
