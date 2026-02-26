@@ -1,6 +1,6 @@
 {
   "name": "@boilerplate/web",
-  "version": "0.1.0",
+  "version": "0.1.2",
   "private": true,
   "scripts": {
     "build": "next build --webpack",
@@ -10,7 +10,8 @@
     "dev:watch": "env PORT=4100 next dev --webpack",
     "start": "next start",
     "lint": "eslint ./src --max-warnings 0",
-    "lint:fix": "eslint ./src --fix"
+    "lint:fix": "eslint ./src --fix",
+    "type-check": "tsc --noEmit"
   },
   "dependencies": {
     "next": "^16.1.6",
