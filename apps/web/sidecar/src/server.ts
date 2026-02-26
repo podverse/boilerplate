@@ -62,5 +62,5 @@ const server = http.createServer((req: http.IncomingMessage, res: http.ServerRes
 
 const port = validateStartup();
 server.listen(port, '0.0.0.0', () => {
-  console.log(`Metaboost runtime-config sidecar listening on port ${port}.`);
+  console.log(`Boilerplate runtime-config sidecar listening on port ${port}.`);
 });

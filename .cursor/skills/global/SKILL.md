@@ -1,6 +1,6 @@
 ---
-name: metaboost-global-patterns
-description: Global patterns for the Metaboost repo (API + Next.js app)
+name: boilerplate-global-patterns
+description: Global patterns for the Boilerplate repo (API + Next.js app)
 version: 1.0.0
 ---
 

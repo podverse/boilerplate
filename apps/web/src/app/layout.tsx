@@ -3,13 +3,13 @@ import { getRuntimeConfig } from '../config/runtime-config-store';
 import RuntimeConfigScript from '../components/Head/RuntimeConfigScript';
 
 export const metadata: Metadata = {
-  title: 'Metaboost',
-  description: 'Metaboost app',
+  title: 'Boilerplate',
+  description: 'Boilerplate app',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   const runtimeConfig = getRuntimeConfig();
-  const appName = runtimeConfig.env.NEXT_PUBLIC_APP_NAME ?? 'Metaboost';
+  const appName = runtimeConfig.env.NEXT_PUBLIC_APP_NAME ?? 'Boilerplate';
   return (
     <html lang="en">
       <head>

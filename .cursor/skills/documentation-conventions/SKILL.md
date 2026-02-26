@@ -1,6 +1,6 @@
 ---
-name: metaboost-documentation-conventions
-description: Documentation file naming for the Metaboost repo. Use when creating or modifying docs, README, or markdown.
+name: boilerplate-documentation-conventions
+description: Documentation file naming for the Boilerplate repo. Use when creating or modifying docs, README, or markdown.
 version: 1.0.0
 ---
 

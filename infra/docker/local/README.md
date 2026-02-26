@@ -1,6 +1,6 @@
 # Local Docker
 
-API (4000), web (4100), sidecar (4101), postgres (5433), valkey (6380). Shared network: `metaboost_local_network`. Host ports 5433/6380 avoid conflict with podverse monorepo (5432/6379).
+API (4000), web (4100), sidecar (4101), postgres (5433), valkey (6380). Shared network: `boilerplate_local_network`. Host ports 5433/6380 avoid conflict with podverse monorepo (5432/6379).
 
 ## First run
 
@@ -25,4 +25,4 @@ Postgres runs `infra/database/combined/init_database.sql` on first start. API/OR
 - Combined: `docker compose -f infra/docker/local/docker-compose.yml --project-directory . build`
 
 If using per-service compose files, create the network first:  
-`docker network create metaboost_local_network`
+`docker network create boilerplate_local_network`

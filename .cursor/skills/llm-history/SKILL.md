@@ -6,7 +6,7 @@ version: 1.0.0
 
 # LLM History Tracking
 
-This skill provides guidelines for maintaining LLM development history in the Metaboost repo.
+This skill provides guidelines for maintaining LLM development history in the Boilerplate repo.
 
 ## Critical Rule: 10-Session Maximum Per File
 

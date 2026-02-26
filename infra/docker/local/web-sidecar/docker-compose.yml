@@ -1,20 +1,20 @@
 networks:
-  metaboost_local_network:
+  boilerplate_local_network:
     external: true
 
 services:
-  metaboost_local_web_sidecar:
+  boilerplate_local_web_sidecar:
     build:
       context: ../../../..
       dockerfile: infra/docker/local/web-sidecar/Dockerfile
-    image: metaboost-web-sidecar:latest
-    container_name: metaboost_local_web_sidecar
+    image: boilerplate-web-sidecar:latest
+    container_name: boilerplate_local_web_sidecar
     env_file:
       - ../../../config/local/web.env
     environment:
       PORT: '4101'
     networks:
-      - metaboost_local_network
+      - boilerplate_local_network
     ports:
       - 127.0.0.1:4101:4101
     logging:

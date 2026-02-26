@@ -1,9 +1,9 @@
 {
-  "name": "@metaboost/web-sidecar",
+  "name": "@boilerplate/web-sidecar",
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "Runtime-config sidecar for Metaboost web",
+  "description": "Runtime-config sidecar for Boilerplate web",
   "scripts": {
     "build": "tsc",
     "build:watch": "tsc --watch --preserveWatchOutput"

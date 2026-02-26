@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Metaboost Start Feature Script
+# Boilerplate Start Feature Script
 # Creates a properly named branch with aligned LLM history file
 
 CYAN='\033[0;36m'
@@ -33,8 +33,8 @@ fi
 # 3. Detect origin and build repo URL
 ORIGIN=$(git remote get-url origin 2> /dev/null || echo "unknown")
 IS_FORK="no"
-# Canonical Metaboost repo slug; update if repo moves
-if [[ "$ORIGIN" != *"podverse/metaboost"* ]]; then
+# Canonical Boilerplate repo slug; update if repo moves
+if [[ "$ORIGIN" != *"podverse/boilerplate"* ]]; then
   IS_FORK="yes"
 fi
 

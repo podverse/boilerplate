@@ -1,10 +1,10 @@
 ---
-name: metaboost-api-patterns
-description: Common patterns for the Metaboost HTTP API (Express)
+name: boilerplate-api-patterns
+description: Common patterns for the Boilerplate HTTP API (Express)
 version: 1.0.0
 ---
 
-# Metaboost API Patterns
+# Boilerplate API Patterns
 
 - **Location**: `apps/api/`
 - **Stack**: Express, TypeScript, ESM

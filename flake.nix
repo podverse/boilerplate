@@ -1,5 +1,5 @@
 {
-  description = "Metaboost dev environment (Node 24)";
+  description = "Boilerplate dev environment (Node 24)";
 
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
@@ -15,7 +15,7 @@
           git
         ];
         shellHook = ''
-          echo "Metaboost (Node $(node -v))"
+          echo "Boilerplate (Node $(node -v))"
           echo "  npm install        # install deps"
           echo "  npm run dev:api    # API"
           echo "  npm run dev:web    # Next.js app"

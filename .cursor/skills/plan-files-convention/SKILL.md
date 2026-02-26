@@ -6,14 +6,14 @@ version: 1.0.0
 
 # Plan Files Convention
 
-This skill describes how to save plan files locally in the Metaboost repo, following the same convention as the Podverse monorepo.
+This skill describes how to save plan files locally in the Boilerplate repo, following the same convention as the Podverse monorepo.
 
 ## Where to Save Plans
 
 - **Active plans**: `.llm/plans/active/[plan-set-name]/`
 - **Completed plans**: `.llm/plans/completed/[plan-set-name]/` (move here when the plan set is done)
 
-Use a short, kebab-case name for the set (e.g. `metaboost-boilerplate`, `web-runtime-config-endpoint`).
+Use a short, kebab-case name for the set (e.g. `boilerplate`, `web-runtime-config-endpoint`).
 
 ## Standard File Layout (Active Set)
 
@@ -54,4 +54,4 @@ Plans stay under ~300 lines each; split into part files (e.g. `22-part-1-dashboa
 ## Reference
 
 - Podverse: `.llm/plans/active/` and `.llm/plans/completed/`; see e.g. `podverse/.llm/plans/completed/web-runtime-config-endpoint/` for layout.
-- Metaboost boilerplate set: `.llm/plans/active/metaboost-boilerplate/`.
+- Boilerplate plan set: `.llm/plans/active/boilerplate/`.

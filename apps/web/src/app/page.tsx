@@ -2,7 +2,7 @@ import { getRuntimeConfig } from '../config/runtime-config-store';
 
 export default function HomePage() {
   const runtimeConfig = getRuntimeConfig();
-  const appName = runtimeConfig.env.NEXT_PUBLIC_APP_NAME ?? 'Metaboost';
+  const appName = runtimeConfig.env.NEXT_PUBLIC_APP_NAME ?? 'Boilerplate';
   const apiUrl = runtimeConfig.env.NEXT_PUBLIC_API_URL ?? '(not set)';
 
   return (

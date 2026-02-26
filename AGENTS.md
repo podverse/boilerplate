@@ -1,6 +1,6 @@
-# AI Development Guide – Metaboost
+# AI Development Guide – Boilerplate
 
-Quick reference for AI assistants working on the Metaboost repo (HTTP API + Next.js app).
+Quick reference for AI assistants working on the Boilerplate repo (HTTP API + Next.js app).
 
 ## Stack
 

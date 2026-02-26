@@ -1,12 +1,12 @@
 {
-  "name": "@metaboost/web",
+  "name": "@boilerplate/web",
   "version": "0.1.0",
   "private": true,
   "scripts": {
     "build": "next build --webpack",
     "dev": "env PORT=4100 next dev --webpack",
     "dev:sidecar": "env PORT=4101 node -r dotenv/config sidecar/dist/server.js",
-    "dev:sidecar:watch": "concurrently -n tsc,sidecar \"npm run build:watch -w @metaboost/web-sidecar\" \"npx nodemon --delay 1000ms --watch sidecar/dist --exec 'env PORT=4101 node -r dotenv/config sidecar/dist/server.js'\"",
+    "dev:sidecar:watch": "concurrently -n tsc,sidecar \"npm run build:watch -w @boilerplate/web-sidecar\" \"npx nodemon --delay 1000ms --watch sidecar/dist --exec 'env PORT=4101 node -r dotenv/config sidecar/dist/server.js'\"",
     "dev:watch": "env PORT=4100 next dev --webpack",
     "start": "next start",
     "lint": "eslint ./src --max-warnings 0",

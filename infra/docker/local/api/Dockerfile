@@ -1,4 +1,4 @@
-# Metaboost API – local Docker (build from repo root)
+# Boilerplate API – local Docker (build from repo root)
 FROM node:24-slim
 
 WORKDIR /app
@@ -6,7 +6,7 @@ WORKDIR /app
 COPY package.json package-lock.json tsconfig.base.json ./
 COPY apps/ ./apps/
 
-RUN npm ci --ignore-scripts && npm run build -w @metaboost/api
+RUN npm ci --ignore-scripts && npm run build -w @boilerplate/api
 
 EXPOSE 4000
 
