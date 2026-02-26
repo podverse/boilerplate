@@ -27,7 +27,7 @@ package (plan 12) and auth (plan 15).
 
 3. **Config and env**
    - Add `infra/config/env-templates/db.env.example` (or document in api.env.example) with
-     DB_HOST=postgres, DB_PORT=5432, DB_NAME=metaboost (or same as POSTGRES_DB),
+     DB_HOST=postgres, DB_PORT=5432, DB_NAME=boilerplate (or same as POSTGRES_DB),
      DB_USER=..., DB_PASSWORD=..., and optionally DATABASE_URL.
    - Ensure api (and later orm) can read these (e.g. from infra/config/local/db.env or
      api.env).

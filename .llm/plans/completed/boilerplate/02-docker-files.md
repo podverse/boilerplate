@@ -8,9 +8,9 @@ files from `infra/config`. Reference: podverse `infra/docker/local/` (api, web, 
 ## Steps
 
 1. **Shared network**
-   - Define a single external network (e.g. `metaboost_local_network`) so api, web, sidecar,
+   - Define a single external network (e.g. `boilerplate_local_network`) so api, web, sidecar,
      postgres, and valkey can share it. Document creation in Makefile or README (e.g.
-     `docker network create metaboost_local_network`).
+     `docker network create boilerplate_local_network`).
 
 2. **API**
    - `infra/docker/local/api/Dockerfile`: build from repo root; copy package.json(s), install
@@ -48,7 +48,7 @@ files from `infra/config`. Reference: podverse `infra/docker/local/` (api, web, 
 
 ## Verification
 
-- Create the shared network first (e.g. `docker network create metaboost_local_network`), or
+- Create the shared network first (e.g. `docker network create boilerplate_local_network`), or
   use a compose file that declares the network so it is created on first `docker compose up`.
 - `docker compose -f infra/docker/local/api/docker-compose.yml build` succeeds.
 - With network created and env files present, `docker compose up` for api (and similarly web,
