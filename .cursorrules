@@ -29,7 +29,9 @@ Warn if drifting: "This seems outside scope. Continue?"
 
 ---
 
-## HISTORY TRACKING
+## HISTORY TRACKING (Essential)
+
+**Applies to every file-modifying response in this repo** — no exception for path or task size. When in doubt, update history.
 
 Before work: Check/create `.llm/history/active/[feature]/[feature]-part-01.md`
 
