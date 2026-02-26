@@ -26,6 +26,17 @@ Inside the plan-set directory, use:
 
 Plans stay under ~300 lines each; split into part files (e.g. `22-part-1-dashboard.md`) if a topic grows.
 
+## How to use COPY-PASTA (execution order)
+
+- **Phases are sequential.** Do not start Phase N+1 until Phase N is fully complete.
+- **Within a phase,** steps can be sequential or parallel. When the doc says "run A, then B,
+  then C and D in parallel" it means: run A → **wait for A to finish** → run B → **wait for
+  B to finish** → then run C and D in parallel (e.g. two agents); **wait for both C and D**
+  before starting the next phase. Only start "in parallel" work after all prior steps in
+  that phase have completed.
+- For each step or parallel group, wait for completion before starting the next step or
+  phase.
+
 ## When Creating a New Plan Set
 
 1. Create the directory: `.llm/plans/active/[plan-set-name]/`.
