@@ -27,7 +27,7 @@
 | 10 | 10-git-labels.md | 3 (completed) |
 | 11 | 11-helpers-package.md | 4 (completed) |
 | 12 | 12-orm-package.md | 4 (completed) |
-| 13 | 13-alpha-publish-stub.md | 5 |
+| 13 | 13-alpha-publish-stub.md | 5 (completed) |
 | 14 | 14-joi-validation.md | 6 |
 | 15 | 15-auth-handling.md | 6 |
 | 16 | 16-scss.md | 7 |

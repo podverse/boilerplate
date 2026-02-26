@@ -24,7 +24,7 @@ Each line below means: do the step(s), **wait for completion**, then do the next
    Phase 4. (completed)
 4. **Phase 4:** Run 11 (one agent). **Wait for 11 to finish.** Run 12 (one agent). **Wait for
    12 to finish** before Phase 5.
-5. **Phase 5:** Run 13 (one agent). **Wait for 13 to finish** before Phase 6.
+5. **Phase 5:** Run 13 (one agent). (completed) **Skip; proceed to Phase 6.**
 6. **Phase 6:** Run 14 and 15 in parallel, or run 14 then 15 (15 depends on orm from 12).
    **Wait for both to finish** before Phase 7.
 7. **Phase 7:** Run 16, 17, 18, 19 in parallel (four agents). **Wait for all four to
@@ -127,12 +127,12 @@ scripts/database/combine-migrations.sh (do not edit by hand).
 
 ---
 
-## Phase 5
+## Phase 5 (completed)
 
-### Agent 5: Alpha publish stub
+### Agent 5: Alpha publish
 
-Read and execute `.llm/plans/active/boilerplate/13-alpha-publish-stub.md`. Add
-script stub and short doc. Verify script runs and docs describe real flow.
+Phase 5 is complete. Plan 13 is in `.llm/plans/completed/boilerplate/13-alpha-publish-stub.md`.
+Workflow: `.github/workflows/publish-alpha.yml`. Docs: `docs/PUBLISH.md`. Do not re-run.
 
 ---
 

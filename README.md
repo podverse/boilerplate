@@ -69,6 +69,8 @@ Default branch is **develop**; open PRs against `develop`. Use `npm run start-fe
 
 **Version bump:** Run `./scripts/publish/bump-version.sh` when cutting a release. It updates root and all workspace `package.json` versions, then commits and pushes (no npm publish or image push).
 
+**Alpha publish:** Merging to the `alpha` branch runs the Publish Alpha workflow and pushes Docker images (api, web, web-sidecar) to GHCR. See [docs/PUBLISH.md](docs/PUBLISH.md).
+
 **GitHub labels:** Run `./scripts/github/setup-all-labels.sh` to create or update repo labels (requires `gh auth login`). See [scripts/github/SCRIPTS-GITHUB.md](scripts/github/SCRIPTS-GITHUB.md) and [docs/repo-management/GITHUB-LABELS.md](docs/repo-management/GITHUB-LABELS.md). For one-time repo setup (labels, branch protection, default branch), see [docs/repo-management/GITHUB-SETUP.md](docs/repo-management/GITHUB-SETUP.md).
 
 ## LLM / Cursor

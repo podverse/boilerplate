@@ -21,7 +21,7 @@ All plans: `.llm/plans/active/boilerplate/`
 | [10-git-labels.md](../../completed/boilerplate/10-git-labels.md) (completed) | Git labels and generation |
 | [11-helpers-package.md](../../completed/boilerplate/11-helpers-package.md) (completed) | Move validate env to helpers package |
 | [12-orm-package.md](../../completed/boilerplate/12-orm-package.md) (completed) | ORM package |
-| [13-alpha-publish-stub.md](13-alpha-publish-stub.md) | Alpha publish (images on merge to alpha) |
+| [13-alpha-publish-stub.md](../../completed/boilerplate/13-alpha-publish-stub.md) (completed) | Alpha publish (images on merge to alpha) |
 | [14-joi-validation.md](14-joi-validation.md) | Joi validation |
 | [15-auth-handling.md](15-auth-handling.md) | Auth handling |
 | [16-scss.md](16-scss.md) | SCSS setup |
@@ -65,10 +65,10 @@ After Phase 2:
 - **11-helpers-package** – Run first. (completed)
 - **12-orm-package** – After 11. (completed)
 
-## Phase 5: Alpha publish (images on merge to alpha)
+## Phase 5: Alpha publish (images on merge to alpha) — complete
 
 - **13-alpha-publish-stub** – Can run in parallel with Phase 4 or after. Workflow publishes
-  Docker images to registry when merging to `alpha`.
+  Docker images to registry when merging to `alpha`. (completed)
 
 ## Phase 6: API (parallel where possible)
 
