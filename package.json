@@ -23,6 +23,7 @@
     "typescript-eslint": "^8.18.0"
   },
   "scripts": {
+    "start-feature": "bash scripts/start-feature.sh",
     "build": "npm run build --workspaces --if-present",
     "lint": "eslint . --max-warnings 0",
     "lint:fix": "eslint . --fix",
