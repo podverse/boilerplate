@@ -22,8 +22,8 @@
 | 06 | 06-audit.md | 2 (completed) |
 | 07 | 07-bump-version.md | 2 (completed) |
 | 08 | 08-makefiles.md | 2 (completed) |
-| 09 | 09-gitflow-test.md | 3 |
-| 10 | 10-git-labels.md | 3 |
+| 09 | 09-gitflow-test.md | 3 (completed) |
+| 10 | 10-git-labels.md | 3 (completed) |
 | 11 | 11-helpers-package.md | 4 |
 | 12 | 12-orm-package.md | 4 |
 | 13 | 13-alpha-publish-stub.md | 5 |
@@ -70,8 +70,8 @@
 
 - **Default branch**: develop. PRs merge into develop; set repo default branch to develop so
   CI and GITFLOW docs are correct.
-- **CI** (plan 09): Validate runs when a PR is created/updated **targeting develop**, and
-  when an authorized user comments **/test** on a PR. No push-to-branch trigger.
+- **CI** (plan 09): Validate runs **only** when an authorized user (OWNER/MEMBER/COLLABORATOR)
+  comments **/test** on a PR. No automatic run on PR open/update; no push-to-branch trigger.
 - **ORM schema** (plan 12): Option A – init script in `infra/database/combined/init_database.sql`;
   ORM only connects; no TypeORM migrations.
 - **Auth** (plan 15): JWT (Bearer or cookie); design auth middleware so revocable API keys

@@ -17,8 +17,8 @@ All plans: `.llm/plans/active/boilerplate/`
 | [06-audit.md](../../completed/boilerplate/06-audit.md) (completed) | Audit script |
 | [07-bump-version.md](../../completed/boilerplate/07-bump-version.md) (completed) | Bump version script |
 | [08-makefiles.md](../../completed/boilerplate/08-makefiles.md) (completed) | Root Makefile and local infra targets |
-| [09-gitflow-test.md](09-gitflow-test.md) | Gitflow and /test CI |
-| [10-git-labels.md](10-git-labels.md) | Git labels and generation |
+| [09-gitflow-test.md](../../completed/boilerplate/09-gitflow-test.md) (completed) | Gitflow and /test CI |
+| [10-git-labels.md](../../completed/boilerplate/10-git-labels.md) (completed) | Git labels and generation |
 | [11-helpers-package.md](11-helpers-package.md) | Move validate env to helpers package |
 | [12-orm-package.md](12-orm-package.md) | ORM package |
 | [13-alpha-publish-stub.md](13-alpha-publish-stub.md) | Alpha publish stub |
@@ -54,11 +54,11 @@ After Phase 1 complete:
 - **06-audit**, **07-bump-version**, **08-makefiles** – Run in parallel after 05. Plan 08
   extends the same Makefile created by 05; do not run 05 and 08 in parallel. (completed)
 
-## Phase 3: Gitflow and CI (parallel)
+## Phase 3: Gitflow and CI (parallel) — complete
 
 After Phase 2:
 
-- **09-gitflow-test**, **10-git-labels** – Run in parallel.
+- **09-gitflow-test**, **10-git-labels** – Run in parallel. (completed)
 
 ## Phase 4: Packages (sequential)
 

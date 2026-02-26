@@ -40,7 +40,7 @@ applies labels on PR (e.g. pr-labeler).
      actions/labeler@v4 with a `.github/labeler.yml` config.
 
 6. **Documentation**
-   - Add `scripts/github/README.md` or section in main README: how to run setup-all-labels
+   - Add `scripts/github/SCRIPTS-GITHUB.md` or section in main README: how to run setup-all-labels
      (e.g. `gh auth login`, then `./scripts/github/setup-all-labels.sh`).
 
 ## Key files
@@ -48,7 +48,7 @@ applies labels on PR (e.g. pr-labeler).
 - `scripts/github/setup-all-labels.sh`
 - Optional: `scripts/github/setup-labels.sh`, `remove-old-labels.sh`
 - Optional: `.github/workflows/pr-labeler.yml`, `.github/labeler.yml`
-- Optional: `scripts/github/README.md`
+- Optional: `scripts/github/SCRIPTS-GITHUB.md`
 
 ## Verification
 

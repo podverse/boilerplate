@@ -29,7 +29,7 @@ correctly after the code and workflows are in place.
    - Document that GitHub labels are created/updated by
      `scripts/github/setup-all-labels.sh`.
    - Steps: ensure GitHub CLI (`gh`) is installed; run `gh auth login`; from repo root run
-     `./scripts/github/setup-all-labels.sh`. Link to `scripts/github/README.md`.
+     `./scripts/github/setup-all-labels.sh`. Link to `scripts/github/SCRIPTS-GITHUB.md`.
    - Note that the pr-labeler workflow (`.github/workflows/pr-labeler.yml`) applies labels
      from changed paths; labels must exist before opening PRs. Running the script is
      idempotent.

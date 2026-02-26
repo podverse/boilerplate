@@ -21,7 +21,7 @@ Each line below means: do the step(s), **wait for completion**, then do the next
    parallel (three agents). Do not run 05 and 08 in parallel (both touch the same
    Makefile). **Wait for 06, 07, 08 to finish** before Phase 3.
 3. **Phase 3:** Run 09 and 10 in parallel (two agents). **Wait for both to finish** before
-   Phase 4.
+   Phase 4. (completed)
 4. **Phase 4:** Run 11 (one agent). **Wait for 11 to finish.** Run 12 (one agent). **Wait for
    12 to finish** before Phase 5.
 5. **Phase 5:** Run 13 (one agent). **Wait for 13 to finish** before Phase 6.
@@ -94,16 +94,16 @@ valkey, api, web). Verify make targets run.
 
 ---
 
-## Phase 3 (parallel – 2 agents)
+## Phase 3 (parallel – 2 agents) — complete
 
 ### Agent 3A: Gitflow and /test
 
-Read and execute `.llm/plans/active/boilerplate/09-gitflow-test.md`. Add
+Read and execute `.llm/plans/completed/boilerplate/09-gitflow-test.md`. Add
 .github/workflows/ci.yml and document gitflow. Verify push and /test trigger CI.
 
 ### Agent 3B: Git labels
 
-Read and execute `.llm/plans/active/boilerplate/10-git-labels.md`. Add
+Read and execute `.llm/plans/completed/boilerplate/10-git-labels.md`. Add
 scripts/github/setup-all-labels.sh and optional pr-labeler. Verify labels exist after run.
 
 ---
