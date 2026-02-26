@@ -1,0 +1,2 @@
+-- Metaboost Postgres init (runs on first container start).
+-- Plan 12 (ORM) will add schema (e.g. users table) via migration or this script.

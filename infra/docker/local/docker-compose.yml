@@ -1,0 +1,106 @@
+# Combined local stack: api, web, sidecar, postgres, valkey.
+# From repo root: docker compose -f infra/docker/local/docker-compose.yml --project-directory . up --build
+# Env: copy infra/config/env-templates/*.env.example to infra/config/local/*.env
+
+networks:
+  metaboost_local_network:
+    name: metaboost_local_network
+
+services:
+  postgres:
+    image: postgres:18.1
+    container_name: metaboost_local_postgres
+    env_file:
+      - infra/config/local/db.env
+    volumes:
+      - ./infra/database/combined/init_database.sql:/docker-entrypoint-initdb.d/init_database.sql:ro
+    ports:
+      - 127.0.0.1:5433:5432
+    networks:
+      - metaboost_local_network
+    logging:
+      driver: 'json-file'
+      options:
+        max-file: '1'
+        max-size: 50m
+
+  valkey:
+    image: valkey/valkey:7-alpine
+    container_name: metaboost_local_valkey
+    ports:
+      - 127.0.0.1:6380:6379
+    networks:
+      - metaboost_local_network
+    healthcheck:
+      test: ['CMD', 'valkey-cli', 'ping']
+      interval: 5s
+      timeout: 3s
+      retries: 3
+    logging:
+      driver: 'json-file'
+      options:
+        max-file: '1'
+        max-size: 50m
+
+  metaboost_local_api:
+    build:
+      context: .
+      dockerfile: infra/docker/local/api/Dockerfile
+    image: metaboost-api:latest
+    container_name: metaboost_local_api
+    env_file:
+      - infra/config/local/api.env
+    networks:
+      metaboost_local_network:
+        aliases:
+          - metaboost_local_api
+    ports:
+      - 127.0.0.1:4000:4000
+    logging:
+      driver: 'json-file'
+      options:
+        max-file: '1'
+        max-size: 50m
+
+  metaboost_local_web_sidecar:
+    build:
+      context: .
+      dockerfile: infra/docker/local/web-sidecar/Dockerfile
+    image: metaboost-web-sidecar:latest
+    container_name: metaboost_local_web_sidecar
+    env_file:
+      - infra/config/local/web.env
+    environment:
+      PORT: '4101'
+    networks:
+      - metaboost_local_network
+    ports:
+      - 127.0.0.1:4101:4101
+    logging:
+      driver: 'json-file'
+      options:
+        max-file: '1'
+        max-size: 50m
+
+  metaboost_local_web:
+    build:
+      context: .
+      dockerfile: infra/docker/local/web/Dockerfile
+    image: metaboost-web:latest
+    container_name: metaboost_local_web
+    depends_on:
+      - metaboost_local_web_sidecar
+    env_file:
+      - infra/config/local/web.env
+    environment:
+      PORT: '4100'
+      RUNTIME_CONFIG_URL: 'http://metaboost_local_web_sidecar:4101'
+    networks:
+      - metaboost_local_network
+    ports:
+      - 127.0.0.1:4100:4100
+    logging:
+      driver: 'json-file'
+      options:
+        max-file: '1'
+        max-size: 50m

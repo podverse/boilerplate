@@ -30,6 +30,7 @@ export default router;
 - **Startup validation**: `lib/startup/validation.ts` runs after loadEnv() and before importing config. It validates required env vars (e.g. API_PORT, APP_NAME), logs results by category, and throws if any required are missing or invalid. Pattern aligned with Podverse’s API startup validation.
 - Read env in `config/index.ts` only after validation has passed.
 - Use `.env.example` for documented variables; non-empty values in `.env` use double quotes; empty/unset use no value after `=`.
+- **Env alignment**: All `.env` files (including `infra/config/local/*.env`) must match the organization, section comments, and variable order of their authoritative `.env.example`; only values may differ.
 
 ### Async handlers
 

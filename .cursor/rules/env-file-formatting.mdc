@@ -11,5 +11,6 @@ alwaysApply: false
 
 - **Non-empty values**: Use double quotes (e.g. `API_PORT="3000"`).
 - **Empty/unset values**: No value after `=` (e.g. `OPTIONAL_VAR=`).
+- **Alignment with .env.example**: When creating or editing `.env`, `.env.local`, or `infra/config/local/*.env`, use the same headers, comment blocks, and variable order as the corresponding `.env.example`. Only values may differ.
 
 Correct: `DATABASE_HOST="localhost"`, `EMPTY_VALUE=`. Incorrect: `DATABASE_HOST=localhost`, `EMPTY_VALUE=""`.
