@@ -58,6 +58,10 @@ jobs:
         id: install
         run: npm ci
 
+      # Web build may need env (e.g. RUNTIME_CONFIG_URL, NEXT_PUBLIC_*). Copy example so build has same shape as local.
+      - name: Setup web env for build
+        run: cp apps/web/.env.example apps/web/.env.local
+
       - name: Build
         id: build
         run: npm run build

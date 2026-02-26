@@ -2,8 +2,8 @@
 
 .PHONY: validate validate_docker
 
-# Pre-push validation: audit, build workspaces, lint, type-check, env setup, app build.
-# Exits non-zero on first failure.
+# Pre-push validation: audit, build packages, lint, type-check, env setup, build apps (plan 05).
+# Step 2 builds packages (helpers, orm); step 6 builds apps (api, web, sidecar). Exits non-zero on first failure.
 validate:
 	@echo "============================================"
 	@echo "  Running Pre-Push Validation"
@@ -12,8 +12,8 @@ validate:
 	@echo "Step 1/6: Security audit..."
 	npm audit --omit=dev
 	@echo ""
-	@echo "Step 2/6: Building workspaces..."
-	npm run build
+	@echo "Step 2/6: Building packages..."
+	npm run build:packages
 	@echo ""
 	@echo "Step 3/6: Linting..."
 	npm run lint
@@ -26,7 +26,7 @@ validate:
 	@echo "  (apps/web/.env.local from .env.example if missing)"
 	@echo ""
 	@echo "Step 6/6: Building apps..."
-	npm run build
+	npm run build:apps
 	@echo ""
 	@echo "============================================"
 	@echo "  All checks passed!"

@@ -27,6 +27,8 @@
   "scripts": {
     "start-feature": "bash scripts/start-feature.sh",
     "build": "npm run build --workspaces --if-present",
+    "build:packages": "npm run build -w @boilerplate/helpers -w @boilerplate/orm",
+    "build:apps": "npm run build -w @boilerplate/api -w @boilerplate/web -w @boilerplate/web-sidecar",
     "lint": "eslint . --max-warnings 0 && prettier --check .",
     "lint:fix": "eslint . --fix && prettier --write .",
     "type-check": "npm run type-check -w @boilerplate/helpers -w @boilerplate/orm -w @boilerplate/api -w @boilerplate/web -w @boilerplate/web-sidecar",
