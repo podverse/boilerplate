@@ -36,6 +36,8 @@ All plans: `.llm/plans/active/boilerplate/`
 | [25-llm-alignment-skills-rules.md](25-llm-alignment-skills-rules.md) | Skills, rules, AGENTS.md for LLM alignment (keep API↔OpenAPI, env↔validation, etc. in sync) |
 | [26-git-hooks.md](26-git-hooks.md) | Git hooks (Podverse-aligned): pre-commit, commit-msg, pre-push; install via prepare |
 | [27-project-description.md](27-project-description.md) | Project description: Boilerplate-specific wording and implementation details (package.json + README) |
+| [28-github-repo-setup.md](28-github-repo-setup.md) | Documentation: GitHub labels, branch protection, optional GitHub App (as required from plans 09, 10, 26) |
+| [29-dependabot.md](29-dependabot.md) | Dependabot: .github/dependabot.yml and docs/repo-management/DEPENDABOT.md |
 | [COPY-PASTA.md](COPY-PASTA.md) | Copy-paste prompts for parallel agents |
 
 ## Phase 1: Infra and local run (sequential) — complete
@@ -105,12 +107,25 @@ After Phase 2:
   .dockerignore excludes scripts/git-hooks/. Depends on lint/format (05) and GITFLOW docs
   (09).
 
-## Phase 12: Project description (final)
+## Phase 12: Project description
 
-- **27-project-description** – Run last. Update the project description to be clearly
+- **27-project-description** – Update the project description to be clearly
   Boilerplate-specific: root `package.json` description and a README section that
   describes what Boilerplate is and lists implementation details (stack, features, repo
   structure). No technical dependency; run after 26 when docs and structure are in place.
+
+## Phase 13: GitHub repo setup (documentation)
+
+- **28-github-repo-setup** – Run after 27. Add documentation for one-time GitHub
+  configuration: how to run the labels script (plan 10), how to configure branch
+  protection and default branch for develop (plans 09, 26), and optional GitHub App setup.
+  Creates or extends `docs/GITHUB-SETUP.md` and links from README or docs index.
+
+## Phase 14: Dependabot
+
+- **29-dependabot** – Run after 10 (labels exist). Add `.github/dependabot.yml` (npm at root
+  with groups, Docker for infra/docker/local/api, web, web-sidecar, github-actions) and
+  `docs/repo-management/DEPENDABOT.md`. Node LTS policy for Docker (even versions only).
 
 ## Rules
 

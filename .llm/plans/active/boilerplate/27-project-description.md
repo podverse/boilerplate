@@ -12,7 +12,7 @@ Update the project description so it is clearly **Boilerplate**-specific and lis
   - Lists **implementation details**, for example:
     - **Stack**: Node 24+, TypeScript, npm workspaces; Express API, Next.js web app, optional sidecar; Postgres (auth, init script), Valkey (messages).
     - **Features**: Signup, login, JWT auth; post messages; real-time dashboard; messages stored in Valkey; privacy toggle (messages visible only to user unless "viewable by anyone"); settings (locale, theme); i18n; SCSS, responsive layout, dark/light themes; OpenAPI spec and Swagger UI at `/api-docs`.
-    - **Structure**: `apps/api`, `apps/web`, `apps/web/sidecar`; `packages/helpers`, `packages/orm`; `infra/` (env templates, Docker, Postgres init, no k8s); scripts (validate, audit, bump-version, git hooks, labels); CI (Gitflow, `/test`); Makefile targets for validate, docker, local run.
+    - **Structure**: `apps/api`, `apps/web`, `apps/web/sidecar`; `packages/helpers`, `packages/orm`; `infra/` (env templates, Docker, Postgres init, no k8s); `tools/` (placeholder with .gitkeep); scripts (validate, audit, bump-version, git hooks, labels); CI (Gitflow, `/test`); Makefile targets for validate, docker, local run.
 - Keep the description accurate to what the plans actually implement; avoid promising features not yet built.
 
 ## Tasks
@@ -23,7 +23,7 @@ Update the project description so it is clearly **Boilerplate**-specific and lis
    - Under it, add an **Implementation details** (or **What’s included**) list covering:
      - Stack (Node, TS, Express, Next.js, Postgres, Valkey, etc.).
      - Features (auth, messages, dashboard, settings, i18n, themes, OpenAPI/Swagger).
-     - Repo structure (apps, packages, infra, scripts, CI, Makefile).
+     - Repo structure (apps, packages, infra, tools, scripts, CI, Makefile).
 3. Ensure any existing high-level README intro aligns with the new description (no contradictory wording).
 
 ## Verification

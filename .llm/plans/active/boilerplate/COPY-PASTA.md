@@ -34,7 +34,9 @@ Each line below means: do the step(s), **wait for completion**, then do the next
 9. **Phase 9:** Run 23 (one agent). **Wait for 23 to finish** before Phase 10.
 10. **Phase 10:** Run 25 (one agent). **Wait for 25 to finish** before Phase 11.
 11. **Phase 11:** Run 26 (one agent). **Wait for 26 to finish** before Phase 12.
-12. **Phase 12:** Run 27 (one agent). **Wait for 27 to finish.** Done.
+12. **Phase 12:** Run 27 (one agent). **Wait for 27 to finish** before Phase 13.
+13. **Phase 13:** Run 28 (one agent). **Wait for 28 to finish** before Phase 14.
+14. **Phase 14:** Run 29 (one agent). **Wait for 29 to finish.** Done.
 
 ---
 
@@ -226,7 +228,7 @@ GITFLOW.md. Verify hooks install on npm install and block/behave as specified.
 
 ---
 
-## Phase 12: Project description (final)
+## Phase 12: Project description
 
 ### Agent 12: Project description – Boilerplate-specific and implementation details
 
@@ -235,3 +237,24 @@ project description so it is clearly Boilerplate-specific: set root package.json
 description and add (or expand) a README section that describes what Boilerplate is and
 lists implementation details (stack, features, repo structure). Verify description and
 README align with the implemented plans.
+
+---
+
+## Phase 13: GitHub repo setup (documentation)
+
+### Agent 13: GitHub repo setup – labels, branch protection, optional GitHub App
+
+Read and execute `.llm/plans/active/boilerplate/28-github-repo-setup.md`. Add
+documentation for one-time GitHub configuration: how to run the labels script (plan 10),
+how to configure branch protection and default branch for develop (plans 09, 26), and
+optional GitHub App. Create or extend `docs/GITHUB-SETUP.md` and link from README or docs
+index. Verify the doc references plans 09, 10, and 26 where relevant.
+
+---
+
+## Phase 14: Dependabot
+
+### Agent 14: Dependabot – dependabot.yml and DEPENDABOT.md
+
+Read and execute `.llm/plans/active/boilerplate/29-dependabot.md`. Add
+`.github/dependabot.yml` (npm at root with groups, Docker for infra/docker/local api/web/web-sidecar, github-actions; target develop; Node LTS for Docker) and `docs/repo-management/DEPENDABOT.md`. Verify config and doc align with Podverse pattern (schedule, groups, labels).

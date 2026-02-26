@@ -18,9 +18,9 @@ applies labels on PR (e.g. pr-labeler).
    - Resolve repo from `gh repo view` or git remote.
    - Define a list of labels: name, color (hex), description. Include: bug, duplicate,
      enhancement, invalid, question, wontfix; technical-improvement; apps, packages, docs,
-     infra, ci, scripts; blocked; security; dependencies, docker; priority:critical,
-     priority:high, priority:medium, priority:low. Omit labels that don’t apply (e.g. tools if
-     no tools/).
+     infra, ci, scripts, tools; blocked; security; dependencies, docker; priority:critical,
+     priority:high, priority:medium, priority:low. (tools/ exists as a placeholder with
+     .gitkeep.)
    - For each label: create or update via `gh label create` (or API). Use idempotent behavior
      (create if missing, update if exists).
    - Print summary: created, updated, already correct.

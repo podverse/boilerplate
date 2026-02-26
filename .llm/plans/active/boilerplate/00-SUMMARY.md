@@ -8,7 +8,7 @@
 - **Out of scope**: deployment (no k8s); alpha publish is a stub (script + docs only).
 - **Style**: Minimal; functionality and clarity.
 
-## Plan files (27 topics + 2 meta)
+## Plan files (29 topics + 2 meta)
 
 | ID | File | Phase |
 | --- | --- | --- |
@@ -41,6 +41,8 @@
 | 25 | 25-llm-alignment-skills-rules.md | 10 |
 | 26 | 26-git-hooks.md | 11 |
 | 27 | 27-project-description.md | 12 |
+| 28 | 28-github-repo-setup.md | 13 |
+| 29 | 29-dependabot.md | 14 |
 | – | COPY-PASTA.md | Prompts |
 
 ## Dependency map
@@ -58,7 +60,9 @@
 - **14, 15, 22** → 24 (OpenAPI docs describe auth and messages API; run 24 after those exist).
 - **24, 23, 11, 12, 21** → 25 (alignment phase assumes OpenAPI, docs, validation, ORM/init, i18n exist).
 - **25** → 26 (git hooks depend on lint/format from 05 and GITFLOW from 09).
-- **26** → 27 (project description run last; optional, after docs/structure exist).
+- **26** → 27 (project description; optional, after docs/structure exist).
+- **27** → 28 (GitHub repo setup doc runs after project description; references 09, 10, 26).
+- **10** → 29 (Dependabot uses labels dependencies, docker; 29 can run after 28 or in Phase 14).
 - **Phase 2:** 05 runs before 08 (both modify root Makefile); 06, 07, 08 can run in parallel
   after 05.
 
