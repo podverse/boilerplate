@@ -5,7 +5,8 @@
 - Align boilerplate monorepo with podverse structure as a **hello-world boilerplate**.
 - **Features**: signup, login, post messages, real-time dashboard; messages in Valkey, auth in
   Postgres; privacy toggle (messages visible only to user unless “viewable by anyone”).
-- **Out of scope**: deployment (no k8s); alpha publish is a stub (script + docs only).
+- **Out of scope**: deployment (no k8s). Alpha publish: images built and pushed to registry
+  (e.g. GHCR) when merging to `alpha`.
 - **Style**: Minimal; functionality and clarity.
 
 ## Plan files (29 topics + 2 meta)

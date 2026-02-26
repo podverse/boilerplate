@@ -3,9 +3,10 @@
 ## Goal
 
 Document the one-time GitHub repository setup required by other plans: **labels** (plan 10),
-**branch protection rules** (plans 09, 26), and optionally a **GitHub App** for CI or status
-checks. This plan adds documentation and pointers so maintainers can configure the repo
-correctly after the code and workflows are in place.
+**branch protection rules** (plans 09, 26), **repository secrets** (what they are, required vs
+optional, what they do), and optionally a **GitHub App** for CI or status checks. This plan
+adds documentation and pointers so maintainers can configure the repo correctly after the
+code and workflows are in place.
 
 ## Scope
 
@@ -16,13 +17,15 @@ correctly after the code and workflows are in place.
 - Satisfies the “required from other plans” setup: plan 10 (labels script exists; doc says
   how to run it), plan 09 (CI on PR to develop; doc says set default branch and protection),
   plan 26 (pre-push blocks direct push to develop; doc says enable branch protection so
-  server-side enforcement matches).
+  server-side enforcement matches). Plan 13 (publish-alpha) and plan 21 (i18n) use
+  workflows that may need secrets; the doc lists which secrets are required or optional
+  and what they do.
 
 ## Steps
 
 1. **Create or extend setup doc**
    - Create `docs/GITHUB-SETUP.md` (or add a “GitHub repository setup” section to
-     `docs/GITFLOW.md` if that exists). The doc will cover labels, branch protection, and
+     `docs/GITFLOW.md` if that exists).   The doc will cover labels, branch protection, repository secrets, and
      optional GitHub App.
 
 2. **Labels (required by plan 10)**
@@ -50,7 +53,30 @@ correctly after the code and workflows are in place.
      and 00-SUMMARY). Steps: Settings → General → Default branch → switch to `develop` if
      not already.
 
-5. **GitHub App (optional)**
+5. **Repository secrets (first-time setup)**
+   - Add a section "Repository secrets" (or "Secrets and permissions") that lists each
+     secret used by workflows, whether it is **required** or **optional**, and what it
+     does. Where to set: Settings → Secrets and variables → Actions.
+   - **GITHUB_TOKEN** – Not a repo secret; automatically provided to workflows. Used by CI
+     (plan 09) for checkout, posting comments, and commit status; by publish-alpha (plan
+     13) for GHCR login and push when pushing to `alpha`; by i18n (plan 21) for checkout
+     and optionally for commit/push back to develop. No action needed unless org restricts
+     default permissions.
+   - **OPENAI_API_KEY** – **Optional.** Used by the i18n workflow (plan 21). When set, the
+     workflow runs LLM translation for non–source locales and commits updated originals
+     to develop. When **not** set, the workflow still runs but skips the translate step
+     (compile and validate still run). Set this if you want automatic translation on push
+     to develop when `en-US.json` changes.
+   - **GitHub App (APP_ID, APP_PRIVATE_KEY)** – **Optional.** Used by the i18n workflow if
+     it is configured to use a GitHub App token for committing and pushing translation
+     updates to develop (instead of or in addition to GITHUB_TOKEN). Plan 28’s optional
+     GitHub App subsection describes creating the App; if the i18n workflow uses it,
+     document that these secrets must be set for the workflow to push.
+   - **GHCR or registry token** – **Optional.** Publish-alpha (plan 13) typically uses
+     GITHUB_TOKEN to push to GitHub Container Registry. If your org requires a dedicated
+     token (e.g. PAT or GHCR_REGISTRY_TOKEN), document that here and in docs/PUBLISH.md.
+
+6. **GitHub App (optional)**
    - Add a short subsection “Optional: GitHub App” for teams that use a GitHub App for CI
      status checks, deployment, or /test automation. Document: create an App in the org
      (or user) settings; install it on this repo; store App ID and private key (or
@@ -58,7 +84,7 @@ correctly after the code and workflows are in place.
      Apps. If plan 09’s /test workflow is extended to use an App for posting status or
      comments, mention that here and point to the workflow file.
 
-6. **README or docs index**
+7. **README or docs index**
    - Add a line in README or in `docs/README.md` (if present) pointing to the GitHub
      setup doc so new maintainers find it (e.g. “For one-time GitHub configuration
      (labels, branch protection), see [docs/GITHUB-SETUP.md](docs/GITHUB-SETUP.md).”).
@@ -71,9 +97,10 @@ correctly after the code and workflows are in place.
 ## Verification
 
 - The doc exists and describes: (1) running the labels script, (2) configuring branch
-  protection for develop, (3) setting default branch to develop, (4) optional GitHub App.
-- Doc references plan 10 (labels), plan 09 (CI), and plan 26 (pre-push / protected
-  branch) where relevant.
+  protection for develop, (3) setting default branch to develop, (4) repository secrets
+  (required vs optional, what each does), (5) optional GitHub App.
+- Doc references plan 10 (labels), plan 09 (CI), plan 26 (pre-push / protected branch),
+  plan 13 (publish-alpha), and plan 21 (i18n) where relevant.
 - README or docs index links to the setup doc.
 
 ## Dependencies

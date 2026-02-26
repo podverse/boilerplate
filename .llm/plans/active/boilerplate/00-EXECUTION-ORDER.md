@@ -21,7 +21,7 @@ All plans: `.llm/plans/active/boilerplate/`
 | [10-git-labels.md](../../completed/boilerplate/10-git-labels.md) (completed) | Git labels and generation |
 | [11-helpers-package.md](../../completed/boilerplate/11-helpers-package.md) (completed) | Move validate env to helpers package |
 | [12-orm-package.md](../../completed/boilerplate/12-orm-package.md) (completed) | ORM package |
-| [13-alpha-publish-stub.md](13-alpha-publish-stub.md) | Alpha publish stub |
+| [13-alpha-publish-stub.md](13-alpha-publish-stub.md) | Alpha publish (images on merge to alpha) |
 | [14-joi-validation.md](14-joi-validation.md) | Joi validation |
 | [15-auth-handling.md](15-auth-handling.md) | Auth handling |
 | [16-scss.md](16-scss.md) | SCSS setup |
@@ -65,9 +65,10 @@ After Phase 2:
 - **11-helpers-package** – Run first. (completed)
 - **12-orm-package** – After 11. (completed)
 
-## Phase 5: Alpha stub
+## Phase 5: Alpha publish (images on merge to alpha)
 
-- **13-alpha-publish-stub** – Can run in parallel with Phase 4 or after.
+- **13-alpha-publish-stub** – Can run in parallel with Phase 4 or after. Workflow publishes
+  Docker images to registry when merging to `alpha`.
 
 ## Phase 6: API (parallel where possible)
 
@@ -76,7 +77,9 @@ After Phase 2:
 ## Phase 7: Frontend (parallel groups)
 
 - **16-scss**, **17-responsive-layout**, **18-themes**, **19-basic-components** – Parallel.
-- **21-i18n-translations** – Run after 18–19 (settings page depends on i18n).
+- **21-i18n-translations** – Run after 18–19 (settings page depends on i18n). Includes
+  three-tier layout (originals/overrides/compiled) and workflow on push to develop to
+  update translations; skips LLM translate when OPENAI_API_KEY is not set.
 - **20-settings-page** – Run after 21 (uses locale selector and t() from i18n).
 - **22-dashboard-realtime** – After auth, API messages, Valkey, and privacy flag.
 
