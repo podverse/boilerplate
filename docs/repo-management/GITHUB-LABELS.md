@@ -20,6 +20,11 @@ This document lists all labels in the Boilerplate repository for consistent issu
 | Label                   | Color   | Description                                           |
 | ----------------------- | ------- | ----------------------------------------------------- |
 | `technical-improvement` | #0075ca | Code quality, refactoring, optimization, architecture |
+| `accessibility`         | #0d9488 | Accessibility (a11y) improvements                      |
+| `documentation`         | #bfd4f2 | Documentation improvements or requests                |
+| `task`                  | #7f8c8d | Task or chore                                         |
+| `more info needed`      | #fbcb04 | Needs more information from the author                |
+| `translations`          | #d4c5f9 | Translations and localization                         |
 
 ## Category: Code Area (Monorepo Structure)
 
