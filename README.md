@@ -47,6 +47,10 @@ This builds the sidecar, then starts the sidecar (port 4101) and the Next.js app
 - **API**: `API_PORT`, `APP_NAME` (see `apps/api/.env.example`)
 - **Web**: `RUNTIME_CONFIG_URL`, `NEXT_PUBLIC_APP_NAME`, `NEXT_PUBLIC_API_URL` (see `apps/web/.env.example`)
 
+## Gitflow and CI
+
+Default branch is **develop**; open PRs against `develop`. Use `npm run start-feature` to create branches (e.g. `feature/name`, `fix/name`). CI runs when a PR targets develop (on open/update) and when a maintainer comments **/test** on a PR. See [docs/GITFLOW.md](docs/GITFLOW.md).
+
 ## Scripts
 
 - `npm run build` – Build all workspaces
@@ -61,6 +65,8 @@ This builds the sidecar, then starts the sidecar (port 4101) and the Next.js app
 - `npm run prettier:check` / `npm run prettier:write` – Prettier
 
 **Version bump:** Run `./scripts/publish/bump-version.sh` when cutting a release. It updates root and all workspace `package.json` versions, then commits and pushes (no npm publish or image push).
+
+**GitHub labels:** Run `./scripts/github/setup-all-labels.sh` to create or update repo labels (requires `gh auth login`). See [scripts/github/SCRIPTS-GITHUB.md](scripts/github/SCRIPTS-GITHUB.md) and [docs/repo-management/GITHUB-LABELS.md](docs/repo-management/GITHUB-LABELS.md). For one-time repo setup (labels, branch protection, default branch), see [docs/repo-management/GITHUB-SETUP.md](docs/repo-management/GITHUB-SETUP.md).
 
 ## LLM / Cursor
 

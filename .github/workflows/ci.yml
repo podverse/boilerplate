@@ -1,0 +1,179 @@
+name: CI
+
+on:
+  issue_comment:
+    types: [created]
+
+jobs:
+  validate:
+    # Run only when a maintainer comments /test on a PR (comment-triggered CI; no automatic run on PR open/update).
+    if: |
+      github.event.issue.pull_request &&
+      contains(github.event.comment.body, '/test') &&
+      (github.event.comment.author_association == 'OWNER' ||
+       github.event.comment.author_association == 'MEMBER' ||
+       github.event.comment.author_association == 'COLLABORATOR')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+      statuses: write
+    steps:
+      - name: Add reaction to comment
+        uses: actions/github-script@v8
+        with:
+          script: |
+            await github.rest.reactions.createForIssueComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              comment_id: context.payload.comment.id,
+              content: 'rocket'
+            });
+
+      - name: Get PR details
+        id: pr-comment
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const pr = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.issue.number
+            });
+            core.setOutput('head_ref', pr.data.head.ref);
+            core.setOutput('head_sha', pr.data.head.sha);
+            core.setOutput('pr_number', context.issue.number);
+
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ steps.pr-comment.outputs.head_sha }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: "24"
+          cache: "npm"
+
+      - name: Install dependencies
+        id: install
+        run: npm ci
+
+      - name: Build
+        id: build
+        run: npm run build
+
+      - name: Lint
+        id: lint
+        run: npm run lint
+
+      - name: Type-check
+        id: type-check
+        run: npm run type-check
+
+      - name: Report success
+        if: success()
+        uses: actions/github-script@v8
+        env:
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          PR_NUMBER: ${{ steps.pr-comment.outputs.pr_number }}
+        with:
+          script: |
+            const body = [
+              '## ✅ CI Passed',
+              '',
+              'All checks completed successfully.',
+              '',
+              '| Check | Status |',
+              '|-------|--------|',
+              '| Dependencies installed | ✅ |',
+              '| Build | ✅ |',
+              '| Lint | ✅ |',
+              '| Type-check | ✅ |',
+              '',
+              `[View full run](${process.env.RUN_URL})`
+            ].join('\n');
+
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: parseInt(process.env.PR_NUMBER),
+              body: body
+            });
+
+      - name: Set success commit status
+        if: success()
+        uses: actions/github-script@v8
+        env:
+          HEAD_SHA: ${{ steps.pr-comment.outputs.head_sha }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        with:
+          script: |
+            await github.rest.repos.createCommitStatus({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              sha: process.env.HEAD_SHA,
+              state: 'success',
+              context: 'validate',
+              description: 'All checks passed',
+              target_url: process.env.RUN_URL
+            });
+
+      - name: Report failure
+        if: failure()
+        uses: actions/github-script@v8
+        env:
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          PR_NUMBER: ${{ steps.pr-comment.outputs.pr_number }}
+          INSTALL: ${{ steps.install.outcome }}
+          BUILD: ${{ steps.build.outcome }}
+          LINT: ${{ steps.lint.outcome }}
+          TYPE_CHECK: ${{ steps.type-check.outcome }}
+        with:
+          script: |
+            const status = (outcome) => {
+              if (outcome === 'success') return '✅';
+              if (outcome === 'failure') return '❌';
+              return '⏭️';
+            };
+
+            const body = [
+              '## ❌ CI Failed',
+              '',
+              'One or more checks failed. Please review and fix the issues.',
+              '',
+              '| Check | Status |',
+              '|-------|--------|',
+              `| Dependencies installed | ${status(process.env.INSTALL)} |`,
+              `| Build | ${status(process.env.BUILD)} |`,
+              `| Lint | ${status(process.env.LINT)} |`,
+              `| Type-check | ${status(process.env.TYPE_CHECK)} |`,
+              '',
+              'Legend: ✅ Passed | ❌ Failed | ⏭️ Skipped',
+              '',
+              `[View full run for details](${process.env.RUN_URL})`
+            ].join('\n');
+
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: parseInt(process.env.PR_NUMBER),
+              body: body
+            });
+
+      - name: Set failure commit status
+        if: failure()
+        uses: actions/github-script@v8
+        env:
+          HEAD_SHA: ${{ steps.pr-comment.outputs.head_sha }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        with:
+          script: |
+            await github.rest.repos.createCommitStatus({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              sha: process.env.HEAD_SHA,
+              state: 'failure',
+              context: 'validate',
+              description: 'One or more checks failed',
+              target_url: process.env.RUN_URL
+            });
