@@ -29,6 +29,8 @@ npm run dev:web-sidecar  # Build sidecar + run web with sidecar
 
 See [.llm/LLM.md](.llm/LLM.md) for full guidelines. Use the **llm-history** skill when updating history or starting feature work.
 
+- **Before file-modifying work:** If the current branch matches an existing `.llm/history/active/[feature]/` (e.g. branch `chore/first-test-issue` → `first-test-issue`), update that history file; no exception for small changes.
+
 ## Code Quality
 
 - Strict equality (`===` / `!==` only)
