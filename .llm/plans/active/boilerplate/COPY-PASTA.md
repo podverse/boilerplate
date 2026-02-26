@@ -26,8 +26,9 @@ Each line below means: do the step(s), **wait for completion**, then do the next
    12 to finish** before Phase 5.
 5. **Phase 5:** Run 13 (one agent). (completed) **Skip; proceed to Phase 6.**
 6. **Phase 6:** Run 15 (one agent). **Wait for 15 to finish.** Then run 14 (one agent).
-   **Wait for 14 to finish** before Phase 7. (Auth routes and controllers first so Joi has
-   endpoints with varied params/body to validate.)
+   **Wait for 14 to finish.** Then run 34 (Phase 6b, one agent). **Wait for 34 to finish**
+   before Phase 7. (Auth routes first so Joi has endpoints to validate; plan 34 adds
+   email verification, forgot/reset password, change email — mailer mode only.)
 7. **Phase 7:** Run 16, 17, 18, 19 in parallel (four agents); these deliver into the
    **shared UI package** (`packages/ui` / `@boilerplate/ui`) so both web and
    management-web consume the same components and styles. **Wait for all four to finish.**
@@ -152,13 +153,21 @@ controllers are in place first so Joi validation has real endpoints with varied 
 ### Agent 6A: Auth handling (run first; depends on ORM from 12)
 
 Read and execute `.llm/plans/active/boilerplate/15-auth-handling.md`. Implement
-auth for both modes: mailer (signup, login, logout) and no-mailer (admin bootstrap, POST /admin/users,
-first-login change password, login with mustChangePassword). Verify full auth flow for the mode in use.
+auth for both modes: mailer (signup, login, logout) and no-mailer (signup disabled;
+login, logout, change-password; user creation is via Management API when that track
+is implemented). Verify full auth flow for the mode in use.
 
 ### Agent 6B: Joi validation (run after 6A)
 
 Read and execute `.llm/plans/active/boilerplate/14-joi-validation.md`. Add Joi
 schemas and validation for auth and message routes. Verify 400 on invalid bodies.
+
+### Agent 6C: Sign-up verification and password flows (Phase 6b; run after 6A)
+
+Read and execute `.llm/plans/active/boilerplate/34-signup-verification-and-password-flows.md`.
+Implement email verification after signup, forgot/reset password, and change email with
+verification. Mailer mode only; schema (snake_case), tokens, mailer integration, OpenAPI
+updates. Verify flows end-to-end when mailer is enabled.
 
 ---
 

@@ -7,6 +7,9 @@ import { DataSource } from 'typeorm';
 import type { DataSourceOptions } from 'typeorm';
 
 import { User } from './entities/User.js';
+import { UserCredentials } from './entities/UserCredentials.js';
+import { UserBio } from './entities/UserBio.js';
+import { VerificationToken } from './entities/VerificationToken.js';
 
 function getReadWriteOptions(): DataSourceOptions {
   const host = process.env.DB_HOST;
@@ -32,7 +35,7 @@ function getReadWriteOptions(): DataSourceOptions {
     database,
     username,
     password,
-    entities: [User],
+    entities: [User, UserCredentials, UserBio, VerificationToken],
     synchronize: false,
     logging: false,
   };

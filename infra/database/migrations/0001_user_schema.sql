@@ -1,36 +1,3 @@
--- Combined migrations generated Thu Feb 26 16:50:08 CST 2026
--- DO NOT EDIT - regenerate with scripts/database/combine-migrations.sh
-
--- Including: 0000_init_helpers.sql
--- 0000 migration
-
--- Extensions
-
-CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
-
--- Minimal helper domains (only what user and related tables need).
--- Lengths (255, 60, 50, 32, 64) align with @boilerplate/helpers field-lengths.
-
-CREATE DOMAIN varchar_email AS VARCHAR(255) CHECK (VALUE ~ '^.+@.+\..+$');
-CREATE DOMAIN varchar_password AS VARCHAR(60);
-CREATE DOMAIN varchar_short AS VARCHAR(50);
--- Verification tokens: kind (e.g. email_verify) and SHA-256 hex hash; lengths align with @boilerplate/helpers
-CREATE DOMAIN varchar_token_kind AS VARCHAR(32);
-CREATE DOMAIN varchar_token_hash AS VARCHAR(64);
-CREATE DOMAIN server_time_with_default AS TIMESTAMP DEFAULT NOW();
-
--- Function to set updated_at (used by user and future tables)
-
-CREATE OR REPLACE FUNCTION set_updated_at_field()
-RETURNS TRIGGER AS $$
-BEGIN
-    NEW.updated_at := NOW();
-    RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
-
-
--- Including: 0001_user_schema.sql
 -- 0001 migration: user (singular) with join tables user_credentials, user_bio; verification_token for Plan 34
 
 -- Core user row (one per account)
@@ -72,5 +39,3 @@ CREATE TABLE verification_token (
 
 CREATE INDEX idx_verification_token_hash ON verification_token(token_hash);
 CREATE INDEX idx_verification_token_expires_at ON verification_token(expires_at);
-
-

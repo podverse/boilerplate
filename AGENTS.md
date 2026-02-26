@@ -19,6 +19,15 @@ npm run dev:web          # Next.js only
 npm run dev:web-sidecar  # Build sidecar + run web with sidecar
 ```
 
+### Nix / terminal (agent sandbox)
+
+Node and npm are provided by the repo's Nix flake, not a global install. When running terminal commands (e.g. in Cursor's agent), use the wrapper so the correct environment is available:
+
+- **Wrapper:** `./scripts/nix/with-env <command> [args...]`
+- **Examples:** `./scripts/nix/with-env npm run build`, `./scripts/nix/with-env npm run dev:api`
+- Run from repo root. Full explanation and setup-in-other-repos: [docs/CURSOR-NIX-WITH-ENV.md](docs/CURSOR-NIX-WITH-ENV.md).
+- Agent runs that use the wrapper may need full permissions so Nix can write to its cache.
+
 ## Structure
 
 - `apps/api/` – Standalone Express HTTP API

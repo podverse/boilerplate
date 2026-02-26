@@ -60,6 +60,32 @@ export const openApiDocument = {
           displayName: { type: 'string', nullable: true },
         },
       },
+      VerifyEmailBody: {
+        type: 'object',
+        properties: { token: { type: 'string', description: 'Verification token from email link' } },
+      },
+      ForgotPasswordBody: {
+        type: 'object',
+        required: ['email'],
+        properties: { email: { type: 'string', format: 'email' } },
+      },
+      ResetPasswordBody: {
+        type: 'object',
+        required: ['token', 'newPassword'],
+        properties: {
+          token: { type: 'string' },
+          newPassword: { type: 'string', minLength: 1 },
+        },
+      },
+      RequestEmailChangeBody: {
+        type: 'object',
+        required: ['newEmail'],
+        properties: { newEmail: { type: 'string', format: 'email' } },
+      },
+      ConfirmEmailChangeBody: {
+        type: 'object',
+        properties: { token: { type: 'string' } },
+      },
       ErrorMessage: {
         type: 'object',
         properties: { message: { type: 'string' } },
@@ -250,6 +276,106 @@ export const openApiDocument = {
               'application/json': { schema: { $ref: '#/components/schemas/ErrorMessage' } },
             },
           },
+        },
+      },
+    },
+    '/auth/verify-email': {
+      post: {
+        summary: 'Verify email',
+        description: 'Confirm email using token from verification email. Mailer mode only.',
+        operationId: 'authVerifyEmail',
+        requestBody: {
+          content: {
+            'application/json': { schema: { $ref: '#/components/schemas/VerifyEmailBody' } },
+          },
+        },
+        responses: {
+          '200': {
+            description: 'Email verified',
+            content: {
+              'application/json': { schema: { type: 'object', properties: { message: { type: 'string' } } } },
+            },
+          },
+          '400': { description: 'Invalid or expired link', content: { 'application/json': { schema: { $ref: '#/components/schemas/ErrorMessage' } } } },
+          '403': { description: 'Email verification not enabled', content: { 'application/json': { schema: { $ref: '#/components/schemas/ErrorMessage' } } } },
+        },
+      },
+    },
+    '/auth/forgot-password': {
+      post: {
+        summary: 'Forgot password',
+        description: 'Request password reset email. Always returns 200 (no user enumeration). Mailer mode only.',
+        operationId: 'authForgotPassword',
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': { schema: { $ref: '#/components/schemas/ForgotPasswordBody' } },
+          },
+        },
+        responses: {
+          '200': {
+            description: 'If an account exists, a reset link was sent',
+            content: {
+              'application/json': { schema: { type: 'object', properties: { message: { type: 'string' } } } },
+            },
+          },
+          '403': { description: 'Email verification not enabled', content: { 'application/json': { schema: { $ref: '#/components/schemas/ErrorMessage' } } } },
+        },
+      },
+    },
+    '/auth/reset-password': {
+      post: {
+        summary: 'Reset password',
+        description: 'Set new password using token from reset email. Mailer mode only.',
+        operationId: 'authResetPassword',
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': { schema: { $ref: '#/components/schemas/ResetPasswordBody' } },
+          },
+        },
+        responses: {
+          '204': { description: 'Password updated' },
+          '400': { description: 'Invalid or expired link', content: { 'application/json': { schema: { $ref: '#/components/schemas/ErrorMessage' } } } },
+          '403': { description: 'Email verification not enabled', content: { 'application/json': { schema: { $ref: '#/components/schemas/ErrorMessage' } } } },
+        },
+      },
+    },
+    '/auth/request-email-change': {
+      post: {
+        summary: 'Request email change',
+        description: 'Send verification email to new address. Requires Bearer token. Mailer mode only.',
+        operationId: 'authRequestEmailChange',
+        security: [{ bearerAuth: [] }],
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': { schema: { $ref: '#/components/schemas/RequestEmailChangeBody' } },
+          },
+        },
+        responses: {
+          '200': { description: 'Verification email sent', content: { 'application/json': { schema: { type: 'object', properties: { message: { type: 'string' } } } } } },
+          '400': { description: 'newEmail required or same as current', content: { 'application/json': { schema: { $ref: '#/components/schemas/ErrorMessage' } } } },
+          '401': { description: 'Authentication required', content: { 'application/json': { schema: { $ref: '#/components/schemas/ErrorMessage' } } } },
+          '409': { description: 'Email already in use', content: { 'application/json': { schema: { $ref: '#/components/schemas/ErrorMessage' } } } },
+          '403': { description: 'Email verification not enabled', content: { 'application/json': { schema: { $ref: '#/components/schemas/ErrorMessage' } } } },
+        },
+      },
+    },
+    '/auth/confirm-email-change': {
+      post: {
+        summary: 'Confirm email change',
+        description: 'Apply new email using token from verification email. Mailer mode only.',
+        operationId: 'authConfirmEmailChange',
+        requestBody: {
+          content: {
+            'application/json': { schema: { $ref: '#/components/schemas/ConfirmEmailChangeBody' } },
+          },
+        },
+        responses: {
+          '200': { description: 'Email updated', content: { 'application/json': { schema: { type: 'object', properties: { message: { type: 'string' } } } } } },
+          '400': { description: 'Invalid or expired link', content: { 'application/json': { schema: { $ref: '#/components/schemas/ErrorMessage' } } } },
+          '403': { description: 'Email verification not enabled', content: { 'application/json': { schema: { $ref: '#/components/schemas/ErrorMessage' } } } },
         },
       },
     },

@@ -42,6 +42,7 @@ All plans: `.llm/plans/active/boilerplate/`
 | [31-management-database.md](31-management-database.md) | Management DB (identities, permissions, audit events) |
 | [32-management-api.md](32-management-api.md) | Management API (auth, admin CRUD, events API) |
 | [33-management-web.md](33-management-web.md) | Management Web (UI, Events page; uses shared UI package) |
+| [34-signup-verification-and-password-flows.md](34-signup-verification-and-password-flows.md) | Sign-up verification and password flows (email verify, forgot/reset password, change email) |
 | [COPY-PASTA.md](COPY-PASTA.md) | Copy-paste prompts for parallel agents |
 
 ## Phase 1: Infra and local run (sequential) — complete
@@ -78,6 +79,10 @@ After Phase 2:
 
 - **15-auth-handling** – Run first (after 12). Implement auth routes and controllers so endpoints exist.
 - **14-joi-validation** – Run after 15. Add Joi schemas and validation to auth (and message) routes; having real endpoints with varied params/body makes validation work concrete.
+
+## Phase 6b: Auth verification flows (mailer mode)
+
+- **34-signup-verification-and-password-flows** – Run after 15 (auth handling). Implements email verification after signup, forgot/reset password, and change email with verification. Mailer mode only; no-mailer behavior unchanged.
 
 ## Phase 7: Frontend (parallel groups)
 

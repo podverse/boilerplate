@@ -29,3 +29,4 @@ version: 1.0.0
 ## Code Quality
 
 - Strict equality (`===` / `!==` only). Semicolons in JS/TS. Prefer `import type` for type-only imports.
+- **Catch blocks:** If the error value is not used, use `catch { ... }` (no variable). See **.cursor/skills/catch-unused-error/SKILL.md**.

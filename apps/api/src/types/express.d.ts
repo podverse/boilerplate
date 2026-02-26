@@ -1,9 +1,9 @@
-import type { User } from '@boilerplate/orm';
+import type { UserWithRelations } from '@boilerplate/orm';
 
 declare global {
   namespace Express {
     interface Request {
-      user?: User;
+      user?: UserWithRelations;
     }
   }
 }
