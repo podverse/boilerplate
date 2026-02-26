@@ -77,6 +77,74 @@ export function validatePositiveInteger(varName: string, category: string): Vali
   };
 }
 
+const DEFAULT_WEAK_JWT_SECRETS = [
+  'secret',
+  'jwt_secret',
+  'change-me',
+  'changeme',
+  'change-me-in-production',
+  'your-256-bit-secret',
+  'supersecret',
+];
+
+/**
+ * Validates that an env var is set and suitable for use as a JWT secret:
+ * - Non-empty
+ * - Minimum length (default 32 for HS256)
+ * - Not a known weak value
+ */
+export function validateJwtSecret(
+  varName: string,
+  category: string,
+  options: { minLength?: number; weakValues?: string[] } = {}
+): ValidationResult {
+  const { minLength = 32, weakValues = DEFAULT_WEAK_JWT_SECRETS } = options;
+  const value = process.env[varName];
+  const isSet =
+    value !== undefined && value !== null && typeof value === 'string' && value.trim() !== '';
+  if (!isSet) {
+    return {
+      name: varName,
+      isSet: false,
+      isValid: false,
+      isRequired: true,
+      message: 'Missing or empty',
+      category,
+    };
+  }
+  const trimmed = value.trim();
+  if (trimmed.length < minLength) {
+    return {
+      name: varName,
+      isSet: true,
+      isValid: false,
+      isRequired: true,
+      message: `Too short: must be at least ${minLength} characters for sufficient entropy`,
+      category,
+    };
+  }
+  const lower = trimmed.toLowerCase();
+  const isWeak = weakValues.some((w) => lower.includes(w) || w === lower);
+  if (isWeak) {
+    return {
+      name: varName,
+      isSet: true,
+      isValid: false,
+      isRequired: true,
+      message: 'Value is too weak or predictable; use a long random string',
+      category,
+    };
+  }
+  return {
+    name: varName,
+    isSet: true,
+    isValid: true,
+    isRequired: true,
+    message: 'Set (length and strength OK)',
+    category,
+  };
+}
+
 /**
  * Builds a ValidationSummary from an array of results.
  */

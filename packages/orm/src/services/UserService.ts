@@ -27,4 +27,9 @@ export class UserService {
     });
     return repo.save(user);
   }
+
+  static async updatePassword(userId: string, hashedPassword: string): Promise<void> {
+    const repo = appDataSource.getRepository(User);
+    await repo.update(userId, { password: hashedPassword });
+  }
 }

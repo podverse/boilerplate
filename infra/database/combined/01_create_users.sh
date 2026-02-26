@@ -3,14 +3,14 @@
 # so ALTER DEFAULT PRIVILEGES apply to tables created by init_database.sql.
 set -e
 
-: "${POSTGRES_READ_PASSWORD:?Missing POSTGRES_READ_PASSWORD}"
-: "${POSTGRES_READ_WRITE_PASSWORD:?Missing POSTGRES_READ_WRITE_PASSWORD}"
+: "${DB_READ_PASSWORD:?Missing DB_READ_PASSWORD}"
+: "${DB_READ_WRITE_PASSWORD:?Missing DB_READ_WRITE_PASSWORD}"
 
 psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" <<SQL
 DO \$\$
 BEGIN
     IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = 'read') THEN
-        EXECUTE format('CREATE USER read WITH PASSWORD %L', '${POSTGRES_READ_PASSWORD}');
+        EXECUTE format('CREATE USER read WITH PASSWORD %L', '${DB_READ_PASSWORD}');
     END IF;
 END
 \$\$;
@@ -18,7 +18,7 @@ END
 DO \$\$
 BEGIN
     IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = 'read_write') THEN
-        EXECUTE format('CREATE USER read_write WITH PASSWORD %L', '${POSTGRES_READ_WRITE_PASSWORD}');
+        EXECUTE format('CREATE USER read_write WITH PASSWORD %L', '${DB_READ_WRITE_PASSWORD}');
     END IF;
 END
 \$\$;

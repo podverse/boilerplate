@@ -6,6 +6,7 @@ export {
 export {
   buildSummary,
   displayValidationResults,
+  validateJwtSecret,
   validatePositiveInteger,
   validateRequired,
   validateStartupRequirements,

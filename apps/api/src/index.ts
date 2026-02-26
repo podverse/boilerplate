@@ -26,7 +26,13 @@ const run = async (): Promise<void> => {
   const { appDataSource } = await import('@boilerplate/orm');
   await appDataSource.initialize();
 
-  const { config } = await import('./config/index.js');
+  const { config, isNoMailerMode } = await import('./config/index.js');
+
+  const { requireAuth } = await import('./middleware/requireAuth.js');
+  const { createAuthRouter } = await import('./routes/auth.js');
+
+  const authMiddleware = requireAuth(config.jwtSecret);
+  const mountSignup = !isNoMailerMode();
 
   const app = express();
   app.use(express.json());
@@ -41,6 +47,8 @@ const run = async (): Promise<void> => {
       env: { port: config.port },
     });
   });
+
+  app.use('/auth', createAuthRouter(authMiddleware, mountSignup));
 
   const server = app.listen(config.port, () => {
     console.warn(`${config.appName} API listening on port ${config.port}`);

@@ -42,6 +42,9 @@ services:
   valkey:
     image: valkey/valkey:7-alpine
     container_name: boilerplate_local_valkey
+    env_file:
+      - infra/config/local/valkey.env
+    command: ["/bin/sh", "-c", "exec valkey-server --requirepass \"$$VALKEY_PASSWORD\""]
     volumes:
       - boilerplate_valkey_data:/data
     ports:
@@ -49,7 +52,7 @@ services:
     networks:
       - boilerplate_local_network
     healthcheck:
-      test: ["CMD", "valkey-cli", "ping"]
+      test: ["CMD-SHELL", "valkey-cli -a \"$$VALKEY_PASSWORD\" ping | grep -q PONG"]
       interval: 5s
       timeout: 3s
       retries: 3

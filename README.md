@@ -46,8 +46,21 @@ This builds the sidecar, then starts the sidecar (port 4101) and the Next.js app
 
 ## Env examples
 
-- **API**: `API_PORT`, `APP_NAME` (see `apps/api/.env.example`)
+- **API**: `API_PORT`, `APP_NAME`, `JWT_SECRET`, and optionally `AUTH_MODE`, `MAILER_ENABLED` (see `apps/api/.env.example`)
 - **Web**: `RUNTIME_CONFIG_URL`, `NEXT_PUBLIC_APP_NAME`, `NEXT_PUBLIC_API_URL` (see `apps/web/.env.example`)
+
+## API auth
+
+The API uses JWT: send `Authorization: Bearer <token>` for protected routes (e.g. `GET /auth/me`, `POST /auth/change-password`). Set `MAILER_ENABLED=true` for self-service signup (`POST /auth/signup`). When mailer is disabled (default or `AUTH_MODE=admin_only`), signup is disabled; user creation is handled by the Management API when the Management track (plans 31–33) is in use.
+
+**JWT_SECRET** must be at least 32 characters and not weak. Generate one with:
+
+```bash
+openssl rand -base64 32
+# or: node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"
+```
+
+Put the output in `apps/api/.env` as `JWT_SECRET="<paste-here>"`.
 
 ## Gitflow and CI
 

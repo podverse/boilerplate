@@ -1,4 +1,4 @@
--- Combined migrations generated Thu Feb 26 12:29:56 CST 2026
+-- Combined migrations generated Thu Feb 26 14:57:41 CST 2026
 -- DO NOT EDIT - regenerate with scripts/database/combine-migrations.sh
 
 -- Including: 0000_init_helpers.sql
@@ -46,5 +46,4 @@ CREATE TRIGGER set_updated_at_users
     BEFORE UPDATE ON users
     FOR EACH ROW
     EXECUTE FUNCTION set_updated_at_field();
-
 
