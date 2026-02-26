@@ -39,7 +39,7 @@ const run = async (): Promise<void> => {
   });
 
   const server = app.listen(config.port, () => {
-    console.log(`${config.appName} API listening on port ${config.port}`);
+    console.warn(`${config.appName} API listening on port ${config.port}`);
   });
 
   process.on('SIGINT', () => {

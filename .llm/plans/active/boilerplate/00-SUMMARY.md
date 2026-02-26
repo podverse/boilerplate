@@ -14,14 +14,14 @@
 | --- | --- | --- |
 | – | 00-EXECUTION-ORDER.md | Meta |
 | – | 00-SUMMARY.md | Meta |
-| 01 | 01-infra-directory.md | 1 |
-| 02 | 02-docker-files.md | 1 |
-| 03 | 03-add-postgres.md | 1 |
-| 04 | 04-add-valkey.md | 1 |
-| 05 | 05-validate.md | 2 |
-| 06 | 06-audit.md | 2 |
-| 07 | 07-bump-version.md | 2 |
-| 08 | 08-makefiles.md | 2 |
+| 01 | 01-infra-directory.md | 1 (completed) |
+| 02 | 02-docker-files.md | 1 (completed) |
+| 03 | 03-add-postgres.md | 1 (completed) |
+| 04 | 04-add-valkey.md | 1 (completed) |
+| 05 | 05-validate.md | 2 (completed) |
+| 06 | 06-audit.md | 2 (completed) |
+| 07 | 07-bump-version.md | 2 (completed) |
+| 08 | 08-makefiles.md | 2 (completed) |
 | 09 | 09-gitflow-test.md | 3 |
 | 10 | 10-git-labels.md | 3 |
 | 11 | 11-helpers-package.md | 4 |

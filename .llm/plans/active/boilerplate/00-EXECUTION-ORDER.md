@@ -13,10 +13,10 @@ All plans: `.llm/plans/active/boilerplate/`
 | [02-docker-files.md](../../completed/boilerplate/02-docker-files.md) (completed) | Dockerfiles and docker-compose (no k8s) |
 | [03-add-postgres.md](../../completed/boilerplate/03-add-postgres.md) (completed) | Postgres service and init scripts |
 | [04-add-valkey.md](../../completed/boilerplate/04-add-valkey.md) (completed) | Valkey service and config |
-| [05-validate.md](05-validate.md) | Make validate target |
-| [06-audit.md](06-audit.md) | Audit script |
-| [07-bump-version.md](07-bump-version.md) | Bump version script |
-| [08-makefiles.md](08-makefiles.md) | Root Makefile and local infra targets |
+| [05-validate.md](../../completed/boilerplate/05-validate.md) (completed) | Make validate target |
+| [06-audit.md](../../completed/boilerplate/06-audit.md) (completed) | Audit script |
+| [07-bump-version.md](../../completed/boilerplate/07-bump-version.md) (completed) | Bump version script |
+| [08-makefiles.md](../../completed/boilerplate/08-makefiles.md) (completed) | Root Makefile and local infra targets |
 | [09-gitflow-test.md](09-gitflow-test.md) | Gitflow and /test CI |
 | [10-git-labels.md](10-git-labels.md) | Git labels and generation |
 | [11-helpers-package.md](11-helpers-package.md) | Move validate env to helpers package |
@@ -44,13 +44,13 @@ All plans: `.llm/plans/active/boilerplate/`
 2. **02-docker-files** – After 01. (completed)
 3. **03-add-postgres** and **04-add-valkey** – After 02; can run in parallel. (completed)
 
-## Phase 2: Scripts and makefiles (sequential then parallel)
+## Phase 2: Scripts and makefiles (sequential then parallel) — complete
 
 After Phase 1 complete:
 
-- **05-validate** – Run first (creates root Makefile with validate / validate_docker).
+- **05-validate** – Run first (creates root Makefile with validate / validate_docker). (completed)
 - **06-audit**, **07-bump-version**, **08-makefiles** – Run in parallel after 05. Plan 08
-  extends the same Makefile created by 05; do not run 05 and 08 in parallel.
+  extends the same Makefile created by 05; do not run 05 and 08 in parallel. (completed)
 
 ## Phase 3: Gitflow and CI (parallel)
 

@@ -60,6 +60,8 @@ This builds the sidecar, then starts the sidecar (port 4101) and the Next.js app
 - `npm run lint` / `npm run lint:fix` – ESLint
 - `npm run prettier:check` / `npm run prettier:write` – Prettier
 
+**Version bump:** Run `./scripts/publish/bump-version.sh` when cutting a release. It updates root and all workspace `package.json` versions, then commits and pushes (no npm publish or image push).
+
 ## LLM / Cursor
 
 See [.llm/LLM.md](.llm/LLM.md) and [AGENTS.md](AGENTS.md) for history tracking and agent guidelines.

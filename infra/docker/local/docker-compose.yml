@@ -5,6 +5,7 @@
 networks:
   boilerplate_local_network:
     name: boilerplate_local_network
+    external: true
 
 services:
   postgres:
