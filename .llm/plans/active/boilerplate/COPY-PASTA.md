@@ -33,7 +33,8 @@ Each line below means: do the step(s), **wait for completion**, then do the next
 8. **Phase 8:** Run 24 (one agent). **Wait for 24 to finish** before Phase 9.
 9. **Phase 9:** Run 23 (one agent). **Wait for 23 to finish** before Phase 10.
 10. **Phase 10:** Run 25 (one agent). **Wait for 25 to finish** before Phase 11.
-11. **Phase 11:** Run 26 (one agent). **Wait for 26 to finish.** Done.
+11. **Phase 11:** Run 26 (one agent). **Wait for 26 to finish** before Phase 12.
+12. **Phase 12:** Run 27 (one agent). **Wait for 27 to finish.** Done.
 
 ---
 
@@ -222,3 +223,15 @@ scripts/git-hooks/ with install-hooks.sh, pre-commit (lint-staged), commit-msg (
 pre-push (block direct push to develop; branch naming). Add root package.json "prepare" and
 lint-staged config; add scripts/git-hooks/ to .dockerignore. Document in README or
 GITFLOW.md. Verify hooks install on npm install and block/behave as specified.
+
+---
+
+## Phase 12: Project description (final)
+
+### Agent 12: Project description – Boilerplate-specific and implementation details
+
+Read and execute `.llm/plans/active/boilerplate/27-project-description.md`. Update the
+project description so it is clearly Boilerplate-specific: set root package.json
+description and add (or expand) a README section that describes what Boilerplate is and
+lists implementation details (stack, features, repo structure). Verify description and
+README align with the implemented plans.

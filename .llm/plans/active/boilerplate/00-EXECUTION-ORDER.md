@@ -35,6 +35,7 @@ All plans: `.llm/plans/active/boilerplate/`
 | [24-openapi-docs.md](24-openapi-docs.md) | OpenAPI spec and Swagger UI (API docs + test page) |
 | [25-llm-alignment-skills-rules.md](25-llm-alignment-skills-rules.md) | Skills, rules, AGENTS.md for LLM alignment (keep API↔OpenAPI, env↔validation, etc. in sync) |
 | [26-git-hooks.md](26-git-hooks.md) | Git hooks (Podverse-aligned): pre-commit, commit-msg, pre-push; install via prepare |
+| [27-project-description.md](27-project-description.md) | Project description: Boilerplate-specific wording and implementation details (package.json + README) |
 | [COPY-PASTA.md](COPY-PASTA.md) | Copy-paste prompts for parallel agents |
 
 ## Phase 1: Infra and local run (sequential) — complete
@@ -96,13 +97,20 @@ After Phase 2:
   DB schema, i18n, or docs change, LLMs are reminded to update the corresponding artifacts
   (OpenAPI spec, validation, init script, translation files, README/docs).
 
-## Phase 11: Git hooks (final)
+## Phase 11: Git hooks
 
-- **26-git-hooks** – Run last. Set up git hooks aligned with Podverse: `scripts/git-hooks/`
+- **26-git-hooks** – Set up git hooks aligned with Podverse: `scripts/git-hooks/`
   with install-hooks.sh, pre-commit (lint-staged), commit-msg (issue ref), pre-push (block
   direct push to develop; branch naming). Root `package.json` "prepare" runs install;
   .dockerignore excludes scripts/git-hooks/. Depends on lint/format (05) and GITFLOW docs
   (09).
+
+## Phase 12: Project description (final)
+
+- **27-project-description** – Run last. Update the project description to be clearly
+  Boilerplate-specific: root `package.json` description and a README section that
+  describes what Boilerplate is and lists implementation details (stack, features, repo
+  structure). No technical dependency; run after 26 when docs and structure are in place.
 
 ## Rules
 

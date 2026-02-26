@@ -8,7 +8,7 @@
 - **Out of scope**: deployment (no k8s); alpha publish is a stub (script + docs only).
 - **Style**: Minimal; functionality and clarity.
 
-## Plan files (26 topics + 2 meta)
+## Plan files (27 topics + 2 meta)
 
 | ID | File | Phase |
 | --- | --- | --- |
@@ -40,6 +40,7 @@
 | 24 | 24-openapi-docs.md | 8 |
 | 25 | 25-llm-alignment-skills-rules.md | 10 |
 | 26 | 26-git-hooks.md | 11 |
+| 27 | 27-project-description.md | 12 |
 | – | COPY-PASTA.md | Prompts |
 
 ## Dependency map
@@ -56,7 +57,8 @@
 - **20** → 22 (settings and i18n before dashboard).
 - **14, 15, 22** → 24 (OpenAPI docs describe auth and messages API; run 24 after those exist).
 - **24, 23, 11, 12, 21** → 25 (alignment phase assumes OpenAPI, docs, validation, ORM/init, i18n exist).
-- **25** → 26 (git hooks run last; depend on lint/format from 05 and GITFLOW from 09).
+- **25** → 26 (git hooks depend on lint/format from 05 and GITFLOW from 09).
+- **26** → 27 (project description run last; optional, after docs/structure exist).
 - **Phase 2:** 05 runs before 08 (both modify root Makefile); 06, 07, 08 can run in parallel
   after 05.
 
