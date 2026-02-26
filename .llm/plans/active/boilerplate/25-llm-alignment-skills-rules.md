@@ -25,6 +25,10 @@ drift.
 - **Docs**: When setup, env, or architecture changes, README and docs/ are updated.
 - **Workspaces**: When new packages or apps are added, root workspaces and build order are
   updated.
+- **Management API ↔ Management OpenAPI**: When management API endpoints or shapes change,
+  update the management OpenAPI spec. Management env ↔ management validation; new
+  management endpoints ↔ permission checks and docs. Add management-api and
+  management-web to the list of apps that trigger doc/spec updates when changed.
 
 ## Steps
 

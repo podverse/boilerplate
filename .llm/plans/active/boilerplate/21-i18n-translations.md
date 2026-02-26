@@ -4,7 +4,9 @@
 
 Set up i18n (e.g. next-intl or next-i18next) with at least two locales. Add translation keys
 for login, signup, dashboard, settings, and messages. Used by settings page (plan 20) and
-throughout the app. **Automation:** Mirror Podverse: three-tier layout (originals → overrides
+throughout the app. Management-web (plan 33) may share the same i18n layout
+(originals/overrides/compiled) or use a dedicated namespace for management UI; keep keys
+consistent if shared. **Automation:** Mirror Podverse: three-tier layout (originals → overrides
 → compiled), GitHub workflow on push to `develop` that updates translations and commits back;
 when `OPENAI_API_KEY` is not set, the workflow skips the LLM translate step.
 

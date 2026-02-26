@@ -2,9 +2,12 @@
 
 ## Scope
 
-Add reusable UI building blocks: Button, Input, Card, and layout primitives. Minimal styling
-using theme variables (plan 18) and SCSS (plan 16). Used by login, signup, dashboard, and
-settings.
+Add reusable UI building blocks: Button, Input, Card, and layout primitives. Minimal
+styling using theme variables (plan 18) and SCSS (plan 16). **Shared UI package:**
+Components are implemented in the shared package `packages/ui` (`@boilerplate/ui`) and
+exported; both `apps/web` and `apps/management-web` import from the package
+(e.g. `import { Button } from '@boilerplate/ui'`). No duplicate component code in either
+app. Used by login, signup, dashboard, settings, and management-web.
 
 ## Steps
 
@@ -26,9 +29,11 @@ settings.
    - Keep minimal; can be simple divs with consistent classNames or a small utility component.
 
 5. **Placement and exports**
-   - Put components in `apps/web/src/components/` (e.g. Button, Input, Card under
-     components/ui/ or similar). Export from index or import directly. Use in login/signup
-     form (plan 15 frontend), dashboard (plan 22), and settings (plan 20).
+   - Put components in the **shared package** `packages/ui` (e.g. Button, Input, Card under
+     src/components/ or similar). Export from package index (e.g. `export { Button, Input,
+     Card, ... }`). Both `apps/web` and `apps/management-web` import from
+     `@boilerplate/ui`. Use in login/signup (plan 15/22), dashboard (plan 22), settings
+     (plan 20), and management-web (plan 33).
 
 6. **Accessibility**
    - Button: focus visible; Input: associate label with id/aria; Card: semantic if
@@ -36,11 +41,9 @@ settings.
 
 ## Key files
 
-- `apps/web/src/components/Button.tsx` (and optional .module.scss)
-- `apps/web/src/components/Input.tsx`
-- `apps/web/src/components/Card.tsx`
-- Optional: Stack, Container, etc.
-- Use of theme variables in component styles
+- `packages/ui/src/` Button, Input, Card (and optional .module.scss); package.json exports
+- Optional: Stack, Container in shared package
+- `apps/web` and `apps/management-web` package.json depend on `@boilerplate/ui`
 
 ## Verification
 

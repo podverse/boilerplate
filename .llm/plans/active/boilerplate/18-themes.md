@@ -4,7 +4,9 @@
 
 Add theme support: light and dark mode. Use a theme context (React) and CSS variables (or
 SCSS variables) so components can switch. Toggle stored in state; persistence (e.g.
-localStorage) can be added in plan 20 (settings page).
+localStorage) can be added in plan 20 (settings page). **Shared UI package:** Theme
+variables and theme switching live in the shared package `packages/ui`; both `apps/web` and
+`apps/management-web` use the same themes from the package.
 
 ## Steps
 
@@ -32,10 +34,9 @@ localStorage) can be added in plan 20 (settings page).
 
 ## Key files
 
-- `apps/web/src/contexts/ThemeContext.tsx` (or providers/theme.tsx)
-- Global SCSS or CSS with [data-theme="light"] and [data-theme="dark"] variable sets
-- Layout or provider that wraps app with theme state
-- Optional: small ThemeToggle component in header
+- `packages/ui/` ThemeContext (or theme provider), [data-theme="light"] and
+  [data-theme="dark"] variable sets; ThemeToggle optional in package
+- Apps/web and apps/management-web: provider that wraps app with theme state; import from package
 
 ## Verification
 

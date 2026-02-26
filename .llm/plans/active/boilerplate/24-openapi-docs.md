@@ -5,7 +5,9 @@
 Document the API using **OpenAPI 3.x** (open standard) and serve an interactive docs page
 (e.g. **Swagger UI**) so developers can read and try requests from the browser. The spec
 is the single source of truth for available endpoints, request/response shapes, and auth;
-the test UI is deployable with the API.
+the test UI is deployable with the API. If the Management API exists (plan 32), document it
+with a separate OpenAPI spec (e.g. `apps/management-api/openapi.yaml`) or a dedicated
+section so management endpoints are described and testable independently from the main API.
 
 ## Why OpenAPI + Swagger UI
 

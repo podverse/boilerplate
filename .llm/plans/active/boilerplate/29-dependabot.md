@@ -6,7 +6,7 @@ Enable GitHub Dependabot for npm, Docker, and GitHub Actions so dependency and i
 
 ## Scope
 
-- Add `.github/dependabot.yml`: npm at repo root (with grouping), Docker for each image directory under `infra/docker/local/` (api, web, web-sidecar), and github-actions at repo root. Target branch `develop`; weekly schedule; labels `dependencies` and `docker` where applicable; Node LTS policy for Docker (even versions only).
+- Add `.github/dependabot.yml`: npm at repo root (with grouping), Docker for each image directory under `infra/docker/local/` (api, web, web-sidecar; optionally management-api, management-web if present), and github-actions at repo root. Target branch `develop`; weekly schedule; labels `dependencies` and `docker` where applicable; Node LTS policy for Docker (even versions only).
 - Add `docs/repo-management/DEPENDABOT.md`: describe the config, schedule, grouping strategy, Node LTS policy for Docker, and label usage. Link to [docs/repo-management/GITHUB-LABELS.md](docs/repo-management/GITHUB-LABELS.md).
 
 ## Steps
@@ -20,7 +20,7 @@ Enable GitHub Dependabot for npm, Docker, and GitHub Actions so dependency and i
 2. **Create `docs/repo-management/DEPENDABOT.md`**
    - **Overview:** Dependabot opens PRs for dependency and image updates; config lives in `.github/dependabot.yml`.
    - **Update schedule:** Weekly (e.g. Mondays 08:00 CT).
-   - **Ecosystem coverage:** (1) npm at root (workspace packages), grouping as above. (2) Docker images in `infra/docker/local/api`, `infra/docker/local/web`, `infra/docker/local/web-sidecar`; Node LTS policy (even versions only; ignore odd). (3) GitHub Actions in `.github/workflows/`.
+   - **Ecosystem coverage:** (1) npm at root (workspace packages), grouping as above. (2) Docker images in `infra/docker/local/api`, `infra/docker/local/web`, `infra/docker/local/web-sidecar` (and optionally `management-api`, `management-web` if those apps exist); Node LTS policy (even versions only; ignore odd). (3) GitHub Actions in `.github/workflows/`.
    - **Labels:** `dependencies` on all Dependabot PRs; `docker` on Docker image PRs. Note that the PR labeler may also add `ci` or `infra` based on changed paths.
    - Link to [docs/repo-management/GITHUB-LABELS.md](docs/repo-management/GITHUB-LABELS.md) for full label reference.
    - Short **Node.js version policy** note: Docker images use Node LTS (even major versions only).

@@ -2,21 +2,22 @@
 
 ## Scope
 
-Enable SCSS in the Next.js app; add minimal variables and/or mixins; keep import order so
-styles are last (per podverse styles-import-last convention).
+Enable SCSS and add minimal variables and/or mixins; keep import order so styles are last
+(per podverse styles-import-last convention). **Shared UI package:** SCSS setup and
+variables are implemented in (or consumed by) the shared package `packages/ui`
+(`@boilerplate/ui`); both `apps/web` and `apps/management-web` import from the package.
 
 ## Steps
 
-1. **Install dependency**
-   - In `apps/web`: add `sass` (or `node-sass` if required by Next.js version). Next.js
-     supports `.scss` and `.sass` when sass is installed.
+1. **Shared package**
+   - Implement SCSS in the shared UI package (e.g. `packages/ui`) so both `apps/web` and
+     `apps/management-web` consume the same variables and mixins. Add `sass` to the
+     shared package; Next.js in each app supports `.scss` when sass is available.
 
 2. **Global variables / mixins**
-   - Create a small file (e.g. `apps/web/src/styles/_variables.scss` or
-     `_mixins.scss`) with CSS variables or SCSS variables for colors, spacing, breakpoints
-     (if used in plan 17). Optional mixins for clearfix, truncate, or responsive breakpoints.
-   - Import this file in a global layout or in components that need it (or use
-     next.js global CSS import for a single entry that only defines variables).
+   - In the shared package: create `_variables.scss` and/or `_mixins.scss` for colors,
+     spacing, breakpoints (plan 17). Optional mixins for clearfix, truncate, or responsive
+     breakpoints. Export or expose so consuming apps import from the package.
 
 3. **Import order**
    - Per podverse rule: in every component file, place style imports last (after React,
@@ -33,9 +34,8 @@ styles are last (per podverse styles-import-last convention).
 
 ## Key files
 
-- `apps/web/package.json` (sass)
-- `apps/web/src/styles/_variables.scss` (or similar)
-- One or more `*.module.scss` or `*.scss` files in app
+- `packages/ui/` (sass dependency; `_variables.scss`, `_mixins.scss`); apps/web and
+  apps/management-web consume from package
 - README or style guide note
 
 ## Verification

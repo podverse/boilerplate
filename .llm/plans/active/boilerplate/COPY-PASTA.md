@@ -25,18 +25,26 @@ Each line below means: do the step(s), **wait for completion**, then do the next
 4. **Phase 4:** Run 11 (one agent). **Wait for 11 to finish.** Run 12 (one agent). **Wait for
    12 to finish** before Phase 5.
 5. **Phase 5:** Run 13 (one agent). (completed) **Skip; proceed to Phase 6.**
-6. **Phase 6:** Run 14 and 15 in parallel, or run 14 then 15 (15 depends on orm from 12).
-   **Wait for both to finish** before Phase 7.
-7. **Phase 7:** Run 16, 17, 18, 19 in parallel (four agents). **Wait for all four to
-   finish.** Run 21 (one agent). **Wait for 21.** Run 20 (one agent). **Wait for 20.** Run 22
-   (one agent). **Wait for 22** before Phase 8.
+6. **Phase 6:** Run 15 (one agent). **Wait for 15 to finish.** Then run 14 (one agent).
+   **Wait for 14 to finish** before Phase 7. (Auth routes and controllers first so Joi has
+   endpoints with varied params/body to validate.)
+7. **Phase 7:** Run 16, 17, 18, 19 in parallel (four agents); these deliver into the
+   **shared UI package** (`packages/ui` / `@boilerplate/ui`) so both web and
+   management-web consume the same components and styles. **Wait for all four to finish.**
+   Run 21 (one agent). **Wait for 21.** Run 20 (one agent). **Wait for 20.** Run 22 (one
+   agent). **Wait for 22** before Phase 8.
 8. **Phase 8:** Run 24 (one agent). **Wait for 24 to finish** before Phase 9.
 9. **Phase 9:** Run 23 (one agent). **Wait for 23 to finish** before Phase 10.
 10. **Phase 10:** Run 25 (one agent). **Wait for 25 to finish** before Phase 11.
 11. **Phase 11:** Run 26 (one agent). **Wait for 26 to finish** before Phase 12.
 12. **Phase 12:** Run 27 (one agent). **Wait for 27 to finish** before Phase 13.
 13. **Phase 13:** Run 28 (one agent). **Wait for 28 to finish** before Phase 14.
-14. **Phase 14:** Run 29 (one agent). **Wait for 29 to finish.** Done.
+14. **Phase 14:** Run 29 (one agent). **Wait for 29 to finish** before Phase 15.
+15. **Phase 15:** Run 30 (one agent). **Wait for 30 to finish.** Done.
+
+**Management track (optional; can run in parallel with Phase 7+):** After Phase 6, run 31
+(one agent). **Wait for 31.** Run 32 (one agent). **Wait for 32.** After 32 and after plan
+19 (shared UI) exist, run 33 (one agent). **Wait for 33.**
 
 ---
 
@@ -136,17 +144,21 @@ Workflow: `.github/workflows/publish-alpha.yml`. Docs: `docs/PUBLISH.md`. Do not
 
 ---
 
-## Phase 6 (parallel or sequential)
+## Phase 6 (sequential: 15 then 14)
 
-### Agent 6A: Joi validation
+**Step 1:** Run 15 first (one agent). **Step 2:** Run 14 after 15 finishes. Auth routes and
+controllers are in place first so Joi validation has real endpoints with varied params/body.
+
+### Agent 6A: Auth handling (run first; depends on ORM from 12)
+
+Read and execute `.llm/plans/active/boilerplate/15-auth-handling.md`. Implement
+auth for both modes: mailer (signup, login, logout) and no-mailer (admin bootstrap, POST /admin/users,
+first-login change password, login with mustChangePassword). Verify full auth flow for the mode in use.
+
+### Agent 6B: Joi validation (run after 6A)
 
 Read and execute `.llm/plans/active/boilerplate/14-joi-validation.md`. Add Joi
 schemas and validation for auth and message routes. Verify 400 on invalid bodies.
-
-### Agent 6B: Auth handling (after ORM)
-
-Read and execute `.llm/plans/active/boilerplate/15-auth-handling.md`. Implement
-signup, login, logout, protected routes. Verify full auth flow.
 
 ---
 
@@ -263,3 +275,44 @@ index. Verify the doc references plans 09, 10, and 26 where relevant.
 
 Read and execute `.llm/plans/active/boilerplate/29-dependabot.md`. Add
 `.github/dependabot.yml` (npm at root with groups, Docker for infra/docker/local api/web/web-sidecar, github-actions; target develop; Node LTS for Docker) and `docs/repo-management/DEPENDABOT.md`. Verify config and doc align with Podverse pattern (schedule, groups, labels).
+
+---
+
+## Phase 15: Jenkins local
+
+### Agent 15: Jenkins local – deployment-only, folder "local", programmatic setup
+
+Read and execute `.llm/plans/active/boilerplate/30-jenkins-local.md`. Add local Jenkins
+(Docker Compose or Make target), pre-populated user, folder named `local`, and
+deployment-only pipeline jobs (Jenkinsfiles + setup/import.sh + scm-job.xml with sparse
+checkout). Document in `docs/pipelines/JENKINS-LOCAL.md`. Jenkins is deployment-only; no
+publish jobs. Verify Jenkins starts, user can log in, folder `local` has jobs, and jobs
+use isolated workspace (no collision with host repo).
+
+---
+
+## Management track (optional)
+
+Run after Phase 6; can overlap with Phase 7–9. Order: 31 → 32 → 33 (33 after 32 and after
+plan 19 / shared UI package exists).
+
+### Agent 31: Management database
+
+Read and execute `.llm/plans/active/boilerplate/31-management-database.md`. Add dedicated
+management store (SQLite default or second Postgres): super admin, admins, permissions
+(including event_visibility), and management_events (audit log). Verify schema and
+connection docs.
+
+### Agent 32: Management API
+
+Read and execute `.llm/plans/active/boilerplate/32-management-api.md`. Add
+`apps/management-api`: auth (super admin + admins), JWT, permission checks, record events
+on every action, GET /events with visibility rules. Main-user CRUD via main DB. Verify
+login, admin/user CRUD, and events filtering.
+
+### Agent 33: Management Web
+
+Read and execute `.llm/plans/active/boilerplate/33-management-web.md`. Add
+`apps/management-web`: login to management API, permission-based UI, Events page. Consume
+shared UI package (`@boilerplate/ui`) for components and styles. Verify Events page and
+shared package usage.

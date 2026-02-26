@@ -38,6 +38,10 @@ All plans: `.llm/plans/active/boilerplate/`
 | [27-project-description.md](27-project-description.md) | Project description: Boilerplate-specific wording and implementation details (package.json + README) |
 | [28-github-repo-setup.md](28-github-repo-setup.md) | Documentation: GitHub labels, branch protection, optional GitHub App (as required from plans 09, 10, 26) |
 | [29-dependabot.md](29-dependabot.md) | Dependabot: .github/dependabot.yml and docs/repo-management/DEPENDABOT.md |
+| [30-jenkins-local.md](30-jenkins-local.md) | Jenkins local: run locally, folder "local", programmatic setup, deployment-only, sparse checkout |
+| [31-management-database.md](31-management-database.md) | Management DB (identities, permissions, audit events) |
+| [32-management-api.md](32-management-api.md) | Management API (auth, admin CRUD, events API) |
+| [33-management-web.md](33-management-web.md) | Management Web (UI, Events page; uses shared UI package) |
 | [COPY-PASTA.md](COPY-PASTA.md) | Copy-paste prompts for parallel agents |
 
 ## Phase 1: Infra and local run (sequential) — complete
@@ -70,13 +74,18 @@ After Phase 2:
 - **13-alpha-publish-stub** – Can run in parallel with Phase 4 or after. Workflow publishes
   Docker images to registry when merging to `alpha`. (completed)
 
-## Phase 6: API (parallel where possible)
+## Phase 6: API (sequential: auth then validation)
 
-- **14-joi-validation**, **15-auth-handling** – 15 depends on orm; can start 14 anytime. Run 15 after 12.
+- **15-auth-handling** – Run first (after 12). Implement auth routes and controllers so endpoints exist.
+- **14-joi-validation** – Run after 15. Add Joi schemas and validation to auth (and message) routes; having real endpoints with varied params/body makes validation work concrete.
 
 ## Phase 7: Frontend (parallel groups)
 
-- **16-scss**, **17-responsive-layout**, **18-themes**, **19-basic-components** – Parallel.
+- **Shared UI package:** Plans 16–19 deliver into a shared package (e.g. `packages/ui` /
+  `@boilerplate/ui`) so that both `apps/web` and `apps/management-web` depend on it for
+  components and styles. Build the shared package before apps that consume it.
+- **16-scss**, **17-responsive-layout**, **18-themes**, **19-basic-components** – Parallel
+  (implement in or for the shared UI package; apps import from it).
 - **21-i18n-translations** – Run after 18–19 (settings page depends on i18n). Includes
   three-tier layout (originals/overrides/compiled) and workflow on push to develop to
   update translations; skips LLM translate when OPENAI_API_KEY is not set.
@@ -129,6 +138,24 @@ After Phase 2:
 - **29-dependabot** – Run after 10 (labels exist). Add `.github/dependabot.yml` (npm at root
   with groups, Docker for infra/docker/local/api, web, web-sidecar, github-actions) and
   `docs/repo-management/DEPENDABOT.md`. Node LTS policy for Docker (even versions only).
+
+## Phase 15: Jenkins local (after all other phases)
+
+- **30-jenkins-local** – Run after Phase 14. Jenkins in Docker; pre-populated user; folder
+  `local` with deployment-only pipeline jobs (Jenkinsfiles + import script); sparse checkout
+  in isolated workspace (no collision with host repo). Docs: `docs/pipelines/JENKINS-LOCAL.md`.
+
+## Management track (parallel to main phases)
+
+Management work can run in parallel with Phases 7–9. No blocking dependency on main line
+except: plan 32 needs main DB schema (plan 12) for user CRUD; plan 33 needs shared UI (19).
+
+- **31-management-database** – Can run after Phase 6 (or in parallel with Phase 7).
+  Dedicated store for management identities, permissions, and audit events (SQLite default).
+- **32-management-api** – After 31. Express app; super admin + scoped admins; record events;
+  GET /events with visibility rules.
+- **33-management-web** – After 32 and after shared UI package exists (plan 19). Next.js app;
+  login, permission-based UI, Events page; consumes `@boilerplate/ui`.
 
 ## Rules
 

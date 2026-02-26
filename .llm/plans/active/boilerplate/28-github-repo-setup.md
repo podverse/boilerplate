@@ -19,7 +19,8 @@ code and workflows are in place.
   plan 26 (pre-push blocks direct push to develop; doc says enable branch protection so
   server-side enforcement matches). Plan 13 (publish-alpha) and plan 21 (i18n) use
   workflows that may need secrets; the doc lists which secrets are required or optional
-  and what they do.
+  and what they do. Optional: when management-api and management-web (plans 31–33) exist,
+  the doc can note they are optional apps and any repo setup (e.g. secrets) for them.
 
 ## Steps
 

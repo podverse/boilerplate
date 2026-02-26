@@ -4,7 +4,8 @@
 
 Add a basic responsive layout: main content area and optional sidebar or header/footer.
 Breakpoints for small, medium, and large viewports. Minimal styling; functionality and
-clarity.
+clarity. **Shared UI package:** Layout primitives (Stack, Container, etc.) live in the
+shared package `packages/ui`; both `apps/web` and `apps/management-web` use them from there.
 
 ## Steps
 
@@ -33,9 +34,9 @@ clarity.
 
 ## Key files
 
-- `apps/web/src/app/layout.tsx`
-- Layout-related SCSS (e.g. `layout.module.scss`, or in global styles)
-- Breakpoint variables in `_variables.scss` or equivalent
+- `packages/ui/` layout primitives (Stack, Container, etc.); apps import from package
+- `apps/web/src/app/layout.tsx` (and apps/management-web layout) using shared primitives
+- Layout-related SCSS in shared package; breakpoint variables in `_variables.scss`
 
 ## Verification
 

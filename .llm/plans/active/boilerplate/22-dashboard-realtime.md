@@ -10,7 +10,9 @@ for messages, Valkey client in api, and optional user profile visibility (plan 1
 **Auth UI in scope:** Implement /login and /signup pages (forms that call POST /auth/login
 and POST /auth/signup); redirect unauthenticated users from dashboard (and other protected
 routes) to /login. Use basic components (plan 19) and i18n keys (plan 21). Plan 15 defines
-the API only; this plan owns the minimal login and signup pages in the web app.
+the API only; this plan owns the minimal login and signup pages in the web app. (Admin
+capabilities for the main app, e.g. user list, live in management-web, plan 33, not in the
+main web app.)
 
 ## Steps
 
