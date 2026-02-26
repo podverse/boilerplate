@@ -2,7 +2,11 @@
 
 One-time configuration steps for this repository. Aligns with the workflows and conventions in [GITFLOW.md](../GITFLOW.md), [BRANCH-PROTECTION.md](BRANCH-PROTECTION.md), and [GITHUB-LABELS.md](GITHUB-LABELS.md).
 
-## 1. Labels
+## 1. Issue Templates
+
+When opening a new issue, GitHub shows templates from `.github/ISSUE_TEMPLATE/` so contributors can choose Bug Report, Feature Request, Technical Improvement, Documentation, Infrastructure, or Question. Each template applies the matching label (`bug`, `enhancement`, `technical-improvement`, `docs`, `infra`, `question`). No setup required; templates are used automatically. To add or edit templates, see [GitHub’s issue template docs](https://docs.github.com/en/communities/using-templates-to-encourage-useful-issues-and-pull-requests/configuring-issue-templates-for-your-repository).
+
+## 2. Labels
 
 Create or update all repository labels:
 
@@ -13,13 +17,13 @@ gh auth login   # once, if not already authenticated
 
 The script is idempotent. If the repo has labels not defined in the script, it will list them and optionally delete them (deleting does not remove labels from existing issues/PRs). See [GITHUB-LABELS.md](GITHUB-LABELS.md) for the full label reference and [scripts/github/SCRIPTS-GITHUB.md](../../scripts/github/SCRIPTS-GITHUB.md) for details.
 
-## 2. Default Branch
+## 3. Default Branch
 
 Set the default branch to **develop** so PRs and CI behave as documented:
 
 - GitHub repo → Settings → General → Default branch → Switch to `develop` (create the branch first if needed)
 
-## 3. Branch Protection
+## 4. Branch Protection
 
 Configure branch protection for `develop` so that:
 
@@ -31,7 +35,7 @@ See [BRANCH-PROTECTION.md](BRANCH-PROTECTION.md) for the full table and settings
 
 **Steps:** Settings → Branches → Add rule (or Edit) → Branch name pattern `develop` → Enable "Require a pull request before merging", "Require status checks to pass" (add `validate`), "Do not allow force pushes".
 
-## 4. Optional: GitHub App
+## 5. Optional: GitHub App
 
 If you use a GitHub App for CI status checks, deployment, or other automation:
 
