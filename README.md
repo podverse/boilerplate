@@ -53,14 +53,7 @@ This builds the sidecar, then starts the sidecar (port 4101) and the Next.js app
 
 The API uses JWT: send `Authorization: Bearer <token>` for protected routes (e.g. `GET /auth/me`, `POST /auth/change-password`). Set `MAILER_ENABLED=true` for self-service signup (`POST /auth/signup`). When mailer is disabled (default or `AUTH_MODE=admin_only`), signup is disabled; user creation is handled by the Management API when the Management track (plans 31–33) is in use.
 
-**JWT_SECRET** must be at least 32 characters and not weak. Generate one with:
-
-```bash
-openssl rand -base64 32
-# or: node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"
-```
-
-Put the output in `apps/api/.env` as `JWT_SECRET="<paste-here>"`.
+**JWT_SECRET** and all other passwords (DB, Valkey) are generated and written by `make env_setup`. Do not put placeholder passwords in env examples; re-run `make env_setup` to create or refresh local env files with generated secrets.
 
 ## Gitflow and CI
 
