@@ -51,9 +51,11 @@ This builds the sidecar, then starts the sidecar (port 4101) and the Next.js app
 
 ## API auth
 
-The API uses JWT: send `Authorization: Bearer <token>` for protected routes (e.g. `GET /auth/me`, `POST /auth/change-password`). Set `MAILER_ENABLED=true` for self-service signup (`POST /auth/signup`). When mailer is disabled (default or `AUTH_MODE=admin_only`), signup is disabled; user creation is handled by the Management API when the Management track (plans 31–33) is in use.
+The API is versioned under a path prefix (default **/v1**; set `API_VERSION_PATH` to change, e.g. `API_VERSION_PATH=/v2`). Example: `GET /v1/health`, `POST /v1/auth/login`. Use JWT: send `Authorization: Bearer <token>` for protected routes (e.g. `GET /v1/auth/me`, `POST /v1/auth/change-password`). Set `MAILER_ENABLED=true` for self-service signup (`POST /v1/auth/signup`). When mailer is disabled (default or `AUTH_MODE=admin_only`), signup is disabled; user creation is handled by the Management API when the Management track (plans 31–33) is in use.
 
 **JWT_SECRET** and all other passwords (DB, Valkey) are generated and written by `make env_setup`. Do not put placeholder passwords in env examples; re-run `make env_setup` to create or refresh local env files with generated secrets.
+
+**API docs (Swagger):** With the API running, open [http://localhost:4000/api-docs](http://localhost:4000/api-docs) for interactive OpenAPI docs. Use **Authorize** to set a Bearer token from login/signup, then try protected endpoints.
 
 ## Gitflow and CI
 

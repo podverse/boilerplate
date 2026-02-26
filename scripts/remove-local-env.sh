@@ -38,4 +38,5 @@ if [[ "$reply" != "Y" && "$reply" != "y" ]]; then
 fi
 
 rm -f "${EXISTING[@]}"
-echo "Removed ${#EXISTING[@]} file(s). Run 'make env_setup' to recreate from templates."
+echo "Removed ${#EXISTING[@]} file(s)."
+echo "Run 'make env_setup' to recreate env files with new passwords, then 'make local_infra_up' or 'make local_all_up' so Postgres and Valkey start fresh with those passwords."

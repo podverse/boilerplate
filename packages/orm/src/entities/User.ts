@@ -23,7 +23,7 @@ export class User {
   @Column({ type: 'varchar', length: PASSWORD_HASH_LENGTH })
   password!: string;
 
-  @Column({ type: 'varchar', length: SHORT_TEXT_MAX_LENGTH, nullable: true })
+  @Column({ name: 'display_name', type: 'varchar', length: SHORT_TEXT_MAX_LENGTH, nullable: true })
   displayName!: string | null;
 
   @Column({ name: 'profile_visibility', type: 'boolean', default: false })

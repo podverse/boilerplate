@@ -13,8 +13,10 @@ env_setup:
 	@[ -f apps/web/.env.local ] || cp apps/web/.env.example apps/web/.env.local
 	@bash scripts/env-setup-secrets.sh
 	@echo "Env files ready (infra/config/local/*.env, apps/api/.env, apps/web/.env.local)."
-	@echo "For API on host: set DB_HOST=localhost, DB_PORT=5433, VALKEY_HOST=localhost, VALKEY_PORT=6380 in apps/api/.env"
+	@echo "apps/api/.env is set for API-on-host (localhost:5433, localhost:6380). infra/config/local/api.env is for Docker (postgres, valkey)."
 
-# Remove local .env files. Script prompts for Y to confirm. Use with env_setup to test clean start.
-local_env_remove:
-	bash scripts/remove-local-env.sh
+# Remove local .env files (prompts for Y). Runs local_clean first so Postgres and Valkey
+# containers and volumes are removed; after env_setup, next local_infra_up or local_all_up
+# will create DB and Valkey fresh with the new passwords.
+local_env_remove: local_clean
+	@bash scripts/remove-local-env.sh

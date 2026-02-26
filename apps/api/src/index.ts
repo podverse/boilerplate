@@ -1,7 +1,11 @@
 import path from 'path';
 import { fileURLToPath } from 'url';
+import cors from 'cors';
 import express from 'express';
 import type { Request, Response } from 'express';
+import swaggerUi from 'swagger-ui-express';
+
+import { openApiDocument } from './openapi.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -35,20 +39,28 @@ const run = async (): Promise<void> => {
   const mountSignup = !isNoMailerMode();
 
   const app = express();
+  app.use(cors());
   app.use(express.json());
 
-  app.get('/health', (_req: Request, res: Response): void => {
+  const openApiDoc = {
+    ...openApiDocument,
+    servers: [{ url: config.apiVersionPath, description: `API ${config.apiVersionPath}` }],
+  };
+  app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(openApiDoc));
+
+  const v1Router = express.Router();
+  v1Router.get('/health', (_req: Request, res: Response): void => {
     res.json({ status: 'ok', app: config.appName });
   });
-
-  app.get('/', (_req: Request, res: Response): void => {
+  v1Router.get('/', (_req: Request, res: Response): void => {
     res.json({
       message: `Hello from ${config.appName}`,
       env: { port: config.port },
     });
   });
+  v1Router.use('/auth', createAuthRouter(authMiddleware, mountSignup));
 
-  app.use('/auth', createAuthRouter(authMiddleware, mountSignup));
+  app.use(config.apiVersionPath, v1Router);
 
   const server = app.listen(config.port, () => {
     console.warn(`${config.appName} API listening on port ${config.port}`);

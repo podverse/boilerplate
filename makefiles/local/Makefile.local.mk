@@ -12,7 +12,7 @@
 #   local_down_volumes         - Stop services and remove volumes (clean DB/Valkey data)
 #   local_clean               - Run local_down then local_down_volumes (full teardown)
 #   env_setup                 - Copy env templates to infra/config/local and apps (idempotent)
-#   local_env_remove          - Remove local .env files (prompts for Y); then run env_setup to recreate
+#   local_env_remove          - Run local_clean (tear down containers and volumes), then remove .env files (prompts for Y); run env_setup to recreate
 #   local_infra_up            - Start Postgres and Valkey only (for API/web on host)
 #   local_all_up              - Start full stack in Docker (API, web, sidecar, Postgres, Valkey)
 #

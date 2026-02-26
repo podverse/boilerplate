@@ -89,3 +89,19 @@ for f in "$API_ENV" "$API_DOT_ENV"; do
   set_var_if_empty "$f" "DB_READ_WRITE_PASSWORD" "$DB_READ_WRITE_PASSWORD"
   set_var_if_empty "$f" "VALKEY_PASSWORD" "$VALKEY_PASSWORD"
 done
+
+# apps/api/.env is for API running on host (DB/Valkey in Docker): use localhost and mapped ports.
+# infra/config/local/api.env stays with Docker service names (postgres, valkey) for containers.
+if [ -f "$API_DOT_ENV" ]; then
+  for var_value in "DB_HOST:localhost" "DB_PORT:5433" "VALKEY_HOST:localhost" "VALKEY_PORT:6380"; do
+    var="${var_value%%:*}"
+    value="${var_value#*:}"
+    if grep -q "^${var}=" "$API_DOT_ENV" 2>/dev/null; then
+      sed -i.bak "s|^${var}=.*|${var}=\"${value}\"|" "$API_DOT_ENV"
+      rm -f "${API_DOT_ENV}.bak"
+    else
+      echo "${var}=\"${value}\"" >> "$API_DOT_ENV"
+    fi
+  done
+  echo "Set host connection defaults in apps/api/.env (DB_HOST=localhost, DB_PORT=5433, VALKEY_HOST=localhost, VALKEY_PORT=6380)."
+fi

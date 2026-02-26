@@ -81,7 +81,7 @@ export async function signup(req: Request, res: Response): Promise<void> {
 
   const existing = await UserService.findByEmail(email);
   if (existing !== null) {
-    res.status(409).json({ message: 'Email already registered' });
+    res.status(201).json({ message: 'Registration complete.' });
     return;
   }
 
