@@ -11,6 +11,8 @@
     },
     "./styles/variables": "./src/styles/_variables.scss",
     "./styles/mixins": "./src/styles/_mixins.scss",
+    "./styles/layout": "./src/styles/_layout.scss",
+    "./styles/themes": "./src/styles/_themes.scss",
     "./styles": "./src/styles/index.scss"
   },
   "scripts": {

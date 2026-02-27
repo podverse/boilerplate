@@ -7,6 +7,8 @@ app-specific SCSS lives in each app (e.g. `apps/web/src/styles/`).
 
 - **Variables:** `src/styles/_variables.scss` (colors, spacing, breakpoints)
 - **Mixins:** `src/styles/_mixins.scss` (clearfix, truncate, responsive breakpoints)
+- **Layout:** `src/styles/_layout.scss` (`.container`, `.layout-main`, `.stack`, `.header-bar`) — mobile-first, uses breakpoint mixins. Use `@use '@boilerplate/ui/styles/layout';` in app globals.
+- **Themes:** `src/styles/_themes.scss` — CSS variables for `[data-theme="light"]` and `[data-theme="dark"]`. Use `@use '@boilerplate/ui/styles/themes';` in app globals; wrap the app with `ThemeProvider` from `@boilerplate/ui` so the theme wrapper has `data-theme`.
 - **Usage in app or component SCSS:**
 
   ```scss

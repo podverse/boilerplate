@@ -1,0 +1,31 @@
+// Theme variables for light and dark mode. Use in app root (e.g. globals or layout).
+// Import once: @use '@boilerplate/ui/styles/themes'; then wrap app with [data-theme="light"] or [data-theme="dark"].
+// Both apps/web and apps/management-web use these from the package.
+
+// Light theme (default)
+[data-theme='light'],
+:root {
+  --color-bg: #fff;
+  --color-text: #1a1a1a;
+  --color-text-muted: #666;
+  --color-border: #e0e0e0;
+  --color-primary: #2563eb;
+  --color-primary-hover: #1d4ed8;
+}
+
+// Dark theme
+[data-theme='dark'] {
+  --color-bg: #1a1a1a;
+  --color-text: #f5f5f5;
+  --color-text-muted: #a3a3a3;
+  --color-border: #404040;
+  --color-primary: #60a5fa;
+  --color-primary-hover: #93c5fd;
+}
+
+// Theme wrapper fills viewport and applies background/text so all content inherits
+[data-theme] {
+  min-height: 100vh;
+  background-color: var(--color-bg);
+  color: var(--color-text);
+}

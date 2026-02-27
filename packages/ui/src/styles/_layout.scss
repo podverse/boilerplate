@@ -1,0 +1,48 @@
+// Shared layout primitives — use with @use '@boilerplate/ui/styles/layout' as *;
+// Mobile-first: base styles for small viewports, then min-width for medium/large.
+// Both apps/web and apps/management-web import from this package.
+
+@use 'mixins' as *;
+
+// Generic container: max-width, centered, responsive padding
+.container {
+  width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: $space-4;
+  padding-right: $space-4;
+
+  @include at-least-md {
+    max-width: $breakpoint-lg;
+    padding-left: $space-6;
+    padding-right: $space-6;
+  }
+}
+
+// Main content area: same as container, for <main>
+.layout-main {
+  @extend .container;
+  padding-top: $space-4;
+  padding-bottom: $space-4;
+}
+
+// Vertical stack with gap
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: $space-4;
+}
+
+// Header bar: flex row, wraps on small screens
+.header-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: $space-4;
+  padding: $space-4;
+
+  @include at-least-sm {
+    padding-left: $space-6;
+    padding-right: $space-6;
+  }
+}

@@ -1,15 +1,8 @@
-// App-specific global styles. Shared variables/mixins live in @boilerplate/ui.
-@use '@boilerplate/ui/styles/variables' as *;
+// App-specific global styles. Layout and theme SCSS from @boilerplate/ui.
+@use '@boilerplate/ui/styles/themes';
+@use '@boilerplate/ui/styles/layout';
 
 body {
   margin: 0;
   font-family: system-ui, sans-serif;
-  color: $color-text;
-  background-color: $color-bg;
-}
-
-main {
-  padding: $space-4;
-  max-width: 60rem;
-  margin: 0 auto;
 }

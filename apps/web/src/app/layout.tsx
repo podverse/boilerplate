@@ -1,6 +1,8 @@
 import type { Metadata } from 'next';
 import { getRuntimeConfig } from '../config/runtime-config-store';
 import RuntimeConfigScript from '../components/Head/RuntimeConfigScript';
+import { AppHeader } from '../components/AppHeader';
+import { ThemeWrapper } from '../components/ThemeWrapper';
 
 import '../styles/globals.scss';
 
@@ -18,10 +20,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <RuntimeConfigScript runtimeConfig={runtimeConfig} />
       </head>
       <body>
-        <header>
-          <h1>{appName}</h1>
-        </header>
-        <main>{children}</main>
+        <ThemeWrapper>
+          <AppHeader appName={appName} />
+          <main className="layout-main">{children}</main>
+        </ThemeWrapper>
       </body>
     </html>
   );
