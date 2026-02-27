@@ -11,7 +11,7 @@ API, plan 32, has its own validation for its endpoints; this plan focuses on the
 
 1. **Dependency**
    - Add `joi` (or `@hapi/joi` if preferred) to `apps/api` package.json. Add types if
-     needed (`@types/joi` or use Joi’s built-in types).
+     needed (`@types/joi` or use Joi's built-in types).
 
 2. **Schemas**
    - Define schemas for: signup (email, password, optional displayName), login (email,

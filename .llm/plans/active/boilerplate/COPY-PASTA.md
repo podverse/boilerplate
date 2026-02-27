@@ -25,12 +25,7 @@ Each line below means: do the step(s), **wait for completion**, then do the next
 4. **Phase 4:** Run 11 (one agent). **Wait for 11 to finish.** Run 12 (one agent). **Wait for
    12 to finish** before Phase 5.
 5. **Phase 5:** Run 13 (one agent). (completed) **Skip; proceed to Phase 6.**
-6. **Phase 6:** Run 15 (one agent). **Wait for 15 to finish.** Then run 14 (one agent).
-   **Wait for 14 to finish.** Then run 34 (Phase 6b, one agent). **Wait for 34 to finish.**
-   Then run Phase 6c: run 35 (one agent). **Wait for 35 to finish.** Run 36 (one agent).
-   **Wait for 36 to finish** before Phase 7. (Auth routes first so Joi has endpoints to
-   validate; plan 34 adds verification flows; 35 = test setup + app factory; 36 = auth
-   integration tests + CI test step.)
+6. **Phase 6, 6b, 6c:** (completed) Plans 14, 15, 34, 35, 36 are in `.llm/plans/completed/boilerplate/`. Do not re-execute. **Skip to Phase 7.**
 7. **Phase 7:** Run 16, 17, 18, 19 in parallel (four agents); these deliver into the
    **shared UI package** (`packages/ui` / `@boilerplate/ui`) so both web and
    management-web consume the same components and styles. **Wait for all four to finish.**
@@ -147,55 +142,15 @@ Workflow: `.github/workflows/publish-alpha.yml`. Docs: `docs/PUBLISH.md`. Do not
 
 ---
 
-## Phase 6 (sequential: 15 then 14)
+## Phase 6, 6b, 6c (completed)
 
-**Step 1:** Run 15 first (one agent). **Step 2:** Run 14 after 15 finishes. Auth routes and
-controllers are in place first so Joi validation has real endpoints with varied params/body.
+Phase 6, 6b, and 6c are complete. Plans 14, 15, 34, 35, and 36 are in `.llm/plans/completed/boilerplate/`. Do not re-execute.
 
-### Agent 6A: Auth handling (run first; depends on ORM from 12)
-
-Read and execute `.llm/plans/active/boilerplate/15-auth-handling.md`. Implement
-auth for both modes: mailer (signup, login, logout) and no-mailer (signup disabled;
-login, logout, change-password; user creation is via Management API when that track
-is implemented). Verify full auth flow for the mode in use.
-
-### Agent 6B: Joi validation (run after 6A)
-
-Read and execute `.llm/plans/active/boilerplate/14-joi-validation.md`. Add Joi
-schemas and validation for auth and message routes. Verify 400 on invalid bodies.
-
-### Agent 6C: Sign-up verification and password flows (Phase 6b; run after 6A)
-
-Read and execute `.llm/plans/active/boilerplate/34-signup-verification-and-password-flows.md`.
-Implement email verification after signup, forgot/reset password, and change email with
-verification. Mailer mode only; schema (snake_case), tokens, mailer integration, OpenAPI
-updates. Verify flows end-to-end when mailer is enabled.
-
----
-
-## Phase 6c: API integration tests (sequential: 35 then 36)
-
-**Step 1:** Run 35 first (one agent). **Step 2:** Run 36 after 35 finishes. Plan 35 adds
-Vitest, supertest, app factory, test DB strategy, and mailer mock; plan 36 adds auth test
-cases and CI test step.
-
-### Agent 6D: API integration test setup (run first; depends on 34)
-
-Read and execute `.llm/plans/active/boilerplate/35-api-integration-test-setup.md`. Add
-Vitest and supertest to apps/api; refactor index.ts to export createApp() (no listen);
-document test DB (dedicated DB name, no create/destroy of Postgres/Valkey) and mailer
-mock strategy. Add test script to root and apps/api package.json; add testing section to
-AGENTS.md or docs. Verify `npm run test` runs (0 tests until 36). Use
-`./scripts/nix/with-env npm run test` in Nix/agent environments.
-
-### Agent 6E: API integration auth tests (run after 6D)
-
-Read and execute `.llm/plans/active/boilerplate/36-api-integration-auth-tests.md`. Add
-auth integration tests: login, logout, me, change-password, signup (admin-only 403 and
-mailer-enabled with mock), verify-email, forgot-password, reset-password,
-request-email-change, confirm-email-change (use mailer mock to capture tokens). Add CI
-step: Postgres + Valkey services, create test DB and run init_database.sql, then
-`npm run test`. Verify all auth cases pass locally and CI test step runs on /test.
+- **15-auth-handling** – Auth routes, login, signup, logout, change-password, me; mailer and no-mailer modes; admin bootstrap.
+- **14-joi-validation** – Joi schemas and validateBody middleware for auth (and verification) routes.
+- **34-signup-verification-and-password-flows** – Verify-email, forgot-password, reset-password, request/confirm-email-change; VerificationToken, mailer integration.
+- **35-api-integration-test-setup** – Vitest, supertest, createApp(), global-setup, test DB docs, AGENTS.md Testing section.
+- **36-api-integration-auth-tests** – auth.test.ts, auth-no-mailer.test.ts, auth-mailer.test.ts; CI test step with Postgres + Valkey and init.
 
 ---
 

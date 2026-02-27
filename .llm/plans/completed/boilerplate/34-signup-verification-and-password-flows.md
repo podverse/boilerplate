@@ -16,7 +16,7 @@ Implement essential sign-up process operations for **mailer mode** only: email v
   - `email_verified_at` (TIMESTAMP, nullable). Set when user verifies their email; null means unverified.
   - Option A (tokens on User): `password_reset_token_hash` (VARCHAR, nullable), `password_reset_expires_at` (TIMESTAMP, nullable); `pending_email` (VARCHAR, nullable), `email_change_token_hash` (VARCHAR, nullable), `email_change_expires_at` (TIMESTAMP, nullable). Store only token hash, never plain token.
   - Option B (recommended): Dedicated table `verification_tokens` with columns: `id` (UUID PK), `user_id` (FK to users), `kind` (e.g. 'email_verify', 'password_reset', 'email_change'), `token_hash` (VARCHAR NOT NULL), `expires_at` (TIMESTAMP NOT NULL), `payload` (JSONB nullable; e.g. for pending_email). Single-use: delete row when consumed. User table then only needs `email_verified_at` and optionally `pending_email` + `email_change_expires_at` if you prefer to store pending email on User for simplicity.
-- **Migration:** Add new migration file under `infra/database/migrations/` (e.g. `0002_verification_and_email_verified.sql`). Regenerate `infra/database/combined/init_database.sql` with the project’s combine script so new installs get the full schema.
+- **Migration:** Add new migration file under `infra/database/migrations/` (e.g. `0002_verification_and_email_verified.sql`). Regenerate `infra/database/combined/init_database.sql` with the project's combine script so new installs get the full schema.
 - **ORM:** Extend User entity with `emailVerifiedAt` (map to `email_verified_at`). Add entity or repository for verification tokens if using Option B. Add UserService methods to create/consume tokens (by kind).
 
 ## Email verification (sign-up)

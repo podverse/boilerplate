@@ -22,8 +22,8 @@ All plans: `.llm/plans/active/boilerplate/`
 | [11-helpers-package.md](../../completed/boilerplate/11-helpers-package.md) (completed) | Move validate env to helpers package |
 | [12-orm-package.md](../../completed/boilerplate/12-orm-package.md) (completed) | ORM package |
 | [13-alpha-publish-stub.md](../../completed/boilerplate/13-alpha-publish-stub.md) (completed) | Alpha publish (images on merge to alpha) |
-| [14-joi-validation.md](14-joi-validation.md) | Joi validation |
-| [15-auth-handling.md](15-auth-handling.md) | Auth handling |
+| [14-joi-validation.md](../../completed/boilerplate/14-joi-validation.md) (completed) | Joi validation |
+| [15-auth-handling.md](../../completed/boilerplate/15-auth-handling.md) (completed) | Auth handling |
 | [16-scss.md](16-scss.md) | SCSS setup |
 | [17-responsive-layout.md](17-responsive-layout.md) | Responsive layout |
 | [18-themes.md](18-themes.md) | Dark/light themes |
@@ -42,9 +42,9 @@ All plans: `.llm/plans/active/boilerplate/`
 | [31-management-database.md](31-management-database.md) | Management DB (identities, permissions, audit events) |
 | [32-management-api.md](32-management-api.md) | Management API (auth, admin CRUD, events API) |
 | [33-management-web.md](33-management-web.md) | Management Web (UI, Events page; uses shared UI package) |
-| [34-signup-verification-and-password-flows.md](34-signup-verification-and-password-flows.md) | Sign-up verification and password flows (email verify, forgot/reset password, change email) |
-| [35-api-integration-test-setup.md](35-api-integration-test-setup.md) | API integration test setup (Vitest, supertest, app factory, test DB, mailer mock) |
-| [36-api-integration-auth-tests.md](36-api-integration-auth-tests.md) | API integration auth tests (login, signup, verification flows; CI test step) |
+| [34-signup-verification-and-password-flows.md](../../completed/boilerplate/34-signup-verification-and-password-flows.md) (completed) | Sign-up verification and password flows (email verify, forgot/reset password, change email) |
+| [35-api-integration-test-setup.md](../../completed/boilerplate/35-api-integration-test-setup.md) (completed) | API integration test setup (Vitest, supertest, app factory, test DB, mailer mock) |
+| [36-api-integration-auth-tests.md](../../completed/boilerplate/36-api-integration-auth-tests.md) (completed) | API integration auth tests (login, signup, verification flows; CI test step) |
 | [COPY-PASTA.md](COPY-PASTA.md) | Copy-paste prompts for parallel agents |
 
 ## Phase 1: Infra and local run (sequential) — complete
@@ -77,19 +77,25 @@ After Phase 2:
 - **13-alpha-publish-stub** – Can run in parallel with Phase 4 or after. Workflow publishes
   Docker images to registry when merging to `alpha`. (completed)
 
-## Phase 6: API (sequential: auth then validation)
+## Phase 6: API (sequential: auth then validation) — complete
 
-- **15-auth-handling** – Run first (after 12). Implement auth routes and controllers so endpoints exist.
-- **14-joi-validation** – Run after 15. Add Joi schemas and validation to auth (and message) routes; having real endpoints with varied params/body makes validation work concrete.
+Implemented. Plan files are in `.llm/plans/completed/boilerplate/`. Do not re-execute.
 
-## Phase 6b: Auth verification flows (mailer mode)
+- **15-auth-handling** – Run first (after 12). (completed)
+- **14-joi-validation** – Run after 15. (completed)
 
-- **34-signup-verification-and-password-flows** – Run after 15 (auth handling). Implements email verification after signup, forgot/reset password, and change email with verification. Mailer mode only; no-mailer behavior unchanged.
+## Phase 6b: Auth verification flows (mailer mode) — complete
 
-## Phase 6c: API integration tests (sequential)
+Implemented. Plan file is in `.llm/plans/completed/boilerplate/`. Do not re-execute.
 
-- **35-api-integration-test-setup** – Run after 34 (auth and verification endpoints exist). Vitest, supertest, app factory, test DB (dedicated DB name; no create/destroy of Postgres/Valkey), mailer mock strategy (no local mailer service).
-- **36-api-integration-auth-tests** – Run after 35. Auth integration test cases (login, logout, me, change-password, signup admin-only vs mailer, verification flows via mock); CI test step with Postgres + Valkey services.
+- **34-signup-verification-and-password-flows** – Run after 15 (auth handling). (completed)
+
+## Phase 6c: API integration tests (sequential) — complete
+
+Implemented. Plan files are in `.llm/plans/completed/boilerplate/`. Do not re-execute.
+
+- **35-api-integration-test-setup** – Run after 34. (completed)
+- **36-api-integration-auth-tests** – Run after 35. (completed)
 
 ## Phase 7: Frontend (parallel groups)
 

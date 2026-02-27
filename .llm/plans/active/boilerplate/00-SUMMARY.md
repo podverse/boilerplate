@@ -32,8 +32,8 @@
 | 11 | 11-helpers-package.md | 4 (completed) |
 | 12 | 12-orm-package.md | 4 (completed) |
 | 13 | 13-alpha-publish-stub.md | 5 (completed) |
-| 14 | 14-joi-validation.md | 6 |
-| 15 | 15-auth-handling.md | 6 |
+| 14 | 14-joi-validation.md | 6 (completed) |
+| 15 | 15-auth-handling.md | 6 (completed) |
 | 16 | 16-scss.md | 7 |
 | 17 | 17-responsive-layout.md | 7 |
 | 18 | 18-themes.md | 7 |
@@ -52,9 +52,9 @@
 | 31 | 31-management-database.md | Management track |
 | 32 | 32-management-api.md | Management track |
 | 33 | 33-management-web.md | Management track |
-| 34 | 34-signup-verification-and-password-flows.md | Phase 6b |
-| 35 | 35-api-integration-test-setup.md | Phase 6c |
-| 36 | 36-api-integration-auth-tests.md | Phase 6c |
+| 34 | 34-signup-verification-and-password-flows.md | Phase 6b (completed) |
+| 35 | 35-api-integration-test-setup.md | Phase 6c (completed) |
+| 36 | 36-api-integration-auth-tests.md | Phase 6c (completed) |
 | – | COPY-PASTA.md | Prompts |
 
 ## Dependency map
@@ -105,8 +105,12 @@
   main phases. **Shared UI package** in monorepo for reusable React components and styles
   used by web and management-web.
 
-## Current state (pre-implementation)
+## Current state
 
-- **Boilerplate**: apps/api, apps/web, apps/web/sidecar; start-feature.sh; env validation in
-  apps/api. No packages/, infra/, .github/, Makefile.
-- **Reference**: Podverse infra, scripts, Makefile, .github/workflows (CI with /test).
+- **Phases 1–5 and Phase 6 (auth, Joi, verification, API integration tests) are complete.**
+- **Repo has:** packages (helpers, orm), infra (database, docker, migrations), .github (CI with
+  /test: build, lint, type-check, test), Makefile, auth (mailer + no-mailer), verification
+  flows (verify-email, forgot/reset-password, request/confirm-email-change), Vitest + supertest,
+  CI test step with Postgres + Valkey and test DB init.
+- **Phase 7** (frontend: SCSS, layout, themes, components, i18n, settings, dashboard) and
+  later phases (8–15, Management track) are not yet implemented.
