@@ -22,6 +22,8 @@ export const openApiDocument = {
     schemas: {
       User: {
         type: 'object',
+        description:
+          'User as returned in auth responses. Only id, email, and displayName are exposed; passwordHash and other credentials are never returned. Verification token hashes are not publicly reachable.',
         properties: {
           id: { type: 'string', format: 'uuid', description: 'User ID' },
           email: { type: 'string', format: 'email' },

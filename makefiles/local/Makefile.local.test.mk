@@ -62,14 +62,15 @@ test_valkey_up:
 		echo "Test Valkey ready on port $(TEST_VALKEY_PORT)."; \
 	fi
 
-# Create boilerplate_test database, apply schema, create read/read_write users and grants. Requires test Postgres running. Idempotent.
+# Create boilerplate_test database, apply schema, create read/read_write users and grants. Requires test Postgres running.
+# Drops and recreates the test DB each time so the schema always matches infra/database/combined/init_database.sql.
 # Uses docker exec so host does not need psql installed.
 test_db_init: test_postgres_up
 	@echo "Creating test database and users..."
-	@docker exec $(TEST_PG_CONTAINER) psql -U $(TEST_PG_USER) -d postgres -t -c "SELECT 1 FROM pg_database WHERE datname = '$(TEST_DB_NAME)'" | grep -q 1 || \
-		docker exec $(TEST_PG_CONTAINER) psql -U $(TEST_PG_USER) -d postgres -c "CREATE DATABASE $(TEST_DB_NAME);"
-	@docker exec $(TEST_PG_CONTAINER) psql -U $(TEST_PG_USER) -d $(TEST_DB_NAME) -t -c "SELECT 1 FROM information_schema.tables WHERE table_schema='public' AND table_name='user'" | grep -q 1 || \
-		(cat infra/database/combined/init_database.sql | docker exec -i $(TEST_PG_CONTAINER) psql -U $(TEST_PG_USER) -d $(TEST_DB_NAME))
+	@docker exec $(TEST_PG_CONTAINER) psql -U $(TEST_PG_USER) -d postgres -c "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = '$(TEST_DB_NAME)' AND pid <> pg_backend_pid();" 2>/dev/null || true
+	@docker exec $(TEST_PG_CONTAINER) psql -U $(TEST_PG_USER) -d postgres -c "DROP DATABASE IF EXISTS $(TEST_DB_NAME);"
+	@docker exec $(TEST_PG_CONTAINER) psql -U $(TEST_PG_USER) -d postgres -c "CREATE DATABASE $(TEST_DB_NAME);"
+	@cat infra/database/combined/init_database.sql | docker exec -i $(TEST_PG_CONTAINER) psql -U $(TEST_PG_USER) -d $(TEST_DB_NAME)
 	@docker exec $(TEST_PG_CONTAINER) psql -U $(TEST_PG_USER) -d postgres -c "DO \$$$$ BEGIN IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = 'read') THEN CREATE USER read WITH PASSWORD 'test'; END IF; IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = 'read_write') THEN CREATE USER read_write WITH PASSWORD 'test'; END IF; END \$$$$;"
 	@docker exec $(TEST_PG_CONTAINER) psql -U $(TEST_PG_USER) -d $(TEST_DB_NAME) -c " \
 		GRANT CONNECT ON DATABASE $(TEST_DB_NAME) TO read, read_write; \
@@ -100,6 +101,7 @@ help_test:
 	@echo "This will:"
 	@echo "  1. Start Postgres in a container on port $(TEST_DB_PORT) (if not already running)."
 	@echo "  2. Start Valkey in a container on port $(TEST_VALKEY_PORT) (if not already running)."
-	@echo "  3. Create the $(TEST_DB_NAME) database, apply infra/database/combined/init_database.sql, and create read/read_write users."
+	@echo "  3. Drop and recreate $(TEST_DB_NAME), apply infra/database/combined/init_database.sql, and create read/read_write users."
+	@echo "     (Recreating ensures the test DB schema stays in sync with migrations.)"
 	@echo ""
 	@echo "Then run:  npm run test"

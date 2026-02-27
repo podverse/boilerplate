@@ -44,7 +44,7 @@ export class UserService {
       const cred = credRepo.create({
         userId: savedUser.id,
         email: data.email,
-        password: data.password,
+        passwordHash: data.password,
       });
       await credRepo.save(cred);
 
@@ -68,7 +68,7 @@ export class UserService {
 
   static async updatePassword(userId: string, hashedPassword: string): Promise<void> {
     const repo = appDataSource.getRepository(UserCredentials);
-    await repo.update({ userId }, { password: hashedPassword });
+    await repo.update({ userId }, { passwordHash: hashedPassword });
   }
 
   static async setEmailVerifiedAt(userId: string): Promise<void> {

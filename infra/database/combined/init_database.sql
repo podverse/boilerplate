@@ -1,12 +1,8 @@
--- Combined migrations generated Thu Feb 26 19:30:13 CST 2026
+-- Combined migrations generated Thu Feb 26 19:34:34 CST 2026
 -- DO NOT EDIT - regenerate with scripts/database/combine-migrations.sh
 
 -- Including: 0000_init_helpers.sql
 -- 0000 migration
-
--- Extensions
-
-CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 -- Minimal helper domains (only what user and related tables need).
 -- Lengths (255, 60, 50, 32, 64) align with @boilerplate/helpers field-lengths.
@@ -47,11 +43,11 @@ CREATE TRIGGER set_updated_at_user
     FOR EACH ROW
     EXECUTE FUNCTION set_updated_at_field();
 
--- Credentials: email and password (1:1 with user)
+-- Credentials: email and password hash (1:1 with user)
 CREATE TABLE user_credentials (
     user_id UUID PRIMARY KEY REFERENCES "user"(id) ON DELETE CASCADE,
     email varchar_email UNIQUE NOT NULL,
-    password varchar_password NOT NULL
+    password_hash varchar_password NOT NULL
 );
 
 -- Bio: display name (1:1 with user)
@@ -70,7 +66,7 @@ CREATE TABLE verification_token (
     payload JSONB NULL
 );
 
-CREATE INDEX idx_verification_token_hash ON verification_token(token_hash);
+CREATE UNIQUE INDEX idx_verification_token_hash ON verification_token(token_hash);
 CREATE INDEX idx_verification_token_expires_at ON verification_token(expires_at);
 
 

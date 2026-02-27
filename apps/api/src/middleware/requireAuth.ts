@@ -2,6 +2,11 @@ import type { Request, Response, NextFunction } from 'express';
 import { UserService } from '@boilerplate/orm';
 import { verifyToken } from '../lib/auth/jwt.js';
 
+/**
+ * Attaches the full user (including credentials) to req.user for use in handlers.
+ * Handlers must never serialize req.user in responses; use userToJson (or similar)
+ * so passwordHash and other credentials are never sent to the client.
+ */
 export function requireAuth(jwtSecret: string) {
   return async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     const authHeader = req.headers.authorization;

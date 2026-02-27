@@ -1,9 +1,5 @@
 -- 0000 migration
 
--- Extensions
-
-CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
-
 -- Minimal helper domains (only what user and related tables need).
 -- Lengths (255, 60, 50, 32, 64) align with @boilerplate/helpers field-lengths.
 

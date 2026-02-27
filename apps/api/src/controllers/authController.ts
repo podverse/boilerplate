@@ -17,7 +17,21 @@ import {
   sendEmailChangeVerificationEmail,
 } from '../lib/mailer/send.js';
 
-function userToJson(user: UserWithRelations) {
+/**
+ * Safe shape for user in API responses. Only these fields may be returned.
+ * Never include credentials (e.g. passwordHash) or verification token hashes/raw tokens.
+ */
+export interface PublicUser {
+  id: string;
+  email: string;
+  displayName: string | null;
+}
+
+/**
+ * Single place to serialize a user for responses. Returns only safe, non-sensitive fields.
+ * Never pass req.user or user.credentials directly to res.json().
+ */
+function userToJson(user: UserWithRelations): PublicUser {
   return {
     id: user.id,
     email: user.credentials.email,
@@ -38,7 +52,7 @@ export async function login(req: Request, res: Response): Promise<void> {
     return;
   }
 
-  const ok = await comparePassword(password, user.credentials.password);
+  const ok = await comparePassword(password, user.credentials.passwordHash);
   if (!ok) {
     res.status(401).json({ message: 'Invalid credentials' });
     return;
@@ -77,7 +91,7 @@ export async function changePassword(req: Request, res: Response): Promise<void>
     return;
   }
 
-  const ok = await comparePassword(currentPassword, user.credentials.password);
+  const ok = await comparePassword(currentPassword, user.credentials.passwordHash);
   if (!ok) {
     res.status(401).json({ message: 'Current password is incorrect' });
     return;

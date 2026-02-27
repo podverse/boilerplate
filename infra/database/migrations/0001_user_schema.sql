@@ -14,11 +14,11 @@ CREATE TRIGGER set_updated_at_user
     FOR EACH ROW
     EXECUTE FUNCTION set_updated_at_field();
 
--- Credentials: email and password (1:1 with user)
+-- Credentials: email and password hash (1:1 with user)
 CREATE TABLE user_credentials (
     user_id UUID PRIMARY KEY REFERENCES "user"(id) ON DELETE CASCADE,
     email varchar_email UNIQUE NOT NULL,
-    password varchar_password NOT NULL
+    password_hash varchar_password NOT NULL
 );
 
 -- Bio: display name (1:1 with user)
@@ -37,5 +37,5 @@ CREATE TABLE verification_token (
     payload JSONB NULL
 );
 
-CREATE INDEX idx_verification_token_hash ON verification_token(token_hash);
+CREATE UNIQUE INDEX idx_verification_token_hash ON verification_token(token_hash);
 CREATE INDEX idx_verification_token_expires_at ON verification_token(expires_at);

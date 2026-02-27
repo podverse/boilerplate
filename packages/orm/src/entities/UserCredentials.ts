@@ -12,8 +12,8 @@ export class UserCredentials {
   @Column({ type: 'varchar', length: EMAIL_MAX_LENGTH, unique: true })
   email!: string;
 
-  @Column({ type: 'varchar', length: PASSWORD_HASH_LENGTH })
-  password!: string;
+  @Column({ name: 'password_hash', type: 'varchar', length: PASSWORD_HASH_LENGTH })
+  passwordHash!: string;
 
   @OneToOne(() => User, (u) => u.credentials, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'user_id' })

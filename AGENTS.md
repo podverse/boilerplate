@@ -56,6 +56,12 @@ See [.llm/LLM.md](.llm/LLM.md) for full guidelines. Use the **llm-history** skil
 - **Mailer:** No local mailer service is required. Tests that cover verification flows use a Vitest mock of the
   mailer module to capture tokens and call verification endpoints; see `apps/api/src/test/*.test.ts`.
 
+## Auth and PII
+
+- **Credentials:** The system stores only `passwordHash` (no plaintext password). Never return `passwordHash` or any credential field in API responses. Use `userToJson` (or a similar safe serializer) for user data; never serialize `req.user` or `user.credentials` directly.
+- **Verification tokens:** Token hashes and raw tokens are never returned or listed by the API; they are only consumed server-side (verify-email, reset-password, confirm-email-change). Do not add endpoints that expose verification token entities.
+- **User in responses:** The only allowed user shape in responses is `PublicUser` (id, email, displayName). Email is PII and is only returned to the authenticated user (login, me, signup).
+
 ## Code Quality
 
 - Strict equality (`===` / `!==` only)
