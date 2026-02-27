@@ -64,7 +64,9 @@ export const openApiDocument = {
       },
       VerifyEmailBody: {
         type: 'object',
-        properties: { token: { type: 'string', description: 'Verification token from email link' } },
+        properties: {
+          token: { type: 'string', description: 'Verification token from email link' },
+        },
       },
       ForgotPasswordBody: {
         type: 'object',
@@ -144,7 +146,8 @@ export const openApiDocument = {
     '/auth/login': {
       post: {
         summary: 'Login',
-        description: 'Authenticate with email and password; returns JWT and user. Use the token in Authorize for protected routes.',
+        description:
+          'Authenticate with email and password; returns JWT and user. Use the token in Authorize for protected routes.',
         operationId: 'authLogin',
         requestBody: {
           required: true,
@@ -254,13 +257,19 @@ export const openApiDocument = {
         },
         responses: {
           '201': {
-            description: 'Created or already registered (generic success; new users receive token and user)',
+            description:
+              'Created or already registered (generic success; new users receive token and user)',
             content: {
               'application/json': {
                 schema: {
                   oneOf: [
                     { $ref: '#/components/schemas/LoginResponse' },
-                    { type: 'object', properties: { message: { type: 'string', example: 'Registration complete.' } } },
+                    {
+                      type: 'object',
+                      properties: {
+                        message: { type: 'string', example: 'Registration complete.' },
+                      },
+                    },
                   ],
                 },
               },
@@ -295,18 +304,31 @@ export const openApiDocument = {
           '200': {
             description: 'Email verified',
             content: {
-              'application/json': { schema: { type: 'object', properties: { message: { type: 'string' } } } },
+              'application/json': {
+                schema: { type: 'object', properties: { message: { type: 'string' } } },
+              },
             },
           },
-          '400': { description: 'Invalid or expired link', content: { 'application/json': { schema: { $ref: '#/components/schemas/ErrorMessage' } } } },
-          '403': { description: 'Email verification not enabled', content: { 'application/json': { schema: { $ref: '#/components/schemas/ErrorMessage' } } } },
+          '400': {
+            description: 'Invalid or expired link',
+            content: {
+              'application/json': { schema: { $ref: '#/components/schemas/ErrorMessage' } },
+            },
+          },
+          '403': {
+            description: 'Email verification not enabled',
+            content: {
+              'application/json': { schema: { $ref: '#/components/schemas/ErrorMessage' } },
+            },
+          },
         },
       },
     },
     '/auth/forgot-password': {
       post: {
         summary: 'Forgot password',
-        description: 'Request password reset email. Always returns 200 (no user enumeration). Mailer mode only.',
+        description:
+          'Request password reset email. Always returns 200 (no user enumeration). Mailer mode only.',
         operationId: 'authForgotPassword',
         requestBody: {
           required: true,
@@ -318,10 +340,17 @@ export const openApiDocument = {
           '200': {
             description: 'If an account exists, a reset link was sent',
             content: {
-              'application/json': { schema: { type: 'object', properties: { message: { type: 'string' } } } },
+              'application/json': {
+                schema: { type: 'object', properties: { message: { type: 'string' } } },
+              },
             },
           },
-          '403': { description: 'Email verification not enabled', content: { 'application/json': { schema: { $ref: '#/components/schemas/ErrorMessage' } } } },
+          '403': {
+            description: 'Email verification not enabled',
+            content: {
+              'application/json': { schema: { $ref: '#/components/schemas/ErrorMessage' } },
+            },
+          },
         },
       },
     },
@@ -338,15 +367,26 @@ export const openApiDocument = {
         },
         responses: {
           '204': { description: 'Password updated' },
-          '400': { description: 'Invalid or expired link', content: { 'application/json': { schema: { $ref: '#/components/schemas/ErrorMessage' } } } },
-          '403': { description: 'Email verification not enabled', content: { 'application/json': { schema: { $ref: '#/components/schemas/ErrorMessage' } } } },
+          '400': {
+            description: 'Invalid or expired link',
+            content: {
+              'application/json': { schema: { $ref: '#/components/schemas/ErrorMessage' } },
+            },
+          },
+          '403': {
+            description: 'Email verification not enabled',
+            content: {
+              'application/json': { schema: { $ref: '#/components/schemas/ErrorMessage' } },
+            },
+          },
         },
       },
     },
     '/auth/request-email-change': {
       post: {
         summary: 'Request email change',
-        description: 'Send verification email to new address. Requires Bearer token. Mailer mode only.',
+        description:
+          'Send verification email to new address. Requires Bearer token. Mailer mode only.',
         operationId: 'authRequestEmailChange',
         security: [{ bearerAuth: [] }],
         requestBody: {
@@ -356,11 +396,38 @@ export const openApiDocument = {
           },
         },
         responses: {
-          '200': { description: 'Verification email sent', content: { 'application/json': { schema: { type: 'object', properties: { message: { type: 'string' } } } } } },
-          '400': { description: 'newEmail required or same as current', content: { 'application/json': { schema: { $ref: '#/components/schemas/ErrorMessage' } } } },
-          '401': { description: 'Authentication required', content: { 'application/json': { schema: { $ref: '#/components/schemas/ErrorMessage' } } } },
-          '409': { description: 'Email already in use', content: { 'application/json': { schema: { $ref: '#/components/schemas/ErrorMessage' } } } },
-          '403': { description: 'Email verification not enabled', content: { 'application/json': { schema: { $ref: '#/components/schemas/ErrorMessage' } } } },
+          '200': {
+            description: 'Verification email sent',
+            content: {
+              'application/json': {
+                schema: { type: 'object', properties: { message: { type: 'string' } } },
+              },
+            },
+          },
+          '400': {
+            description: 'newEmail required or same as current',
+            content: {
+              'application/json': { schema: { $ref: '#/components/schemas/ErrorMessage' } },
+            },
+          },
+          '401': {
+            description: 'Authentication required',
+            content: {
+              'application/json': { schema: { $ref: '#/components/schemas/ErrorMessage' } },
+            },
+          },
+          '409': {
+            description: 'Email already in use',
+            content: {
+              'application/json': { schema: { $ref: '#/components/schemas/ErrorMessage' } },
+            },
+          },
+          '403': {
+            description: 'Email verification not enabled',
+            content: {
+              'application/json': { schema: { $ref: '#/components/schemas/ErrorMessage' } },
+            },
+          },
         },
       },
     },
@@ -375,9 +442,26 @@ export const openApiDocument = {
           },
         },
         responses: {
-          '200': { description: 'Email updated', content: { 'application/json': { schema: { type: 'object', properties: { message: { type: 'string' } } } } } },
-          '400': { description: 'Invalid or expired link', content: { 'application/json': { schema: { $ref: '#/components/schemas/ErrorMessage' } } } },
-          '403': { description: 'Email verification not enabled', content: { 'application/json': { schema: { $ref: '#/components/schemas/ErrorMessage' } } } },
+          '200': {
+            description: 'Email updated',
+            content: {
+              'application/json': {
+                schema: { type: 'object', properties: { message: { type: 'string' } } },
+              },
+            },
+          },
+          '400': {
+            description: 'Invalid or expired link',
+            content: {
+              'application/json': { schema: { $ref: '#/components/schemas/ErrorMessage' } },
+            },
+          },
+          '403': {
+            description: 'Email verification not enabled',
+            content: {
+              'application/json': { schema: { $ref: '#/components/schemas/ErrorMessage' } },
+            },
+          },
         },
       },
     },

@@ -35,8 +35,18 @@ export const openApiDocument = {
             type: 'object',
             nullable: true,
             properties: {
-              adminsCrud: { type: 'integer', minimum: 0, maximum: 15, description: 'CRUD bitmask: create=1, read=2, update=4, delete=8' },
-              usersCrud: { type: 'integer', minimum: 0, maximum: 15, description: 'CRUD bitmask for main-app users' },
+              adminsCrud: {
+                type: 'integer',
+                minimum: 0,
+                maximum: 15,
+                description: 'CRUD bitmask: create=1, read=2, update=4, delete=8',
+              },
+              usersCrud: {
+                type: 'integer',
+                minimum: 0,
+                maximum: 15,
+                description: 'CRUD bitmask for main-app users',
+              },
               canChangePasswords: { type: 'boolean' },
               canAssignPermissions: { type: 'boolean' },
               eventVisibility: { type: 'string', enum: ['own', 'all_admins', 'all'] },
@@ -195,7 +205,8 @@ export const openApiDocument = {
     '/auth/login': {
       post: {
         summary: 'Login',
-        description: 'Authenticate as super admin or admin; returns JWT and user. Use the token in Authorize for protected routes.',
+        description:
+          'Authenticate as super admin or admin; returns JWT and user. Use the token in Authorize for protected routes.',
         operationId: 'authLogin',
         requestBody: {
           required: true,
@@ -212,11 +223,15 @@ export const openApiDocument = {
           },
           '400': {
             description: 'Email and password required',
-            content: { 'application/json': { schema: { $ref: '#/components/schemas/ErrorMessage' } } },
+            content: {
+              'application/json': { schema: { $ref: '#/components/schemas/ErrorMessage' } },
+            },
           },
           '401': {
             description: 'Invalid credentials',
-            content: { 'application/json': { schema: { $ref: '#/components/schemas/ErrorMessage' } } },
+            content: {
+              'application/json': { schema: { $ref: '#/components/schemas/ErrorMessage' } },
+            },
           },
         },
       },
@@ -241,7 +256,9 @@ export const openApiDocument = {
           },
           '401': {
             description: 'Missing or invalid token',
-            content: { 'application/json': { schema: { $ref: '#/components/schemas/ErrorMessage' } } },
+            content: {
+              'application/json': { schema: { $ref: '#/components/schemas/ErrorMessage' } },
+            },
           },
         },
       },
@@ -260,14 +277,27 @@ export const openApiDocument = {
                 schema: {
                   type: 'object',
                   properties: {
-                    admins: { type: 'array', items: { $ref: '#/components/schemas/ManagementUser' } },
+                    admins: {
+                      type: 'array',
+                      items: { $ref: '#/components/schemas/ManagementUser' },
+                    },
                   },
                 },
               },
             },
           },
-          '401': { description: 'Authentication required', content: { 'application/json': { schema: { $ref: '#/components/schemas/ErrorMessage' } } } },
-          '403': { description: 'Insufficient permissions', content: { 'application/json': { schema: { $ref: '#/components/schemas/ErrorMessage' } } } },
+          '401': {
+            description: 'Authentication required',
+            content: {
+              'application/json': { schema: { $ref: '#/components/schemas/ErrorMessage' } },
+            },
+          },
+          '403': {
+            description: 'Insufficient permissions',
+            content: {
+              'application/json': { schema: { $ref: '#/components/schemas/ErrorMessage' } },
+            },
+          },
         },
       },
       post: {
@@ -293,16 +323,32 @@ export const openApiDocument = {
               },
             },
           },
-          '401': { description: 'Authentication required', content: { 'application/json': { schema: { $ref: '#/components/schemas/ErrorMessage' } } } },
-          '403': { description: 'Super admin only', content: { 'application/json': { schema: { $ref: '#/components/schemas/ErrorMessage' } } } },
-          '409': { description: 'Email already in use', content: { 'application/json': { schema: { $ref: '#/components/schemas/ErrorMessage' } } } },
+          '401': {
+            description: 'Authentication required',
+            content: {
+              'application/json': { schema: { $ref: '#/components/schemas/ErrorMessage' } },
+            },
+          },
+          '403': {
+            description: 'Super admin only',
+            content: {
+              'application/json': { schema: { $ref: '#/components/schemas/ErrorMessage' } },
+            },
+          },
+          '409': {
+            description: 'Email already in use',
+            content: {
+              'application/json': { schema: { $ref: '#/components/schemas/ErrorMessage' } },
+            },
+          },
         },
       },
     },
     '/admins/change-password': {
       post: {
         summary: 'Change own password',
-        description: 'Update password for the authenticated management user. Requires Bearer token.',
+        description:
+          'Update password for the authenticated management user. Requires Bearer token.',
         operationId: 'changePassword',
         security: [{ bearerAuth: [] }],
         requestBody: {
@@ -313,8 +359,18 @@ export const openApiDocument = {
         },
         responses: {
           '204': { description: 'Password updated' },
-          '400': { description: 'currentPassword and newPassword required', content: { 'application/json': { schema: { $ref: '#/components/schemas/ErrorMessage' } } } },
-          '401': { description: 'Authentication required or current password incorrect', content: { 'application/json': { schema: { $ref: '#/components/schemas/ErrorMessage' } } } },
+          '400': {
+            description: 'currentPassword and newPassword required',
+            content: {
+              'application/json': { schema: { $ref: '#/components/schemas/ErrorMessage' } },
+            },
+          },
+          '401': {
+            description: 'Authentication required or current password incorrect',
+            content: {
+              'application/json': { schema: { $ref: '#/components/schemas/ErrorMessage' } },
+            },
+          },
         },
       },
     },
@@ -324,7 +380,9 @@ export const openApiDocument = {
         description: 'Returns one admin. Requires admins read permission.',
         operationId: 'getAdmin',
         security: [{ bearerAuth: [] }],
-        parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string', format: 'uuid' } }],
+        parameters: [
+          { name: 'id', in: 'path', required: true, schema: { type: 'string', format: 'uuid' } },
+        ],
         responses: {
           '200': {
             description: 'OK',
@@ -337,17 +395,35 @@ export const openApiDocument = {
               },
             },
           },
-          '401': { description: 'Authentication required', content: { 'application/json': { schema: { $ref: '#/components/schemas/ErrorMessage' } } } },
-          '403': { description: 'Insufficient permissions', content: { 'application/json': { schema: { $ref: '#/components/schemas/ErrorMessage' } } } },
-          '404': { description: 'Admin not found', content: { 'application/json': { schema: { $ref: '#/components/schemas/ErrorMessage' } } } },
+          '401': {
+            description: 'Authentication required',
+            content: {
+              'application/json': { schema: { $ref: '#/components/schemas/ErrorMessage' } },
+            },
+          },
+          '403': {
+            description: 'Insufficient permissions',
+            content: {
+              'application/json': { schema: { $ref: '#/components/schemas/ErrorMessage' } },
+            },
+          },
+          '404': {
+            description: 'Admin not found',
+            content: {
+              'application/json': { schema: { $ref: '#/components/schemas/ErrorMessage' } },
+            },
+          },
         },
       },
       patch: {
         summary: 'Update admin',
-        description: 'Update admin. Permission fields (adminsCrud, usersCrud, etc.) can only be changed by super admin.',
+        description:
+          'Update admin. Permission fields (adminsCrud, usersCrud, etc.) can only be changed by super admin.',
         operationId: 'updateAdmin',
         security: [{ bearerAuth: [] }],
-        parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string', format: 'uuid' } }],
+        parameters: [
+          { name: 'id', in: 'path', required: true, schema: { type: 'string', format: 'uuid' } },
+        ],
         requestBody: {
           content: {
             'application/json': { schema: { $ref: '#/components/schemas/UpdateAdminBody' } },
@@ -365,22 +441,55 @@ export const openApiDocument = {
               },
             },
           },
-          '401': { description: 'Authentication required', content: { 'application/json': { schema: { $ref: '#/components/schemas/ErrorMessage' } } } },
-          '403': { description: 'Insufficient permissions or only super admin can update permissions', content: { 'application/json': { schema: { $ref: '#/components/schemas/ErrorMessage' } } } },
-          '404': { description: 'Admin not found', content: { 'application/json': { schema: { $ref: '#/components/schemas/ErrorMessage' } } } },
+          '401': {
+            description: 'Authentication required',
+            content: {
+              'application/json': { schema: { $ref: '#/components/schemas/ErrorMessage' } },
+            },
+          },
+          '403': {
+            description: 'Insufficient permissions or only super admin can update permissions',
+            content: {
+              'application/json': { schema: { $ref: '#/components/schemas/ErrorMessage' } },
+            },
+          },
+          '404': {
+            description: 'Admin not found',
+            content: {
+              'application/json': { schema: { $ref: '#/components/schemas/ErrorMessage' } },
+            },
+          },
         },
       },
       delete: {
         summary: 'Delete admin',
-        description: 'Remove an admin. Requires admins delete permission. Super admin cannot be deleted.',
+        description:
+          'Remove an admin. Requires admins delete permission. Super admin cannot be deleted.',
         operationId: 'deleteAdmin',
         security: [{ bearerAuth: [] }],
-        parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string', format: 'uuid' } }],
+        parameters: [
+          { name: 'id', in: 'path', required: true, schema: { type: 'string', format: 'uuid' } },
+        ],
         responses: {
           '204': { description: 'Deleted' },
-          '401': { description: 'Authentication required', content: { 'application/json': { schema: { $ref: '#/components/schemas/ErrorMessage' } } } },
-          '403': { description: 'Insufficient permissions', content: { 'application/json': { schema: { $ref: '#/components/schemas/ErrorMessage' } } } },
-          '404': { description: 'Admin not found', content: { 'application/json': { schema: { $ref: '#/components/schemas/ErrorMessage' } } } },
+          '401': {
+            description: 'Authentication required',
+            content: {
+              'application/json': { schema: { $ref: '#/components/schemas/ErrorMessage' } },
+            },
+          },
+          '403': {
+            description: 'Insufficient permissions',
+            content: {
+              'application/json': { schema: { $ref: '#/components/schemas/ErrorMessage' } },
+            },
+          },
+          '404': {
+            description: 'Admin not found',
+            content: {
+              'application/json': { schema: { $ref: '#/components/schemas/ErrorMessage' } },
+            },
+          },
         },
       },
     },
@@ -404,8 +513,18 @@ export const openApiDocument = {
               },
             },
           },
-          '401': { description: 'Authentication required', content: { 'application/json': { schema: { $ref: '#/components/schemas/ErrorMessage' } } } },
-          '403': { description: 'Insufficient permissions', content: { 'application/json': { schema: { $ref: '#/components/schemas/ErrorMessage' } } } },
+          '401': {
+            description: 'Authentication required',
+            content: {
+              'application/json': { schema: { $ref: '#/components/schemas/ErrorMessage' } },
+            },
+          },
+          '403': {
+            description: 'Insufficient permissions',
+            content: {
+              'application/json': { schema: { $ref: '#/components/schemas/ErrorMessage' } },
+            },
+          },
         },
       },
       post: {
@@ -431,9 +550,24 @@ export const openApiDocument = {
               },
             },
           },
-          '401': { description: 'Authentication required', content: { 'application/json': { schema: { $ref: '#/components/schemas/ErrorMessage' } } } },
-          '403': { description: 'Insufficient permissions', content: { 'application/json': { schema: { $ref: '#/components/schemas/ErrorMessage' } } } },
-          '409': { description: 'Email already in use', content: { 'application/json': { schema: { $ref: '#/components/schemas/ErrorMessage' } } } },
+          '401': {
+            description: 'Authentication required',
+            content: {
+              'application/json': { schema: { $ref: '#/components/schemas/ErrorMessage' } },
+            },
+          },
+          '403': {
+            description: 'Insufficient permissions',
+            content: {
+              'application/json': { schema: { $ref: '#/components/schemas/ErrorMessage' } },
+            },
+          },
+          '409': {
+            description: 'Email already in use',
+            content: {
+              'application/json': { schema: { $ref: '#/components/schemas/ErrorMessage' } },
+            },
+          },
         },
       },
     },
@@ -442,7 +576,9 @@ export const openApiDocument = {
         summary: 'Get main-app user by ID',
         operationId: 'getUser',
         security: [{ bearerAuth: [] }],
-        parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string', format: 'uuid' } }],
+        parameters: [
+          { name: 'id', in: 'path', required: true, schema: { type: 'string', format: 'uuid' } },
+        ],
         responses: {
           '200': {
             description: 'OK',
@@ -455,16 +591,33 @@ export const openApiDocument = {
               },
             },
           },
-          '401': { description: 'Authentication required', content: { 'application/json': { schema: { $ref: '#/components/schemas/ErrorMessage' } } } },
-          '403': { description: 'Insufficient permissions', content: { 'application/json': { schema: { $ref: '#/components/schemas/ErrorMessage' } } } },
-          '404': { description: 'User not found', content: { 'application/json': { schema: { $ref: '#/components/schemas/ErrorMessage' } } } },
+          '401': {
+            description: 'Authentication required',
+            content: {
+              'application/json': { schema: { $ref: '#/components/schemas/ErrorMessage' } },
+            },
+          },
+          '403': {
+            description: 'Insufficient permissions',
+            content: {
+              'application/json': { schema: { $ref: '#/components/schemas/ErrorMessage' } },
+            },
+          },
+          '404': {
+            description: 'User not found',
+            content: {
+              'application/json': { schema: { $ref: '#/components/schemas/ErrorMessage' } },
+            },
+          },
         },
       },
       patch: {
         summary: 'Update main-app user',
         operationId: 'updateUser',
         security: [{ bearerAuth: [] }],
-        parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string', format: 'uuid' } }],
+        parameters: [
+          { name: 'id', in: 'path', required: true, schema: { type: 'string', format: 'uuid' } },
+        ],
         requestBody: {
           content: {
             'application/json': { schema: { $ref: '#/components/schemas/UpdateUserBody' } },
@@ -482,31 +635,66 @@ export const openApiDocument = {
               },
             },
           },
-          '401': { description: 'Authentication required', content: { 'application/json': { schema: { $ref: '#/components/schemas/ErrorMessage' } } } },
-          '403': { description: 'Insufficient permissions', content: { 'application/json': { schema: { $ref: '#/components/schemas/ErrorMessage' } } } },
-          '404': { description: 'User not found', content: { 'application/json': { schema: { $ref: '#/components/schemas/ErrorMessage' } } } },
+          '401': {
+            description: 'Authentication required',
+            content: {
+              'application/json': { schema: { $ref: '#/components/schemas/ErrorMessage' } },
+            },
+          },
+          '403': {
+            description: 'Insufficient permissions',
+            content: {
+              'application/json': { schema: { $ref: '#/components/schemas/ErrorMessage' } },
+            },
+          },
+          '404': {
+            description: 'User not found',
+            content: {
+              'application/json': { schema: { $ref: '#/components/schemas/ErrorMessage' } },
+            },
+          },
         },
       },
       delete: {
         summary: 'Delete main-app user',
         operationId: 'deleteUser',
         security: [{ bearerAuth: [] }],
-        parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string', format: 'uuid' } }],
+        parameters: [
+          { name: 'id', in: 'path', required: true, schema: { type: 'string', format: 'uuid' } },
+        ],
         responses: {
           '204': { description: 'Deleted' },
-          '401': { description: 'Authentication required', content: { 'application/json': { schema: { $ref: '#/components/schemas/ErrorMessage' } } } },
-          '403': { description: 'Insufficient permissions', content: { 'application/json': { schema: { $ref: '#/components/schemas/ErrorMessage' } } } },
-          '404': { description: 'User not found', content: { 'application/json': { schema: { $ref: '#/components/schemas/ErrorMessage' } } } },
+          '401': {
+            description: 'Authentication required',
+            content: {
+              'application/json': { schema: { $ref: '#/components/schemas/ErrorMessage' } },
+            },
+          },
+          '403': {
+            description: 'Insufficient permissions',
+            content: {
+              'application/json': { schema: { $ref: '#/components/schemas/ErrorMessage' } },
+            },
+          },
+          '404': {
+            description: 'User not found',
+            content: {
+              'application/json': { schema: { $ref: '#/components/schemas/ErrorMessage' } },
+            },
+          },
         },
       },
     },
     '/users/{id}/change-password': {
       post: {
         summary: 'Change main-app user password',
-        description: 'Set new password for a main-app user. Requires can_change_passwords or super admin.',
+        description:
+          'Set new password for a main-app user. Requires can_change_passwords or super admin.',
         operationId: 'changeUserPassword',
         security: [{ bearerAuth: [] }],
-        parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string', format: 'uuid' } }],
+        parameters: [
+          { name: 'id', in: 'path', required: true, schema: { type: 'string', format: 'uuid' } },
+        ],
         requestBody: {
           required: true,
           content: {
@@ -515,10 +703,30 @@ export const openApiDocument = {
         },
         responses: {
           '204': { description: 'Password updated' },
-          '400': { description: 'newPassword required', content: { 'application/json': { schema: { $ref: '#/components/schemas/ErrorMessage' } } } },
-          '401': { description: 'Authentication required', content: { 'application/json': { schema: { $ref: '#/components/schemas/ErrorMessage' } } } },
-          '403': { description: 'Insufficient permissions', content: { 'application/json': { schema: { $ref: '#/components/schemas/ErrorMessage' } } } },
-          '404': { description: 'User not found', content: { 'application/json': { schema: { $ref: '#/components/schemas/ErrorMessage' } } } },
+          '400': {
+            description: 'newPassword required',
+            content: {
+              'application/json': { schema: { $ref: '#/components/schemas/ErrorMessage' } },
+            },
+          },
+          '401': {
+            description: 'Authentication required',
+            content: {
+              'application/json': { schema: { $ref: '#/components/schemas/ErrorMessage' } },
+            },
+          },
+          '403': {
+            description: 'Insufficient permissions',
+            content: {
+              'application/json': { schema: { $ref: '#/components/schemas/ErrorMessage' } },
+            },
+          },
+          '404': {
+            description: 'User not found',
+            content: {
+              'application/json': { schema: { $ref: '#/components/schemas/ErrorMessage' } },
+            },
+          },
         },
       },
     },
@@ -530,8 +738,18 @@ export const openApiDocument = {
         operationId: 'listEvents',
         security: [{ bearerAuth: [] }],
         parameters: [
-          { name: 'limit', in: 'query', schema: { type: 'integer', default: 100 }, description: 'Max events to return (cap 500)' },
-          { name: 'offset', in: 'query', schema: { type: 'integer', default: 0 }, description: 'Offset for pagination' },
+          {
+            name: 'limit',
+            in: 'query',
+            schema: { type: 'integer', default: 100 },
+            description: 'Max events to return (cap 500)',
+          },
+          {
+            name: 'offset',
+            in: 'query',
+            schema: { type: 'integer', default: 0 },
+            description: 'Offset for pagination',
+          },
         ],
         responses: {
           '200': {
@@ -549,7 +767,9 @@ export const openApiDocument = {
           },
           '401': {
             description: 'Authentication required',
-            content: { 'application/json': { schema: { $ref: '#/components/schemas/ErrorMessage' } } },
+            content: {
+              'application/json': { schema: { $ref: '#/components/schemas/ErrorMessage' } },
+            },
           },
         },
       },

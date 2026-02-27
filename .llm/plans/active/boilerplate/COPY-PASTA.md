@@ -26,9 +26,8 @@ Each line below means: do the step(s), **wait for completion**, then do the next
    12 to finish** before Phase 5.
 5. **Phase 5:** Run 13 (one agent). (completed) **Skip; proceed to Phase 6.**
 6. **Phase 6, 6b, 6c:** (completed) Plans 14, 15, 34, 35, 36 are in `.llm/plans/completed/boilerplate/`. Do not re-execute. **Skip to step 7.**
-7. **Management (before Phase 7):** Run 31, then 32. (Plan 31 is complete; 31-management-database.md
-   is in `.llm/plans/completed/boilerplate/`. Do not re-execute 31.) Run 32 (one agent).
-   **Wait for 32.** (Management DB and API in place.)
+7. **Management (before Phase 7):** (completed) Plans 31 and 32 are in `.llm/plans/completed/boilerplate/`.
+   Do not re-execute 31 or 32. Management DB and API are in place.
 8. **Phase 7a – Shared UI:** Run 16, 17, 18, 19 in parallel (four agents). **Wait for all
    four to finish.** (Shared UI package for web and management-web.)
 9. **Management Web:** Run 33 (one agent). **Wait for 33.** (Management minimally functional.)
@@ -157,8 +156,7 @@ Phase 6, 6b, and 6c are complete. Plans 14, 15, 34, 35, and 36 are in `.llm/plan
 
 ## Management (before Phase 7)
 
-Run right after Phase 6. Order: 31, then 32. Plan 31 is complete; 31-management-database.md is in
-`.llm/plans/completed/boilerplate/`. Do not re-execute 31.
+Run right after Phase 6. Plans 31 and 32 are complete. Do not re-execute.
 
 ### Agent 31: Management database (completed)
 
@@ -166,12 +164,11 @@ Implemented per `.llm/plans/completed/boilerplate/31-management-database.md`. De
 management store (second Postgres): super admin, admins, permissions (including
 event_visibility), and management_events (audit log). Do not re-run.
 
-### Agent 32: Management API
+### Agent 32: Management API (completed)
 
-Read and execute `.llm/plans/active/boilerplate/32-management-api.md`. Add
-`apps/management-api`: auth (super admin + admins), JWT, permission checks, record events
-on every action, GET /events with visibility rules. Main-user CRUD via main DB. Verify
-login, admin/user CRUD, and events filtering.
+Implemented per `.llm/plans/completed/boilerplate/32-management-api.md`. `apps/management-api`:
+auth (super admin + admins), JWT, permission checks, record events on every action, GET
+/events with visibility rules. Main-user CRUD via main DB. Do not re-run.
 
 ---
 

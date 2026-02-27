@@ -14,11 +14,7 @@ export function signToken(
   expiresIn: string = DEFAULT_EXPIRY
 ): string {
   const options = { expiresIn } as SignOptions;
-  return jwt.sign(
-    { sub: user.id, email: user.credentials.email } as JwtPayload,
-    secret,
-    options
-  );
+  return jwt.sign({ sub: user.id, email: user.credentials.email } as JwtPayload, secret, options);
 }
 
 export function verifyToken(token: string, secret: string): JwtPayload | null {

@@ -1,4 +1,4 @@
-import type { UserWithRelations } from '@boilerplate/orm';
+import type { UserWithRelations } from "@boilerplate/orm";
 
 declare global {
   namespace Express {

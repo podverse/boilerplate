@@ -3,11 +3,7 @@ import { Router } from 'express';
 import * as adminsController from '../controllers/adminsController.js';
 import { requireCrud } from '../middleware/requireCrud.js';
 import { validateBody } from '../middleware/validateBody.js';
-import {
-  createAdminSchema,
-  updateAdminSchema,
-  changePasswordSchema,
-} from '../schemas/admins.js';
+import { createAdminSchema, updateAdminSchema, changePasswordSchema } from '../schemas/admins.js';
 
 export function createAdminsRouter(
   requireAuth: RequestHandler,
@@ -42,14 +38,9 @@ export function createAdminsRouter(
   router.delete('/:id', requireAuth, requireCrud('admins', 'delete'), (req, res) => {
     void adminsController.deleteAdmin(req, res);
   });
-  router.post(
-    '/change-password',
-    requireAuth,
-    validateBody(changePasswordSchema),
-    (req, res) => {
-      void adminsController.changePassword(req, res);
-    }
-  );
+  router.post('/change-password', requireAuth, validateBody(changePasswordSchema), (req, res) => {
+    void adminsController.changePassword(req, res);
+  });
 
   return router;
 }

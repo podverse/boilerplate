@@ -11,8 +11,7 @@ const getEnvOptional = (key: string): string | undefined =>
 
 /** Auth mode: no-mailer (signup disabled) when AUTH_MODE=admin_only or mailer not configured */
 export const isNoMailerMode = (): boolean =>
-  getEnvOptional('AUTH_MODE') === 'admin_only' ||
-  getEnvOptional('MAILER_ENABLED') !== 'true';
+  getEnvOptional('AUTH_MODE') === 'admin_only' || getEnvOptional('MAILER_ENABLED') !== 'true';
 
 /** Normalize version path: leading slash, no trailing slash (e.g. "v1" -> "/v1"). */
 function normalizeVersionPath(raw: string): string {

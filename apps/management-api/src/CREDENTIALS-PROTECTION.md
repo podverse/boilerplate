@@ -24,8 +24,8 @@ Same approach as the main API: **never expose credentials in responses or logs**
 
 ## Where serialization happens
 
-| Response type        | Use this                          | File / export                    |
-|---------------------|-----------------------------------|----------------------------------|
-| Management user     | `managementUserToJson(user)`      | `lib/managementUserToJson.ts`   |
-| Main-app user       | `userToJson(user)`                | `controllers/usersController.ts` (internal) |
-| Audit event         | `eventToJson(e)`                  | `controllers/eventsController.ts` (internal) |
+| Response type   | Use this                     | File / export                                |
+| --------------- | ---------------------------- | -------------------------------------------- |
+| Management user | `managementUserToJson(user)` | `lib/managementUserToJson.ts`                |
+| Main-app user   | `userToJson(user)`           | `controllers/usersController.ts` (internal)  |
+| Audit event     | `eventToJson(e)`             | `controllers/eventsController.ts` (internal) |

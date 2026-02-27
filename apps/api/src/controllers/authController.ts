@@ -158,18 +158,13 @@ export async function signup(req: Request, res: Response): Promise<void> {
 }
 
 export async function verifyEmail(req: Request, res: Response): Promise<void> {
-  const token =
-    (req.body as { token?: string })?.token ??
-    (req.query as { token?: string }).token;
+  const token = (req.body as { token?: string })?.token ?? (req.query as { token?: string }).token;
   if (token === undefined || typeof token !== 'string' || token === '') {
     res.status(400).json({ message: 'Invalid or expired link' });
     return;
   }
   const tokenHash = hashToken(token);
-  const consumed = await VerificationTokenService.consumeToken(
-    tokenHash,
-    'email_verify'
-  );
+  const consumed = await VerificationTokenService.consumeToken(tokenHash, 'email_verify');
   if (consumed === null) {
     res.status(400).json({ message: 'Invalid or expired link' });
     return;
@@ -220,10 +215,7 @@ export async function resetPassword(req: Request, res: Response): Promise<void> 
     return;
   }
   const tokenHash = hashToken(token);
-  const consumed = await VerificationTokenService.consumeToken(
-    tokenHash,
-    'password_reset'
-  );
+  const consumed = await VerificationTokenService.consumeToken(tokenHash, 'password_reset');
   if (consumed === null) {
     res.status(400).json({ message: 'Invalid or expired link' });
     return;
@@ -272,25 +264,19 @@ export async function requestEmailChange(req: Request, res: Response): Promise<v
 }
 
 export async function confirmEmailChange(req: Request, res: Response): Promise<void> {
-  const token =
-    (req.body as { token?: string })?.token ??
-    (req.query as { token?: string }).token;
+  const token = (req.body as { token?: string })?.token ?? (req.query as { token?: string }).token;
   if (token === undefined || typeof token !== 'string' || token === '') {
     res.status(400).json({ message: 'Invalid or expired link' });
     return;
   }
   const tokenHash = hashToken(token);
-  const consumed = await VerificationTokenService.consumeToken(
-    tokenHash,
-    'email_change'
-  );
+  const consumed = await VerificationTokenService.consumeToken(tokenHash, 'email_change');
   if (consumed === null) {
     res.status(400).json({ message: 'Invalid or expired link' });
     return;
   }
   const pending =
-    consumed.payload !== null &&
-    typeof consumed.payload.pending_email === 'string'
+    consumed.payload !== null && typeof consumed.payload.pending_email === 'string'
       ? consumed.payload.pending_email
       : null;
   if (pending === null) {

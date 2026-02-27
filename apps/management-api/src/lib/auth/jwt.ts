@@ -26,10 +26,7 @@ export function signManagementToken(
   );
 }
 
-export function verifyManagementToken(
-  token: string,
-  secret: string
-): ManagementJwtPayload | null {
+export function verifyManagementToken(token: string, secret: string): ManagementJwtPayload | null {
   try {
     const decoded = jwt.verify(token, secret) as ManagementJwtPayload;
     return decoded !== null &&

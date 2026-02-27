@@ -8,7 +8,11 @@ import { recordEvent } from '../lib/recordEvent.js';
  * Single place to serialize a main-app user for responses. Returns only safe, non-sensitive fields.
  * Never include passwordHash or pass user.credentials to res.json(). Use this for all user responses.
  */
-function userToJson(user: UserWithRelations): { id: string; email: string; displayName: string | null } {
+function userToJson(user: UserWithRelations): {
+  id: string;
+  email: string;
+  displayName: string | null;
+} {
   return {
     id: user.id,
     email: user.credentials.email,
@@ -83,7 +87,11 @@ export async function updateUser(req: Request, res: Response): Promise<void> {
     res.status(404).json({ message: 'User not found' });
     return;
   }
-  const body = req.body as { email?: string; displayName?: string | null; profileVisibility?: boolean };
+  const body = req.body as {
+    email?: string;
+    displayName?: string | null;
+    profileVisibility?: boolean;
+  };
   if (body.email !== undefined) {
     await UserService.updateEmail(id, body.email);
   }

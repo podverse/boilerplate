@@ -127,22 +127,19 @@ export class ManagementUserService {
     await qr.startTransaction();
     try {
       if (data.email !== undefined) {
-        await qr.manager.getRepository(ManagementUserCredentials).update(
-          { managementUserId: id },
-          { email: data.email }
-        );
+        await qr.manager
+          .getRepository(ManagementUserCredentials)
+          .update({ managementUserId: id }, { email: data.email });
       }
       if (data.displayName !== undefined) {
-        await qr.manager.getRepository(ManagementUserBio).update(
-          { managementUserId: id },
-          { displayName: data.displayName }
-        );
+        await qr.manager
+          .getRepository(ManagementUserBio)
+          .update({ managementUserId: id }, { displayName: data.displayName });
       }
       if (data.passwordHash !== undefined) {
-        await qr.manager.getRepository(ManagementUserCredentials).update(
-          { managementUserId: id },
-          { passwordHash: data.passwordHash }
-        );
+        await qr.manager
+          .getRepository(ManagementUserCredentials)
+          .update({ managementUserId: id }, { passwordHash: data.passwordHash });
       }
       const permRepo = qr.manager.getRepository(AdminPermissions);
       const perm = existing.permissions;
@@ -156,8 +153,10 @@ export class ManagementUserService {
         } = {};
         if (data.adminsCrud !== undefined) updates.adminsCrud = data.adminsCrud;
         if (data.usersCrud !== undefined) updates.usersCrud = data.usersCrud;
-        if (data.canChangePasswords !== undefined) updates.canChangePasswords = data.canChangePasswords;
-        if (data.canAssignPermissions !== undefined) updates.canAssignPermissions = data.canAssignPermissions;
+        if (data.canChangePasswords !== undefined)
+          updates.canChangePasswords = data.canChangePasswords;
+        if (data.canAssignPermissions !== undefined)
+          updates.canAssignPermissions = data.canAssignPermissions;
         if (data.eventVisibility !== undefined) updates.eventVisibility = data.eventVisibility;
         if (Object.keys(updates).length > 0) {
           await permRepo.update({ adminId: id }, updates);

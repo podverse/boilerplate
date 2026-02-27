@@ -1,15 +1,6 @@
-import {
-  Entity,
-  PrimaryGeneratedColumn,
-  Column,
-  ManyToOne,
-  JoinColumn,
-} from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from 'typeorm';
 
-import {
-  TOKEN_HASH_HEX_LENGTH,
-  VERIFICATION_TOKEN_KIND_MAX_LENGTH,
-} from '../constants.js';
+import { TOKEN_HASH_HEX_LENGTH, VERIFICATION_TOKEN_KIND_MAX_LENGTH } from '../constants.js';
 
 import type { User } from './User.js';
 

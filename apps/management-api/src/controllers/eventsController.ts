@@ -35,8 +35,7 @@ export async function listEvents(req: Request, res: Response): Promise<void> {
   }
   const limit = Number(req.query.limit) || 100;
   const offset = Number(req.query.offset) || 0;
-  const visibility =
-    user.isSuperAdmin ? 'all' : (user.permissions?.eventVisibility ?? 'own');
+  const visibility = user.isSuperAdmin ? 'all' : (user.permissions?.eventVisibility ?? 'own');
   const events = await ManagementEventService.findEventsWithVisibility({
     visibility,
     actorId: user.id,

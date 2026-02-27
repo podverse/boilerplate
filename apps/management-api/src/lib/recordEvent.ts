@@ -1,7 +1,4 @@
-import {
-  ManagementEventService,
-  type ActorType,
-} from '@boilerplate/management-orm';
+import { ManagementEventService, type ActorType } from '@boilerplate/management-orm';
 import type { ManagementUser } from '@boilerplate/management-orm';
 
 export type RecordEventParams = {

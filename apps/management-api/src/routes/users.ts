@@ -3,11 +3,7 @@ import { Router } from 'express';
 import * as usersController from '../controllers/usersController.js';
 import { requireCrud } from '../middleware/requireCrud.js';
 import { validateBody } from '../middleware/validateBody.js';
-import {
-  createUserSchema,
-  updateUserSchema,
-  changeUserPasswordSchema,
-} from '../schemas/users.js';
+import { createUserSchema, updateUserSchema, changeUserPasswordSchema } from '../schemas/users.js';
 
 export function createUsersRouter(requireAuth: RequestHandler): Router {
   const router = Router();

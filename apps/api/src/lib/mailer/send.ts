@@ -11,9 +11,7 @@ function getTransporter(): Transporter {
   const pass = process.env.SMTP_PASSWORD;
   const from = process.env.MAIL_FROM;
   if (host === undefined || port === undefined || from === undefined) {
-    throw new Error(
-      'Mailer requires SMTP_HOST, SMTP_PORT, MAIL_FROM when MAILER_ENABLED is true'
-    );
+    throw new Error('Mailer requires SMTP_HOST, SMTP_PORT, MAIL_FROM when MAILER_ENABLED is true');
   }
   transporter = nodemailer.createTransport({
     host,
@@ -69,10 +67,7 @@ export async function sendPasswordResetEmail(to: string, token: string): Promise
   });
 }
 
-export async function sendEmailChangeVerificationEmail(
-  to: string,
-  token: string
-): Promise<void> {
+export async function sendEmailChangeVerificationEmail(to: string, token: string): Promise<void> {
   if (!isMailerEnabled()) return;
   const base = getBaseUrl();
   const link = `${base}/auth/confirm-email-change?token=${encodeURIComponent(token)}`;

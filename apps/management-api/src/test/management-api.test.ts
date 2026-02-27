@@ -209,4 +209,39 @@ describe('management-api', () => {
         .expect(404);
     });
   });
+
+  describe('users CRUD (super admin, main DB)', () => {
+    it('GET /users returns 200 with users array', async () => {
+      const res = await request(app)
+        .get(`${API}/users`)
+        .set('Authorization', `Bearer ${superAdminToken}`)
+        .expect(200);
+      expect(res.body).toHaveProperty('users');
+      expect(Array.isArray(res.body.users)).toBe(true);
+    });
+
+    it('POST /users creates main-app user and GET /users/:id returns it', async () => {
+      const email = `user-${Date.now()}@example.com`;
+      const password = 'user-password-1';
+      const createRes = await request(app)
+        .post(`${API}/users`)
+        .set('Authorization', `Bearer ${superAdminToken}`)
+        .send({
+          email,
+          password,
+          displayName: 'Test User',
+        })
+        .expect(201);
+      expect(createRes.body.user).toHaveProperty('id');
+      expect(createRes.body.user.email).toBe(email);
+      const userId = createRes.body.user.id;
+
+      const getRes = await request(app)
+        .get(`${API}/users/${userId}`)
+        .set('Authorization', `Bearer ${superAdminToken}`)
+        .expect(200);
+      expect(getRes.body.user.id).toBe(userId);
+      expect(getRes.body.user.email).toBe(email);
+    });
+  });
 });

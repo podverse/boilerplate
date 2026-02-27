@@ -1,9 +1,5 @@
 import Joi from 'joi';
-import {
-  EMAIL_MAX_LENGTH,
-  PASSWORD_MAX_LENGTH,
-  SHORT_TEXT_MAX_LENGTH,
-} from '@boilerplate/helpers';
+import { EMAIL_MAX_LENGTH, PASSWORD_MAX_LENGTH, SHORT_TEXT_MAX_LENGTH } from '@boilerplate/helpers';
 
 const email = Joi.string().email().max(EMAIL_MAX_LENGTH).required();
 const password = Joi.string().min(1).max(PASSWORD_MAX_LENGTH).required();

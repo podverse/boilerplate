@@ -166,7 +166,8 @@ describe('mailer-enabled (mocked)', () => {
       expect(res.body.message).toBeDefined();
       expect(
         res.body.message === 'newEmail required' ||
-          (res.body.details && res.body.details.some((d: { path?: string }) => d.path === 'newEmail'))
+          (res.body.details &&
+            res.body.details.some((d: { path?: string }) => d.path === 'newEmail'))
       ).toBe(true);
     });
 
