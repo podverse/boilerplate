@@ -18,9 +18,11 @@ is present.
      requireManagementAuth, requireSuperAdmin, requirePermission(permission).
 
 3. **Endpoints**
-   - Create/delete admin (with permission flags and **event_visibility**); create/delete
-     main-system user (calls main DB/ORM from plan 12); change password (admin or main
-     user); list admins/users; update admin permissions (super admin only).
+   - Create/read/update/delete admin (check **admins_crud** bitmask per operation); same for
+     main-system user (**users_crud**; calls main DB/ORM from plan 12); change password
+     (admin or main user); list admins/users; update admin permissions (super admin only).
+     Permission payload: admins_crud, users_crud (0–15), can_change_passwords,
+     can_assign_permissions, event_visibility.
    - **Record an event** in the management DB whenever a super admin or admin performs
      any of these actions (actor, action, target, timestamp).
 

@@ -49,7 +49,7 @@
 | 28 | 28-github-repo-setup.md | 13 |
 | 29 | 29-dependabot.md | 14 |
 | 30 | 30-jenkins-local.md | 15 |
-| 31 | 31-management-database.md | Management track |
+| 31 | [31-management-database.md](../../completed/boilerplate/31-management-database.md) | Management track (completed) |
 | 32 | 32-management-api.md | Management track |
 | 33 | 33-management-web.md | Management track |
 | 34 | 34-signup-verification-and-password-flows.md | Phase 6b (completed) |
@@ -77,8 +77,11 @@
 - **27** → 28 (GitHub repo setup doc runs after project description; references 09, 10, 26).
 - **10** → 29 (Dependabot uses labels dependencies, docker; 29 can run after 28 or in Phase 14).
 - **29** → 30 (Jenkins local runs after all other phases).
-- **Management track:** 31 → 32; 32 → 33; 12 (main ORM) → 32 (management API needs main DB
-  for user CRUD). **Shared UI package** (plans 16–19) → both apps/web and apps/management-web.
+- **Management (before Phase 7):** Plan 31 (management database) is complete; 32 and 33 remain.
+  After Phase 6 run **31** → **32** (management DB, then API). Then **16–19** (shared UI
+  package). Then **33** (management web; consumes shared UI). Then **21** → **20** → **22**
+  (Phase 7b; main web frontend). 12 (main ORM) → 32 (management API needs main DB for user
+  CRUD).
 - **Phase 6c (API integration tests):** 34 → 35 (auth/verification endpoints exist before test
   setup); 35 → 36 (setup before auth test cases and CI test step).
 - **Phase 2:** 05 runs before 08 (both modify root Makefile); 06, 07, 08 can run in parallel
@@ -99,11 +102,12 @@
   startup, admin creates users, first-login password change required). When Management API
   is present, main API does not expose admin user creation (plan 32 is canonical).
 - **Bump script** (plan 07): Commit and push version bump automatically (--no-verify).
-- **Management** (plans 31–33): Optional Management API + Management Web; dedicated
-  management DB (SQLite default, optional second Postgres); single super admin + scoped
-  admins; audit events table and Events page; management work can run in parallel with
-  main phases. **Shared UI package** in monorepo for reusable React components and styles
-  used by web and management-web.
+- **Management** (plans 31–33): Management API + Management Web; dedicated management DB
+  (SQLite default, optional second Postgres); single super admin + scoped admins; audit
+  events table and Events page. Management runs **before** Phase 7 (31 → 32 → shared UI
+  16–19 → 33) so management DB, API, and Web are minimally functional before main web
+  frontend work (Phase 7b). **Shared UI package** in monorepo for reusable React
+  components and styles used by web and management-web.
 
 ## Current state
 
@@ -112,5 +116,5 @@
   /test: build, lint, type-check, test), Makefile, auth (mailer + no-mailer), verification
   flows (verify-email, forgot/reset-password, request/confirm-email-change), Vitest + supertest,
   CI test step with Postgres + Valkey and test DB init.
-- **Phase 7** (frontend: SCSS, layout, themes, components, i18n, settings, dashboard) and
-  later phases (8–15, Management track) are not yet implemented.
+- **Phase 7** (shared UI, then management-web, then i18n/settings/dashboard) and later
+  phases (8–15) are not yet implemented; Management is planned to run before Phase 7b.

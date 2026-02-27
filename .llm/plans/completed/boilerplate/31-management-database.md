@@ -9,27 +9,26 @@ main-system user CRUD.
 
 ## Database choice
 
-- **Default:** SQLite (e.g. `data/management.sqlite` or under `infra/`) — minimal footprint,
-  no extra service. Document the option to use a second Postgres database for teams that
-  prefer one engine or multi-instance deployments.
-- **Second Postgres:** Optional; e.g. `management_db` in docker-compose; same migrations
-  tooling as main.
+- **Postgres only:** Second database (e.g. `management_db`) on the same server as the main
+  app. Same engine and tooling as main; MANAGEMENT_DB_* env vars. Create the DB once, run
+  `management-database/combined/init_management_database.sql` (generated from `management-database/migrations/` via scripts/database/combine-migrations.sh).
 
 ## Steps
 
 1. **Infra**
-   - Add SQLite file path + init/migrations (or second Postgres service + migrations).
-   - Document how the management API connects to this store and, separately, to main DB
-     for main-user CRUD.
+   - Second Postgres database + init/migrations. Document how the management API
+     connects to this store (MANAGEMENT_DB_*) and, separately, to main DB for main-user
+     CRUD.
 
 2. **Schema**
    - **Super admin:** Singleton (e.g. `super_admin` table with one row, or
      `management_users` with `is_super_admin` and constraint at most one true). Email +
      hashed password.
    - **Admins:** Table of admin users (email, hashed password, created_by, etc.).
-   - **Admin permissions:** Per-admin flags: `can_manage_admins`, `can_manage_users`,
-     `can_change_passwords`, `can_assign_permissions`; and **event_visibility** (`own` |
-     `all_admins` | `all`). Super admin sets these when creating/editing admins.
+   - **Admin permissions:** Per-admin: `admins_crud` and `users_crud` (0–15 CRUD bitmask:
+     create=1, read=2, update=4, delete=8); `can_change_passwords`, `can_assign_permissions`;
+     **event_visibility** (`own` | `all_admins` | `all`). Super admin sets these when
+     creating/editing admins.
    - **Management events (audit log):** At least one table (e.g. `management_events`)
      tracking every action by a super admin or admin: actor_id, actor_type
      (super_admin | admin), action (e.g. admin_created, user_created, password_changed),
@@ -37,13 +36,13 @@ main-system user CRUD.
      Main apps do not have access to this table.
 
 3. **Access layer**
-   - Implement in `packages/orm-management/` or `apps/management-api/src/db/` (entities
+   - Implement in `packages/management-orm/` or `apps/management-api/src/db/` (entities
      and services for management store only).
 
 ## Key files
 
-- `infra/database/management/` (migrations or SQLite init)
-- `packages/orm-management/` or `apps/management-api/src/db/` for management-only entities
+- `infra/management-database/migrations/` and `infra/management-database/combined/` (same convention as database/; combine script generates both)
+- `packages/management-orm/` or `apps/management-api/src/db/` for management-only entities
 
 ## Dependencies
 

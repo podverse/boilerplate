@@ -25,24 +25,25 @@ Each line below means: do the step(s), **wait for completion**, then do the next
 4. **Phase 4:** Run 11 (one agent). **Wait for 11 to finish.** Run 12 (one agent). **Wait for
    12 to finish** before Phase 5.
 5. **Phase 5:** Run 13 (one agent). (completed) **Skip; proceed to Phase 6.**
-6. **Phase 6, 6b, 6c:** (completed) Plans 14, 15, 34, 35, 36 are in `.llm/plans/completed/boilerplate/`. Do not re-execute. **Skip to Phase 7.**
-7. **Phase 7:** Run 16, 17, 18, 19 in parallel (four agents); these deliver into the
-   **shared UI package** (`packages/ui` / `@boilerplate/ui`) so both web and
-   management-web consume the same components and styles. **Wait for all four to finish.**
-   Run 21 (one agent). **Wait for 21.** Run 20 (one agent). **Wait for 20.** Run 22 (one
-   agent). **Wait for 22** before Phase 8.
-8. **Phase 8:** Run 24 (one agent). **Wait for 24 to finish** before Phase 9.
-9. **Phase 9:** Run 23 (one agent). **Wait for 23 to finish** before Phase 10.
-10. **Phase 10:** Run 25 (one agent). **Wait for 25 to finish** before Phase 11.
-11. **Phase 11:** Run 26 (one agent). **Wait for 26 to finish** before Phase 12.
-12. **Phase 12:** Run 27 (one agent). **Wait for 27 to finish** before Phase 13.
-13. **Phase 13:** Run 28 (one agent). **Wait for 28 to finish** before Phase 14.
-14. **Phase 14:** Run 29 (one agent). **Wait for 29 to finish** before Phase 15.
-15. **Phase 15:** Run 30 (one agent). **Wait for 30 to finish.** Done.
+6. **Phase 6, 6b, 6c:** (completed) Plans 14, 15, 34, 35, 36 are in `.llm/plans/completed/boilerplate/`. Do not re-execute. **Skip to step 7.**
+7. **Management (before Phase 7):** Run 31, then 32. (Plan 31 is complete; 31-management-database.md
+   is in `.llm/plans/completed/boilerplate/`. Do not re-execute 31.) Run 32 (one agent).
+   **Wait for 32.** (Management DB and API in place.)
+8. **Phase 7a – Shared UI:** Run 16, 17, 18, 19 in parallel (four agents). **Wait for all
+   four to finish.** (Shared UI package for web and management-web.)
+9. **Management Web:** Run 33 (one agent). **Wait for 33.** (Management minimally functional.)
+10. **Phase 7b – Main web frontend:** Run 21 (one agent). **Wait for 21.** Run 20 (one
+    agent). **Wait for 20.** Run 22 (one agent). **Wait for 22** before Phase 8.
+11. **Phase 8:** Run 24 (one agent). **Wait for 24 to finish** before Phase 9.
+12. **Phase 9:** Run 23 (one agent). **Wait for 23 to finish** before Phase 10.
+13. **Phase 10:** Run 25 (one agent). **Wait for 25 to finish** before Phase 11.
+14. **Phase 11:** Run 26 (one agent). **Wait for 26 to finish** before Phase 12.
+15. **Phase 12:** Run 27 (one agent). **Wait for 27 to finish** before Phase 13.
+16. **Phase 13:** Run 28 (one agent). **Wait for 28 to finish** before Phase 14.
+17. **Phase 14:** Run 29 (one agent). **Wait for 29 to finish** before Phase 15.
+18. **Phase 15:** Run 30 (one agent). **Wait for 30 to finish.** Done.
 
-**Management track (optional; can run in parallel with Phase 7+):** After Phase 6, run 31
-(one agent). **Wait for 31.** Run 32 (one agent). **Wait for 32.** After 32 and after plan
-19 (shared UI) exist, run 33 (one agent). **Wait for 33.**
+Management is run in steps 7–9 before Phase 7b (main web frontend).
 
 ---
 
@@ -154,7 +155,29 @@ Phase 6, 6b, and 6c are complete. Plans 14, 15, 34, 35, and 36 are in `.llm/plan
 
 ---
 
-## Phase 7 (parallel groups)
+## Management (before Phase 7)
+
+Run right after Phase 6. Order: 31, then 32. Plan 31 is complete; 31-management-database.md is in
+`.llm/plans/completed/boilerplate/`. Do not re-execute 31.
+
+### Agent 31: Management database (completed)
+
+Implemented per `.llm/plans/completed/boilerplate/31-management-database.md`. Dedicated
+management store (second Postgres): super admin, admins, permissions (including
+event_visibility), and management_events (audit log). Do not re-run.
+
+### Agent 32: Management API
+
+Read and execute `.llm/plans/active/boilerplate/32-management-api.md`. Add
+`apps/management-api`: auth (super admin + admins), JWT, permission checks, record events
+on every action, GET /events with visibility rules. Main-user CRUD via main DB. Verify
+login, admin/user CRUD, and events filtering.
+
+---
+
+## Phase 7a: Shared UI package
+
+Run 16, 17, 18, 19 in parallel (four agents). Delivers `packages/ui` / `@boilerplate/ui`.
 
 ### Agent 7A: SCSS
 
@@ -176,7 +199,24 @@ and CSS variables. Verify toggle updates UI.
 Read and execute `.llm/plans/active/boilerplate/19-basic-components.md`. Add
 Button, Input, Card. Verify usage on a page.
 
-### Agent 7E: i18n (run after 7A–7D)
+---
+
+## Management Web (after Phase 7a)
+
+### Agent 33: Management Web
+
+Read and execute `.llm/plans/active/boilerplate/33-management-web.md`. Add
+`apps/management-web`: login to management API, permission-based UI, Events page. Consume
+shared UI package (`@boilerplate/ui`) for components and styles. Verify Events page and
+shared package usage.
+
+---
+
+## Phase 7b: Main web frontend
+
+Requires web app to exist (`apps/web` already exists). Run 21, then 20, then 22.
+
+### Agent 7E: i18n (run first in Phase 7b)
 
 Read and execute `.llm/plans/active/boilerplate/21-i18n-translations.md`. Add
 i18n and translation keys. Verify locale switch. Run this before the settings page (20).
@@ -281,30 +321,3 @@ checkout). Document in `docs/pipelines/JENKINS-LOCAL.md`. Jenkins is deployment-
 publish jobs. Verify Jenkins starts, user can log in, folder `local` has jobs, and jobs
 use isolated workspace (no collision with host repo).
 
----
-
-## Management track (optional)
-
-Run after Phase 6; can overlap with Phase 7–9. Order: 31 → 32 → 33 (33 after 32 and after
-plan 19 / shared UI package exists).
-
-### Agent 31: Management database
-
-Read and execute `.llm/plans/active/boilerplate/31-management-database.md`. Add dedicated
-management store (SQLite default or second Postgres): super admin, admins, permissions
-(including event_visibility), and management_events (audit log). Verify schema and
-connection docs.
-
-### Agent 32: Management API
-
-Read and execute `.llm/plans/active/boilerplate/32-management-api.md`. Add
-`apps/management-api`: auth (super admin + admins), JWT, permission checks, record events
-on every action, GET /events with visibility rules. Main-user CRUD via main DB. Verify
-login, admin/user CRUD, and events filtering.
-
-### Agent 33: Management Web
-
-Read and execute `.llm/plans/active/boilerplate/33-management-web.md`. Add
-`apps/management-web`: login to management API, permission-based UI, Events page. Consume
-shared UI package (`@boilerplate/ui`) for components and styles. Verify Events page and
-shared package usage.

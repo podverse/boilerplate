@@ -39,7 +39,7 @@ All plans: `.llm/plans/active/boilerplate/`
 | [28-github-repo-setup.md](28-github-repo-setup.md) | Documentation: GitHub labels, branch protection, optional GitHub App (as required from plans 09, 10, 26) |
 | [29-dependabot.md](29-dependabot.md) | Dependabot: .github/dependabot.yml and docs/repo-management/DEPENDABOT.md |
 | [30-jenkins-local.md](30-jenkins-local.md) | Jenkins local: run locally, folder "local", programmatic setup, deployment-only, sparse checkout |
-| [31-management-database.md](31-management-database.md) | Management DB (identities, permissions, audit events) |
+| [31-management-database.md](../../completed/boilerplate/31-management-database.md) (completed) | Management DB (identities, permissions, audit events) (completed) |
 | [32-management-api.md](32-management-api.md) | Management API (auth, admin CRUD, events API) |
 | [33-management-web.md](33-management-web.md) | Management Web (UI, Events page; uses shared UI package) |
 | [34-signup-verification-and-password-flows.md](../../completed/boilerplate/34-signup-verification-and-password-flows.md) (completed) | Sign-up verification and password flows (email verify, forgot/reset password, change email) |
@@ -97,18 +97,36 @@ Implemented. Plan files are in `.llm/plans/completed/boilerplate/`. Do not re-ex
 - **35-api-integration-test-setup** – Run after 34. (completed)
 - **36-api-integration-auth-tests** – Run after 35. (completed)
 
-## Phase 7: Frontend (parallel groups)
+## Management (before Phase 7)
 
-- **Shared UI package:** Plans 16–19 deliver into a shared package (e.g. `packages/ui` /
-  `@boilerplate/ui`) so that both `apps/web` and `apps/management-web` depend on it for
-  components and styles. Build the shared package before apps that consume it.
-- **16-scss**, **17-responsive-layout**, **18-themes**, **19-basic-components** – Parallel
-  (implement in or for the shared UI package; apps import from it).
-- **21-i18n-translations** – Run after 18–19 (settings page depends on i18n). Includes
-  three-tier layout (originals/overrides/compiled) and workflow on push to develop to
-  update translations; skips LLM translate when OPENAI_API_KEY is not set.
+Run after Phase 6 so that management DB, API, and (after Phase 7a and 33) Web are minimally functional before Phase 7b.
+
+- **31-management-database** (completed) – Run after Phase 6. Dedicated store (SQLite default) for
+  management identities, permissions, and audit events. Plan 31 is implemented; plan file is in
+  `.llm/plans/completed/boilerplate/`.
+- **32-management-api** – Run after 31. Express app; auth, events API, main-user CRUD via
+  main DB.
+
+## Phase 7a: Shared UI package
+
+- **16-scss**, **17-responsive-layout**, **18-themes**, **19-basic-components** – Run in
+  parallel after 32. Deliver into `packages/ui` / `@boilerplate/ui` so that both
+  `apps/web` and `apps/management-web` depend on it for components and styles.
+
+## Management Web (after Phase 7a)
+
+- **33-management-web** – Run after Phase 7a. Next.js app; login to management API,
+  permission-based UI, Events page; consumes shared UI. Management is now minimally
+  functional (DB + API + Web).
+
+## Phase 7b: Main web frontend
+
+Requires web app to exist (`apps/web` already exists). Adds i18n, settings, and dashboard.
+
+- **21-i18n-translations** – Run after 33. Three-tier layout (originals/overrides/compiled)
+  and workflow on push to develop; skips LLM translate when OPENAI_API_KEY is not set.
 - **20-settings-page** – Run after 21 (uses locale selector and t() from i18n).
-- **22-dashboard-realtime** – After auth, API messages, Valkey, and privacy flag.
+- **22-dashboard-realtime** – After 20; auth, API messages, Valkey, and privacy flag.
 
 ## Phase 8: API documentation (OpenAPI + test UI)
 
@@ -163,20 +181,10 @@ Implemented. Plan files are in `.llm/plans/completed/boilerplate/`. Do not re-ex
   `local` with deployment-only pipeline jobs (Jenkinsfiles + import script); sparse checkout
   in isolated workspace (no collision with host repo). Docs: `docs/pipelines/JENKINS-LOCAL.md`.
 
-## Management track (parallel to main phases)
-
-Management work can run in parallel with Phases 7–9. No blocking dependency on main line
-except: plan 32 needs main DB schema (plan 12) for user CRUD; plan 33 needs shared UI (19).
-
-- **31-management-database** – Can run after Phase 6 (or in parallel with Phase 7).
-  Dedicated store for management identities, permissions, and audit events (SQLite default).
-- **32-management-api** – After 31. Express app; super admin + scoped admins; record events;
-  GET /events with visibility rules.
-- **33-management-web** – After 32 and after shared UI package exists (plan 19). Next.js app;
-  login, permission-based UI, Events page; consumes `@boilerplate/ui`.
-
 ## Rules
 
 - **Phases are sequential** – Finish a phase before starting the next (except where noted).
+- **Management** runs sequentially after Phase 6 and before Phase 7b; Phase 7a (shared UI)
+  runs between 32 and 33.
 - **Within a phase** – Run only the plans marked as parallel simultaneously.
 - **COPY-PASTA.md** – Use for multi-agent parallel execution; follow its execution rules.
