@@ -1,0 +1,74 @@
+-- Combined migrations generated Thu Feb 26 19:30:13 CST 2026
+-- DO NOT EDIT - regenerate with scripts/database/combine-migrations.sh
+
+-- Including: 0000_management_helpers.sql
+-- 0000 migration: domains for management_user_credentials and management_user_bio (lengths align with @boilerplate/helpers)
+
+CREATE DOMAIN varchar_email AS VARCHAR(255) CHECK (VALUE ~ '^.+@.+\..+$');
+CREATE DOMAIN varchar_password AS VARCHAR(60);
+CREATE DOMAIN varchar_short AS VARCHAR(50);
+CREATE DOMAIN server_time_with_default AS TIMESTAMP DEFAULT NOW();
+
+
+-- Including: 0001_management_user.sql
+-- 0001 migration: management_user – super admin singleton + admins (with credentials and bio 1:1)
+
+-- Core management user row (no email/password here; see management_user_credentials)
+CREATE TABLE IF NOT EXISTS management_user (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    is_super_admin BOOLEAN NOT NULL DEFAULT false,
+    created_at server_time_with_default NOT NULL,
+    created_by UUID REFERENCES management_user(id) ON DELETE SET NULL
+);
+
+-- At most one row with is_super_admin = true
+CREATE UNIQUE INDEX IF NOT EXISTS idx_one_super_admin ON management_user(is_super_admin) WHERE is_super_admin = true;
+
+-- Credentials: email and password (1:1 with management_user)
+CREATE TABLE IF NOT EXISTS management_user_credentials (
+    management_user_id UUID PRIMARY KEY REFERENCES management_user(id) ON DELETE CASCADE,
+    email varchar_email UNIQUE NOT NULL,
+    password_hash varchar_password NOT NULL
+);
+
+-- Bio: display name (1:1 with management_user)
+CREATE TABLE IF NOT EXISTS management_user_bio (
+    management_user_id UUID PRIMARY KEY REFERENCES management_user(id) ON DELETE CASCADE,
+    display_name varchar_short NULL
+);
+
+
+-- Including: 0002_admin_permissions.sql
+-- 0002 migration: admin_permissions – CRUD bitmasks, can_change_passwords, can_assign_permissions, event_visibility
+
+-- Per-admin permissions (one row per admin; super admin has implicit full access).
+-- admins_crud, users_crud: 0–15 bitmask (create=1, read=2, update=4, delete=8).
+CREATE TABLE IF NOT EXISTS admin_permissions (
+    admin_id UUID PRIMARY KEY REFERENCES management_user(id) ON DELETE CASCADE,
+    admins_crud INTEGER NOT NULL DEFAULT 0 CHECK (admins_crud >= 0 AND admins_crud <= 15),
+    users_crud INTEGER NOT NULL DEFAULT 0 CHECK (users_crud >= 0 AND users_crud <= 15),
+    can_change_passwords BOOLEAN NOT NULL DEFAULT false,
+    can_assign_permissions BOOLEAN NOT NULL DEFAULT false,
+    event_visibility TEXT NOT NULL DEFAULT 'own' CHECK(event_visibility IN ('own', 'all_admins', 'all'))
+);
+
+
+-- Including: 0003_management_event.sql
+-- 0003 migration: management_event – audit log for super admin and admin actions
+
+-- Audit log: every action by super admin or admin
+CREATE TABLE IF NOT EXISTS management_event (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    actor_id TEXT NOT NULL,
+    actor_type TEXT NOT NULL CHECK(actor_type IN ('super_admin', 'admin')),
+    action TEXT NOT NULL,
+    target_type TEXT,
+    target_id TEXT,
+    timestamp server_time_with_default NOT NULL,
+    details TEXT
+);
+
+CREATE INDEX IF NOT EXISTS idx_management_event_actor ON management_event(actor_id);
+CREATE INDEX IF NOT EXISTS idx_management_event_timestamp ON management_event(timestamp);
+
+

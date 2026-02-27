@@ -7,6 +7,7 @@ HTTP API and Next.js app. Structure and tooling mirror the Podverse monorepo whe
 - **apps/api** – Standalone Express API (port 4000 by default)
 - **apps/web** – Next.js app (port 4100 by default)
 - **apps/web/sidecar** – Runtime-config server for the web app (port 4101 when used)
+- **Infra (database, management database, Docker):** See [infra/INFRA.md](infra/INFRA.md).
 
 ## Setup
 

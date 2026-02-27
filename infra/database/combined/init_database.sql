@@ -1,4 +1,4 @@
--- Combined migrations generated Thu Feb 26 16:50:08 CST 2026
+-- Combined migrations generated Thu Feb 26 19:30:13 CST 2026
 -- DO NOT EDIT - regenerate with scripts/database/combine-migrations.sh
 
 -- Including: 0000_init_helpers.sql
@@ -31,7 +31,7 @@ $$ LANGUAGE plpgsql;
 
 
 -- Including: 0001_user_schema.sql
--- 0001 migration: user (singular) with join tables user_credentials, user_bio; verification_token for Plan 34
+-- 0001 migration: user (singular) with join tables user_credentials, user_bio; verification_token
 
 -- Core user row (one per account)
 CREATE TABLE "user" (

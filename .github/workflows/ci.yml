@@ -86,6 +86,10 @@ jobs:
         with:
           ref: ${{ steps.pr-comment.outputs.head_sha }}
 
+      - name: Verify database migrations combined
+        id: db-verify
+        run: bash scripts/database/verify-migrations-combined.sh
+
       - name: Setup Node.js
         uses: actions/setup-node@v6
         with:
@@ -162,6 +166,7 @@ jobs:
               '',
               '| Check | Status |',
               '|-------|--------|',
+              '| Database migrations synced | ✅ |',
               '| Dependencies installed | ✅ |',
               '| Build | ✅ |',
               '| Lint | ✅ |',
@@ -202,6 +207,7 @@ jobs:
         env:
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
           PR_NUMBER: ${{ steps.pr-comment.outputs.pr_number }}
+          DB_VERIFY: ${{ steps.db-verify.outcome }}
           INSTALL: ${{ steps.install.outcome }}
           BUILD: ${{ steps.build.outcome }}
           LINT: ${{ steps.lint.outcome }}
@@ -222,6 +228,7 @@ jobs:
               '',
               '| Check | Status |',
               '|-------|--------|',
+              `| Database migrations synced | ${status(process.env.DB_VERIFY)} |`,
               `| Dependencies installed | ${status(process.env.INSTALL)} |`,
               `| Build | ${status(process.env.BUILD)} |`,
               `| Lint | ${status(process.env.LINT)} |`,

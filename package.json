@@ -12,6 +12,7 @@
   "workspaces": [
     "packages/helpers",
     "packages/orm",
+    "packages/management-orm",
     "apps/api",
     "apps/web",
     "apps/web/sidecar"

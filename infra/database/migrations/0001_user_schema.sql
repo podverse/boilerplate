@@ -1,4 +1,4 @@
--- 0001 migration: user (singular) with join tables user_credentials, user_bio; verification_token for Plan 34
+-- 0001 migration: user (singular) with join tables user_credentials, user_bio; verification_token
 
 -- Core user row (one per account)
 CREATE TABLE "user" (
