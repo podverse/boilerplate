@@ -1,0 +1,23 @@
+// Shared design tokens — import in app SCSS or in component .module.scss via
+// @use '@boilerplate/ui/styles/variables' as *;
+
+// Colors
+$color-text: #1a1a1a;
+$color-text-muted: #666;
+$color-bg: #fff;
+$color-border: #e0e0e0;
+$color-primary: #2563eb;
+$color-primary-hover: #1d4ed8;
+
+// Spacing (base 4px)
+$space-1: 0.25rem;
+$space-2: 0.5rem;
+$space-3: 0.75rem;
+$space-4: 1rem;
+$space-6: 1.5rem;
+$space-8: 2rem;
+
+// Breakpoints (plan 17 responsive layout)
+$breakpoint-sm: 768px;
+$breakpoint-md: 1024px;
+$breakpoint-lg: 1280px;

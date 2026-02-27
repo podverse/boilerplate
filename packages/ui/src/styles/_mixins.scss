@@ -1,0 +1,38 @@
+// Shared mixins — use with @use '@boilerplate/ui/styles/mixins' as *;
+// _mixins.scss forwards variables so one @use 'mixins' gives vars + mixins.
+
+@forward 'variables';
+
+@use 'variables' as *;
+
+@mixin clearfix {
+  &::after {
+    content: '';
+    display: table;
+    clear: both;
+  }
+}
+
+@mixin truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@mixin at-least-sm {
+  @media (min-width: $breakpoint-sm) {
+    @content;
+  }
+}
+
+@mixin at-least-md {
+  @media (min-width: $breakpoint-md) {
+    @content;
+  }
+}
+
+@mixin at-least-lg {
+  @media (min-width: $breakpoint-lg) {
+    @content;
+  }
+}

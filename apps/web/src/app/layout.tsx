@@ -2,6 +2,8 @@ import type { Metadata } from 'next';
 import { getRuntimeConfig } from '../config/runtime-config-store';
 import RuntimeConfigScript from '../components/Head/RuntimeConfigScript';
 
+import '../styles/globals.scss';
+
 export const metadata: Metadata = {
   title: 'Boilerplate',
   description: 'Boilerplate app',
