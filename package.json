@@ -14,6 +14,7 @@
     "packages/orm",
     "packages/management-orm",
     "apps/api",
+    "apps/management-api",
     "apps/web",
     "apps/web/sidecar"
   ],
@@ -35,8 +36,8 @@
     "build:apps": "npm run build -w @boilerplate/api -w @boilerplate/web -w @boilerplate/web-sidecar",
     "lint": "eslint . --max-warnings 0 && prettier --check .",
     "lint:fix": "eslint . --fix && prettier --write .",
-    "type-check": "npm run type-check -w @boilerplate/helpers -w @boilerplate/orm -w @boilerplate/api -w @boilerplate/web -w @boilerplate/web-sidecar",
-    "test": "node scripts/check-test-requirements.mjs && npm run test -w apps/api",
+    "type-check": "npm run type-check -w @boilerplate/helpers -w @boilerplate/orm -w @boilerplate/api -w @boilerplate/management-api -w @boilerplate/web -w @boilerplate/web-sidecar",
+    "test": "node scripts/check-test-requirements.mjs && npm run test -w apps/api && npm run test -w apps/management-api",
     "prettier:check": "prettier --check .",
     "prettier:write": "prettier --write .",
     "dev:api": "npm run dev -w apps/api",

@@ -1,0 +1,16 @@
+import type { RequestHandler } from 'express';
+import { Router } from 'express';
+import * as authController from '../controllers/authController.js';
+import { validateBody } from '../middleware/validateBody.js';
+import { loginSchema } from '../schemas/auth.js';
+
+export function createAuthRouter(requireAuth: RequestHandler): Router {
+  const router = Router();
+  router.post('/login', validateBody(loginSchema), (req, res) => {
+    void authController.login(req, res);
+  });
+  router.get('/me', requireAuth, (req, res) => {
+    authController.me(req, res);
+  });
+  return router;
+}

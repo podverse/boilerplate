@@ -1,5 +1,34 @@
+import { v4 as uuidv4 } from 'uuid';
+
 import { managementDataSource } from '../data-source.js';
+import { AdminPermissions } from '../entities/AdminPermissions.js';
 import { ManagementUser } from '../entities/ManagementUser.js';
+import { ManagementUserBio } from '../entities/ManagementUserBio.js';
+import { ManagementUserCredentials } from '../entities/ManagementUserCredentials.js';
+import type { EventVisibility } from '../entities/AdminPermissions.js';
+
+export type CreateAdminData = {
+  email: string;
+  passwordHash: string;
+  displayName?: string | null;
+  createdBy: string;
+  adminsCrud: number;
+  usersCrud: number;
+  canChangePasswords: boolean;
+  canAssignPermissions: boolean;
+  eventVisibility: EventVisibility;
+};
+
+export type UpdateAdminData = {
+  email?: string;
+  displayName?: string | null;
+  passwordHash?: string;
+  adminsCrud?: number;
+  usersCrud?: number;
+  canChangePasswords?: boolean;
+  canAssignPermissions?: boolean;
+  eventVisibility?: EventVisibility;
+};
 
 export class ManagementUserService {
   static async findByEmail(email: string): Promise<ManagementUser | null> {
@@ -24,5 +53,136 @@ export class ManagementUserService {
       where: { id },
       relations: ['credentials', 'bio', 'permissions'],
     });
+  }
+
+  /** All management users that are not super admin (i.e. admins). */
+  static async listAdmins(): Promise<ManagementUser[]> {
+    const repo = managementDataSource.getRepository(ManagementUser);
+    return repo.find({
+      where: { isSuperAdmin: false },
+      relations: ['credentials', 'bio', 'permissions'],
+      order: { createdAt: 'ASC' },
+    });
+  }
+
+  static async createAdmin(data: CreateAdminData): Promise<ManagementUser> {
+    const qr = managementDataSource.createQueryRunner();
+    await qr.connect();
+    await qr.startTransaction();
+    try {
+      const userRepo = qr.manager.getRepository(ManagementUser);
+      const credRepo = qr.manager.getRepository(ManagementUserCredentials);
+      const bioRepo = qr.manager.getRepository(ManagementUserBio);
+      const permRepo = qr.manager.getRepository(AdminPermissions);
+
+      const id = uuidv4();
+      const user = userRepo.create({
+        id,
+        isSuperAdmin: false,
+        createdBy: data.createdBy,
+      });
+      await userRepo.save(user);
+
+      const cred = credRepo.create({
+        managementUserId: id,
+        email: data.email,
+        passwordHash: data.passwordHash,
+      });
+      await credRepo.save(cred);
+
+      const bio = bioRepo.create({
+        managementUserId: id,
+        displayName: data.displayName ?? null,
+      });
+      await bioRepo.save(bio);
+
+      const perm = permRepo.create({
+        adminId: id,
+        adminsCrud: data.adminsCrud,
+        usersCrud: data.usersCrud,
+        canChangePasswords: data.canChangePasswords,
+        canAssignPermissions: data.canAssignPermissions,
+        eventVisibility: data.eventVisibility,
+      });
+      await permRepo.save(perm);
+
+      await qr.commitTransaction();
+      const withRelations = await this.findById(id);
+      if (withRelations !== null) return withRelations;
+      throw new Error('Admin created but failed to load with relations');
+    } catch (e) {
+      await qr.rollbackTransaction();
+      throw e;
+    } finally {
+      await qr.release();
+    }
+  }
+
+  static async updateAdmin(id: string, data: UpdateAdminData): Promise<ManagementUser | null> {
+    const existing = await this.findById(id);
+    if (existing === null || existing.isSuperAdmin) return null;
+
+    const qr = managementDataSource.createQueryRunner();
+    await qr.connect();
+    await qr.startTransaction();
+    try {
+      if (data.email !== undefined) {
+        await qr.manager.getRepository(ManagementUserCredentials).update(
+          { managementUserId: id },
+          { email: data.email }
+        );
+      }
+      if (data.displayName !== undefined) {
+        await qr.manager.getRepository(ManagementUserBio).update(
+          { managementUserId: id },
+          { displayName: data.displayName }
+        );
+      }
+      if (data.passwordHash !== undefined) {
+        await qr.manager.getRepository(ManagementUserCredentials).update(
+          { managementUserId: id },
+          { passwordHash: data.passwordHash }
+        );
+      }
+      const permRepo = qr.manager.getRepository(AdminPermissions);
+      const perm = existing.permissions;
+      if (perm !== undefined && perm !== null) {
+        const updates: {
+          adminsCrud?: number;
+          usersCrud?: number;
+          canChangePasswords?: boolean;
+          canAssignPermissions?: boolean;
+          eventVisibility?: EventVisibility;
+        } = {};
+        if (data.adminsCrud !== undefined) updates.adminsCrud = data.adminsCrud;
+        if (data.usersCrud !== undefined) updates.usersCrud = data.usersCrud;
+        if (data.canChangePasswords !== undefined) updates.canChangePasswords = data.canChangePasswords;
+        if (data.canAssignPermissions !== undefined) updates.canAssignPermissions = data.canAssignPermissions;
+        if (data.eventVisibility !== undefined) updates.eventVisibility = data.eventVisibility;
+        if (Object.keys(updates).length > 0) {
+          await permRepo.update({ adminId: id }, updates);
+        }
+      }
+      await qr.commitTransaction();
+      return this.findById(id);
+    } catch (e) {
+      await qr.rollbackTransaction();
+      throw e;
+    } finally {
+      await qr.release();
+    }
+  }
+
+  static async deleteById(id: string): Promise<boolean> {
+    const existing = await this.findById(id);
+    if (existing === null || existing.isSuperAdmin) return false;
+    const repo = managementDataSource.getRepository(ManagementUser);
+    const result = await repo.delete(id);
+    return (result.affected ?? 0) > 0;
+  }
+
+  static async updatePassword(managementUserId: string, passwordHash: string): Promise<void> {
+    const repo = managementDataSource.getRepository(ManagementUserCredentials);
+    await repo.update({ managementUserId }, { passwordHash });
   }
 }

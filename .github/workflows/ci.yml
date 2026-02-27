@@ -50,6 +50,11 @@ jobs:
       DB_READ_PASSWORD: test
       DB_READ_WRITE_USERNAME: read_write
       DB_READ_WRITE_PASSWORD: test
+      MANAGEMENT_DB_HOST: localhost
+      MANAGEMENT_DB_PORT: 5532
+      MANAGEMENT_DB_NAME: boilerplate_management_test
+      MANAGEMENT_DB_USERNAME: read_write
+      MANAGEMENT_DB_PASSWORD: test
       VALKEY_HOST: localhost
       VALKEY_PORT: 6479
       VALKEY_PASSWORD: "test"
@@ -144,6 +149,20 @@ jobs:
           ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT ON TABLES TO read;
           ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT ON SEQUENCES TO read;
           ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO read_write;
+          ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT, USAGE, UPDATE ON SEQUENCES TO read_write;
+          "
+          psql -h localhost -U postgres -c "CREATE DATABASE boilerplate_management_test;"
+          psql -h localhost -U postgres -d boilerplate_management_test -f infra/management-database/combined/init_management_database.sql
+          psql -h localhost -U postgres -d boilerplate_management_test -c "
+          GRANT CONNECT ON DATABASE boilerplate_management_test TO read, read_write;
+          GRANT USAGE ON SCHEMA public TO read, read_write;
+          GRANT SELECT ON ALL TABLES IN SCHEMA public TO read;
+          GRANT SELECT ON ALL SEQUENCES IN SCHEMA public TO read;
+          GRANT SELECT, INSERT, UPDATE, DELETE, TRUNCATE ON ALL TABLES IN SCHEMA public TO read_write;
+          GRANT SELECT, USAGE, UPDATE ON ALL SEQUENCES IN SCHEMA public TO read_write;
+          ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT ON TABLES TO read;
+          ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT ON SEQUENCES TO read;
+          ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT, INSERT, UPDATE, DELETE, TRUNCATE ON TABLES TO read_write;
           ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT, USAGE, UPDATE ON SEQUENCES TO read_write;
           "
 

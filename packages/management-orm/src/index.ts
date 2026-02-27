@@ -10,5 +10,12 @@ export {
   type CrudOp,
 } from './entities/AdminPermissions.js';
 export { ManagementEvent, type ActorType } from './entities/ManagementEvent.js';
-export { ManagementUserService } from './services/ManagementUserService.js';
-export { ManagementEventService } from './services/ManagementEventService.js';
+export {
+  ManagementUserService,
+  type CreateAdminData,
+  type UpdateAdminData,
+} from './services/ManagementUserService.js';
+export {
+  ManagementEventService,
+  type ListEventsOptions,
+} from './services/ManagementEventService.js';

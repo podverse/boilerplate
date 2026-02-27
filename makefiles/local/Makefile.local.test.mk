@@ -1,19 +1,27 @@
 # --- Test requirements (local). Ports 5532 (Postgres) and 6479 (Valkey) avoid conflict with Podverse (5432, 6379). ---
 
-.PHONY: test_deps test_postgres_up test_valkey_up test_db_init help_test test_check test_clean
+.PHONY: test_deps test_postgres_up test_valkey_up test_db_init test_db_init_management test_db_list help_test test_check test_clean
 
-# Default test ports (must match apps/api/src/test/setup.ts defaults)
+# Default test ports (must match apps/api/src/test/setup.ts and apps/management-api/src/test/setup.ts defaults)
 TEST_DB_PORT ?= 5532
 TEST_VALKEY_PORT ?= 6479
 TEST_PG_USER ?= postgres
 TEST_PG_PASSWORD ?= postgres
 TEST_DB_NAME ?= boilerplate_test
+TEST_MANAGEMENT_DB_NAME ?= boilerplate_management_test
 
 TEST_PG_CONTAINER := boilerplate_test_postgres
 TEST_VALKEY_CONTAINER := boilerplate_test_valkey
 
-# Ensure Postgres and Valkey are running on test ports and boilerplate_test DB exists. Run this before npm run test.
-test_deps: test_postgres_up test_valkey_up test_db_init
+# Ensure Postgres and Valkey are running and both main and management test DBs exist. Run this before npm run test.
+# Note: Both databases live in the same Postgres container (boilerplate_test_postgres). There is no separate management DB container.
+test_deps: test_postgres_up test_valkey_up test_db_init test_db_init_management
+	@echo "Test dependencies ready: main DB $(TEST_DB_NAME), management DB $(TEST_MANAGEMENT_DB_NAME)."
+
+# List test databases inside the running Postgres container (confirms both main and management DBs exist).
+test_db_list: test_postgres_up
+	@echo "Databases in $(TEST_PG_CONTAINER):"
+	@docker exec $(TEST_PG_CONTAINER) psql -U $(TEST_PG_USER) -d postgres -c "SELECT datname FROM pg_database WHERE datname IN ('$(TEST_DB_NAME)', '$(TEST_MANAGEMENT_DB_NAME)') ORDER BY datname;"
 
 # Start Postgres on port $(TEST_DB_PORT) for tests (idempotent).
 test_postgres_up:
@@ -85,6 +93,27 @@ test_db_init: test_postgres_up
 		ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT, USAGE, UPDATE ON SEQUENCES TO read_write;"
 	@echo "Test database $(TEST_DB_NAME) and users ready."
 
+# Create boilerplate_management_test database and apply management schema. Requires test_postgres_up and test_db_init (read/read_write users).
+# Used by apps/management-api integration tests. Same Postgres instance as main test DB; separate database for isolation.
+test_db_init_management: test_db_init
+	@echo "Creating management test database..."
+	@docker exec $(TEST_PG_CONTAINER) psql -U $(TEST_PG_USER) -d postgres -c "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = '$(TEST_MANAGEMENT_DB_NAME)' AND pid <> pg_backend_pid();" 2>/dev/null || true
+	@docker exec $(TEST_PG_CONTAINER) psql -U $(TEST_PG_USER) -d postgres -c "DROP DATABASE IF EXISTS $(TEST_MANAGEMENT_DB_NAME);"
+	@docker exec $(TEST_PG_CONTAINER) psql -U $(TEST_PG_USER) -d postgres -c "CREATE DATABASE $(TEST_MANAGEMENT_DB_NAME);"
+	@cat infra/management-database/combined/init_management_database.sql | docker exec -i $(TEST_PG_CONTAINER) psql -U $(TEST_PG_USER) -d $(TEST_MANAGEMENT_DB_NAME)
+	@docker exec $(TEST_PG_CONTAINER) psql -U $(TEST_PG_USER) -d $(TEST_MANAGEMENT_DB_NAME) -c " \
+		GRANT CONNECT ON DATABASE $(TEST_MANAGEMENT_DB_NAME) TO read, read_write; \
+		GRANT USAGE ON SCHEMA public TO read, read_write; \
+		GRANT SELECT ON ALL TABLES IN SCHEMA public TO read; \
+		GRANT SELECT ON ALL SEQUENCES IN SCHEMA public TO read; \
+		GRANT SELECT, INSERT, UPDATE, DELETE, TRUNCATE ON ALL TABLES IN SCHEMA public TO read_write; \
+		GRANT SELECT, USAGE, UPDATE ON ALL SEQUENCES IN SCHEMA public TO read_write; \
+		ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT ON TABLES TO read; \
+		ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT ON SEQUENCES TO read; \
+		ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT, INSERT, UPDATE, DELETE, TRUNCATE ON TABLES TO read_write; \
+		ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT, USAGE, UPDATE ON SEQUENCES TO read_write;"
+	@echo "Management test database $(TEST_MANAGEMENT_DB_NAME) ready."
+
 # Stop and remove test Postgres and Valkey containers (and their volumes). Idempotent.
 test_clean:
 	@docker rm -f $(TEST_PG_CONTAINER) 2>/dev/null || true
@@ -93,7 +122,10 @@ test_clean:
 
 # Print instructions for meeting test requirements.
 help_test:
-	@echo "Test requirements: Postgres on port $(TEST_DB_PORT) and Valkey on port $(TEST_VALKEY_PORT), with database $(TEST_DB_NAME) and read/read_write users."
+	@echo "Test requirements: Postgres on port $(TEST_DB_PORT) and Valkey on port $(TEST_VALKEY_PORT), with databases $(TEST_DB_NAME) and $(TEST_MANAGEMENT_DB_NAME), and read/read_write users."
+	@echo ""
+	@echo "Both databases live in the SAME Postgres container ($(TEST_PG_CONTAINER)). You will not see a separate 'management database' container in docker ps."
+	@echo "To verify both DBs exist after make test_deps, run:  make test_db_list"
 	@echo ""
 	@echo "From repo root, run:"
 	@echo "  make test_deps"
@@ -102,6 +134,7 @@ help_test:
 	@echo "  1. Start Postgres in a container on port $(TEST_DB_PORT) (if not already running)."
 	@echo "  2. Start Valkey in a container on port $(TEST_VALKEY_PORT) (if not already running)."
 	@echo "  3. Drop and recreate $(TEST_DB_NAME), apply infra/database/combined/init_database.sql, and create read/read_write users."
-	@echo "     (Recreating ensures the test DB schema stays in sync with migrations.)"
+	@echo "  4. Drop and recreate $(TEST_MANAGEMENT_DB_NAME), apply infra/management-database/combined/init_management_database.sql (for management-api tests)."
+	@echo "     (Recreating ensures test DB schemas stay in sync with migrations.)"
 	@echo ""
 	@echo "Then run:  npm run test"
