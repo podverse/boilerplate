@@ -43,6 +43,8 @@ All plans: `.llm/plans/active/boilerplate/`
 | [32-management-api.md](32-management-api.md) | Management API (auth, admin CRUD, events API) |
 | [33-management-web.md](33-management-web.md) | Management Web (UI, Events page; uses shared UI package) |
 | [34-signup-verification-and-password-flows.md](34-signup-verification-and-password-flows.md) | Sign-up verification and password flows (email verify, forgot/reset password, change email) |
+| [35-api-integration-test-setup.md](35-api-integration-test-setup.md) | API integration test setup (Vitest, supertest, app factory, test DB, mailer mock) |
+| [36-api-integration-auth-tests.md](36-api-integration-auth-tests.md) | API integration auth tests (login, signup, verification flows; CI test step) |
 | [COPY-PASTA.md](COPY-PASTA.md) | Copy-paste prompts for parallel agents |
 
 ## Phase 1: Infra and local run (sequential) — complete
@@ -83,6 +85,11 @@ After Phase 2:
 ## Phase 6b: Auth verification flows (mailer mode)
 
 - **34-signup-verification-and-password-flows** – Run after 15 (auth handling). Implements email verification after signup, forgot/reset password, and change email with verification. Mailer mode only; no-mailer behavior unchanged.
+
+## Phase 6c: API integration tests (sequential)
+
+- **35-api-integration-test-setup** – Run after 34 (auth and verification endpoints exist). Vitest, supertest, app factory, test DB (dedicated DB name; no create/destroy of Postgres/Valkey), mailer mock strategy (no local mailer service).
+- **36-api-integration-auth-tests** – Run after 35. Auth integration test cases (login, logout, me, change-password, signup admin-only vs mailer, verification flows via mock); CI test step with Postgres + Valkey services.
 
 ## Phase 7: Frontend (parallel groups)
 

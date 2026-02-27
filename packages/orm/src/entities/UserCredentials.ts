@@ -6,7 +6,7 @@ import { User } from './User.js';
 
 @Entity('user_credentials')
 export class UserCredentials {
-  @PrimaryColumn('uuid')
+  @PrimaryColumn('uuid', { name: 'user_id' })
   userId!: string;
 
   @Column({ type: 'varchar', length: EMAIL_MAX_LENGTH, unique: true })

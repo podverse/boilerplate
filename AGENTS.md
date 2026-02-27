@@ -40,6 +40,22 @@ See [.llm/LLM.md](.llm/LLM.md) for full guidelines. Use the **llm-history** skil
 
 - **Before file-modifying work:** If the current branch matches an existing `.llm/history/active/[feature]/` (e.g. branch `chore/first-test-issue` → `first-test-issue`), update that history file; no exception for small changes.
 
+## Testing
+
+- **API integration tests:** `npm run test` from repo root. The **first step** is a requirements check: Postgres
+  and Valkey must be reachable at the test ports (defaults 5532, 6479). If not, the script exits with instructions
+  (e.g. `make test_deps`). In Nix/agent environments use `./scripts/nix/with-env npm run test`.
+- **Test requirements (Makefile):** Test-related commands live in `makefiles/local/Makefile.local.test.mk`. From
+  repo root: `make test_deps` starts Postgres on 5532 and Valkey on 6479, creates the `boilerplate_test` database,
+  applies `infra/database/combined/init_database.sql`, and creates read/read_write users. `make help_test` prints
+  instructions.
+- **Test database:** Tests use a dedicated DB (default name `boilerplate_test`). Default test ports are **5532**
+  (Postgres) and **6479** (Valkey) so they do not conflict with the Podverse monorepo (5432, 6379); override via
+  `DB_PORT` and `VALKEY_PORT` if needed. Each test run starts with a **clean slate**: Vitest globalSetup
+  (`apps/api/src/test/global-setup.mjs`) truncates app tables once before any test file runs.
+- **Mailer:** No local mailer service is required. Tests that cover verification flows use a Vitest mock of the
+  mailer module to capture tokens and call verification endpoints; see `apps/api/src/test/*.test.ts`.
+
 ## Code Quality
 
 - Strict equality (`===` / `!==` only)

@@ -35,6 +35,7 @@
     "lint": "eslint . --max-warnings 0 && prettier --check .",
     "lint:fix": "eslint . --fix && prettier --write .",
     "type-check": "npm run type-check -w @boilerplate/helpers -w @boilerplate/orm -w @boilerplate/api -w @boilerplate/web -w @boilerplate/web-sidecar",
+    "test": "node scripts/check-test-requirements.mjs && npm run test -w apps/api",
     "prettier:check": "prettier --check .",
     "prettier:write": "prettier --write .",
     "dev:api": "npm run dev -w apps/api",

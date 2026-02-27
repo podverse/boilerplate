@@ -13,7 +13,7 @@
   (e.g. GHCR) when merging to `alpha`.
 - **Style**: Minimal; functionality and clarity.
 
-## Plan files (33 topics + 2 meta)
+## Plan files (35 topics + 2 meta)
 
 | ID | File | Phase |
 | --- | --- | --- |
@@ -52,6 +52,9 @@
 | 31 | 31-management-database.md | Management track |
 | 32 | 32-management-api.md | Management track |
 | 33 | 33-management-web.md | Management track |
+| 34 | 34-signup-verification-and-password-flows.md | Phase 6b |
+| 35 | 35-api-integration-test-setup.md | Phase 6c |
+| 36 | 36-api-integration-auth-tests.md | Phase 6c |
 | – | COPY-PASTA.md | Prompts |
 
 ## Dependency map
@@ -76,6 +79,8 @@
 - **29** → 30 (Jenkins local runs after all other phases).
 - **Management track:** 31 → 32; 32 → 33; 12 (main ORM) → 32 (management API needs main DB
   for user CRUD). **Shared UI package** (plans 16–19) → both apps/web and apps/management-web.
+- **Phase 6c (API integration tests):** 34 → 35 (auth/verification endpoints exist before test
+  setup); 35 → 36 (setup before auth test cases and CI test step).
 - **Phase 2:** 05 runs before 08 (both modify root Makefile); 06, 07, 08 can run in parallel
   after 05.
 

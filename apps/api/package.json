@@ -12,7 +12,9 @@
     "lint": "eslint ./src --max-warnings 0",
     "lint:fix": "eslint ./src --fix",
     "type-check": "tsc --noEmit",
-    "clean": "rm -rf dist"
+    "clean": "rm -rf dist",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "dependencies": {
     "@boilerplate/helpers": "*",
@@ -26,16 +28,23 @@
     "swagger-ui-express": "^5.0.1"
   },
   "devDependencies": {
+    "pg": "^8.13.0",
+    "@sqltools/formatter": "^1.2.5",
     "@types/bcrypt": "^5.0.2",
     "@types/cors": "^2.8.17",
     "@types/express": "^5.0.3",
     "@types/jsonwebtoken": "^9.0.7",
     "@types/node": "^24.10.12",
     "@types/nodemailer": "^6.4.17",
+    "@types/supertest": "^6.0.2",
     "@types/swagger-ui-express": "^4.1.6",
+    "app-root-path": "^3.1.0",
     "concurrently": "^9.2.1",
     "dotenv": "^16.4.5",
     "nodemon": "^3.1.10",
-    "typescript": "^5.9.2"
+    "sql-highlight": "^6.1.0",
+    "supertest": "^7.0.0",
+    "typescript": "^5.9.2",
+    "vitest": "^3.2.4"
   }
 }

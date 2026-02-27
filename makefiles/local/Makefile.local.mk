@@ -15,6 +15,7 @@
 #   local_env_remove          - Run local_clean (tear down containers and volumes), then remove .env files (prompts for Y); run env_setup to recreate
 #   local_infra_up            - Start Postgres and Valkey only (for API/web on host)
 #   local_all_up              - Start full stack in Docker (API, web, sidecar, Postgres, Valkey)
+#   test_deps, test_postgres_up, test_valkey_up, test_db_init, help_test, test_clean - Test requirements (ports 5532, 6479)
 #
 SHELL := /bin/bash
 
@@ -26,3 +27,4 @@ include makefiles/local/Makefile.local.validate.mk
 include makefiles/local/Makefile.local.audit.mk
 include makefiles/local/Makefile.local.env.mk
 include makefiles/local/Makefile.local.docker.mk
+include makefiles/local/Makefile.local.test.mk

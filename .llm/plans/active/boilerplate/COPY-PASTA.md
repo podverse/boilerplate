@@ -26,9 +26,11 @@ Each line below means: do the step(s), **wait for completion**, then do the next
    12 to finish** before Phase 5.
 5. **Phase 5:** Run 13 (one agent). (completed) **Skip; proceed to Phase 6.**
 6. **Phase 6:** Run 15 (one agent). **Wait for 15 to finish.** Then run 14 (one agent).
-   **Wait for 14 to finish.** Then run 34 (Phase 6b, one agent). **Wait for 34 to finish**
-   before Phase 7. (Auth routes first so Joi has endpoints to validate; plan 34 adds
-   email verification, forgot/reset password, change email — mailer mode only.)
+   **Wait for 14 to finish.** Then run 34 (Phase 6b, one agent). **Wait for 34 to finish.**
+   Then run Phase 6c: run 35 (one agent). **Wait for 35 to finish.** Run 36 (one agent).
+   **Wait for 36 to finish** before Phase 7. (Auth routes first so Joi has endpoints to
+   validate; plan 34 adds verification flows; 35 = test setup + app factory; 36 = auth
+   integration tests + CI test step.)
 7. **Phase 7:** Run 16, 17, 18, 19 in parallel (four agents); these deliver into the
    **shared UI package** (`packages/ui` / `@boilerplate/ui`) so both web and
    management-web consume the same components and styles. **Wait for all four to finish.**
@@ -168,6 +170,32 @@ Read and execute `.llm/plans/active/boilerplate/34-signup-verification-and-passw
 Implement email verification after signup, forgot/reset password, and change email with
 verification. Mailer mode only; schema (snake_case), tokens, mailer integration, OpenAPI
 updates. Verify flows end-to-end when mailer is enabled.
+
+---
+
+## Phase 6c: API integration tests (sequential: 35 then 36)
+
+**Step 1:** Run 35 first (one agent). **Step 2:** Run 36 after 35 finishes. Plan 35 adds
+Vitest, supertest, app factory, test DB strategy, and mailer mock; plan 36 adds auth test
+cases and CI test step.
+
+### Agent 6D: API integration test setup (run first; depends on 34)
+
+Read and execute `.llm/plans/active/boilerplate/35-api-integration-test-setup.md`. Add
+Vitest and supertest to apps/api; refactor index.ts to export createApp() (no listen);
+document test DB (dedicated DB name, no create/destroy of Postgres/Valkey) and mailer
+mock strategy. Add test script to root and apps/api package.json; add testing section to
+AGENTS.md or docs. Verify `npm run test` runs (0 tests until 36). Use
+`./scripts/nix/with-env npm run test` in Nix/agent environments.
+
+### Agent 6E: API integration auth tests (run after 6D)
+
+Read and execute `.llm/plans/active/boilerplate/36-api-integration-auth-tests.md`. Add
+auth integration tests: login, logout, me, change-password, signup (admin-only 403 and
+mailer-enabled with mock), verify-email, forgot-password, reset-password,
+request-email-change, confirm-email-change (use mailer mock to capture tokens). Add CI
+step: Postgres + Valkey services, create test DB and run init_database.sql, then
+`npm run test`. Verify all auth cases pass locally and CI test step runs on /test.
 
 ---
 

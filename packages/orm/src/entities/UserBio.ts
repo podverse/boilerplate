@@ -6,7 +6,7 @@ import { User } from './User.js';
 
 @Entity('user_bio')
 export class UserBio {
-  @PrimaryColumn('uuid')
+  @PrimaryColumn('uuid', { name: 'user_id' })
   userId!: string;
 
   @Column({ name: 'display_name', type: 'varchar', length: SHORT_TEXT_MAX_LENGTH, nullable: true })

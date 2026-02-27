@@ -40,3 +40,4 @@ Wrap async route handlers to avoid unhandled rejections (e.g. try/catch and pass
 
 - `npm run dev` – Build and run (from `apps/api`)
 - `npm run dev:api` – From repo root
+- **Tests:** When adding or changing routes or auth behavior, add or update integration tests. Use the **api-testing** skill for file layout (auth.test.ts vs auth-no-mailer vs auth-mailer), base URL (`config.apiVersionPath`), and clean-slate/requirements.
