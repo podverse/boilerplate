@@ -3,7 +3,7 @@
  * Used during infra up (make local_infra_up). Prompts for email, generates a secure
  * password, creates the user, and prints the password once with instructions.
  *
- * Run from repo root: node scripts/create-super-admin.mjs
+ * Run from repo root: node scripts/management-api/create-super-admin.mjs
  *
  * Loads .env from apps/management-api (MANAGEMENT_DB_*). If stdin is not a TTY,
  * uses default email (superadmin@example.com) and still creates user if none exists.
