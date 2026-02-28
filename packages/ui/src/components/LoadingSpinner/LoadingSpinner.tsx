@@ -4,8 +4,8 @@ import { useTranslations } from 'next-intl';
 import styles from './LoadingSpinner.module.scss';
 
 export type LoadingSpinnerProps = {
-  /** Size: 'sm' (1em), 'md' (1.5rem), 'lg' (2rem). Default 'md'. */
-  size?: 'sm' | 'md' | 'lg';
+  /** Size: 'sm' (1em), 'md' (1.5rem), 'lg' (2rem), 'xl' (3rem). Default 'md'. */
+  size?: 'sm' | 'md' | 'lg' | 'xl';
   /** Use primary color for the spinner. Default false (muted color). */
   variant?: 'default' | 'primary';
   /** Optional className for the wrapper. */
@@ -16,6 +16,7 @@ const sizeClassMap = {
   sm: 'wrapperSm',
   md: 'wrapperMd',
   lg: 'wrapperLg',
+  xl: 'wrapperXl',
 } as const;
 
 /**

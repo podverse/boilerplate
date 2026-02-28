@@ -3,7 +3,12 @@ import { cookies } from 'next/headers';
 import { getLocale, getMessages } from 'next-intl/server';
 import { NextIntlClientProvider } from 'next-intl';
 import '@fortawesome/fontawesome-free/css/all.min.css';
-import { AppView, getThemeFromSettingsCookieValue, ThemeWrapper } from '@boilerplate/ui';
+import {
+  AppView,
+  getThemeFromSettingsCookieValue,
+  NavigationProvider,
+  ThemeWrapper,
+} from '@boilerplate/ui';
 import { AuthWrapper } from '../components/AuthWrapper';
 
 import '../styles/globals.scss';
@@ -30,7 +35,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <NextIntlClientProvider locale={locale} messages={messages}>
           <ThemeWrapper initialTheme={initialTheme} settingsCookieName={SETTINGS_COOKIE_NAME}>
             <AuthWrapper>
-              <AppView>{children}</AppView>
+              <NavigationProvider>
+                <AppView>{children}</AppView>
+              </NavigationProvider>
             </AuthWrapper>
           </ThemeWrapper>
         </NextIntlClientProvider>

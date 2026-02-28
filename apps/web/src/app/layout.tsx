@@ -6,7 +6,12 @@ import '@fortawesome/fontawesome-free/css/all.min.css';
 import { getRuntimeConfig } from '../config/runtime-config-store';
 import RuntimeConfigScript from '../components/Head/RuntimeConfigScript';
 import { AuthWrapper } from '../components/AuthWrapper';
-import { AppView, getThemeFromSettingsCookieValue, ThemeWrapper } from '@boilerplate/ui';
+import {
+  AppView,
+  getThemeFromSettingsCookieValue,
+  NavigationProvider,
+  ThemeWrapper,
+} from '@boilerplate/ui';
 
 import '../styles/globals.scss';
 
@@ -35,7 +40,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <NextIntlClientProvider locale={locale} messages={messages}>
           <ThemeWrapper initialTheme={initialTheme} settingsCookieName={SETTINGS_COOKIE_NAME}>
             <AuthWrapper>
-              <AppView>{children}</AppView>
+              <NavigationProvider>
+                <AppView>{children}</AppView>
+              </NavigationProvider>
             </AuthWrapper>
           </ThemeWrapper>
         </NextIntlClientProvider>

@@ -79,3 +79,6 @@ export { Tabs } from './components/Tabs';
 export type { TabItem, TabsLinkComponentProps, TabsProps } from './components/Tabs';
 export { LoadingSpinner } from './components/LoadingSpinner';
 export type { LoadingSpinnerProps } from './components/LoadingSpinner';
+export { Modal, NavigationLoadingOverlay } from './components/Modal';
+export type { ModalProps } from './components/Modal';
+export { NavigationProvider, useNavigationContext } from './contexts/NavigationContext';

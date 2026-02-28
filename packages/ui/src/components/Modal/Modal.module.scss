@@ -1,0 +1,24 @@
+@use '../../styles/variables' as *;
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: $z-modal;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: $space-4;
+  box-sizing: border-box;
+}
+
+.overlayTransparent {
+  background: transparent;
+}
+
+.overlayBackdrop {
+  background: rgb(0 0 0 / 0.15);
+}
+
+.content {
+  /* Centered content slot; no size constraints so spinner or dialog can size naturally. */
+}

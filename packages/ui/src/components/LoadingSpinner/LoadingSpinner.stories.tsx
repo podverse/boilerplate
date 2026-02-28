@@ -5,7 +5,7 @@ const meta: Meta<typeof LoadingSpinner> = {
   component: LoadingSpinner,
   tags: ['autodocs'],
   argTypes: {
-    size: { control: 'select', options: ['sm', 'md', 'lg'] },
+    size: { control: 'select', options: ['sm', 'md', 'lg', 'xl'] },
     variant: { control: 'select', options: ['default', 'primary'] },
   },
 };
@@ -28,6 +28,7 @@ export const Sizes: Story = {
       <LoadingSpinner size="sm" />
       <LoadingSpinner size="md" />
       <LoadingSpinner size="lg" />
+      <LoadingSpinner size="xl" />
     </div>
   ),
 };
