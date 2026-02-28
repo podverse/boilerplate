@@ -37,29 +37,32 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   const hydrate = useCallback(async () => {
-    const baseUrl = getApiBaseUrl();
-    const meRes = await managementWebAuth.me(baseUrl);
-    if (meRes.ok && meRes.data !== undefined) {
-      const u = parseUserFromMe(meRes.data);
-      if (u !== null) {
-        setUser(u);
-        setLoading(false);
-        return;
-      }
-    }
-    if (meRes.status === 401) {
-      const refreshRes = await managementWebAuth.refresh(baseUrl);
-      if (refreshRes.ok && refreshRes.data !== undefined) {
-        const u = parseUserFromMe(refreshRes.data);
+    try {
+      const baseUrl = getApiBaseUrl();
+      const meRes = await managementWebAuth.me(baseUrl);
+      if (meRes.ok && meRes.data !== undefined) {
+        const u = parseUserFromMe(meRes.data);
         if (u !== null) {
           setUser(u);
-          setLoading(false);
           return;
         }
       }
+      if (meRes.status === 401) {
+        const refreshRes = await managementWebAuth.refresh(baseUrl);
+        if (refreshRes.ok && refreshRes.data !== undefined) {
+          const u = parseUserFromMe(refreshRes.data);
+          if (u !== null) {
+            setUser(u);
+            return;
+          }
+        }
+      }
+      setUser(null);
+    } catch {
+      setUser(null);
+    } finally {
+      setLoading(false);
     }
-    setUser(null);
-    setLoading(false);
   }, []);
 
   useEffect(() => {

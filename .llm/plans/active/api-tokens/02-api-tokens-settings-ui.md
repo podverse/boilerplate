@@ -66,8 +66,10 @@ settings card into apps/web and optionally apps/management-web settings pages.
      (formatted). Use existing formatting (e.g. formatDateTimeAbbrev or locale date) per
      time-format-local skill if present.
    - **Revoke** button per row; on click, show a **confirmation** (e.g. “Are you sure you
-     want to revoke this token?”). On confirm, call `onRevoke(id)`. Optional loading state
-     per row during revoke.
+     want to revoke this token?”). Use an **accessible modal/dialog** (e.g. from packages/ui)
+     so focus is trapped and Escape cancels; avoid `window.confirm()` for better a11y and
+     consistency. On confirm, call `onRevoke(id)`. Optional loading state per row during
+     revoke.
    - **Empty state:** when tokens.length === 0, show a short message (e.g. “No API tokens
      yet”; i18n).
 
@@ -93,6 +95,11 @@ settings card into apps/web and optionally apps/management-web settings pages.
    - Accept props: `tokens`, `onCreate`, `onRevoke`, `isCreating`, `isRevoking` (optional) for
      loading and error handling. API base URL or fetch function can be passed in so the same
      card works for main API (web) and later management API (management-web).
+   - **Error handling:** On create failure (4xx/5xx), show an error message near the form (or
+     inline) and do not clear the form. On revoke failure, show a short message (e.g. toast
+     or inline) and do not remove the token from the list until the API confirms success.
+     Optionally support `error` / `onError` or similar props so the parent can pass API error
+     state and message.
 
 2. Use existing Card, Form, Input, Button from packages/ui. Follow reusable-components and
    avoid unknown types (avoid-unknown-types skill).
@@ -145,8 +152,8 @@ settings card into apps/web and optionally apps/management-web settings pages.
    receive translated strings via props or useTranslation (if packages/ui has next-intl
    peer); otherwise apps pass translated strings as props.
 
-2. Buttons and inputs: accessible labels; confirm revoke dialog accessible (focus, escape to
-   cancel).
+2. Buttons and inputs: accessible labels. Confirm revoke dialog: accessible modal with focus
+   trapped and Escape to cancel (see Step 3).
 
 ---
 

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Removes local .env files (infra/config/local/*.env, apps/api/.env, apps/web/.env.local).
+# Removes local .env files (infra/config/local/*.env, apps/api/.env, apps/web/.env.local, apps/management-api/.env, apps/management-web/.env.local).
 # Prompts for confirmation (type Y) before deleting. Run from repo root.
 set -e
 
@@ -13,6 +13,8 @@ FILES=(
   infra/config/local/valkey.env
   apps/api/.env
   apps/web/.env.local
+  apps/management-api/.env
+  apps/management-web/.env.local
 )
 
 EXISTING=()

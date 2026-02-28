@@ -13,8 +13,8 @@ import '../styles/globals.scss';
 const SETTINGS_COOKIE_NAME = 'web-settings';
 
 export const metadata: Metadata = {
-  title: 'MetaBoost',
-  description: 'MetaBoost app',
+  title: 'boilerplate-web',
+  description: 'boilerplate-web app',
 };
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {

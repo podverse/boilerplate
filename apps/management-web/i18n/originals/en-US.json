@@ -51,7 +51,7 @@
     "logIn": "Log in",
     "signUp": "Sign up",
     "backToLogin": "Back to log in",
-    "appTitleManagement": "Management",
+    "appTitle": "boilerplate-management-web",
     "admins": "Admins",
     "events": "Events",
     "loadingAdmins": "Loading admins…",
@@ -68,8 +68,12 @@
     "title": "Settings",
     "theme": "Theme",
     "currentTheme": "Current theme: {theme}",
-    "language": "Language",
-    "languagePlaceholder": "Locale selector will be available in a future update."
+    "languages": {
+      "language": "Language",
+      "languagePlaceholder": "Locale selector will be available in a future update.",
+      "en-US": "English",
+      "es": "Spanish"
+    }
   },
   "errors": {
     "signupFailed": "Sign up failed",

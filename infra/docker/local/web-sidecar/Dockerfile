@@ -11,8 +11,8 @@ RUN npm ci --ignore-scripts && \
   npm run build -w @boilerplate/helpers && \
   npm run build -w @boilerplate/web-sidecar
 
-EXPOSE 4101
+EXPOSE 4001
 
-ENV PORT=4101
+ENV PORT=4001
 
 CMD ["node", "apps/web/sidecar/dist/server.js"]

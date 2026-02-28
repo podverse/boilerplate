@@ -28,6 +28,7 @@ export type {
   AppHeaderProps,
   AppHeaderUser,
 } from './components/AppHeader';
+export { AppTypeTitle } from './components/AppTypeTitle';
 export { Link } from './components/Link';
 export type { LinkProps } from './components/Link';
 export type { DropdownLinkComponentProps } from './components/Dropdown';
@@ -41,10 +42,14 @@ export { CenterInViewport } from './components/CenterInViewport';
 export type { CenterInViewportProps } from './components/CenterInViewport';
 export { Container } from './components/Container';
 export type { ContainerProps } from './components/Container';
+export { PageHeader } from './components/PageHeader';
+export type { PageHeaderProps } from './components/PageHeader';
 export { Dropdown } from './components/Dropdown';
 export type { DropdownProps, DropdownItem } from './components/Dropdown';
 export { Input } from './components/Input';
 export type { InputProps } from './components/Input';
+export { Select } from './components/Select';
+export type { SelectOption, SelectProps } from './components/Select';
 export { PasswordStrengthMeter } from './components/PasswordStrengthMeter';
 export type { PasswordStrengthMeterProps } from './components/PasswordStrengthMeter';
 export { List } from './components/List';

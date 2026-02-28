@@ -14,7 +14,7 @@ Quick reference for AI assistants working on the Boilerplate repo (HTTP API + Ne
 npm install
 npm run build
 npm run lint
-npm run dev:api          # API only (default port 3000)
+npm run dev:api          # API only (default port 4000)
 npm run dev:web          # Next.js only
 npm run dev:web-sidecar  # Build sidecar + run web with sidecar
 ```

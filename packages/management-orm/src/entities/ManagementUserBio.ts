@@ -2,7 +2,7 @@ import { Entity, PrimaryColumn, Column, OneToOne, JoinColumn } from 'typeorm';
 
 import { SHORT_TEXT_MAX_LENGTH } from '@boilerplate/helpers';
 
-import { ManagementUser } from './ManagementUser.js';
+import type { ManagementUser } from './ManagementUser.js';
 
 @Entity('management_user_bio')
 export class ManagementUserBio {
@@ -17,7 +17,7 @@ export class ManagementUserBio {
   })
   displayName!: string | null;
 
-  @OneToOne(() => ManagementUser, (u) => u.bio, { onDelete: 'CASCADE' })
+  @OneToOne('ManagementUser', 'bio', { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'management_user_id' })
   managementUser!: ManagementUser;
 }

@@ -2,7 +2,7 @@ import { Entity, PrimaryColumn, Column, OneToOne, JoinColumn } from 'typeorm';
 
 import { EMAIL_MAX_LENGTH, PASSWORD_HASH_LENGTH } from '@boilerplate/helpers';
 
-import { ManagementUser } from './ManagementUser.js';
+import type { ManagementUser } from './ManagementUser.js';
 
 @Entity('management_user_credentials')
 export class ManagementUserCredentials {
@@ -15,7 +15,7 @@ export class ManagementUserCredentials {
   @Column({ name: 'password_hash', type: 'varchar', length: PASSWORD_HASH_LENGTH })
   passwordHash!: string;
 
-  @OneToOne(() => ManagementUser, (u) => u.credentials, { onDelete: 'CASCADE' })
+  @OneToOne('ManagementUser', 'credentials', { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'management_user_id' })
   managementUser!: ManagementUser;
 }

@@ -1,6 +1,6 @@
-# Combined local stack: api, web, sidecar, postgres, valkey.
+# Combined local stack: api, management-api, web, management-web, sidecar, postgres, valkey.
 # From repo root: docker compose -f infra/docker/local/docker-compose.yml --project-directory . up --build
-# Env: copy infra/config/env-templates/*.env.example to infra/config/local/*.env
+# Env: make env_setup (copies to infra/config/local/*.env)
 
 networks:
   boilerplate_local_network:
@@ -98,7 +98,7 @@ services:
     env_file:
       - infra/config/local/web.env
     environment:
-      PORT: "4101"
+      PORT: "4001"
     depends_on:
       boilerplate_local_api:
         condition: service_started
@@ -122,12 +122,64 @@ services:
     env_file:
       - infra/config/local/web.env
     environment:
-      PORT: "4100"
-      RUNTIME_CONFIG_URL: "http://boilerplate_local_web_sidecar:4101"
+      PORT: "4002"
+      RUNTIME_CONFIG_URL: "http://boilerplate_local_web_sidecar:4001"
     networks:
       - boilerplate_local_network
     ports:
+      - 127.0.0.1:4002:4002
+    logging:
+      driver: "json-file"
+      options:
+        max-file: "1"
+        max-size: 50m
+
+  boilerplate_local_management_api:
+    build:
+      context: .
+      dockerfile: infra/docker/local/management-api/Dockerfile
+    image: boilerplate-management-api:latest
+    container_name: boilerplate_local_management_api
+    env_file:
+      - infra/config/local/management-api.env
+    environment:
+      DB_HOST: postgres
+      DB_PORT: "5432"
+      MANAGEMENT_DB_HOST: postgres
+      MANAGEMENT_DB_PORT: "5432"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      boilerplate_local_network:
+        aliases:
+          - boilerplate_local_management_api
+    ports:
       - 127.0.0.1:4100:4100
+    logging:
+      driver: "json-file"
+      options:
+        max-file: "1"
+        max-size: 50m
+
+  boilerplate_local_management_web:
+    build:
+      context: .
+      dockerfile: infra/docker/local/management-web/Dockerfile
+    image: boilerplate-management-web:latest
+    container_name: boilerplate_local_management_web
+    depends_on:
+      boilerplate_local_management_api:
+        condition: service_started
+    env_file:
+      - infra/config/local/management-web.env
+    environment:
+      PORT: "4102"
+      NEXT_PUBLIC_MANAGEMENT_API_URL: "http://localhost:4100"
+    networks:
+      - boilerplate_local_network
+    ports:
+      - 127.0.0.1:4102:4102
     logging:
       driver: "json-file"
       options:

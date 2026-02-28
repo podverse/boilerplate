@@ -49,3 +49,10 @@
   `packages/management-orm`; document that main API token permissions mirror this convention.
 - **Resources (initial):** e.g. `me` (GET/PATCH me), `auth` (change-password,
   request-email-change, etc.). Document route → resource + op mapping for consistency.
+- **Token management (create/list/revoke) is JWT-only:** API tokens cannot create, list, or
+  revoke tokens; reject with 403 if an API token is used on those routes.
+- **Permissions validation:** The permissions object may contain only keys from
+  MAIN_API_RESOURCES; reject unknown keys with 400. Token name max length 50
+  (`SHORT_TEXT_MAX_LENGTH`).
+- **Expiration:** No maximum token lifetime in this plan; user can set any future
+  expiration. Optionally add a cap (e.g. 1 year) in implementation if desired.

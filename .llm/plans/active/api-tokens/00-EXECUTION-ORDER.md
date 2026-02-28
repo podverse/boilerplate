@@ -17,18 +17,12 @@ All plans: `.llm/plans/active/api-tokens/`
 
 1. **03-api-tokens-shared-and-docs** (shared types and i18n only) – Add CRUD/permission types
    and main API resource list to `@boilerplate/helpers` (or shared package). Add i18n keys for
-   API token section. Do not implement the skill or docs in this phase if you prefer to do them
-   in Phase 5; or run the full 03 and do skill + docs in Phase 5 as a separate step.
+   API token section (apps only; apps pass strings as props to UI). Do not implement the
+   skill or docs in this phase; do those in Phase 5.
 
-   **Alternative:** Run **03** fully in Phase 5 (docs and skill). Then Phase 1 is “add shared
-   types and constants only” (extract from 03 or add a small section in 01 that defines
-   types in helpers first). For clarity, this execution order assumes:
-   - Phase 1: Run **03** for “Shared types/constants” and “i18n keys” sections only.
-   - Phase 5: Run **03** for “Skill” and “Documentation” sections (or add those steps to 03
-     and run 03 once in Phase 1 with all sections).
-
-   **Recommended:** Run **03** once at the start of Phase 1 for shared types + i18n; run the
-   “Skill” and “Documentation” parts of 03 at the end in Phase 5.
+   **Alternative:** Run all of 03 in Phase 1 and skip the Phase 5 skill/docs step; or run
+   only shared types in Phase 1 and add a minimal “Phase 5: Skill and docs” step that
+   references 03 Steps 3–5.
 
 ## Phase 2: Backend
 
@@ -59,3 +53,7 @@ All plans: `.llm/plans/active/api-tokens/`
 - Phases are sequential; do not start Phase N+1 until Phase N is complete.
 - Within a phase, complete each step before the next.
 - Do not implement until the user asks; execute the plan incrementally (e.g. phase by phase).
+
+**Optional:** For parallel execution (e.g. multiple agents), add a COPY-PASTA.md with
+copy-paste prompts for Phase 3 (UI components) and Phase 4 (integration), and reference it
+here; otherwise the sequential phase list above is sufficient.

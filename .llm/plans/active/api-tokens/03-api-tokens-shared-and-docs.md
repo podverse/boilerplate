@@ -46,9 +46,13 @@ token-aware routes; and add user-facing and developer documentation.
 
 ## Step 2: i18n keys for API tokens
 
-1. Add keys under a namespace (e.g. `apiTokens` or `settings.apiTokens`) in the
-   originals used by apps/web and apps/management-web (and packages/ui if it consumes
-   i18n). Follow existing i18n pattern (see .cursor/skills/i18n/SKILL.md).
+1. **Where keys live (recommended):** Add keys to **apps/web and apps/management-web only**
+   (e.g. under `settings.apiTokens` in each app’s `i18n/originals/en-US.json`). **Apps pass
+   translated strings as props** to the UI components (e.g. `title`, `copyTokenLabel`,
+   `storeTokenWarning`). **Do not add api-token keys to packages/ui/I18N-KEYS.md** — the UI
+   package does not render these strings directly; it receives them as props. This avoids
+   duplicate keys and keeps the UI package independent of app namespaces. Follow existing
+   i18n pattern (see .cursor/skills/i18n/SKILL.md).
 
 2. **Suggested keys (examples; adjust to existing key style):**
    - `apiTokens.title` – “API tokens”
@@ -74,9 +78,9 @@ token-aware routes; and add user-facing and developer documentation.
 
 3. Add overrides for non–en-US locales as per project process (e.g. es.json overrides).
 
-4. Ensure packages/ui components that need labels can receive them via props (so the app
-   passes `t('apiTokens.…')`) or document that the app wraps the component with a provider
-   that supplies translated strings.
+4. Apps pass labels and messages into UI components via props (e.g. `t('settings.apiTokens.title')`
+   or `t('apiTokens.copyToken')` from the app’s namespace). No changes to packages/ui/I18N-KEYS.md
+   are required when using the props approach.
 
 ---
 
@@ -114,10 +118,10 @@ token-aware routes; and add user-facing and developer documentation.
    - **Overview:** API tokens let users call the main API programmatically with
      `Authorization: Bearer <token>` without using the same session/cookie flow as the
      website. Tokens are created and revoked from the user’s settings page.
-   - **Creating and revoking tokens:** Users go to Settings → API tokens; they set a name,
-     expiration, and permissions (Create/Read/Update/Delete per resource). The raw token is
-     shown only once with a copy button; they must store it securely. They can revoke
-     tokens from the same page.
+   - **Creating and revoking tokens:** Users go to Settings → API tokens; they set a name
+     (max 50 characters, per `SHORT_TEXT_MAX_LENGTH`), expiration, and permissions
+     (Create/Read/Update/Delete per resource). The raw token is shown only once with a copy
+     button; they must store it securely. They can revoke tokens from the same page.
    - **Using a token:** Send `Authorization: Bearer <token>` on each request. The token
      has resource-scoped CRUD permissions; the API returns 403 if the token does not have
      the required permission for the route.

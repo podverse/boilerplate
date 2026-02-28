@@ -1,4 +1,4 @@
-# Boilerplate Web – local Docker (build from repo root). Node 24.
+# Boilerplate Management Web – local Docker (build from repo root). Node 24.
 FROM node:24-slim
 
 WORKDIR /app
@@ -12,11 +12,11 @@ RUN npm ci --ignore-scripts && \
   npm run build -w @boilerplate/helpers && \
   npm run build -w @boilerplate/helpers-requests && \
   npm run build -w @boilerplate/ui && \
-  npm run build -w @boilerplate/web
+  npm run build -w @boilerplate/management-web
 
-EXPOSE 4002
+EXPOSE 4102
 
 ENV NODE_ENV=production
-ENV PORT=4002
+ENV PORT=4102
 
-CMD ["npm", "run", "start", "-w", "@boilerplate/web"]
+CMD ["npm", "run", "start", "-w", "@boilerplate/management-web"]

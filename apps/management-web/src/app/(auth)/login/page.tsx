@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { AUTH_MESSAGE_LOGIN_FAILED } from '@boilerplate/helpers';
 import { Link, LoginForm } from '@boilerplate/ui';
@@ -9,7 +9,6 @@ import { useAuth } from '../../../context/AuthContext';
 import { ROUTES } from '../../../lib/routes';
 
 export default function LoginPage() {
-  const tCommon = useTranslations('common');
   const tErrors = useTranslations('errors');
   const { user, loading: authLoading, login } = useAuth();
   const router = useRouter();
@@ -18,9 +17,12 @@ export default function LoginPage() {
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  if (authLoading || user !== null) {
-    return <p>{tCommon('loading')}</p>;
-  }
+  useEffect(() => {
+    if (authLoading) return;
+    if (user !== null) {
+      router.replace(ROUTES.DASHBOARD);
+    }
+  }, [user, authLoading, router]);
 
   const handleSubmit = async (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();

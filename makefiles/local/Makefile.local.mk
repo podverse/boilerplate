@@ -6,14 +6,16 @@
 #   audit, audit-fix           - Dependency audit (script from plan 06)
 #   local_network_create       - Create boilerplate_local_network (idempotent)
 #   local_postgres_up, local_valkey_up  - Start Postgres and Valkey
-#   local_sidecar_up, local_api_up, local_web_up  - Start sidecar, API, web
-#   local_apps_up, local_apps_down  - Start or stop only app containers (API, sidecar, web); infra unchanged
+#   local_sidecar_up, local_api_up, local_web_up, local_management_api_up, local_management_web_up  - Start sidecar, API, web, management-api, management-web
+#   local_apps_up, local_apps_down  - Start or stop only app containers (API, management-api, sidecar, web, management-web); infra unchanged
 #   local_down                 - Stop all local Docker services (keeps volumes)
 #   local_down_volumes         - Stop services and remove volumes (clean DB/Valkey data)
 #   local_clean               - Run local_down then local_down_volumes (full teardown)
 #   env_setup                 - Copy env templates to infra/config/local and apps (idempotent)
 #   local_env_remove          - Run local_clean (tear down containers and volumes), then remove .env files (prompts for Y); run env_setup to recreate
-#   local_infra_up            - Start Postgres and Valkey only (for API/web on host)
+#   local_reset_env_infra     - Run local_env_remove, env_setup, then local_infra_up (full env + infra reset)
+#   local_db_init_management  - Create boilerplate_management DB in local Postgres (also run by local_infra_up)
+#   local_infra_up            - Start Postgres, Valkey, and management DB (for API + Management API on host)
 #   local_all_up              - Start full stack in Docker (API, web, sidecar, Postgres, Valkey)
 #   test_deps, test_postgres_up, test_valkey_up, test_db_init, test_db_init_management, test_db_list, help_test, test_clean - Test requirements (ports 5532, 6479)
 #

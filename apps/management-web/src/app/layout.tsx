@@ -11,8 +11,8 @@ import '../styles/globals.scss';
 const SETTINGS_COOKIE_NAME = 'management-settings';
 
 export const metadata: Metadata = {
-  title: 'Management',
-  description: 'Management dashboard',
+  title: 'boilerplate-management-web',
+  description: 'boilerplate-management-web app',
 };
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {

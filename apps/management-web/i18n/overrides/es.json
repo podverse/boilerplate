@@ -51,7 +51,7 @@
     "logIn": "",
     "signUp": "",
     "backToLogin": "",
-    "appTitleManagement": "",
+    "appTitle": "",
     "admins": "",
     "events": "",
     "loadingAdmins": "",
@@ -68,8 +68,12 @@
     "title": "",
     "theme": "",
     "currentTheme": "",
-    "language": "",
-    "languagePlaceholder": ""
+    "languages": {
+      "language": "",
+      "languagePlaceholder": "",
+      "en-US": "",
+      "es": ""
+    }
   },
   "errors": {
     "signupFailed": "",

@@ -51,7 +51,7 @@
     "logIn": "Iniciar sesión",
     "signUp": "Registrarse",
     "backToLogin": "Volver a iniciar sesión",
-    "appTitleManagement": "Gestión"
+    "appTitle": "Gestión"
   },
   "dashboard": {
     "title": "Panel",
@@ -62,8 +62,12 @@
     "title": "Ajustes",
     "theme": "Tema",
     "currentTheme": "Tema actual: {theme}",
-    "language": "Idioma",
-    "languagePlaceholder": "El selector de idioma estará disponible en una actualización futura."
+    "languages": {
+      "language": "Idioma",
+      "languagePlaceholder": "El selector de idioma estará disponible en una actualización futura.",
+      "en-US": "Inglés",
+      "es": "Español"
+    }
   },
   "errors": {
     "signupFailed": "Error al registrarse",

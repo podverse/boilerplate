@@ -19,27 +19,32 @@ tokens. Align CRUD permissioning with management API conventions (CrudOp, bitmas
 
 ## Step 1: Database schema
 
-1. Add a new migration or append to combined init script in `infra/database/combined/`.
+1. Create a **new migration file** (do not edit the combined file directly):  
+   `infra/database/migrations/0003_api_token.sql` (or next available number after 0002).  
+   The combined file `infra/database/combined/init_database.sql` is generated from migrations;  
+   after adding the migration, run `./scripts/database/combine-migrations.sh` and commit the  
+   updated combined file. Run `./scripts/database/verify-migrations-combined.sh` in CI so  
+   combined stays in sync.
 
-2. Create table `api_token` (singular, snake_case per database-schema-naming skill):
+2. In that migration, create table `api_token` (singular, snake_case per database-schema-naming
+   skill):
    - `id` UUID PRIMARY KEY DEFAULT gen_random_uuid()
    - `user_id` UUID NOT NULL REFERENCES "user"(id) ON DELETE CASCADE
-   - `name` varchar_short NOT NULL (from existing domain; e.g. 50 chars)
+   - `name` varchar_short NOT NULL (from existing domain; 50 chars)
    - `token_hash` varchar_token_hash UNIQUE NOT NULL (existing domain, 64-char hex)
    - `expires_at` TIMESTAMP NOT NULL
    - `permissions` JSONB NOT NULL (e.g. default '{}'; structure: `{ "me": 2, "auth": 6 }`)
    - `created_at` server_time_with_default NOT NULL
    - `updated_at` server_time_with_default NOT NULL
 
-3. Add trigger for `updated_at` using existing `set_updated_at_field()`.
+3. Add trigger for `updated_at` using existing `set_updated_at_field()`. Use the same pattern
+   as `infra/database/migrations/0001_user_schema.sql`: trigger name `set_updated_at_api_token`,
+   `EXECUTE FUNCTION set_updated_at_field();` (not EXECUTE PROCEDURE).
 
 4. Create indexes:
    - UNIQUE on `token_hash` (if not already implied by UNIQUE constraint)
    - INDEX on `user_id`
    - INDEX on `expires_at` (for cleanup or expiry checks)
-
-5. Regenerate or document combined migration per repo script (e.g.
-   `scripts/database/combine-migrations.sh` if present).
 
 ---
 
@@ -99,8 +104,9 @@ tokens. Align CRUD permissioning with management API conventions (CrudOp, bitmas
      - Load user via token’s user_id; set `req.user` and `req.apiTokenPermissions =
        token.permissions` (and e.g. `req.authMethod = 'api_token'`). Call `next()`.
 
-2. Ensure `req.apiTokenPermissions` is typed (e.g. `Record<string, number> | undefined`) in
-   `apps/api/src/types/express.d.ts`.
+2. In `apps/api/src/types/express.d.ts`, extend the `Request` interface with:
+   - `authMethod?: 'jwt' | 'api_token'`
+   - `apiTokenPermissions?: Record<string, number>`
 
 ---
 
@@ -121,39 +127,45 @@ tokens. Align CRUD permissioning with management API conventions (CrudOp, bitmas
 
 ## Step 6: Route → resource mapping
 
-1. Document and implement mapping for existing auth routes:
+1. Document and implement mapping for existing auth routes (match actual methods in
+   `apps/api/src/routes/auth.ts`):
    - `GET /auth/me` → resource `me`, op `read`.
-   - `PATCH /auth/change-password` (or POST) → resource `auth`, op `update`.
+   - `POST /auth/change-password` → resource `auth`, op `update`.
    - `POST /auth/request-email-change` → resource `auth`, op `update` (or create,
      depending on convention).
    - Any other protected auth route: assign resource + op.
 
 2. Apply `requireAuth` then `requireApiTokenResource(resource, op)` to each protected route
-   that should honor token permissions. Routes that only accept JWT (e.g. token management)
-   can use requireAuth and then check `req.authMethod !== 'api_token'` if you want to
-   restrict token management to session only (recommended: only JWT can create/list/revoke
-   tokens).
+   that should honor token permissions. Token management routes (create/list/revoke
+   api-tokens) **must** accept only JWT: use requireAuth then reject with 403 if
+   `req.authMethod === 'api_token'` (e.g. a small `requireJwt` middleware or a check in each
+   handler). API tokens cannot create, list, or revoke tokens.
 
 ---
 
 ## Step 7: API routes for token management
 
+**Require JWT for all three routes:** After requireAuth, reject with 403 if
+`req.authMethod === 'api_token'`. Only session (JWT) users can create, list, or revoke
+tokens.
+
 1. **POST /v1/auth/api-tokens** (or under existing auth router):
-   - Require auth (requireAuth). Optionally require `req.authMethod === 'jwt'` so only
-     session users can create tokens (recommended).
-   - Validate body: name (string, max length), expiresAt (ISO date, future), permissions
-     (object, keys = main API resources, values = number 0–15). Schema in
-     `apps/api/src/schemas/` (e.g. createApiTokenSchema).
+   - Require auth (requireAuth), then require JWT (403 if api_token).
+   - Validate body: name (string, max length 50 — use `SHORT_TEXT_MAX_LENGTH` from
+     `@boilerplate/helpers`), expiresAt (ISO date, future), permissions (object). Permissions
+     validation: **only keys from MAIN_API_RESOURCES** are allowed; reject unknown keys with
+     400. Values must be number 0–15 (CRUD bitmask). Schema in `apps/api/src/schemas/` (e.g.
+     createApiTokenSchema).
    - Call ApiTokenService.create(req.user.id, name, expiresAt, permissions). Return
      `{ token: rawToken, name, expiresAt }` (status 201). Never store or log rawToken.
 
 2. **GET /v1/auth/api-tokens**:
-   - Require auth (requireAuth); optionally JWT-only.
+   - Require auth (requireAuth), then require JWT (403 if api_token).
    - Call ApiTokenService.listByUserId(req.user.id). Return `{ tokens: [{ id, name,
      expiresAt, createdAt }] }` (no token field).
 
 3. **DELETE /v1/auth/api-tokens/:id**:
-   - Require auth (requireAuth); optionally JWT-only.
+   - Require auth (requireAuth), then require JWT (403 if api_token).
    - Call ApiTokenService.revoke(id, req.user.id). If false, 404. Else 204.
 
 4. Mount these routes on the existing auth router or versioned router (see
@@ -163,8 +175,9 @@ tokens. Align CRUD permissioning with management API conventions (CrudOp, bitmas
 
 ## Step 8: Validation and OpenAPI
 
-1. Add request body schemas for create (name, expiresAt, permissions). Use existing
-   validateBody pattern and Joi or equivalent.
+1. Add request body schemas for create (name, expiresAt, permissions). Enforce that
+   permissions object contains only keys from MAIN_API_RESOURCES; reject unknown keys with
+   400. Use existing validateBody pattern and Joi or equivalent.
 
 2. Update `apps/api/src/openapi.ts`: document security (Bearer JWT or API token), document
    POST/GET/DELETE api-tokens endpoints, and document that API tokens have resource-scoped
@@ -179,12 +192,16 @@ tokens. Align CRUD permissioning with management API conventions (CrudOp, bitmas
      response.
    - List tokens; only own tokens; no raw token in list.
    - Revoke token; then Bearer with that token returns 401.
+   - Calling POST/GET/DELETE api-tokens with an API token (Bearer) returns 403 (JWT-only).
    - Use API token with only `me` read: GET /auth/me succeeds; change-password (auth
      update) returns 403.
    - Use API token with `auth` update: change-password succeeds (if applicable).
 
-2. Follow existing test patterns (supertest, app factory, test DB). Ensure test DB has
-   api_token table (migration or init run in test setup).
+2. Follow existing test patterns (supertest, app factory, test DB). Test DB is initialized
+   with `infra/database/combined/init_database.sql` (see `apps/api/src/test/setup.ts` and
+   AGENTS.md). After adding the api_token migration and running combine-migrations.sh, the
+   combined init includes the new table; no change to test setup is required. If globalSetup
+   truncates by table list, ensure truncation includes `api_token`.
 
 ---
 

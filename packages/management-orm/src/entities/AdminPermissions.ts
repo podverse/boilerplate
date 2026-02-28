@@ -1,6 +1,6 @@
 import { Entity, PrimaryColumn, Column, OneToOne, JoinColumn } from 'typeorm';
 
-import { ManagementUser } from './ManagementUser.js';
+import type { ManagementUser } from './ManagementUser.js';
 
 export type EventVisibility = 'own' | 'all_admins' | 'all';
 
@@ -33,7 +33,7 @@ export class AdminPermissions {
   @Column({ name: 'event_visibility', type: 'text', default: 'own' })
   eventVisibility!: EventVisibility;
 
-  @OneToOne(() => ManagementUser, (u) => u.permissions, { onDelete: 'CASCADE' })
+  @OneToOne('ManagementUser', 'permissions', { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'admin_id' })
   managementUser!: ManagementUser;
 }

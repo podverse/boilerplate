@@ -1,7 +1,7 @@
 'use client';
 
 /// <reference lib="dom" />
-import { getSettingsFromCookieValue } from './settingsCookie.js';
+import { getSettingsFromCookieValue } from './settingsCookie';
 
 const DEFAULT_PATH = '/';
 const DEFAULT_MAX_AGE = 365 * 24 * 60 * 60; // 1 year

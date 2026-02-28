@@ -1,6 +1,6 @@
 # Local Docker
 
-API (4000), web (4100), postgres (5433), valkey (6380) exposed on host. Sidecar is **not**
+API (4000), management-api (4100), web (4002), management-web (4102), postgres (5433), valkey (6380) exposed on host. Sidecar is **not**
 exposed to the host; only the web container reaches it on the internal network via
 RUNTIME_CONFIG_URL. Shared network: `boilerplate_local_network`. Host ports 5433/6380 avoid
 conflict with podverse monorepo (5432/6379).
@@ -15,7 +15,13 @@ conflict with podverse monorepo (5432/6379).
 2. From repo root:  
    `docker compose -f infra/docker/local/docker-compose.yml --project-directory . up --build`
 
-## Start only Postgres or Valkey
+## Start infra (Postgres, Valkey, and management DB)
+
+From repo root:
+
+- `make local_infra_up` — starts Postgres and Valkey, waits for Postgres init, then creates the **management** database (`boilerplate_management`) so both the main API and the Management API can run on the host (e.g. `npm run dev:all:watch`).
+
+To start only Postgres or Valkey (no management DB):
 
 - `docker compose -f infra/docker/local/docker-compose.yml --project-directory . up postgres`
 - `docker compose -f infra/docker/local/docker-compose.yml --project-directory . up valkey`
@@ -28,7 +34,12 @@ Postgres runs `infra/database/combined/init_database.sql` on first start, then
 
 - API: `docker compose -f infra/docker/local/api/docker-compose.yml build` (from api dir, or use
   combined compose with --project-directory .)
-- Combined: `docker compose -f infra/docker/local/docker-compose.yml --project-directory . build`
+- Combined (all apps): `docker compose -f infra/docker/local/docker-compose.yml --project-directory . build`
+
+## Start/stop app containers only
+
+- `make local_apps_up` — starts API, management-api, sidecar, web, management-web (Postgres and Valkey must already be running via `make local_infra_up`).
+- `make local_apps_down` — stops those five app containers. `make local_down` — removes app containers and their images (api, management-api, web, management-web, web-sidecar).
 
 If using per-service compose files, create the network first:  
 `docker network create boilerplate_local_network`

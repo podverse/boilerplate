@@ -1,6 +1,5 @@
-import { CenterInViewport } from '@boilerplate/ui';
+import { AppTypeTitle, CenterInViewport } from '@boilerplate/ui';
 import { getRuntimeConfig } from '../../config/runtime-config-store';
-import { AppTypeTitle } from '../../components/AppTypeTitle';
 
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
   const runtimeConfig = getRuntimeConfig();

@@ -2,7 +2,7 @@ import { Entity, PrimaryColumn, Column, OneToOne } from 'typeorm';
 
 import { AdminPermissions } from './AdminPermissions.js';
 import { ManagementUserBio } from './ManagementUserBio.js';
-import { ManagementUserCredentials } from './ManagementUserCredentials.js';
+import type { ManagementUserCredentials } from './ManagementUserCredentials.js';
 
 @Entity('management_user')
 export class ManagementUser {
@@ -18,7 +18,7 @@ export class ManagementUser {
   @Column({ name: 'created_by', type: 'uuid', nullable: true })
   createdBy!: string | null;
 
-  @OneToOne(() => ManagementUserCredentials, (c) => c.managementUser)
+  @OneToOne('ManagementUserCredentials', 'managementUser')
   credentials!: ManagementUserCredentials;
 
   @OneToOne(() => ManagementUserBio, (b) => b.managementUser)

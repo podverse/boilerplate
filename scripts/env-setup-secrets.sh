@@ -64,11 +64,13 @@ DB_READ_PASSWORD=$(generate_secret) || exit 1
 DB_READ_WRITE_PASSWORD=$(generate_secret) || exit 1
 VALKEY_PASSWORD=$(generate_secret) || exit 1
 JWT_SECRET=$(generate_secret) || exit 1
+MANAGEMENT_JWT_SECRET=$(generate_secret) || exit 1
 
 DB_ENV="infra/config/local/db.env"
 VALKEY_ENV="infra/config/local/valkey.env"
 API_ENV="infra/config/local/api.env"
 API_DOT_ENV="apps/api/.env"
+MGMT_API_DOT_ENV="apps/management-api/.env"
 
 # db.env: one set of names (DB_READ_*, DB_READ_WRITE_*) for init script and API/ORM
 for f in "$DB_ENV"; do
@@ -104,4 +106,22 @@ if [ -f "$API_DOT_ENV" ]; then
     fi
   done
   echo "Set host connection defaults in apps/api/.env (DB_HOST=localhost, DB_PORT=5433, VALKEY_HOST=localhost, VALKEY_PORT=6380)."
+fi
+
+# apps/management-api/.env: MANAGEMENT_JWT_SECRET and DB credentials (same as API for main DB); management DB uses same host/port.
+if [ -f "$MGMT_API_DOT_ENV" ]; then
+  set_var_if_empty "$MGMT_API_DOT_ENV" "MANAGEMENT_JWT_SECRET" "$MANAGEMENT_JWT_SECRET"
+  set_var_if_empty "$MGMT_API_DOT_ENV" "DB_READ_WRITE_PASSWORD" "$DB_READ_WRITE_PASSWORD"
+  set_var_if_empty "$MGMT_API_DOT_ENV" "MANAGEMENT_DB_PASSWORD" "$DB_READ_WRITE_PASSWORD"
+  for var_value in "DB_HOST:localhost" "DB_PORT:5433" "DB_NAME:postgres" "MANAGEMENT_DB_HOST:localhost" "MANAGEMENT_DB_PORT:5433" "MANAGEMENT_DB_NAME:boilerplate_management" "MANAGEMENT_DB_USERNAME:read_write"; do
+    var="${var_value%%:*}"
+    value="${var_value#*:}"
+    if grep -q "^${var}=" "$MGMT_API_DOT_ENV" 2>/dev/null; then
+      sed -i.bak "s|^${var}=.*|${var}=\"${value}\"|" "$MGMT_API_DOT_ENV"
+      rm -f "${MGMT_API_DOT_ENV}.bak"
+    else
+      echo "${var}=\"${value}\"" >> "$MGMT_API_DOT_ENV"
+    fi
+  done
+  echo "Set MANAGEMENT_JWT_SECRET and host connection defaults in apps/management-api/.env (localhost:5433, boilerplate_management)."
 fi

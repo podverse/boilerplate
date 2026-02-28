@@ -5,7 +5,7 @@
  */
 const testEnv: Record<string, string> = {
   NODE_ENV: 'test',
-  MANAGEMENT_API_PORT: '3998',
+  MANAGEMENT_API_PORT: '4100',
   MANAGEMENT_APP_NAME: 'boilerplate-management-api-test',
   MANAGEMENT_JWT_SECRET: 'test-management-jwt-secret-min-32-chars-long',
   MANAGEMENT_SESSION_COOKIE_NAME: 'management_session',
