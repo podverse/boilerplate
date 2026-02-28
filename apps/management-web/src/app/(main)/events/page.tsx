@@ -1,13 +1,11 @@
-'use client';
+import { redirect } from 'next/navigation';
+import { cookies } from 'next/headers';
+import { getTranslations } from 'next-intl/server';
+import { request } from '@boilerplate/helpers-requests';
+import { Card, Container, List, Stack, Text } from '@boilerplate/ui';
 
-import { useRouter } from 'next/navigation';
-import { useCallback, useEffect, useState } from 'react';
-import { useTranslations } from 'next-intl';
-import { Link, Card, Container, List, Row, Stack, Text } from '@boilerplate/ui';
-
-import { managementWebEvents } from '@boilerplate/helpers-requests';
-import { useAuth } from '../../../context/AuthContext';
-import { getApiBaseUrl } from '../../../lib/api-client';
+import { getServerUser } from '../../../lib/server-auth';
+import { getManagementApiBaseUrl } from '../../../config/env';
 import { ROUTES } from '../../../lib/routes';
 
 type EventItem = {
@@ -21,73 +19,56 @@ type EventItem = {
   details: string | null;
 };
 
-export default function EventsPage() {
-  const tCommon = useTranslations('common');
-  const tErrors = useTranslations('errors');
-  const { user, loading: authLoading } = useAuth();
-  const router = useRouter();
-  const [events, setEvents] = useState<EventItem[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+async function fetchEvents(): Promise<{ events: EventItem[]; error: string | null }> {
+  const cookieStore = await cookies();
+  const cookieHeader = cookieStore
+    .getAll()
+    .map((c) => `${c.name}=${c.value}`)
+    .join('; ');
 
-  useEffect(() => {
-    if (authLoading) return;
-    if (user === null) {
-      router.replace(ROUTES.LOGIN);
+  const baseUrl = getManagementApiBaseUrl();
+
+  try {
+    const res = await request(baseUrl, '/events', {
+      headers: { Cookie: cookieHeader },
+      cache: 'no-store',
+    });
+
+    if (!res.ok) {
+      return { events: [], error: 'Failed to load events' };
     }
-  }, [user, authLoading, router]);
 
-  const load = useCallback(async () => {
-    if (user === null) return;
-    setLoading(true);
-    setError(null);
-    const baseUrl = getApiBaseUrl();
-    const res = await managementWebEvents.list(baseUrl);
-    setLoading(false);
-    if (
-      res.ok &&
-      res.data !== undefined &&
-      typeof res.data === 'object' &&
-      res.data !== null &&
-      'events' in res.data
-    ) {
-      setEvents((res.data as { events: EventItem[] }).events);
-    } else {
-      setError(res.error?.message ?? tErrors('failedToLoadEvents'));
+    const data = res.data as { events?: EventItem[] } | undefined;
+    if (data?.events !== undefined) {
+      return { events: data.events, error: null };
     }
-  }, [user, tErrors]);
-
-  useEffect(() => {
-    if (user !== null) {
-      void load();
-    }
-  }, [user, load]);
-
-  if (authLoading || user === null) {
-    return (
-      <Container>
-        <p>{tCommon('loading')}</p>
-      </Container>
-    );
+    return { events: [], error: null };
+  } catch {
+    return { events: [], error: 'Failed to load events' };
   }
+}
+
+export default async function EventsPage() {
+  const user = await getServerUser();
+
+  if (user === null) {
+    redirect(ROUTES.LOGIN);
+  }
+
+  const tCommon = await getTranslations('common');
+  const { events, error } = await fetchEvents();
 
   return (
     <Container>
       <Stack>
-        <Row>
-          <Link href={ROUTES.DASHBOARD} className="text-sm">
-            {tCommon('dashboard')}
-          </Link>
-        </Row>
         <Card title={tCommon('events')}>
-          {loading && <p>{tCommon('loadingEvents')}</p>}
           {error !== null && (
             <Text variant="error" role="alert">
               {error}
             </Text>
           )}
-          {!loading && error === null && events.length === 0 && <p>{tCommon('noEvents')}</p>}
-          {!loading && error === null && events.length > 0 && (
+          {error === null && events.length === 0 && <p>{tCommon('noEvents')}</p>}
+          {error === null && events.length > 0 && (
             <List size="sm">
               {events.map((e) => (
                 <li key={e.id}>

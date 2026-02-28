@@ -137,6 +137,12 @@
     "passwordStrength": {
       "hint": ""
     },
+    "loadingSpinner": {
+      "ariaLabel": ""
+    },
+    "tabs": {
+      "navAriaLabel": ""
+    },
     "formLinks": {
       "separator": ""
     },

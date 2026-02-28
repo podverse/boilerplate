@@ -45,7 +45,7 @@ export function AppHeader({
 
   return (
     <header className="header-bar">
-      <LinkComponent href={homeHref}>
+      <LinkComponent href={homeHref} className={styles.titleLinkWrapper}>
         <span className={styles.titleLink}>
           <h1 className={styles.title}>{title}</h1>
         </span>

@@ -1,4 +1,17 @@
 @use '../../styles/variables' as *;
+@use '../../styles/mixins' as *;
+
+.titleLinkWrapper {
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: none;
+  }
+}
+
+:global(.header-bar) .titleLinkWrapper:hover {
+  text-decoration: none;
+}
 
 .titleLink {
   text-decoration: none;
@@ -22,6 +35,11 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  display: none;
+
+  @include at-least-sm {
+    display: inline-block;
+  }
 }
 
 .loginLink {

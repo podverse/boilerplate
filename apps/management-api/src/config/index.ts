@@ -20,8 +20,6 @@ export const config = {
   appName: getEnv('MANAGEMENT_APP_NAME'),
   jwtSecret: getEnv('MANAGEMENT_JWT_SECRET'),
   apiVersionPath: normalizeVersionPath(getEnvOptional('MANAGEMENT_API_VERSION_PATH') ?? 'v1'),
-  superAdminEmail: getEnvOptional('SUPER_ADMIN_EMAIL'),
-  superAdminPassword: getEnvOptional('SUPER_ADMIN_PASSWORD'),
   /** Access token expiry in seconds (JWT and cookie max-age). Required; e.g. 900 = 15m. */
   accessTokenMaxAgeSeconds: Number.parseInt(getEnv('MANAGEMENT_JWT_ACCESS_EXPIRY_SECONDS'), 10),
   refreshTokenMaxAgeSeconds: Number.parseInt(getEnv('MANAGEMENT_JWT_REFRESH_EXPIRY_SECONDS'), 10),

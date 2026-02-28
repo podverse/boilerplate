@@ -1,6 +1,6 @@
 # --- Local Docker: network and compose services (infra/docker/local). ---
 
-.PHONY: local_network_create local_infra_up local_all_up local_postgres_wait
+.PHONY: local_network_create local_infra_up local_all_up local_postgres_wait local_create_super_admin
 .PHONY: local_postgres_up local_valkey_up local_sidecar_up local_api_up local_web_up
 .PHONY: local_management_api_up local_management_web_up
 .PHONY: local_postgres_down local_valkey_down local_sidecar_down local_api_down local_web_down
@@ -20,10 +20,17 @@ local_postgres_wait:
 	echo "Error: Timeout waiting for Postgres (and read user). Is Postgres running? Run: make local_infra_up"; exit 1
 
 # Postgres + Valkey + management DB (so API and Management API on host both have DBs).
+# Then prompts for super admin email and creates the super admin user (password generated and printed once).
 local_infra_up: local_network_create
 	docker compose -f $(COMPOSE_LOCAL) --project-directory . up -d postgres valkey
 	$(MAKE) local_postgres_wait
 	$(MAKE) local_db_init_management
+	$(MAKE) local_create_super_admin
+
+# Create super admin in management DB (interactive: prompts for email, prints generated password once).
+# Requires Postgres and management DB (e.g. after local_infra_up). Uses apps/management-api/.env.
+local_create_super_admin:
+	node scripts/create-super-admin.mjs
 
 # Full stack in Docker (Path B: API, web, sidecar, Postgres, Valkey). Does not run env_setup.
 local_all_up: local_network_create

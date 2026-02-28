@@ -6,10 +6,13 @@ import { AUTH_MESSAGE_LOGIN_FAILED } from '@boilerplate/helpers';
 import { managementWebAuth } from '@boilerplate/helpers-requests';
 
 import { getApiBaseUrl } from '../lib/api-client';
-import type { ManagementUser } from '../types/management-api';
+import { isPublicPath, ROUTES } from '../lib/routes';
 
-/** Same shape as user from /auth/me and /auth/login. */
-export type AuthUser = ManagementUser;
+export type AuthUser = {
+  id: string;
+  email: string;
+  displayName: string | null;
+};
 
 export type AuthContextValue = {
   user: AuthUser | null;
@@ -19,22 +22,44 @@ export type AuthContextValue = {
     password: string
   ) => Promise<{ ok: true } | { ok: false; message: string }>;
   logout: () => void;
+  setSession: (user: AuthUser) => void;
   hydrate: () => Promise<void>;
 };
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
-function parseUserFromMe(data: unknown): ManagementUser | null {
+function parseUserFromMe(data: unknown): AuthUser | null {
   if (data === undefined || typeof data !== 'object' || data === null) return null;
   if (!('user' in data) || typeof (data as { user: unknown }).user !== 'object') return null;
-  const u = (data as { user: ManagementUser }).user;
+  const u = (data as { user: { id?: string; email?: string; displayName?: string | null } }).user;
   if (typeof u.id !== 'string' || typeof u.email !== 'string') return null;
-  return u;
+  return {
+    id: u.id,
+    email: u.email,
+    displayName: u.displayName ?? null,
+  };
 }
 
-export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<AuthUser | null>(null);
-  const [loading, setLoading] = useState(true);
+function parseUserFromLoginOrRefresh(data: unknown): AuthUser | null {
+  if (data === undefined || typeof data !== 'object' || data === null) return null;
+  if (!('user' in data) || typeof (data as { user: unknown }).user !== 'object') return null;
+  const u = (data as { user: { id?: string; email?: string; displayName?: string | null } }).user;
+  if (typeof u.id !== 'string' || typeof u.email !== 'string') return null;
+  return {
+    id: u.id,
+    email: u.email,
+    displayName: u.displayName ?? null,
+  };
+}
+
+type AuthProviderProps = {
+  children: React.ReactNode;
+  initialUser?: AuthUser | null;
+};
+
+export function AuthProvider({ children, initialUser }: AuthProviderProps) {
+  const [user, setUser] = useState<AuthUser | null>(initialUser ?? null);
+  const [loading, setLoading] = useState(false);
 
   const hydrate = useCallback(async () => {
     try {
@@ -47,10 +72,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           return;
         }
       }
-      if (meRes.status === 401) {
+      const meWas401 = meRes.status === 401;
+      if (meWas401) {
         const refreshRes = await managementWebAuth.refresh(baseUrl);
         if (refreshRes.ok && refreshRes.data !== undefined) {
-          const u = parseUserFromMe(refreshRes.data);
+          const u = parseUserFromLoginOrRefresh(refreshRes.data);
           if (u !== null) {
             setUser(u);
             return;
@@ -58,6 +84,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
       }
       setUser(null);
+      if (meWas401) {
+        try {
+          await managementWebAuth.logout(baseUrl);
+        } catch {
+          // ignore; redirect anyway
+        }
+        const pathname = typeof window !== 'undefined' ? window.location.pathname : '';
+        if (!isPublicPath(pathname)) {
+          window.location.href = ROUTES.LOGIN;
+        }
+        return;
+      }
     } catch {
       setUser(null);
     } finally {
@@ -65,9 +103,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
+  // Only hydrate if no initial user was provided
   useEffect(() => {
-    void hydrate();
-  }, [hydrate]);
+    if (initialUser === undefined) {
+      void hydrate();
+    }
+  }, [hydrate, initialUser]);
 
   const login = useCallback(
     async (
@@ -79,8 +120,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (!res.ok) {
         return { ok: false, message: res.error?.message ?? AUTH_MESSAGE_LOGIN_FAILED };
       }
-      const data = res.data as { user?: ManagementUser };
-      if (data?.user !== undefined) setUser(data.user);
+      const data = res.data as { user?: { id: string; email: string; displayName: string | null } };
+      const u = data?.user
+        ? {
+            id: data.user.id,
+            email: data.user.email,
+            displayName: data.user.displayName ?? null,
+          }
+        : null;
+      if (u !== null) setUser(u);
       return { ok: true };
     },
     []
@@ -92,9 +140,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUser(null);
   }, []);
 
+  const setSession = useCallback((u: AuthUser) => {
+    setUser(u);
+  }, []);
+
   const value = useMemo(
-    () => ({ user, loading, login, logout, hydrate }),
-    [user, loading, login, logout, hydrate]
+    () => ({ user, loading, login, logout, setSession, hydrate }),
+    [user, loading, login, logout, setSession, hydrate]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

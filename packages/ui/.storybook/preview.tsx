@@ -5,6 +5,7 @@ import { THEMES, type Theme } from '../src/lib/settingsCookie';
 
 import '@fortawesome/fontawesome-free/css/all.min.css';
 import '../src/styles/index.scss';
+import './preview.scss';
 
 const defaultTheme: Theme = THEMES.includes('dark') ? 'dark' : THEMES[0];
 
@@ -32,7 +33,17 @@ const preview: Preview = {
       const theme: Theme = raw !== undefined && THEMES.includes(raw as Theme) ? (raw as Theme) : defaultTheme;
       return (
         <ThemeProvider key={theme} defaultTheme={theme} storageKey="storybook-theme">
-          <Story />
+          <div
+            style={{
+              padding: '3rem',
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              boxSizing: 'border-box',
+            }}
+          >
+            <Story />
+          </div>
         </ThemeProvider>
       );
     },

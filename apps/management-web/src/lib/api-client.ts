@@ -1,7 +1,5 @@
-import { getManagementApiUrl } from '../config/env';
-
-const API_VERSION = '/v1';
+import { getManagementApiBaseUrl } from '../config/env';
 
 export function getApiBaseUrl(): string {
-  return getManagementApiUrl() + API_VERSION;
+  return getManagementApiBaseUrl();
 }

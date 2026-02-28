@@ -137,6 +137,12 @@
     "passwordStrength": {
       "hint": "Usa al menos {minLength} caracteres e incluye letras, números y símbolos"
     },
+    "loadingSpinner": {
+      "ariaLabel": "Cargando"
+    },
+    "tabs": {
+      "navAriaLabel": "Navegación de sección"
+    },
     "formLinks": {
       "separator": " • "
     },

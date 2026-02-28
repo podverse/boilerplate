@@ -6,6 +6,7 @@ import { AUTH_MESSAGE_LOGIN_FAILED } from '@boilerplate/helpers';
 import { webAuth } from '@boilerplate/helpers-requests';
 
 import { getApiBaseUrl } from '../lib/api-client';
+import { isPublicPath, ROUTES } from '../lib/routes';
 
 export type AuthUser = {
   id: string;
@@ -51,9 +52,14 @@ function parseUserFromLoginOrRefresh(data: unknown): AuthUser | null {
   };
 }
 
-export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<AuthUser | null>(null);
-  const [loading, setLoading] = useState(true);
+type AuthProviderProps = {
+  children: React.ReactNode;
+  initialUser?: AuthUser | null;
+};
+
+export function AuthProvider({ children, initialUser }: AuthProviderProps) {
+  const [user, setUser] = useState<AuthUser | null>(initialUser ?? null);
+  const [loading, setLoading] = useState(false);
 
   const hydrate = useCallback(async () => {
     try {
@@ -66,7 +72,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           return;
         }
       }
-      if (meRes.status === 401) {
+      const meWas401 = meRes.status === 401;
+      if (meWas401) {
         const refreshRes = await webAuth.refresh(baseUrl);
         if (refreshRes.ok && refreshRes.data !== undefined) {
           const u = parseUserFromLoginOrRefresh(refreshRes.data);
@@ -77,6 +84,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
       }
       setUser(null);
+      if (meWas401) {
+        try {
+          await webAuth.logout(baseUrl);
+        } catch {
+          // ignore; redirect anyway
+        }
+        const pathname = typeof window !== 'undefined' ? window.location.pathname : '';
+        if (!isPublicPath(pathname)) {
+          window.location.href = ROUTES.LOGIN;
+        }
+        return;
+      }
     } catch {
       setUser(null);
     } finally {
@@ -84,9 +103,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
+  // Only hydrate if no initial user was provided
   useEffect(() => {
-    void hydrate();
-  }, [hydrate]);
+    if (initialUser === undefined) {
+      void hydrate();
+    }
+  }, [hydrate, initialUser]);
 
   const login = useCallback(
     async (

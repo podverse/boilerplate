@@ -1,7 +1,13 @@
 'use client';
 
 import { AuthProvider } from '../context/AuthContext';
+import type { AuthUser } from '../context/AuthContext';
 
-export function AuthWrapper({ children }: { children: React.ReactNode }) {
-  return <AuthProvider>{children}</AuthProvider>;
+type AuthWrapperProps = {
+  children: React.ReactNode;
+  initialUser?: AuthUser | null;
+};
+
+export function AuthWrapper({ children, initialUser }: AuthWrapperProps) {
+  return <AuthProvider initialUser={initialUser}>{children}</AuthProvider>;
 }

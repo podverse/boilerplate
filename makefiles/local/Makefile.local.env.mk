@@ -23,7 +23,7 @@ env_setup:
 	@bash scripts/env-setup-secrets.sh
 	@echo "Env files ready (infra/config/local/*.env, apps/*/.env or .env.local)."
 	@echo "apps/api/.env is set for API-on-host (localhost:5433, localhost:6380). infra/config/local/api.env is for Docker (postgres, valkey)."
-	@echo "apps/management-api/.env is set for Management API on host. make local_infra_up creates the management DB; or run 'make local_db_init_management' after Postgres is up."
+	@echo "apps/management-api/.env is set for Management API on host. make local_infra_up creates the management DB and then prompts for super admin email (password is generated and printed once)."
 
 # Remove local .env files (prompts for Y). Runs local_clean first so Postgres and Valkey
 # containers and volumes are removed; after env_setup, next local_infra_up or local_all_up

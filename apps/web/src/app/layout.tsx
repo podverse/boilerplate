@@ -15,6 +15,7 @@ const SETTINGS_COOKIE_NAME = 'web-settings';
 export const metadata: Metadata = {
   title: 'boilerplate-web',
   description: 'boilerplate-web app',
+  icons: { icon: '/icon.svg' },
 };
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {

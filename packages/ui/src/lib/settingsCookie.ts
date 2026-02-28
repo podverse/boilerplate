@@ -36,3 +36,19 @@ export function getThemeFromSettingsCookieValue(value: string | undefined): Them
   const theme = settings.theme;
   return theme !== undefined && typeof theme === 'string' && isTheme(theme) ? theme : null;
 }
+
+/**
+ * Parse locale from a settings cookie value (JSON object with optional locale key).
+ * Returns the locale only if it is in the supported list.
+ */
+export function getLocaleFromSettingsCookieValue(
+  value: string | undefined,
+  supportedLocales: readonly string[]
+): string | undefined {
+  const settings = getSettingsFromCookieValue(value);
+  const locale = settings.locale;
+  if (locale !== undefined && typeof locale === 'string' && supportedLocales.includes(locale)) {
+    return locale;
+  }
+  return undefined;
+}

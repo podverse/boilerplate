@@ -1,85 +1,70 @@
-'use client';
+import { redirect } from 'next/navigation';
+import { cookies } from 'next/headers';
+import { getTranslations } from 'next-intl/server';
+import { request } from '@boilerplate/helpers-requests';
+import { Card, Container, List, Stack, Text } from '@boilerplate/ui';
 
-import { useRouter } from 'next/navigation';
-import { useCallback, useEffect, useState } from 'react';
-import { useTranslations } from 'next-intl';
-import { Link, Card, Container, List, Row, Stack, Text } from '@boilerplate/ui';
-
-import { managementWebAdmins } from '@boilerplate/helpers-requests';
-import { useAuth } from '../../../context/AuthContext';
-import { getApiBaseUrl } from '../../../lib/api-client';
+import { getServerUser } from '../../../lib/server-auth';
+import { getManagementApiBaseUrl } from '../../../config/env';
 import { ROUTES } from '../../../lib/routes';
 import type { ManagementUser } from '../../../types/management-api';
 
-export default function AdminsPage() {
-  const tCommon = useTranslations('common');
-  const tErrors = useTranslations('errors');
-  const { user, loading: authLoading } = useAuth();
-  const router = useRouter();
-  const [admins, setAdmins] = useState<ManagementUser[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+async function fetchAdmins(): Promise<{ admins: ManagementUser[]; error: string | null }> {
+  const cookieStore = await cookies();
+  const cookieHeader = cookieStore
+    .getAll()
+    .map((c) => `${c.name}=${c.value}`)
+    .join('; ');
 
-  useEffect(() => {
-    if (authLoading) return;
-    if (user === null) {
-      router.replace(ROUTES.LOGIN);
+  const baseUrl = getManagementApiBaseUrl();
+
+  try {
+    const res = await request(baseUrl, '/admins', {
+      headers: { Cookie: cookieHeader },
+      cache: 'no-store',
+    });
+
+    if (!res.ok) {
+      return { admins: [], error: 'Failed to load admins' };
     }
-  }, [user, authLoading, router]);
 
-  const load = useCallback(async () => {
-    if (user === null) return;
-    setLoading(true);
-    setError(null);
-    const baseUrl = getApiBaseUrl();
-    const res = await managementWebAdmins.list(baseUrl);
-    setLoading(false);
-    if (res.ok && res.data !== undefined && Array.isArray(res.data)) {
-      setAdmins(res.data as ManagementUser[]);
-    } else if (
-      res.ok &&
-      res.data !== undefined &&
-      typeof res.data === 'object' &&
-      res.data !== null &&
-      'admins' in res.data
-    ) {
-      setAdmins((res.data as { admins: ManagementUser[] }).admins);
-    } else {
-      setError(res.error?.message ?? tErrors('failedToLoadAdmins'));
+    const data = res.data as { admins?: ManagementUser[] } | ManagementUser[] | undefined;
+    if (data === undefined) {
+      return { admins: [], error: null };
     }
-  }, [user, tErrors]);
-
-  useEffect(() => {
-    if (user !== null) {
-      void load();
+    if (Array.isArray(data)) {
+      return { admins: data, error: null };
     }
-  }, [user, load]);
-
-  if (authLoading || user === null) {
-    return (
-      <Container>
-        <p>{tCommon('loading')}</p>
-      </Container>
-    );
+    if (data.admins !== undefined) {
+      return { admins: data.admins, error: null };
+    }
+    return { admins: [], error: null };
+  } catch {
+    return { admins: [], error: 'Failed to load admins' };
   }
+}
+
+export default async function AdminsPage() {
+  const user = await getServerUser();
+
+  if (user === null) {
+    redirect(ROUTES.LOGIN);
+  }
+
+  const tCommon = await getTranslations('common');
+  const { admins, error } = await fetchAdmins();
 
   return (
     <Container>
       <Stack>
-        <Row>
-          <Link href={ROUTES.DASHBOARD} className="text-sm">
-            {tCommon('dashboard')}
-          </Link>
-        </Row>
         <Card title={tCommon('admins')}>
-          {loading && <p>{tCommon('loadingAdmins')}</p>}
           {error !== null && (
             <Text variant="error" role="alert">
               {error}
             </Text>
           )}
-          {!loading && error === null && admins.length === 0 && <p>{tCommon('noAdmins')}</p>}
-          {!loading && error === null && admins.length > 0 && (
+          {error === null && admins.length === 0 && <p>{tCommon('noAdmins')}</p>}
+          {error === null && admins.length > 0 && (
             <List>
               {admins.map((a) => (
                 <li key={a.id}>

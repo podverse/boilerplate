@@ -1,0 +1,80 @@
+@use '../../styles/variables' as *;
+
+.scrollWrap {
+  overflow-x: auto;
+  overflow-y: hidden;
+  margin: 0 0 $space-4;
+  padding: $space-2 0;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+
+  &::-webkit-scrollbar {
+    height: 4px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: var(--color-border, $color-border);
+    border-radius: $radius-xs;
+  }
+}
+
+.nav {
+  display: flex;
+  gap: $space-2;
+  padding: 0 $space-4;
+  margin: 0;
+  list-style: none;
+  flex-wrap: nowrap;
+  width: max-content;
+  min-width: 100%;
+  box-sizing: border-box;
+
+  @media (min-width: $breakpoint-sm) {
+    width: auto;
+    min-width: 0;
+  }
+}
+
+.tab {
+  margin: 0;
+  flex-shrink: 0;
+}
+
+.tabLink {
+  display: block;
+  padding: $space-2 $space-4;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+  color: var(--color-text-muted, $color-text-muted);
+  text-decoration: none;
+  border-radius: $radius-pill;
+  background: transparent;
+  border: 1px solid var(--color-border, $color-border);
+  transition:
+    color $transition-fast,
+    background-color $transition-fast,
+    border-color $transition-fast;
+
+  &:hover {
+    color: var(--color-primary, $color-primary);
+    border-color: var(--color-primary, $color-primary);
+    text-decoration: none;
+  }
+
+  &:focus-visible {
+    outline: $focus-outline-width solid var(--color-primary, $color-primary);
+    outline-offset: $focus-outline-offset;
+  }
+}
+
+.tabLinkActive {
+  color: var(--color-on-primary, $color-on-primary);
+  background: var(--color-primary, $color-primary);
+  border-color: var(--color-primary, $color-primary);
+
+  &:hover {
+    color: var(--color-on-primary, $color-on-primary);
+    background: var(--color-primary-hover, $color-primary-hover);
+    border-color: var(--color-primary-hover, $color-primary-hover);
+  }
+}

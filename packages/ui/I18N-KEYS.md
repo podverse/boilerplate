@@ -68,6 +68,14 @@ All keys are under `ui.*`. Use nested objects in your `i18n/originals/en-US.json
 
 - `hint` — Use at least {minLength} characters and include a mix of letters, numbers, and symbols (supports `minLength` placeholder)
 
+## loadingSpinner
+
+- `ariaLabel` — Loading (aria-label for the spinner)
+
+## tabs
+
+- `navAriaLabel` — Section navigation (aria-label for the tab list)
+
 ## formLinks
 
 - `separator` — • (bullet between links)

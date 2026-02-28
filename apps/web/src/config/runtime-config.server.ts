@@ -1,3 +1,5 @@
+import { request } from '@boilerplate/helpers-requests';
+
 import type { WebRuntimeConfig } from './runtime-config';
 
 const getRuntimeConfigUrl = (): string => {
@@ -12,11 +14,13 @@ let cachedRuntimeConfig: Promise<WebRuntimeConfig> | null = null;
 
 const fetchUncached = async (): Promise<WebRuntimeConfig> => {
   const baseUrl = getRuntimeConfigUrl();
-  const response = await fetch(`${baseUrl}/runtime-config`, { cache: 'no-store' });
-  if (!response.ok) {
-    throw new Error(`Runtime config sidecar returned ${response.status}.`);
+  const res = await request(baseUrl, '/runtime-config', { cache: 'no-store' });
+  if (!res.ok) {
+    throw new Error(
+      `Runtime config sidecar returned ${res.status}. ${res.error?.message ?? ''}`.trim()
+    );
   }
-  const runtimeConfig: WebRuntimeConfig = await response.json();
+  const runtimeConfig = res.data as WebRuntimeConfig;
   return runtimeConfig;
 };
 

@@ -27,9 +27,6 @@ const run = async (): Promise<void> => {
   const { managementDataSource } = await import('@boilerplate/management-orm');
   await managementDataSource.initialize();
 
-  const { bootstrapSuperAdmin } = await import('./lib/bootstrapSuperAdmin.js');
-  await bootstrapSuperAdmin();
-
   const { config } = await import('./config/index.js');
   const app = (await import('./app.js')).createApp();
   const server = app.listen(config.port, () => {

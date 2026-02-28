@@ -3,7 +3,7 @@
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { Suspense, useState } from 'react';
-import { ResetPasswordForm, useAuthValidation } from '@boilerplate/ui';
+import { Container, LoadingSpinner, ResetPasswordForm, useAuthValidation } from '@boilerplate/ui';
 import { webAuth } from '@boilerplate/helpers-requests';
 import { getApiBaseUrl } from '../../../lib/api-client';
 import { ROUTES } from '../../../lib/routes';
@@ -73,8 +73,11 @@ function ResetPasswordContent() {
 }
 
 function ResetPasswordFallback() {
-  const tCommon = useTranslations('common');
-  return <p>{tCommon('loading')}</p>;
+  return (
+    <Container>
+      <LoadingSpinner size="md" />
+    </Container>
+  );
 }
 
 export default function ResetPasswordPage() {

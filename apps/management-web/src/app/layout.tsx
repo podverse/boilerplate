@@ -13,6 +13,7 @@ const SETTINGS_COOKIE_NAME = 'management-settings';
 export const metadata: Metadata = {
   title: 'boilerplate-management-web',
   description: 'boilerplate-management-web app',
+  icons: { icon: '/icon.svg' },
 };
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
@@ -22,6 +23,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const initialTheme = getThemeFromSettingsCookieValue(
     cookieStore.get(SETTINGS_COOKIE_NAME)?.value
   );
+
   return (
     <html lang={locale}>
       <body>

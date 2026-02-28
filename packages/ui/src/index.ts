@@ -60,7 +60,12 @@ export { Stack } from './components/Stack';
 export type { StackProps } from './components/Stack';
 export { Text } from './components/Text';
 export type { TextProps, TextSize, TextVariant } from './components/Text';
-export { getSettingsFromCookieValue, getThemeFromSettingsCookieValue, THEMES } from './lib/settingsCookie';
+export {
+  getLocaleFromSettingsCookieValue,
+  getSettingsFromCookieValue,
+  getThemeFromSettingsCookieValue,
+  THEMES,
+} from './lib/settingsCookie';
 export type { Theme } from './lib/settingsCookie';
 export { getSettingsCookieValue, setSettingsCookie } from './lib/settingsCookieClient';
 export type { SetSettingsCookieOptions } from './lib/settingsCookieClient';
@@ -70,3 +75,7 @@ export { validateEmailWithT, validatePasswordWithT } from './lib/validation';
 export { ThemeProvider, ThemeWrapper, useTheme } from './contexts/ThemeContext';
 export type { ThemeContextValue, ThemeWrapperProps } from './contexts/ThemeContext';
 export { ThemeSelector } from './components/ThemeSelector';
+export { Tabs } from './components/Tabs';
+export type { TabItem, TabsLinkComponentProps, TabsProps } from './components/Tabs';
+export { LoadingSpinner } from './components/LoadingSpinner';
+export type { LoadingSpinnerProps } from './components/LoadingSpinner';

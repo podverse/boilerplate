@@ -6,6 +6,9 @@ import {
   DEFAULT_LOCALE,
   type Locale,
 } from '@boilerplate/helpers';
+import { getLocaleFromSettingsCookieValue } from '@boilerplate/ui';
+
+const SETTINGS_COOKIE_NAME = 'web-settings';
 
 function getDefaultLocale(): string {
   const v = process.env.DEFAULT_LOCALE?.trim();
@@ -33,9 +36,14 @@ async function detectLocale(): Promise<string> {
     : (supported[0] ?? defaultLocale);
 
   const cookieStore = await cookies();
-  const localeCookie = cookieStore.get('NEXT_LOCALE')?.value;
-  if (localeCookie && supported.includes(localeCookie)) {
-    return localeCookie;
+  const settingsCookieValue = cookieStore.get(SETTINGS_COOKIE_NAME)?.value;
+  const localeFromSettings = getLocaleFromSettingsCookieValue(settingsCookieValue, supported);
+  if (localeFromSettings !== undefined) {
+    return localeFromSettings;
+  }
+  const nextLocale = cookieStore.get('NEXT_LOCALE')?.value;
+  if (nextLocale && supported.includes(nextLocale)) {
+    return nextLocale;
   }
   const hdrs = await headers();
   const acceptLanguage = hdrs.get('accept-language');

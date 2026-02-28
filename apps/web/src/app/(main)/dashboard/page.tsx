@@ -1,38 +1,18 @@
-'use client';
-
-import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
-import { useTranslations } from 'next-intl';
+import { redirect } from 'next/navigation';
+import { getTranslations } from 'next-intl/server';
 import { Card, Container, Stack, Text } from '@boilerplate/ui';
 
-import { useAuth } from '../../../context/AuthContext';
+import { getServerUser } from '../../../lib/server-auth';
 import { ROUTES } from '../../../lib/routes';
 
-export default function DashboardPage() {
-  const t = useTranslations('dashboard');
-  const tCommon = useTranslations('common');
-  const { user, loading } = useAuth();
-  const router = useRouter();
-
-  useEffect(() => {
-    if (loading) return;
-    if (user === null) {
-      router.replace(ROUTES.LOGIN);
-    }
-  }, [user, loading, router]);
-
-  if (loading) {
-    return (
-      <Container>
-        <p>{tCommon('loading')}</p>
-      </Container>
-    );
-  }
+export default async function DashboardPage() {
+  const user = await getServerUser();
 
   if (user === null) {
-    return null;
+    redirect(ROUTES.LOGIN);
   }
 
+  const t = await getTranslations('dashboard');
   const displayName = user.displayName ?? user.email;
 
   return (
