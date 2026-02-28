@@ -6,9 +6,9 @@ Set up i18n (e.g. next-intl or next-i18next) with at least two locales. Add tran
 for login, signup, dashboard, settings, and messages. Used by settings page (plan 20) and
 throughout the app. Management-web (plan 33) may share the same i18n layout
 (originals/overrides/compiled) or use a dedicated namespace for management UI; keep keys
-consistent if shared. **Automation:** Mirror Podverse: three-tier layout (originals → overrides
-→ compiled), GitHub workflow on push to `develop` that updates translations and commits back;
-when `OPENAI_API_KEY` is not set, the workflow skips the LLM translate step.
+consistent if shared. **Translations:** Three-tier layout (originals → overrides → compiled). There is no built-in
+auto-translate workflow; translations for other locales can be generated with an LLM of your
+choosing (e.g. Cursor chat) or manually. See `docs/localization/I18N.md`.
 
 ## Steps
 
@@ -38,12 +38,12 @@ when `OPENAI_API_KEY` is not set, the workflow skips the LLM translate step.
    - Common: errors.required, errors.invalidEmail, etc.
 
 4. **Commands**
-   - **i18n:translate** – LLM (e.g. OpenAI) translates originals to other locales. Requires
-     `OPENAI_API_KEY` (or equivalent). Root script runs for apps that have i18n (e.g. web).
    - **i18n:compile** – Sync override file structure with originals (new keys get empty
-     values) and generate compiled output. No API key needed.
+     values) and generate compiled output.
    - **i18n:validate** – Check all i18n files (same keys, no empty originals, etc.). Used
-     in CI and in the automation workflow.
+     in CI.
+   - Translations for other locales: use an LLM of your choosing (e.g. Cursor chat) or
+     manual translation; keep key parity with en-US, then run compile and validate.
 
 5. **Usage in components**
    - Use the library’s hook or HOC (e.g. useTranslations('auth')) in login, signup,
@@ -55,25 +55,11 @@ when `OPENAI_API_KEY` is not set, the workflow skips the LLM translate step.
      reads initial locale from localStorage or cookie so the first render uses saved locale
      when possible.
 
-7. **Automation: GitHub Actions workflow (`.github/workflows/i18n.yml`)**
-   - **Trigger:** `on.push.branches: [develop]` with `paths: ['apps/web/i18n/originals/en-US.json']`
-     (or `apps/*/i18n/originals/en-US.json` if multiple apps).
-   - **Skip when OpenAI API key is not set:** Add a step that sets an output (e.g.
-     `skip_translate`) without echoing the secret: if `OPENAI_API_KEY` is empty, set
-     `skip_translate=true`; else `skip_translate=false`. The “Run i18n translations” step
-     uses `if: steps.check.outputs.skip_translate != 'true'`. When the key is not
-     configured, the translate step is skipped; `i18n:compile` and `i18n:validate` still run.
-   - **Steps:** Checkout (with token that can push, e.g. GitHub App token or
-     `GITHUB_TOKEN` with repo permissions), Node 24, `npm ci`, `npm run build:packages`,
-     conditional translate step, `npm run i18n:compile`, `npm run i18n:validate`, then
-     commit and push to `develop` only `originals/` and `overrides/` with message e.g.
-     `chore: auto-generate i18n translations [skip ci]`. Concurrency: queue pushes to
-     develop (do not cancel in progress).
-
-8. **Documentation**
+7. **Documentation**
    - Add `docs/localization/I18N.md` (or equivalent): describe the three tiers
-     (originals/overrides/compiled), the commands, and that if `OPENAI_API_KEY` is not set,
-     the workflow runs but skips the LLM translate step.
+     (originals/overrides/compiled), the commands (i18n:compile, i18n:validate), and that
+     translations for other locales can be generated with an LLM of your choosing (e.g.
+     Cursor chat) or manually.
 
 ## Key files
 
@@ -81,7 +67,6 @@ when `OPENAI_API_KEY` is not set, the workflow skips the LLM translate step.
 - `apps/web/i18n/originals/en-US.json` (and other locales)
 - `apps/web/i18n/overrides/<locale>.json`
 - `apps/web/i18n/compiled/` (generated, gitignored)
-- `.github/workflows/i18n.yml`
 - `docs/localization/I18N.md`
 - Login, signup, dashboard, settings components updated to use t()
 
@@ -90,7 +75,5 @@ when `OPENAI_API_KEY` is not set, the workflow skips the LLM translate step.
 - Switching locale in settings changes all translated strings; at least two locales work.
 - Keys used in app exist in translation files; no missing-key warnings in dev (or
   intentional fallback to key).
-- Pushing a change to `apps/web/i18n/originals/en-US.json` on `develop` triggers the
-  workflow; when `OPENAI_API_KEY` is set, translations are generated and committed back;
-  when not set, the translate step is skipped and the workflow still completes (compile +
-  validate run).
+- Adding or changing keys in originals and generating other locales (via Cursor or another
+  LLM, or manually) then running `i18n:compile` and `i18n:validate` succeeds.

@@ -6,6 +6,7 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import request from 'supertest';
 
+import { AUTH_MESSAGE_INVALID_CREDENTIALS } from '@boilerplate/helpers';
 import { UserService, appDataSource } from '@boilerplate/orm';
 import { createApp } from '../app.js';
 import { config } from '../config/index.js';
@@ -15,7 +16,6 @@ const API = config.apiVersionPath;
 
 describe('auth (shared)', () => {
   let app: ReturnType<typeof createApp>;
-  let testUserToken: string;
   const testUserEmail = `test-${Date.now()}@example.com`;
   const testUserPassword = 'test-password-1';
 
@@ -62,27 +62,31 @@ describe('auth (shared)', () => {
       await request(app)
         .post(`${API}/auth/login`)
         .send({ email: 'unknown@example.com', password: 'any' })
-        .expect(401, { message: 'Invalid credentials' });
+        .expect(401, { message: AUTH_MESSAGE_INVALID_CREDENTIALS });
     });
 
     it('returns 401 for wrong password', async () => {
       await request(app)
         .post(`${API}/auth/login`)
         .send({ email: testUserEmail, password: 'wrong-password' })
-        .expect(401, { message: 'Invalid credentials' });
+        .expect(401, { message: AUTH_MESSAGE_INVALID_CREDENTIALS });
     });
 
-    it('returns 200 with token and user for valid credentials', async () => {
+    it('returns 200 with user and Set-Cookie (no token in body) for valid credentials', async () => {
       const res = await request(app)
         .post(`${API}/auth/login`)
         .send({ email: testUserEmail, password: testUserPassword })
         .expect(200);
-      expect(res.body).toHaveProperty('token');
+      expect(res.body).not.toHaveProperty('token');
       expect(res.body).toHaveProperty('user');
       expect(res.body.user).toHaveProperty('id');
       expect(res.body.user.email).toBe(testUserEmail);
       expect(res.body.user.displayName).toBe('Test User');
-      testUserToken = res.body.token;
+      const setCookie = res.headers['set-cookie'];
+      const cookies = Array.isArray(setCookie) ? setCookie : setCookie !== undefined ? [setCookie] : [];
+      expect(cookies.length).toBeGreaterThanOrEqual(2);
+      expect(cookies.some((c: string) => c.startsWith(config.sessionCookieName + '='))).toBe(true);
+      expect(cookies.some((c: string) => c.startsWith(config.refreshCookieName + '='))).toBe(true);
     });
   });
 
@@ -93,23 +97,45 @@ describe('auth (shared)', () => {
   });
 
   describe('GET /auth/me', () => {
-    it('returns 401 without Authorization', async () => {
+    it('returns 401 without cookie or Authorization', async () => {
       await request(app).get(`${API}/auth/me`).expect(401);
     });
 
-    it('returns 401 with invalid token', async () => {
+    it('returns 401 with invalid Bearer token', async () => {
       await request(app)
         .get(`${API}/auth/me`)
         .set('Authorization', 'Bearer invalid-token')
         .expect(401);
     });
 
-    it('returns 200 with user when authenticated', async () => {
-      const res = await request(app)
-        .get(`${API}/auth/me`)
-        .set('Authorization', `Bearer ${testUserToken}`)
+    it('returns 200 with user when authenticated via cookie', async () => {
+      const agent = request.agent(app);
+      await agent
+        .post(`${API}/auth/login`)
+        .send({ email: testUserEmail, password: testUserPassword })
         .expect(200);
+      const res = await agent.get(`${API}/auth/me`).expect(200);
       expect(res.body.user.email).toBe(testUserEmail);
+    });
+  });
+
+  describe('POST /auth/refresh', () => {
+    it('returns 401 without refresh cookie', async () => {
+      await request(app).post(`${API}/auth/refresh`).expect(401);
+    });
+
+    it('returns 200 with user and new cookies when refresh cookie valid', async () => {
+      const agent = request.agent(app);
+      await agent
+        .post(`${API}/auth/login`)
+        .send({ email: testUserEmail, password: testUserPassword })
+        .expect(200);
+      const res = await agent.post(`${API}/auth/refresh`).expect(200);
+      expect(res.body).toHaveProperty('user');
+      expect(res.body.user.email).toBe(testUserEmail);
+      const setCookie = res.headers['set-cookie'];
+      const cookies = Array.isArray(setCookie) ? setCookie : setCookie !== undefined ? [setCookie] : [];
+      expect(cookies.length).toBeGreaterThanOrEqual(2);
     });
   });
 
@@ -122,31 +148,42 @@ describe('auth (shared)', () => {
     });
 
     it('returns 400 when currentPassword or newPassword missing', async () => {
-      await request(app)
+      const agent = request.agent(app);
+      await agent
+        .post(`${API}/auth/login`)
+        .send({ email: testUserEmail, password: testUserPassword })
+        .expect(200);
+      await agent
         .post(`${API}/auth/change-password`)
-        .set('Authorization', `Bearer ${testUserToken}`)
         .send({ newPassword: 'new1' })
         .expect(400);
-      await request(app)
+      await agent
         .post(`${API}/auth/change-password`)
-        .set('Authorization', `Bearer ${testUserToken}`)
         .send({ currentPassword: 'old' })
         .expect(400);
     });
 
     it('returns 401 when current password wrong', async () => {
-      await request(app)
+      const agent = request.agent(app);
+      await agent
+        .post(`${API}/auth/login`)
+        .send({ email: testUserEmail, password: testUserPassword })
+        .expect(200);
+      await agent
         .post(`${API}/auth/change-password`)
-        .set('Authorization', `Bearer ${testUserToken}`)
         .send({ currentPassword: 'wrong', newPassword: 'new-pass' })
         .expect(401, { message: 'Current password is incorrect' });
     });
 
     it('returns 204 and allows login with new password', async () => {
       const newPassword = 'new-password-2';
-      await request(app)
+      const agent = request.agent(app);
+      await agent
+        .post(`${API}/auth/login`)
+        .send({ email: testUserEmail, password: testUserPassword })
+        .expect(200);
+      await agent
         .post(`${API}/auth/change-password`)
-        .set('Authorization', `Bearer ${testUserToken}`)
         .send({ currentPassword: testUserPassword, newPassword })
         .expect(204);
       await request(app)

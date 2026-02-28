@@ -1,8 +1,10 @@
-// Theme variables for light and dark mode. Use in app root (e.g. globals or layout).
-// Import once: @use '@boilerplate/ui/styles/themes'; then wrap app with [data-theme="light"] or [data-theme="dark"].
+// Theme variables for light, dark, and dracula. Use in app root (e.g. globals or layout).
+// Import once: @use '@boilerplate/ui/styles/themes'; then wrap app with [data-theme="light"], [data-theme="dark"], or [data-theme="dracula"].
 // Both apps/web and apps/management-web use these from the package.
 
-// Light theme (default)
+@use 'variables' as *;
+
+// Light theme
 [data-theme='light'],
 :root {
   --color-bg: #fff;
@@ -11,6 +13,8 @@
   --color-border: #e0e0e0;
   --color-primary: #2563eb;
   --color-primary-hover: #1d4ed8;
+  --color-on-primary: #fff;
+  --color-error: #dc2626;
 }
 
 // Dark theme
@@ -21,11 +25,30 @@
   --color-border: #404040;
   --color-primary: #60a5fa;
   --color-primary-hover: #93c5fd;
+  --color-on-primary: #fff;
+  --color-error: #ef4444;
 }
 
-// Theme wrapper fills viewport and applies background/text so all content inherits
+// Dracula theme
+[data-theme='dracula'] {
+  --color-bg: #282a36;
+  --color-text: #f8f8f2;
+  --color-text-muted: #6272a4;
+  --color-border: #44475a;
+  --color-primary: #bd93f9;
+  --color-primary-hover: #ff79c6;
+  --color-on-primary: #282a36;
+  --color-error: #ff5555;
+}
+
+// Theme wrapper fills viewport and applies background/text/font so all content inherits.
+// height: 100% establishes the chain so child layout (e.g. .app-view) can use height: 100%
+// and center-in-viewport patterns work. font-family here ensures Storybook and any
+// consumer that only loads package styles (not app globals) also get the design-system font.
 [data-theme] {
+  height: 100%;
   min-height: 100vh;
+  font-family: $font-family-base;
   background-color: var(--color-bg);
   color: var(--color-text);
 }

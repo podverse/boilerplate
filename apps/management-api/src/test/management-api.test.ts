@@ -5,6 +5,7 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import request from 'supertest';
 
+import { AUTH_MESSAGE_INVALID_CREDENTIALS } from '@boilerplate/helpers';
 import { appDataSource } from '@boilerplate/orm';
 import { managementDataSource } from '@boilerplate/management-orm';
 import { createApp } from '../app.js';
@@ -17,7 +18,7 @@ const superAdminPassword = 'super-admin-password-1';
 
 describe('management-api', () => {
   let app: ReturnType<typeof createApp>;
-  let superAdminToken: string;
+  let superAdminAgent: ReturnType<typeof request.agent>;
 
   beforeAll(async () => {
     process.env.SUPER_ADMIN_EMAIL = superAdminEmail;
@@ -26,11 +27,11 @@ describe('management-api', () => {
     await managementDataSource.initialize();
     await bootstrapSuperAdmin();
     app = createApp();
-    const loginRes = await request(app)
+    superAdminAgent = request.agent(app);
+    await superAdminAgent
       .post(`${API}/auth/login`)
       .send({ email: superAdminEmail, password: superAdminPassword })
       .expect(200);
-    superAdminToken = loginRes.body.token;
   });
 
   afterAll(async () => {
@@ -75,22 +76,22 @@ describe('management-api', () => {
       await request(app)
         .post(`${API}/auth/login`)
         .send({ email: 'unknown@example.com', password: 'any' })
-        .expect(401, { message: 'Invalid credentials' });
+        .expect(401, { message: AUTH_MESSAGE_INVALID_CREDENTIALS });
     });
 
     it('returns 401 for wrong password', async () => {
       await request(app)
         .post(`${API}/auth/login`)
         .send({ email: superAdminEmail, password: 'wrong' })
-        .expect(401, { message: 'Invalid credentials' });
+        .expect(401, { message: AUTH_MESSAGE_INVALID_CREDENTIALS });
     });
 
-    it('returns 200 with token and user for valid credentials', async () => {
+    it('returns 200 with user and Set-Cookie (no token in body) for valid credentials', async () => {
       const res = await request(app)
         .post(`${API}/auth/login`)
         .send({ email: superAdminEmail, password: superAdminPassword })
         .expect(200);
-      expect(res.body).toHaveProperty('token');
+      expect(res.body).not.toHaveProperty('token');
       expect(res.body).toHaveProperty('user');
       expect(res.body.user.email).toBe(superAdminEmail);
       expect(res.body.user.isSuperAdmin).toBe(true);
@@ -98,15 +99,12 @@ describe('management-api', () => {
   });
 
   describe('GET /auth/me', () => {
-    it('returns 401 without Authorization', async () => {
+    it('returns 401 without cookie or Authorization', async () => {
       await request(app).get(`${API}/auth/me`).expect(401);
     });
 
-    it('returns 200 with user when authenticated', async () => {
-      const res = await request(app)
-        .get(`${API}/auth/me`)
-        .set('Authorization', `Bearer ${superAdminToken}`)
-        .expect(200);
+    it('returns 200 with user when authenticated via cookie', async () => {
+      const res = await superAdminAgent.get(`${API}/auth/me`).expect(200);
       expect(res.body.user.email).toBe(superAdminEmail);
       expect(res.body.user.isSuperAdmin).toBe(true);
     });
@@ -118,9 +116,8 @@ describe('management-api', () => {
     });
 
     it('returns 200 with events array when authenticated', async () => {
-      const res = await request(app)
+      const res = await superAdminAgent
         .get(`${API}/events`)
-        .set('Authorization', `Bearer ${superAdminToken}`)
         .expect(200);
       expect(res.body).toHaveProperty('events');
       expect(Array.isArray(res.body.events)).toBe(true);
@@ -133,9 +130,8 @@ describe('management-api', () => {
     const adminPassword = 'admin-password-1';
 
     it('POST /admins creates admin and returns 201', async () => {
-      const res = await request(app)
+      const res = await superAdminAgent
         .post(`${API}/admins`)
-        .set('Authorization', `Bearer ${superAdminToken}`)
         .send({
           email: adminEmail,
           password: adminPassword,
@@ -153,9 +149,8 @@ describe('management-api', () => {
     });
 
     it('GET /admins returns list including new admin', async () => {
-      const res = await request(app)
+      const res = await superAdminAgent
         .get(`${API}/admins`)
-        .set('Authorization', `Bearer ${superAdminToken}`)
         .expect(200);
       expect(res.body.admins).toBeDefined();
       const found = res.body.admins.find((a: { id: string }) => a.id === adminId);
@@ -164,32 +159,30 @@ describe('management-api', () => {
     });
 
     it('GET /admins/:id returns admin', async () => {
-      const res = await request(app)
+      const res = await superAdminAgent
         .get(`${API}/admins/${adminId}`)
-        .set('Authorization', `Bearer ${superAdminToken}`)
         .expect(200);
       expect(res.body.admin.id).toBe(adminId);
       expect(res.body.admin.email).toBe(adminEmail);
     });
 
     it('PATCH /admins/:id updates admin', async () => {
-      const res = await request(app)
+      const res = await superAdminAgent
         .patch(`${API}/admins/${adminId}`)
-        .set('Authorization', `Bearer ${superAdminToken}`)
         .send({ displayName: 'Updated Admin' })
         .expect(200);
       expect(res.body.admin.displayName).toBe('Updated Admin');
     });
 
     it('POST /admins/change-password changes own password', async () => {
-      const adminLogin = await request(app)
+      const adminAgent = request.agent(app);
+      await adminAgent
         .post(`${API}/auth/login`)
         .send({ email: adminEmail, password: adminPassword })
         .expect(200);
       const newPassword = 'admin-password-2';
-      await request(app)
+      await adminAgent
         .post(`${API}/admins/change-password`)
-        .set('Authorization', `Bearer ${adminLogin.body.token}`)
         .send({ currentPassword: adminPassword, newPassword })
         .expect(204);
       await request(app)
@@ -199,22 +192,19 @@ describe('management-api', () => {
     });
 
     it('DELETE /admins/:id removes admin', async () => {
-      await request(app)
+      await superAdminAgent
         .delete(`${API}/admins/${adminId}`)
-        .set('Authorization', `Bearer ${superAdminToken}`)
         .expect(204);
-      await request(app)
+      await superAdminAgent
         .get(`${API}/admins/${adminId}`)
-        .set('Authorization', `Bearer ${superAdminToken}`)
         .expect(404);
     });
   });
 
   describe('users CRUD (super admin, main DB)', () => {
     it('GET /users returns 200 with users array', async () => {
-      const res = await request(app)
+      const res = await superAdminAgent
         .get(`${API}/users`)
-        .set('Authorization', `Bearer ${superAdminToken}`)
         .expect(200);
       expect(res.body).toHaveProperty('users');
       expect(Array.isArray(res.body.users)).toBe(true);
@@ -223,9 +213,8 @@ describe('management-api', () => {
     it('POST /users creates main-app user and GET /users/:id returns it', async () => {
       const email = `user-${Date.now()}@example.com`;
       const password = 'user-password-1';
-      const createRes = await request(app)
+      const createRes = await superAdminAgent
         .post(`${API}/users`)
-        .set('Authorization', `Bearer ${superAdminToken}`)
         .send({
           email,
           password,
@@ -236,9 +225,8 @@ describe('management-api', () => {
       expect(createRes.body.user.email).toBe(email);
       const userId = createRes.body.user.id;
 
-      const getRes = await request(app)
+      const getRes = await superAdminAgent
         .get(`${API}/users/${userId}`)
-        .set('Authorization', `Bearer ${superAdminToken}`)
         .expect(200);
       expect(getRes.body.user.id).toBe(userId);
       expect(getRes.body.user.email).toBe(email);

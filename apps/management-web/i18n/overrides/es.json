@@ -1,0 +1,156 @@
+{
+  "auth": {
+    "login": {
+      "title": "",
+      "email": "",
+      "password": "",
+      "placeholderEmail": "",
+      "placeholderPassword": "",
+      "submit": "",
+      "signUp": "",
+      "forgotPassword": ""
+    },
+    "signup": {
+      "title": "",
+      "email": "",
+      "displayName": "",
+      "placeholderEmail": "",
+      "placeholderDisplayName": "",
+      "password": "",
+      "confirmPassword": "",
+      "placeholderPassword": "",
+      "submit": "",
+      "logIn": "",
+      "prefix": ""
+    },
+    "forgotPassword": {
+      "title": "",
+      "email": "",
+      "placeholderEmail": "",
+      "submit": "",
+      "successTitle": "",
+      "successMessage": "",
+      "backToLogin": ""
+    },
+    "resetPassword": {
+      "title": "",
+      "token": "",
+      "tokenPlaceholder": "",
+      "newPassword": "",
+      "confirmPassword": "",
+      "placeholderPassword": "",
+      "submit": "",
+      "backToLogin": ""
+    }
+  },
+  "common": {
+    "loading": "",
+    "dashboard": "",
+    "settings": "",
+    "logout": "",
+    "logIn": "",
+    "signUp": "",
+    "backToLogin": "",
+    "appTitleManagement": "",
+    "admins": "",
+    "events": "",
+    "loadingAdmins": "",
+    "noAdmins": "",
+    "loadingEvents": "",
+    "noEvents": ""
+  },
+  "dashboard": {
+    "title": "",
+    "hello": "",
+    "signedInAs": ""
+  },
+  "settings": {
+    "title": "",
+    "theme": "",
+    "currentTheme": "",
+    "language": "",
+    "languagePlaceholder": ""
+  },
+  "errors": {
+    "signupFailed": "",
+    "requestFailed": "",
+    "resetFailed": "",
+    "passwordsDoNotMatch": "",
+    "resetTokenRequired": "",
+    "loginFailed": "",
+    "failedToLoadAdmins": "",
+    "failedToLoadEvents": ""
+  },
+  "ui": {
+    "auth": {
+      "login": {
+        "title": "",
+        "email": "",
+        "password": "",
+        "placeholderEmail": "",
+        "placeholderPassword": "",
+        "submit": "",
+        "signUp": "",
+        "forgotPassword": ""
+      },
+      "signup": {
+        "title": "",
+        "email": "",
+        "displayName": "",
+        "placeholderEmail": "",
+        "placeholderDisplayName": "",
+        "password": "",
+        "confirmPassword": "",
+        "placeholderPassword": "",
+        "submit": "",
+        "logIn": "",
+        "prefix": ""
+      },
+      "forgotPassword": {
+        "title": "",
+        "email": "",
+        "placeholderEmail": "",
+        "submit": "",
+        "successTitle": "",
+        "successMessage": "",
+        "backToLogin": ""
+      },
+      "resetPassword": {
+        "title": "",
+        "token": "",
+        "tokenPlaceholder": "",
+        "newPassword": "",
+        "confirmPassword": "",
+        "placeholderPassword": "",
+        "submit": "",
+        "backToLogin": ""
+      }
+    },
+    "header": {
+      "logout": "",
+      "logIn": "",
+      "userMenuAria": ""
+    },
+    "themeSelector": {
+      "groupAriaLabel": "",
+      "useThemeAriaLabel": "",
+      "light": "",
+      "dark": "",
+      "dracula": ""
+    },
+    "passwordStrength": {
+      "hint": ""
+    },
+    "formLinks": {
+      "separator": ""
+    },
+    "validation": {
+      "emailRequired": "",
+      "invalidEmail": "",
+      "fieldRequired": "",
+      "defaultPasswordLabel": "",
+      "passwordMinLength": "",
+      "passwordMaxLength": ""
+    }
+  }
+}

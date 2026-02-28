@@ -1,5 +1,10 @@
 import type { Request, Response } from 'express';
 import type { UserWithRelations } from '@boilerplate/orm';
+import { validatePassword } from '@boilerplate/helpers';
+import {
+  getPasswordValidationMessages,
+  resolveLocale,
+} from '@boilerplate/helpers-i18n';
 import { UserService, appDataSource, User, UserBio } from '@boilerplate/orm';
 import { hashPassword } from '../lib/auth/hash.js';
 import { recordEvent } from '../lib/recordEvent.js';
@@ -56,6 +61,12 @@ export async function createUser(req: Request, res: Response): Promise<void> {
   const existing = await UserService.findByEmail(email);
   if (existing !== null) {
     res.status(409).json({ message: 'Email already in use' });
+    return;
+  }
+  const locale = resolveLocale(req.get('Accept-Language'));
+  const passwordCheck = validatePassword(password, getPasswordValidationMessages(locale));
+  if (!passwordCheck.valid) {
+    res.status(400).json({ message: passwordCheck.message });
     return;
   }
   const hashed = await hashPassword(password);
@@ -161,6 +172,12 @@ export async function changeUserPassword(req: Request, res: Response): Promise<v
   const { newPassword } = req.body as { newPassword?: string };
   if (newPassword === undefined) {
     res.status(400).json({ message: 'newPassword required' });
+    return;
+  }
+  const locale = resolveLocale(req.get('Accept-Language'));
+  const passwordCheck = validatePassword(newPassword, getPasswordValidationMessages(locale));
+  if (!passwordCheck.valid) {
+    res.status(400).json({ message: passwordCheck.message });
     return;
   }
   const hashed = await hashPassword(newPassword);

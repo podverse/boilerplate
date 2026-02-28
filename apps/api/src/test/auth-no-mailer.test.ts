@@ -15,7 +15,7 @@ const API = config.apiVersionPath;
 
 describe('no-mailer (admin-only)', () => {
   let app: ReturnType<typeof createApp>;
-  let testUserToken: string;
+  let authAgent: ReturnType<typeof request.agent>;
   const testUserEmail = `no-mailer-${Date.now()}@example.com`;
   const testUserPassword = 'test-password-1';
 
@@ -28,10 +28,11 @@ describe('no-mailer (admin-only)', () => {
       password: hashed,
       displayName: 'No-Mailer User',
     });
-    const loginRes = await request(app)
+    authAgent = request.agent(app);
+    await authAgent
       .post(`${API}/auth/login`)
-      .send({ email: testUserEmail, password: testUserPassword });
-    testUserToken = loginRes.body.token;
+      .send({ email: testUserEmail, password: testUserPassword })
+      .expect(200);
   });
 
   afterAll(async () => {
@@ -72,9 +73,8 @@ describe('no-mailer (admin-only)', () => {
     });
 
     it('POST /auth/request-email-change returns 403', async () => {
-      await request(app)
+      await authAgent
         .post(`${API}/auth/request-email-change`)
-        .set('Authorization', `Bearer ${testUserToken}`)
         .send({ newEmail: 'other@example.com' })
         .expect(403, { message: 'Email verification is not enabled' });
     });

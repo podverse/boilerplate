@@ -18,8 +18,10 @@
   },
   "dependencies": {
     "@boilerplate/helpers": "*",
+    "@boilerplate/helpers-i18n": "*",
     "@boilerplate/orm": "*",
     "bcrypt": "^6.0.0",
+    "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
     "express": "^5.1.0",
     "joi": "^17.13.3",
@@ -28,9 +30,9 @@
     "swagger-ui-express": "^5.0.1"
   },
   "devDependencies": {
-    "pg": "^8.13.0",
     "@sqltools/formatter": "^1.2.5",
     "@types/bcrypt": "^5.0.2",
+    "@types/cookie-parser": "^1.4.10",
     "@types/cors": "^2.8.17",
     "@types/express": "^5.0.3",
     "@types/jsonwebtoken": "^9.0.7",
@@ -42,6 +44,7 @@
     "concurrently": "^9.2.1",
     "dotenv": "^16.4.5",
     "nodemon": "^3.1.10",
+    "pg": "^8.13.0",
     "sql-highlight": "^6.1.0",
     "supertest": "^7.0.0",
     "typescript": "^5.9.2",

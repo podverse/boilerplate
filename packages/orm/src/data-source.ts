@@ -10,6 +10,7 @@ import { User } from './entities/User.js';
 import { UserCredentials } from './entities/UserCredentials.js';
 import { UserBio } from './entities/UserBio.js';
 import { VerificationToken } from './entities/VerificationToken.js';
+import { RefreshToken } from './entities/RefreshToken.js';
 
 function getReadWriteOptions(): DataSourceOptions {
   const host = process.env.DB_HOST;
@@ -35,7 +36,7 @@ function getReadWriteOptions(): DataSourceOptions {
     database,
     username,
     password,
-    entities: [User, UserCredentials, UserBio, VerificationToken],
+    entities: [User, UserCredentials, UserBio, VerificationToken, RefreshToken],
     synchronize: false,
     logging: false,
   };

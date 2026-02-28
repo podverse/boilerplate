@@ -1,12 +1,39 @@
 'use client';
 
-import { ThemeToggle } from '@boilerplate/ui';
+import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
+import { AppHeader as UIAppHeader } from '@boilerplate/ui';
+
+import { useAuth } from '../context/AuthContext';
+import { getRuntimeConfig } from '../config/runtime-config-store';
+import { ROUTES } from '../lib/routes';
+import { AppTypeTitle } from './AppTypeTitle';
 
 export function AppHeader({ appName }: { appName: string }) {
+  const t = useTranslations('common');
+  const { user, logout } = useAuth();
+  const router = useRouter();
+  const runtimeConfig = getRuntimeConfig();
+  const titleIcon = runtimeConfig.env.NEXT_PUBLIC_APP_TITLE_ICON?.trim() || undefined;
+
+  const handleLogout = () => {
+    logout();
+    router.push(ROUTES.HOME);
+  };
+
+  const title = <AppTypeTitle appName={appName} titleIcon={titleIcon} />;
+
   return (
-    <header className="header-bar">
-      <h1 style={{ margin: 0 }}>{appName}</h1>
-      <ThemeToggle />
-    </header>
+    <UIAppHeader
+      title={title}
+      homeHref={ROUTES.HOME}
+      user={user}
+      onLogout={handleLogout}
+      navItems={[
+        { href: ROUTES.DASHBOARD, label: t('dashboard') },
+        { href: ROUTES.SETTINGS, label: t('settings') },
+      ]}
+      loginHref={ROUTES.LOGIN}
+    />
   );
 }

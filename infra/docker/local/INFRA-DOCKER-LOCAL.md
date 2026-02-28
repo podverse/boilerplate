@@ -20,8 +20,9 @@ conflict with podverse monorepo (5432/6379).
 - `docker compose -f infra/docker/local/docker-compose.yml --project-directory . up postgres`
 - `docker compose -f infra/docker/local/docker-compose.yml --project-directory . up valkey`
 
-Postgres runs `infra/database/combined/init_database.sql` on first start. API/ORM use
-DB_HOST=postgres and VALKEY_HOST=valkey when running in Docker.
+Postgres runs `infra/database/combined/init_database.sql` on first start, then
+`seed_local_user.sql`, which inserts a predefined user for local dev: **localdev@example.com** /
+**Test!1Aa**. API/ORM use DB_HOST=postgres and VALKEY_HOST=valkey when running in Docker.
 
 ## Build only
 

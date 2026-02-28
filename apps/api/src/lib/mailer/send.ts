@@ -1,5 +1,11 @@
 import nodemailer from 'nodemailer';
 import type { Transporter } from 'nodemailer';
+import { DEFAULT_LOCALE } from '@boilerplate/helpers-i18n';
+import {
+  getVerificationEmailContent,
+  getPasswordResetEmailContent,
+  getEmailChangeVerificationContent,
+} from '@boilerplate/helpers-i18n';
 
 let transporter: Transporter | null = null;
 
@@ -37,47 +43,62 @@ export function isMailerEnabled(): boolean {
   return process.env.MAILER_ENABLED === 'true';
 }
 
-export async function sendVerificationEmail(to: string, token: string): Promise<void> {
+export async function sendVerificationEmail(
+  to: string,
+  token: string,
+  locale: string = DEFAULT_LOCALE
+): Promise<void> {
   if (!isMailerEnabled()) return;
   const base = getBaseUrl();
   const link = `${base}/auth/verify-email?token=${encodeURIComponent(token)}`;
+  const content = getVerificationEmailContent(locale, link);
   const transport = getTransporter();
   const from = process.env.MAIL_FROM ?? 'noreply@localhost';
   await transport.sendMail({
     from,
     to,
-    subject: 'Verify your email',
-    text: `Please verify your email by opening this link: ${link}`,
-    html: `<p>Please <a href="${link}">verify your email</a>.</p>`,
+    subject: content.subject,
+    text: content.text,
+    html: content.html,
   });
 }
 
-export async function sendPasswordResetEmail(to: string, token: string): Promise<void> {
+export async function sendPasswordResetEmail(
+  to: string,
+  token: string,
+  locale: string = DEFAULT_LOCALE
+): Promise<void> {
   if (!isMailerEnabled()) return;
   const base = getBaseUrl();
   const link = `${base}/auth/reset-password?token=${encodeURIComponent(token)}`;
+  const content = getPasswordResetEmailContent(locale, link);
   const transport = getTransporter();
   const from = process.env.MAIL_FROM ?? 'noreply@localhost';
   await transport.sendMail({
     from,
     to,
-    subject: 'Reset your password',
-    text: `Reset your password by opening this link: ${link}`,
-    html: `<p><a href="${link}">Reset your password</a>.</p>`,
+    subject: content.subject,
+    text: content.text,
+    html: content.html,
   });
 }
 
-export async function sendEmailChangeVerificationEmail(to: string, token: string): Promise<void> {
+export async function sendEmailChangeVerificationEmail(
+  to: string,
+  token: string,
+  locale: string = DEFAULT_LOCALE
+): Promise<void> {
   if (!isMailerEnabled()) return;
   const base = getBaseUrl();
   const link = `${base}/auth/confirm-email-change?token=${encodeURIComponent(token)}`;
+  const content = getEmailChangeVerificationContent(locale, link);
   const transport = getTransporter();
   const from = process.env.MAIL_FROM ?? 'noreply@localhost';
   await transport.sendMail({
     from,
     to,
-    subject: 'Confirm your new email',
-    text: `Confirm your new email by opening this link: ${link}`,
-    html: `<p><a href="${link}">Confirm your new email</a>.</p>`,
+    subject: content.subject,
+    text: content.text,
+    html: content.html,
   });
 }

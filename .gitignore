@@ -3,6 +3,7 @@ node_modules/
 **/.next/
 **/next-env.d.ts
 out/
+**/storybook-static/
 **/*.tsbuildinfo
 .env
 .env.*
@@ -11,3 +12,7 @@ out/
 .direnv/
 TODOS
 infra/config/local/
+
+# i18n compiled output (generated at build)
+apps/web/i18n/compiled/
+apps/management-web/i18n/compiled/

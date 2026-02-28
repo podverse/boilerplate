@@ -1,0 +1,156 @@
+{
+  "auth": {
+    "login": {
+      "title": "Iniciar sesión",
+      "email": "Correo electrónico",
+      "password": "Contraseña",
+      "placeholderEmail": "tú@ejemplo.com",
+      "placeholderPassword": "••••••••",
+      "submit": "Iniciar sesión",
+      "signUp": "Registrarse",
+      "forgotPassword": "¿Olvidaste tu contraseña?"
+    },
+    "signup": {
+      "title": "Registrarse",
+      "email": "Correo electrónico",
+      "displayName": "Nombre para mostrar (opcional)",
+      "placeholderEmail": "tú@ejemplo.com",
+      "placeholderDisplayName": "Tu nombre",
+      "password": "Contraseña",
+      "confirmPassword": "Confirmar contraseña",
+      "placeholderPassword": "••••••••",
+      "submit": "Registrarse",
+      "logIn": "Iniciar sesión",
+      "prefix": "¿Ya tienes cuenta? "
+    },
+    "forgotPassword": {
+      "title": "Recuperar contraseña",
+      "email": "Correo electrónico",
+      "placeholderEmail": "tú@ejemplo.com",
+      "submit": "Enviar enlace",
+      "successTitle": "Revisa tu correo",
+      "successMessage": "Si existe una cuenta con ese correo, enviamos un enlace para restablecer.",
+      "backToLogin": "Volver a iniciar sesión"
+    },
+    "resetPassword": {
+      "title": "Restablecer contraseña",
+      "token": "Token de restablecimiento",
+      "tokenPlaceholder": "Pega el token del correo",
+      "newPassword": "Nueva contraseña",
+      "confirmPassword": "Confirmar nueva contraseña",
+      "placeholderPassword": "••••••••",
+      "submit": "Restablecer contraseña",
+      "backToLogin": "Volver a iniciar sesión"
+    }
+  },
+  "common": {
+    "loading": "Cargando…",
+    "dashboard": "Panel",
+    "settings": "Ajustes",
+    "logout": "Cerrar sesión",
+    "logIn": "Iniciar sesión",
+    "signUp": "Registrarse",
+    "backToLogin": "Volver a iniciar sesión",
+    "appTitleManagement": "Gestión",
+    "admins": "Administradores",
+    "events": "Eventos",
+    "loadingAdmins": "Cargando administradores…",
+    "noAdmins": "No hay administradores.",
+    "loadingEvents": "Cargando eventos…",
+    "noEvents": "No hay eventos."
+  },
+  "dashboard": {
+    "title": "Panel",
+    "hello": "Hola, {name}.",
+    "signedInAs": "Conectado como {email}"
+  },
+  "settings": {
+    "title": "Ajustes",
+    "theme": "Tema",
+    "currentTheme": "Tema actual: {theme}",
+    "language": "Idioma",
+    "languagePlaceholder": "El selector de idioma estará disponible en una actualización futura."
+  },
+  "errors": {
+    "signupFailed": "Error al registrarse",
+    "requestFailed": "Error en la solicitud",
+    "resetFailed": "Error al restablecer",
+    "passwordsDoNotMatch": "Las contraseñas no coinciden",
+    "resetTokenRequired": "Se requiere el token de restablecimiento",
+    "loginFailed": "Error al iniciar sesión",
+    "failedToLoadAdmins": "Error al cargar administradores",
+    "failedToLoadEvents": "Error al cargar eventos"
+  },
+  "ui": {
+    "auth": {
+      "login": {
+        "title": "Iniciar sesión",
+        "email": "Correo electrónico",
+        "password": "Contraseña",
+        "placeholderEmail": "tú@ejemplo.com",
+        "placeholderPassword": "••••••••",
+        "submit": "Iniciar sesión",
+        "signUp": "Registrarse",
+        "forgotPassword": "¿Olvidaste tu contraseña?"
+      },
+      "signup": {
+        "title": "Registrarse",
+        "email": "Correo electrónico",
+        "displayName": "Nombre para mostrar (opcional)",
+        "placeholderEmail": "tú@ejemplo.com",
+        "placeholderDisplayName": "Tu nombre",
+        "password": "Contraseña",
+        "confirmPassword": "Confirmar contraseña",
+        "placeholderPassword": "••••••••",
+        "submit": "Registrarse",
+        "logIn": "Iniciar sesión",
+        "prefix": "¿Ya tienes cuenta? "
+      },
+      "forgotPassword": {
+        "title": "Recuperar contraseña",
+        "email": "Correo electrónico",
+        "placeholderEmail": "tú@ejemplo.com",
+        "submit": "Enviar enlace",
+        "successTitle": "Revisa tu correo",
+        "successMessage": "Si existe una cuenta con ese correo, enviamos un enlace para restablecer.",
+        "backToLogin": "Volver a iniciar sesión"
+      },
+      "resetPassword": {
+        "title": "Restablecer contraseña",
+        "token": "Token de restablecimiento",
+        "tokenPlaceholder": "Pega el token del correo",
+        "newPassword": "Nueva contraseña",
+        "confirmPassword": "Confirmar nueva contraseña",
+        "placeholderPassword": "••••••••",
+        "submit": "Restablecer contraseña",
+        "backToLogin": "Volver a iniciar sesión"
+      }
+    },
+    "header": {
+      "logout": "Cerrar sesión",
+      "logIn": "Iniciar sesión",
+      "userMenuAria": "Menú de usuario"
+    },
+    "themeSelector": {
+      "groupAriaLabel": "Tema",
+      "useThemeAriaLabel": "Usar tema {theme}",
+      "light": "Claro",
+      "dark": "Oscuro",
+      "dracula": "Dracula"
+    },
+    "passwordStrength": {
+      "hint": "Usa al menos {minLength} caracteres e incluye letras, números y símbolos"
+    },
+    "formLinks": {
+      "separator": " • "
+    },
+    "validation": {
+      "emailRequired": "El correo electrónico es obligatorio",
+      "invalidEmail": "Introduce una dirección de correo válida",
+      "fieldRequired": "{field} es obligatorio",
+      "defaultPasswordLabel": "Contraseña",
+      "passwordMinLength": "La contraseña debe tener al menos {count} caracteres",
+      "passwordMaxLength": "La contraseña no puede tener más de {count} caracteres"
+    }
+  }
+}

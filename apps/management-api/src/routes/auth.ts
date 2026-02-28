@@ -9,6 +9,12 @@ export function createAuthRouter(requireAuth: RequestHandler): Router {
   router.post('/login', validateBody(loginSchema), (req, res) => {
     void authController.login(req, res);
   });
+  router.post('/logout', (req, res) => {
+    authController.logout(req, res);
+  });
+  router.post('/refresh', (req, res) => {
+    void authController.refresh(req, res);
+  });
   router.get('/me', requireAuth, (req, res) => {
     authController.me(req, res);
   });

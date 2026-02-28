@@ -8,7 +8,9 @@ COPY packages/ ./packages/
 COPY apps/ ./apps/
 
 RUN npm ci --ignore-scripts && \
+  npm run i18n:compile -w @boilerplate/helpers-i18n && \
   npm run build -w @boilerplate/helpers && \
+  npm run build -w @boilerplate/helpers-i18n && \
   npm run build -w @boilerplate/orm && \
   npm run build -w @boilerplate/api
 

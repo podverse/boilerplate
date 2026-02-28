@@ -3,6 +3,7 @@
  * by the server (index.ts) and by integration tests (supertest).
  */
 import type { Application } from 'express';
+import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import express from 'express';
 import type { Request, Response } from 'express';
@@ -15,7 +16,12 @@ import { createAuthRouter } from './routes/auth.js';
 
 export function createApp(): Application {
   const app = express();
-  app.use(cors());
+  const corsOptions: { origin: string[] | boolean; credentials: boolean } = {
+    origin: config.corsOrigins ?? true,
+    credentials: true,
+  };
+  app.use(cors(corsOptions));
+  app.use(cookieParser());
   app.use(express.json());
 
   const openApiDoc = {
@@ -24,7 +30,10 @@ export function createApp(): Application {
   };
   app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(openApiDoc));
 
-  const authMiddleware = requireAuth(config.jwtSecret);
+  const authMiddleware = requireAuth({
+    jwtSecret: config.jwtSecret,
+    sessionCookieName: config.sessionCookieName,
+  });
   const mountSignup = !isNoMailerMode();
 
   const versionedRouter = express.Router();

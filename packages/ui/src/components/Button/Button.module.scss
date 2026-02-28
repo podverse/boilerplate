@@ -1,0 +1,72 @@
+@use '../../styles/variables' as *;
+@use '../../styles/mixins' as *;
+
+.root {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: $space-2;
+  padding: $space-2 $space-4;
+  font-size: $font-size-base;
+  font-family: inherit;
+  line-height: $line-height-base;
+  border: $border-width solid var(--color-border);
+  border-radius: $radius-sm;
+  cursor: pointer;
+  transition:
+    background-color $transition-fast,
+    border-color $transition-fast;
+
+  @include focus-ring;
+  @include disabled-state;
+}
+
+.primary {
+  background-color: var(--color-primary);
+  border-color: var(--color-primary);
+  color: $color-on-primary;
+
+  &:hover:not(:disabled) {
+    background-color: var(--color-primary-hover);
+    border-color: var(--color-primary-hover);
+  }
+}
+
+.secondary {
+  background-color: var(--color-bg);
+  color: var(--color-text);
+
+  &:hover:not(:disabled) {
+    background-color: var(--color-border);
+  }
+}
+
+.loading {
+  position: relative;
+  color: transparent;
+  pointer-events: none;
+
+  &::after {
+    content: '';
+    position: absolute;
+    width: $loading-spinner-size;
+    height: $loading-spinner-size;
+    border: $loading-spinner-border-width solid currentColor;
+    border-right-color: transparent;
+    border-radius: $radius-full;
+    animation: spin $animation-spin-duration linear infinite;
+  }
+}
+
+.primary.loading::after,
+.secondary.loading::after {
+  border-color: transparent;
+  border-right-color: currentColor;
+  color: inherit;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate($rotation-full);
+  }
+}

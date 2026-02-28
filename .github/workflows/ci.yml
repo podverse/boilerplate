@@ -117,6 +117,10 @@ jobs:
         id: lint
         run: npm run lint
 
+      - name: i18n validate
+        id: i18n-validate
+        run: npm run i18n:validate
+
       - name: Type-check
         id: type-check
         run: npm run type-check
@@ -189,6 +193,7 @@ jobs:
               '| Dependencies installed | ✅ |',
               '| Build | ✅ |',
               '| Lint | ✅ |',
+              '| i18n validate | ✅ |',
               '| Type-check | ✅ |',
               '| Test | ✅ |',
               '',
@@ -230,6 +235,7 @@ jobs:
           INSTALL: ${{ steps.install.outcome }}
           BUILD: ${{ steps.build.outcome }}
           LINT: ${{ steps.lint.outcome }}
+          I18N_VALIDATE: ${{ steps.i18n-validate.outcome }}
           TYPE_CHECK: ${{ steps.type-check.outcome }}
           TEST: ${{ steps.test.outcome }}
         with:
@@ -251,6 +257,7 @@ jobs:
               `| Dependencies installed | ${status(process.env.INSTALL)} |`,
               `| Build | ${status(process.env.BUILD)} |`,
               `| Lint | ${status(process.env.LINT)} |`,
+              `| i18n validate | ${status(process.env.I18N_VALIDATE)} |`,
               `| Type-check | ${status(process.env.TYPE_CHECK)} |`,
               `| Test | ${status(process.env.TEST)} |`,
               '',

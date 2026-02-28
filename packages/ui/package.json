@@ -13,19 +13,36 @@
     "./styles/mixins": "./src/styles/_mixins.scss",
     "./styles/layout": "./src/styles/_layout.scss",
     "./styles/themes": "./src/styles/_themes.scss",
+    "./styles/reset": "./src/styles/_reset.scss",
     "./styles": "./src/styles/index.scss"
   },
   "scripts": {
     "lint": "eslint ./src --max-warnings 0",
     "lint:fix": "eslint ./src --fix",
-    "type-check": "tsc --noEmit"
+    "type-check": "tsc --noEmit",
+    "storybook": "storybook dev -p 6006 --no-open",
+    "build-storybook": "storybook build"
+  },
+  "dependencies": {
+    "@boilerplate/helpers": "*"
   },
   "peerDependencies": {
-    "react": "^19.0.0"
+    "react": "^19.0.0",
+    "next": "^16.1.6",
+    "next-intl": "^4.0.0"
   },
   "devDependencies": {
+    "next": "^16.1.6",
+    "next-intl": "^4.0.0",
+    "@fortawesome/fontawesome-free": "^6.7.2",
+    "@storybook/react": "^10.2.13",
+    "@storybook/react-vite": "^10.2.13",
     "@types/react": "^19.2.11",
+    "react-dom": "^19.2.4",
     "sass": "^1.81.0",
-    "typescript": "^5.9.2"
+    "storybook": "^10.2.13",
+    "typescript": "^5.9.2",
+    "eslint-plugin-storybook": "10.2.13",
+    "@storybook/addon-docs": "^10.2.13"
   }
 }

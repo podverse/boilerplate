@@ -1,4 +1,13 @@
 export {
+  AUTH_MESSAGE_INVALID_CREDENTIALS,
+  AUTH_MESSAGE_LOGIN_FAILED,
+} from './auth/auth-messages.js';
+export {
+  ALL_AVAILABLE_LOCALES,
+  DEFAULT_LOCALE,
+  type Locale,
+} from './locale/constants.js';
+export {
   EMAIL_MAX_LENGTH,
   PASSWORD_HASH_LENGTH,
   PASSWORD_MAX_LENGTH,
@@ -6,6 +15,24 @@ export {
   TOKEN_HASH_HEX_LENGTH,
   VERIFICATION_TOKEN_KIND_MAX_LENGTH,
 } from './db/index.js';
+export {
+  getPasswordStrength,
+  isPasswordValid,
+  PASSWORD_MIN_LENGTH,
+  PASSWORD_MIN_STRENGTH,
+  validatePassword,
+} from './credentials/password.js';
+export type {
+  PasswordStrength,
+  PasswordValidationMessages,
+  PasswordValidationResult,
+} from './credentials/password.js';
+export {
+  parseCookieSameSite,
+  parseCorsOrigins,
+} from './startup/cors-and-cookies.js';
+export type { CookieSameSite } from './startup/cors-and-cookies.js';
+export { normalizeVersionPath } from './startup/version-path.js';
 export {
   buildSummary,
   displayValidationResults,

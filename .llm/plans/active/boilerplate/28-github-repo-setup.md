@@ -60,19 +60,8 @@ code and workflows are in place.
      does. Where to set: Settings → Secrets and variables → Actions.
    - **GITHUB_TOKEN** – Not a repo secret; automatically provided to workflows. Used by CI
      (plan 09) for checkout, posting comments, and commit status; by publish-alpha (plan
-     13) for GHCR login and push when pushing to `alpha`; by i18n (plan 21) for checkout
-     and optionally for commit/push back to develop. No action needed unless org restricts
-     default permissions.
-   - **OPENAI_API_KEY** – **Optional.** Used by the i18n workflow (plan 21). When set, the
-     workflow runs LLM translation for non–source locales and commits updated originals
-     to develop. When **not** set, the workflow still runs but skips the translate step
-     (compile and validate still run). Set this if you want automatic translation on push
-     to develop when `en-US.json` changes.
-   - **GitHub App (APP_ID, APP_PRIVATE_KEY)** – **Optional.** Used by the i18n workflow if
-     it is configured to use a GitHub App token for committing and pushing translation
-     updates to develop (instead of or in addition to GITHUB_TOKEN). Plan 28’s optional
-     GitHub App subsection describes creating the App; if the i18n workflow uses it,
-     document that these secrets must be set for the workflow to push.
+     13) for GHCR login and push when pushing to `alpha`. No action needed unless org
+     restricts default permissions.
    - **GHCR or registry token** – **Optional.** Publish-alpha (plan 13) typically uses
      GITHUB_TOKEN to push to GitHub Container Registry. If your org requires a dedicated
      token (e.g. PAT or GHCR_REGISTRY_TOKEN), document that here and in docs/PUBLISH.md.

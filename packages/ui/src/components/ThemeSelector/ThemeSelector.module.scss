@@ -1,0 +1,36 @@
+@use '../../styles/variables' as *;
+@use '../../styles/mixins' as *;
+
+.root {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $space-2;
+}
+
+.option {
+  padding: $space-2 $space-3;
+  font-size: $font-size-sm;
+  font-family: inherit;
+  color: var(--color-text);
+  background-color: var(--color-bg);
+  border: $border-width solid var(--color-border);
+  border-radius: $radius-sm;
+  cursor: pointer;
+
+  &:hover {
+    background-color: var(--color-border);
+  }
+
+  @include focus-ring;
+}
+
+.selected {
+  background-color: var(--color-primary);
+  border-color: var(--color-primary);
+  color: var(--color-on-primary);
+
+  &:hover {
+    background-color: var(--color-primary-hover);
+    border-color: var(--color-primary-hover);
+  }
+}

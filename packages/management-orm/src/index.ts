@@ -10,11 +10,13 @@ export {
   type CrudOp,
 } from './entities/AdminPermissions.js';
 export { ManagementEvent, type ActorType } from './entities/ManagementEvent.js';
+export { ManagementRefreshToken } from './entities/ManagementRefreshToken.js';
 export {
   ManagementUserService,
   type CreateAdminData,
   type UpdateAdminData,
 } from './services/ManagementUserService.js';
+export { ManagementRefreshTokenService } from './services/ManagementRefreshTokenService.js';
 export {
   ManagementEventService,
   type ListEventsOptions,

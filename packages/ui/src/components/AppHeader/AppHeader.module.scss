@@ -1,0 +1,29 @@
+@use '../../styles/variables' as *;
+
+.titleLink {
+  text-decoration: none;
+  color: inherit;
+}
+
+.title {
+  margin: 0;
+}
+
+.actions {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: $space-4;
+  min-width: 0;
+}
+
+.userLabel {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.loginLink {
+  font-size: $font-size-sm;
+}

@@ -1,29 +1,43 @@
 import type { Metadata } from 'next';
+import { cookies } from 'next/headers';
+import { getLocale, getMessages } from 'next-intl/server';
+import { NextIntlClientProvider } from 'next-intl';
+import '@fortawesome/fontawesome-free/css/all.min.css';
 import { getRuntimeConfig } from '../config/runtime-config-store';
 import RuntimeConfigScript from '../components/Head/RuntimeConfigScript';
-import { AppHeader } from '../components/AppHeader';
-import { ThemeWrapper } from '../components/ThemeWrapper';
+import { AuthWrapper } from '../components/AuthWrapper';
+import { AppView, getThemeFromSettingsCookieValue, ThemeWrapper } from '@boilerplate/ui';
 
 import '../styles/globals.scss';
 
+const SETTINGS_COOKIE_NAME = 'web-settings';
+
 export const metadata: Metadata = {
-  title: 'Boilerplate',
-  description: 'Boilerplate app',
+  title: 'MetaBoost',
+  description: 'MetaBoost app',
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const locale = await getLocale();
+  const messages = await getMessages();
   const runtimeConfig = getRuntimeConfig();
-  const appName = runtimeConfig.env.NEXT_PUBLIC_APP_NAME ?? 'Boilerplate';
+  const cookieStore = await cookies();
+  const initialTheme = getThemeFromSettingsCookieValue(
+    cookieStore.get(SETTINGS_COOKIE_NAME)?.value
+  );
   return (
-    <html lang="en">
+    <html lang={locale}>
       <head>
         <RuntimeConfigScript runtimeConfig={runtimeConfig} />
       </head>
       <body>
-        <ThemeWrapper>
-          <AppHeader appName={appName} />
-          <main className="layout-main">{children}</main>
-        </ThemeWrapper>
+        <NextIntlClientProvider locale={locale} messages={messages}>
+          <ThemeWrapper initialTheme={initialTheme} settingsCookieName={SETTINGS_COOKIE_NAME}>
+            <AuthWrapper>
+              <AppView>{children}</AppView>
+            </AuthWrapper>
+          </ThemeWrapper>
+        </NextIntlClientProvider>
       </body>
     </html>
   );

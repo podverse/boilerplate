@@ -1,7 +1,4 @@
 // Shared mixins — use with @use '@boilerplate/ui/styles/mixins' as *;
-// _mixins.scss forwards variables so one @use 'mixins' gives vars + mixins.
-
-@forward 'variables';
 
 @use 'variables' as *;
 
@@ -34,5 +31,21 @@
 @mixin at-least-lg {
   @media (min-width: $breakpoint-lg) {
     @content;
+  }
+}
+
+// Focus ring for keyboard users (a11y). Use on buttons, triggers, links.
+@mixin focus-ring {
+  &:focus-visible {
+    outline: $focus-outline-width solid var(--color-primary);
+    outline-offset: $focus-outline-offset;
+  }
+}
+
+// Disabled state: reduced opacity and not-allowed cursor.
+@mixin disabled-state {
+  &:disabled {
+    opacity: $opacity-disabled;
+    cursor: not-allowed;
   }
 }

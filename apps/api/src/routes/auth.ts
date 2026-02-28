@@ -24,6 +24,9 @@ export function createAuthRouter(
   router.post('/logout', (req, res) => {
     authController.logout(req, res);
   });
+  router.post('/refresh', (req, res) => {
+    void authController.refresh(req, res);
+  });
   router.post(
     '/change-password',
     requireAuthMiddleware,

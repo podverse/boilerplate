@@ -58,13 +58,14 @@ describe('mailer-enabled (mocked)', () => {
   });
 
   describe('POST /auth/signup', () => {
-    it('returns 201 with token and user; captures verify token', async () => {
+    it('returns 201 with user and Set-Cookie (no token in body); captures verify token', async () => {
       captured.verifyEmail = '';
       const res = await request(app)
         .post(`${API}/auth/signup`)
         .send({ email: signupEmail, password: signupPassword, displayName: 'Signup User' })
         .expect(201);
-      expect(res.body).toHaveProperty('token');
+      expect(res.body).not.toHaveProperty('token');
+      expect(res.body).toHaveProperty('user');
       expect(res.body.user.email).toBe(signupEmail);
       expect(captured.verifyEmail).not.toBe('');
     });
@@ -122,16 +123,15 @@ describe('mailer-enabled (mocked)', () => {
 
   describe('POST /auth/request-email-change and confirm-email-change', () => {
     it('request returns 200 and captures token; confirm returns 200', async () => {
-      const loginRes = await request(app)
+      const agent = request.agent(app);
+      await agent
         .post(`${API}/auth/login`)
         .send({ email: signupEmail, password: 'reset-new-pass' })
         .expect(200);
-      const token = loginRes.body.token;
       const newEmail = `new-${Date.now()}@example.com`;
       captured.emailChange = '';
-      await request(app)
+      await agent
         .post(`${API}/auth/request-email-change`)
-        .set('Authorization', `Bearer ${token}`)
         .send({ newEmail })
         .expect(200, { message: 'Verification email sent' });
       expect(captured.emailChange).not.toBe('');
@@ -145,7 +145,7 @@ describe('mailer-enabled (mocked)', () => {
         .expect(200);
     });
 
-    it('request-email-change returns 401 without Authorization', async () => {
+    it('request-email-change returns 401 without cookie or Authorization', async () => {
       await request(app)
         .post(`${API}/auth/request-email-change`)
         .send({ newEmail: 'other@example.com' })
@@ -154,13 +154,13 @@ describe('mailer-enabled (mocked)', () => {
 
     it('request-email-change returns 400 when newEmail missing', async () => {
       const oneOffEmail = `oneoff-${Date.now()}@example.com`;
-      const signupRes = await request(app)
+      const agent = request.agent(app);
+      await agent
         .post(`${API}/auth/signup`)
         .send({ email: oneOffEmail, password: 'pass1' })
         .expect(201);
-      const res = await request(app)
+      const res = await agent
         .post(`${API}/auth/request-email-change`)
-        .set('Authorization', `Bearer ${signupRes.body.token}`)
         .send({})
         .expect(400);
       expect(res.body.message).toBeDefined();

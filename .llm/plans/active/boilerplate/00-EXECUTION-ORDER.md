@@ -123,8 +123,8 @@ Run after Phase 6 so that management DB, API, and (after Phase 7a and 33) Web ar
 
 Requires web app to exist (`apps/web` already exists). Adds i18n, settings, and dashboard.
 
-- **21-i18n-translations** – Run after 33. Three-tier layout (originals/overrides/compiled)
-  and workflow on push to develop; skips LLM translate when OPENAI_API_KEY is not set.
+- **21-i18n-translations** – Run after 33. Three-tier layout (originals/overrides/compiled);
+  translations for other locales via an LLM of your choosing (e.g. Cursor chat) or manually.
 - **20-settings-page** – Run after 21 (uses locale selector and t() from i18n).
 - **22-dashboard-realtime** – After 20; auth, API messages, Valkey, and privacy flag.
 
