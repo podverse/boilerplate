@@ -14,11 +14,11 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const projectRoot = path.resolve(__dirname, '..');
+const repoRoot = path.resolve(__dirname, '..', '..');
 
 async function loadEnv() {
   const dotenv = await import('dotenv');
-  const envPath = path.join(projectRoot, '.env');
+  const envPath = path.join(repoRoot, 'apps', 'management-api', '.env');
   dotenv.config({ path: envPath });
 }
 
