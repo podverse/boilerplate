@@ -3,12 +3,12 @@ import type { NextRequest } from 'next/server';
 
 import { PUBLIC_PATHS, ROUTES } from './lib/routes';
 
-const SESSION_COOKIE_NAME = 'management_session';
+const SESSION_COOKIE_NAME = 'session';
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Skip middleware for static files, API routes, and _next internal routes
+  // Skip proxy for static files, API routes, and _next internal routes
   if (
     pathname.startsWith('/_next') ||
     pathname.startsWith('/api') ||
@@ -27,7 +27,7 @@ export function middleware(request: NextRequest) {
   }
 
   // Already logged in visiting login/signup -> redirect to dashboard
-  if (hasSession && (pathname === ROUTES.LOGIN || pathname === ROUTES.SIGNUP || pathname === '/')) {
+  if (hasSession && (pathname === ROUTES.LOGIN || pathname === ROUTES.SIGNUP)) {
     const dashboardUrl = new URL(ROUTES.DASHBOARD, request.url);
     return NextResponse.redirect(dashboardUrl);
   }
