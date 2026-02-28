@@ -46,7 +46,7 @@ choosing (e.g. Cursor chat) or manually. See `docs/localization/I18N.md`.
      manual translation; keep key parity with en-US, then run compile and validate.
 
 5. **Usage in components**
-   - Use the library’s hook or HOC (e.g. useTranslations('auth')) in login, signup,
+   - Use the library's hook or HOC (e.g. useTranslations('auth')) in login, signup,
      dashboard, settings. Replace hardcoded strings with t('key'). Ensure server and client
      components use the correct API (next-intl supports both).
 
