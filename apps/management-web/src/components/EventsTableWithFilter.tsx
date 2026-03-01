@@ -26,7 +26,6 @@ export type EventsTableWithFilterProps = {
 
 export function EventsTableWithFilter(props: EventsTableWithFilterProps) {
   const { sort, ...rest } = props;
-  const extraPaginationParams =
-    sort === 'oldest' ? { sort: 'oldest' } : undefined;
+  const extraPaginationParams = sort === 'oldest' ? { sort: 'oldest' } : undefined;
   return <TableWithFilter {...rest} extraPaginationParams={extraPaginationParams} />;
 }

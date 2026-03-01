@@ -35,10 +35,7 @@ export async function listEvents(req: Request, res: Response): Promise<void> {
     return;
   }
   const page = Math.max(1, Number(req.query.page) || 1);
-  const limit = Math.min(
-    MAX_PAGE_SIZE,
-    Math.max(1, Number(req.query.limit) || DEFAULT_PAGE_LIMIT)
-  );
+  const limit = Math.min(MAX_PAGE_SIZE, Math.max(1, Number(req.query.limit) || DEFAULT_PAGE_LIMIT));
   const sortRaw = req.query.sort;
   const order = sortRaw === 'oldest' ? 'oldest' : 'recent';
   const searchRaw = typeof req.query.search === 'string' ? req.query.search.trim() : undefined;

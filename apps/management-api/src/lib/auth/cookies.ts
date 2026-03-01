@@ -22,10 +22,7 @@ export function setSessionCookies(
   ]);
 }
 
-export function clearSessionCookies(
-  res: Response,
-  options: SessionCookieOptions
-): void {
+export function clearSessionCookies(res: Response, options: SessionCookieOptions): void {
   const sameSite = options.cookieSameSite;
   const secure = options.cookieSecure;
   const clearOpts = `Path=/; Max-Age=0; HttpOnly; SameSite=${sameSite}${secure ? '; Secure' : ''}`;

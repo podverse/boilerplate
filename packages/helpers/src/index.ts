@@ -31,10 +31,7 @@ export type {
   PasswordValidationResult,
 } from './credentials/password.js';
 export { parseCookieSameSite, parseCorsOrigins } from './startup/cors-and-cookies.js';
-export type {
-  CookieSameSite,
-  SessionCookieOptions,
-} from './startup/cors-and-cookies.js';
+export type { CookieSameSite, SessionCookieOptions } from './startup/cors-and-cookies.js';
 export { normalizeVersionPath } from './startup/version-path.js';
 export {
   buildSummary,

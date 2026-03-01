@@ -63,7 +63,7 @@ export default tseslint.config(
       '**/.next/**',
       '**/*.js',
       '**/*.d.ts',
-      '**/.llm/plans/**',
+      '**/.llm/**',
       '**/*.md',
       '**/*.mdc',
     ],

@@ -37,12 +37,7 @@ export type EventsLimitSelectProps = {
   label?: string;
 };
 
-export function EventsLimitSelect({
-  sort,
-  limit,
-  defaultLimit,
-  label,
-}: EventsLimitSelectProps) {
+export function EventsLimitSelect({ sort, limit, defaultLimit, label }: EventsLimitSelectProps) {
   const t = useTranslations('common');
   const effectiveLabel = label ?? t('eventsLimit.label');
 
