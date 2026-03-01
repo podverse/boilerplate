@@ -5,6 +5,29 @@
 
 ---
 
+### Session 2 - 2026-02-28
+
+#### Prompt (Developer)
+
+revert all of the FTS related code in boilerplate and just use simple ILIKE
+
+#### Key Decisions
+
+- Removed `buildSimplePrefixTsquery` and all FTS (`to_tsvector`/`to_tsquery`) usage; replaced with `ILIKE :searchPattern` using `%term%` pattern.
+- `ManagementUserService.listAdminsPaginated`: searches `credentials.email` and `bio.display_name` via ILIKE.
+- `ManagementEventService.findEventsWithVisibility`: searches `action`, `actor_type`, `target_type`, `target_id`, `details` via ILIKE with COALESCE for nullable columns.
+- Deleted `packages/management-orm/src/fts-utils.ts`.
+- Rewrote `0006_fts_indexes.sql` to `DROP INDEX IF EXISTS` for the three FTS GIN indexes (they serve no purpose with ILIKE).
+- Regenerated `init_management_database.sql` via `scripts/database/combine-migrations.sh`.
+
+#### Files Created/Modified
+
+- `packages/management-orm/src/fts-utils.ts` – deleted
+- `packages/management-orm/src/services/ManagementUserService.ts` – FTS replaced with ILIKE
+- `packages/management-orm/src/services/ManagementEventService.ts` – FTS replaced with ILIKE
+- `infra/management-database/migrations/0006_fts_indexes.sql` – now drops the FTS GIN indexes
+- `infra/management-database/combined/init_management_database.sql` – regenerated
+
 ### Session 1 - 2026-02-28
 
 #### Prompt (Developer)

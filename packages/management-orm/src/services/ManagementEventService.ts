@@ -2,7 +2,6 @@ import { v4 as uuidv4 } from 'uuid';
 
 import type { EventVisibility } from '../entities/AdminPermissions.js';
 import { managementDataSource } from '../data-source.js';
-import { buildSimplePrefixTsquery } from '../fts-utils.js';
 import { ManagementEvent } from '../entities/ManagementEvent.js';
 import type { ActorType } from '../entities/ManagementEvent.js';
 
@@ -24,7 +23,7 @@ export type ListEventsOptions = {
   limit?: number;
   offset?: number;
   order?: EventsSortOrder;
-  /** When set, full-text search over action, actor_type, target_type, target_id, details. */
+  /** When set, ILIKE search over action, actor_type, target_type, target_id, details. */
   search?: string;
 };
 
@@ -63,12 +62,10 @@ export class ManagementEventService {
       qb.andWhere("e.actor_type = 'admin'");
     }
     const searchTrim = options.search?.trim();
-    const ftsQuery =
-      searchTrim !== undefined && searchTrim !== '' ? buildSimplePrefixTsquery(searchTrim) : '';
-    if (ftsQuery !== '') {
+    if (searchTrim !== undefined && searchTrim !== '') {
       qb.andWhere(
-        "to_tsvector('simple', e.action || ' ' || coalesce(e.actor_type, '') || ' ' || coalesce(e.target_type, '') || ' ' || coalesce(e.target_id, '') || ' ' || coalesce(e.details, '')) @@ to_tsquery('simple', :ftsQuery)",
-        { ftsQuery }
+        '(e.action ILIKE :searchPattern OR e.actor_type ILIKE :searchPattern OR COALESCE(e.target_type, \'\') ILIKE :searchPattern OR COALESCE(e.target_id, \'\') ILIKE :searchPattern OR COALESCE(e.details, \'\') ILIKE :searchPattern)',
+        { searchPattern: `%${searchTrim}%` }
       );
     }
     const [events, total] = await qb.getManyAndCount();

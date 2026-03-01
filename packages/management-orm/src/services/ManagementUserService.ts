@@ -1,6 +1,5 @@
 import { v4 as uuidv4 } from 'uuid';
 
-import { buildSimplePrefixTsquery } from '../fts-utils.js';
 import { managementDataSource } from '../data-source.js';
 import { AdminPermissions } from '../entities/AdminPermissions.js';
 import { ManagementUser } from '../entities/ManagementUser.js';
@@ -74,16 +73,16 @@ export class ManagementUserService {
     });
   }
 
-  /** Paginated list of admins (non–super-admin users) and total count. Optional FTS search over email and display_name. */
+  /** Paginated list of admins (non–super-admin users) and total count. Optional ILIKE search over email and display_name. */
   static async listAdminsPaginated(
     limit: number,
     offset: number,
     search?: string
   ): Promise<{ admins: ManagementUser[]; total: number }> {
     const repo = managementDataSource.getRepository(ManagementUser);
-    const qTrim = search?.trim();
-    const ftsQuery = qTrim !== undefined && qTrim !== '' ? buildSimplePrefixTsquery(qTrim) : '';
-    if (ftsQuery === '') {
+    const searchTrim = search?.trim();
+    const hasSearch = searchTrim !== undefined && searchTrim !== '';
+    if (!hasSearch) {
       const [admins, total] = await repo.findAndCount({
         where: { isSuperAdmin: false },
         relations: ['credentials', 'bio', 'permissions'],
@@ -100,8 +99,8 @@ export class ManagementUserService {
       .leftJoinAndSelect('u.permissions', 'permissions')
       .where('u.is_super_admin = :superAdmin', { superAdmin: false })
       .andWhere(
-        "(to_tsvector('simple', credentials.email) @@ to_tsquery('simple', :ftsQuery) OR to_tsvector('simple', bio.display_name) @@ to_tsquery('simple', :ftsQuery))",
-        { ftsQuery }
+        '(credentials.email ILIKE :searchPattern OR bio.display_name ILIKE :searchPattern)',
+        { searchPattern: `%${searchTrim}%` }
       )
       .orderBy('u.createdAt', 'ASC')
       .take(limit)
