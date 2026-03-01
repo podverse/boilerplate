@@ -4,7 +4,7 @@ Run phases sequentially. Within a phase, run plan files in order unless marked p
 
 ## Plan file location
 
-All plans: `.llm/plans/active/api-locale-email-handling/`
+All plans: `.llm/plans/completed/boilerplate/api-locale-email-handling/`
 
 | File | Description |
 | --- | --- |

@@ -13,7 +13,7 @@ in American English** for consistency, logging, and client handling.
   `message` in JSON responses. This includes error messages, success messages, and
   validation messages returned by the API.
 - **User-facing content (e.g. emails):** Support locales. Verification emails, password
-  reset emails, and email-change confirmation emails should be sent in the user’s
+  reset emails, and email-change confirmation emails should be sent in the user's
   preferred locale when available.
 
 ## Touch points (emails)
@@ -21,7 +21,7 @@ in American English** for consistency, logging, and client handling.
 - **Verification email** (after signup) – locale from user preference or request.
 - **Password reset email** (forgot-password) – locale from user preference or request.
 - **Email change verification email** (request-email-change) – locale from authenticated
-  user’s preference or request.
+  user's preference or request.
 
 Other future user-facing touch points (e.g. other transactional emails) should follow
 the same pattern: resolve locale, pass to sender, use localized content.
@@ -46,7 +46,7 @@ the same pattern: resolve locale, pass to sender, use localized content.
 - Where preferred locale is stored: user table (e.g. `preferred_locale`) vs profile vs
   session. How the client sends it (e.g. settings page persists to API, or request header
   `Accept-Language` / body param when triggering email).
-- Fallback order: user’s stored preferred_locale → Accept-Language → default `en-US`.
+- Fallback order: user's stored preferred_locale → Accept-Language → default `en-US`.
 - How email content is localized: API-only translation files (e.g. `apps/api/i18n/email/`),
   or shared bundle from apps/web originals, or runtime translation service. Same key set as
   web app for email copy where applicable.

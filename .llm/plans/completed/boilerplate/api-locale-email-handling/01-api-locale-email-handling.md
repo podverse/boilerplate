@@ -70,15 +70,15 @@
   request-email-change). That function already: parses Accept-Language, returns the first
   **supported** locale, and otherwise returns the app default (from `DEFAULT_LOCALE` env).
 - Ensure the app (or helpers-i18n) reads `DEFAULT_LOCALE` from the environment so the app
-  instance’s default is configurable. Document `DEFAULT_LOCALE` (and `SUPPORTED_LOCALES` if
-  used) in the API’s `.env.example` if not already.
+  instance's default is configurable. Document `DEFAULT_LOCALE` (and `SUPPORTED_LOCALES` if
+  used) in the API's `.env.example` if not already.
 
 ### 2. API response messages – document and optionally audit
 
-- Add to **AGENTS.md** (or API docs): “API status and error messages are always in
+- Add to **AGENTS.md** (or API docs): "API status and error messages are always in
   American English. Do not localize the `message` field in JSON responses. User-facing
   content such as email subject/body is localized using the request locale (header when
-  supported, else app default from env).”
+  supported, else app default from env)."
 - Optionally audit `res.status(...).json({ message: '...' })` in auth and other
   controllers to ensure literals/constants are American English.
 
@@ -86,7 +86,7 @@
 
 - **Mailer mock:** In `apps/api/src/test/auth-mailer.test.ts`, update the mocked send
   functions to accept an optional third parameter `locale?: string`. Existing tests
-  that don’t pass locale should still pass (default).
+  that don't pass locale should still pass (default).
 - **Locale behavior:** Add at least one test that (1) triggers an email with a supported
   non-default locale (e.g. `Accept-Language: es`) and asserts the mailer is called with
   that locale (e.g. via mock capture), and (2) asserts fallback to the app default when
@@ -190,5 +190,5 @@ Implement the minimum needed for confidence: at least A (signup locale), B (forg
   (from the `DEFAULT_LOCALE` environment variable).
 - No database column or table is added for locale.
 - All API JSON responses use American English for the `message` field.
-- **Tests:** Locale handling test matrix (section 3) implemented; docs clearly separate “API messages = en-US” from “emails = localized
-  (header when supported, else env default).”
+- **Tests:** Locale handling test matrix (section 3) implemented; docs clearly separate "API messages = en-US" from "emails = localized
+  (header when supported, else env default)."
