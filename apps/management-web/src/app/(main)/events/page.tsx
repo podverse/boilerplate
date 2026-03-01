@@ -161,16 +161,6 @@ export default async function EventsPage({ searchParams }: PageProps) {
           )}
           {error === null && (
             <Stack>
-              <EventsSortSelect
-                sort={sort}
-                limit={limit}
-                defaultLimit={DEFAULT_PAGE_LIMIT}
-                label={tCommon('eventsSort.label')}
-                sortOptionLabels={{
-                  recent: tCommon('eventsSortOptions.recent'),
-                  oldest: tCommon('eventsSortOptions.oldest'),
-                }}
-              />
               <EventsTableWithFilter
                 tableRows={tableRows}
                 emptyMessage={events.length === 0 ? tCommon('noEvents') : undefined}
@@ -185,6 +175,18 @@ export default async function EventsPage({ searchParams }: PageProps) {
                 defaultLimit={DEFAULT_PAGE_LIMIT}
                 sort={sort}
                 maxGoToPage={500}
+                trailingToolbar={
+                  <EventsSortSelect
+                    sort={sort}
+                    limit={limit}
+                    defaultLimit={DEFAULT_PAGE_LIMIT}
+                    label={tCommon('eventsSort.label')}
+                    sortOptionLabels={{
+                      recent: tCommon('eventsSortOptions.recent'),
+                      oldest: tCommon('eventsSortOptions.oldest'),
+                    }}
+                  />
+                }
               />
               <EventsLimitSelect
                 sort={sort}

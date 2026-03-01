@@ -8,6 +8,11 @@
   min-width: 0;
 }
 
+.wrapperSizeToSelected {
+  display: inline-flex;
+  flex-direction: column;
+}
+
 .label {
   font-size: $font-size-base;
   font-weight: $font-weight-medium;
@@ -15,9 +20,8 @@
   margin-bottom: $space-1;
 }
 
-.select {
-  width: 100%;
-  max-width: $select-max-width;
+.select,
+.selectSizeToSelected {
   min-width: 0;
   box-sizing: border-box;
   padding: $space-3 $space-3;
@@ -42,4 +46,15 @@
 
   @include focus-ring;
   @include disabled-state;
+}
+
+.select {
+  width: 100%;
+  max-width: $select-max-width;
+}
+
+.selectSizeToSelected {
+  field-sizing: content;
+  width: fit-content;
+  max-width: none;
 }

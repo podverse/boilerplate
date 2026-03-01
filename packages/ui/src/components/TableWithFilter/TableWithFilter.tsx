@@ -35,6 +35,8 @@ export type TableWithFilterProps = {
   extraPaginationParams?: Record<string, string>;
   /** When set, go-to-page modal is capped at this many pages (e.g. 500). */
   maxGoToPage?: number;
+  /** Optional content rendered on the same row as the filter bar (e.g. sort select), aligned to the end. Row wraps when space is tight. */
+  trailingToolbar?: React.ReactNode;
 };
 
 function filterRows(
@@ -66,6 +68,7 @@ export function TableWithFilter({
   defaultLimit,
   extraPaginationParams,
   maxGoToPage,
+  trailingToolbar,
 }: TableWithFilterProps) {
   const router = useRouter();
   const tFilterBar = useTranslations('ui.tableFilterBar');
@@ -140,8 +143,9 @@ export function TableWithFilter({
 
   return (
     <>
-      <div className={styles.filterBarWrapper}>
-        <TableFilterBar
+      <div className={styles.filterRow}>
+        <div className={styles.filterBarWrapper}>
+          <TableFilterBar
           searchValue={filter}
           onSearchChange={setFilter}
           columns={columns}
@@ -151,6 +155,10 @@ export function TableWithFilter({
           filterColumnsLabel={filterColumnsLabel}
           funnelButtonLabel={funnelButtonLabel}
         />
+        </div>
+        {trailingToolbar !== undefined && trailingToolbar !== null && (
+          <div className={styles.trailingToolbar}>{trailingToolbar}</div>
+        )}
       </div>
       {emptyMessage !== undefined && emptyMessage !== '' && (
         <p className={styles.emptyMessage}>{emptyMessage}</p>

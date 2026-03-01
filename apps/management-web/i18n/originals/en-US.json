@@ -212,8 +212,10 @@
       "next": "Next",
       "goToPage": "Go to page",
       "ariaPagination": "Pagination",
+      "ariaFirstPage": "First page",
       "ariaPreviousPage": "Previous page",
       "ariaNextPage": "Next page",
+      "ariaLastPage": "Last page",
       "pagesRangeOf": "Pages 1 to {max} of 500+",
       "goToPageModal": {
         "title": "Go to page",

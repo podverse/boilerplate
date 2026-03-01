@@ -44,33 +44,30 @@ function buildPageUrl(
       if (v !== undefined && v !== '') params.set(k, v);
     }
   }
-  if (page > 1) params.set('page', String(page));
+  // Always set target page so links (e.g. page 1) overwrite current page from queryParams
+  if (page > 1) {
+    params.set('page', String(page));
+  } else {
+    params.delete('page');
+  }
   if (limit !== defaultLimit) params.set('limit', String(limit));
   const q = params.toString();
   return q ? `${basePath}?${q}` : basePath;
 }
 
-const MAX_VISIBLE_PAGES = 7;
+const PAGES_VISIBLE = 5;
 
-function pageRange(current: number, total: number): (number | 'ellipsis')[] {
-  if (total <= MAX_VISIBLE_PAGES) {
+/** Returns up to PAGES_VISIBLE page numbers in a sliding window centered on current when possible. */
+function pageRange(current: number, total: number): number[] {
+  if (total <= PAGES_VISIBLE) {
     return Array.from({ length: total }, (_, i) => i + 1);
   }
-  const result: (number | 'ellipsis')[] = [];
-  const showLeft = current > 2;
-  const showRight = current < total - 1;
-  if (showLeft) {
-    result.push(1);
-    if (current > 3) result.push('ellipsis');
+  let start = Math.max(1, current - Math.floor(PAGES_VISIBLE / 2));
+  const end = Math.min(total, start + PAGES_VISIBLE - 1);
+  if (end - start + 1 < PAGES_VISIBLE) {
+    start = Math.max(1, end - PAGES_VISIBLE + 1);
   }
-  const start = showLeft ? Math.max(2, current - 1) : 1;
-  const end = showRight ? Math.min(total - 1, current + 1) : total;
-  for (let p = start; p <= end; p += 1) result.push(p);
-  if (showRight) {
-    if (current < total - 2) result.push('ellipsis');
-    result.push(total);
-  }
-  return result;
+  return Array.from({ length: end - start + 1 }, (_, i) => start + i);
 }
 
 export function Pagination({
@@ -85,8 +82,6 @@ export function Pagination({
 }: PaginationProps) {
   const t = useTranslations('ui.pagination');
   const [goToPageOpen, setGoToPageOpen] = useState(false);
-  const previous = labels.previous ?? t('previous');
-  const next = labels.next ?? t('next');
   const goToPage = labels.goToPage ?? t('goToPage');
 
   const effectiveGoToTotalPages =
@@ -119,29 +114,38 @@ export function Pagination({
         <div className={styles.controls}>
           {currentPage > 1 ? (
             <a
-              href={getPageUrl(currentPage - 1)}
-              className={styles.link}
-              aria-label={t('ariaPreviousPage')}
+              href={getPageUrl(1)}
+              className={styles.iconButton}
+              aria-label={t('ariaFirstPage')}
             >
-              {previous}
+              <i className="fa-solid fa-angles-left" aria-hidden />
             </a>
           ) : (
-            <span className={styles.linkDisabled} aria-disabled="true">
-              {previous}
+            <span className={styles.iconButtonDisabled} aria-disabled="true">
+              <i className="fa-solid fa-angles-left" aria-hidden />
+            </span>
+          )}
+          {currentPage > 1 ? (
+            <a
+              href={getPageUrl(currentPage - 1)}
+              className={styles.iconButton}
+              aria-label={t('ariaPreviousPage')}
+            >
+              <i className="fa-solid fa-chevron-left" aria-hidden />
+            </a>
+          ) : (
+            <span className={styles.iconButtonDisabled} aria-disabled="true">
+              <i className="fa-solid fa-chevron-left" aria-hidden />
             </span>
           )}
           <span className={styles.pageList}>
-            {pages.map((p, i) =>
-              p === 'ellipsis' ? (
-                <span key={`e-${i}`} className={styles.ellipsis}>
-                  …
-                </span>
-              ) : p === currentPage ? (
+            {pages.map((p) =>
+              p === currentPage ? (
                 <span key={p} className={styles.pageCurrent} aria-current="page">
                   {p}
                 </span>
               ) : (
-                <a key={p} href={getPageUrl(p)} className={styles.link}>
+                <a key={p} href={getPageUrl(p)} className={styles.pageLink}>
                   {p}
                 </a>
               )
@@ -150,14 +154,27 @@ export function Pagination({
           {currentPage < totalPages ? (
             <a
               href={getPageUrl(currentPage + 1)}
-              className={styles.link}
+              className={styles.iconButton}
               aria-label={t('ariaNextPage')}
             >
-              {next}
+              <i className="fa-solid fa-chevron-right" aria-hidden />
             </a>
           ) : (
-            <span className={styles.linkDisabled} aria-disabled="true">
-              {next}
+            <span className={styles.iconButtonDisabled} aria-disabled="true">
+              <i className="fa-solid fa-chevron-right" aria-hidden />
+            </span>
+          )}
+          {currentPage < totalPages ? (
+            <a
+              href={getPageUrl(totalPages)}
+              className={styles.iconButton}
+              aria-label={t('ariaLastPage')}
+            >
+              <i className="fa-solid fa-angles-right" aria-hidden />
+            </a>
+          ) : (
+            <span className={styles.iconButtonDisabled} aria-disabled="true">
+              <i className="fa-solid fa-angles-right" aria-hidden />
             </span>
           )}
         </div>

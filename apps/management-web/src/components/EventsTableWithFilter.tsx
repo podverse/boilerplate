@@ -22,10 +22,18 @@ export type EventsTableWithFilterProps = {
   defaultLimit: number;
   sort: string;
   maxGoToPage?: number;
+  /** Rendered on the same row as the filter (e.g. sort select). */
+  trailingToolbar?: React.ReactNode;
 };
 
 export function EventsTableWithFilter(props: EventsTableWithFilterProps) {
-  const { sort, ...rest } = props;
+  const { sort, trailingToolbar, ...rest } = props;
   const extraPaginationParams = sort === 'oldest' ? { sort: 'oldest' } : undefined;
-  return <TableWithFilter {...rest} extraPaginationParams={extraPaginationParams} />;
+  return (
+    <TableWithFilter
+      {...rest}
+      extraPaginationParams={extraPaginationParams}
+      trailingToolbar={trailingToolbar}
+    />
+  );
 }

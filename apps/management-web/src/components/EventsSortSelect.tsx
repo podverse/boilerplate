@@ -62,11 +62,11 @@ export function EventsSortSelect({
 
   return (
     <Select
-      label={effectiveLabel}
       options={options}
       value={value}
       onChange={handleChange}
       aria-label={effectiveLabel}
+      sizeToSelected
     />
   );
 }

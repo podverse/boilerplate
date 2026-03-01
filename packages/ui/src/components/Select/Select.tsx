@@ -17,6 +17,8 @@ export type SelectProps = Omit<
   options: SelectOption[];
   value: string;
   onChange: (value: string) => void;
+  /** When true, select width is sized to the selected option (CSS field-sizing: content). */
+  sizeToSelected?: boolean;
 };
 
 export function Select({
@@ -27,14 +29,23 @@ export function Select({
   id: idProp,
   className = '',
   disabled = false,
+  sizeToSelected = false,
   'aria-label': ariaLabel,
   ...props
 }: SelectProps) {
   const generatedId = useId();
   const id = idProp ?? `select-${generatedId.replace(/:/g, '')}`;
 
+  const wrapperClassName = [
+    styles.wrapper,
+    sizeToSelected ? styles.wrapperSizeToSelected : '',
+    className,
+  ]
+    .filter(Boolean)
+    .join(' ');
+
   return (
-    <div className={`${styles.wrapper} ${className}`.trim()}>
+    <div className={wrapperClassName}>
       {label !== undefined && (
         <label htmlFor={id} className={styles.label}>
           {label}
@@ -45,7 +56,7 @@ export function Select({
         value={value}
         onChange={(e) => onChange(e.target.value)}
         disabled={disabled}
-        className={styles.select}
+        className={sizeToSelected ? styles.selectSizeToSelected : styles.select}
         aria-label={ariaLabel ?? label}
         {...props}
       >

@@ -167,8 +167,10 @@
       "next": "Siguiente",
       "goToPage": "Ir a la página",
       "ariaPagination": "Paginación",
+      "ariaFirstPage": "Primera página",
       "ariaPreviousPage": "Página anterior",
       "ariaNextPage": "Página siguiente",
+      "ariaLastPage": "Última página",
       "pagesRangeOf": "Páginas 1 a {max} de 500+",
       "goToPageModal": {
         "title": "Ir a la página",
