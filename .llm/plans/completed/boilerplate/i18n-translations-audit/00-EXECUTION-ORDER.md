@@ -4,7 +4,7 @@ Run phases sequentially. Within a phase, run plan files in order unless marked p
 
 ## Plan file location
 
-All plans: `.llm/plans/active/i18n-translations-audit/`
+All plans: `.llm/plans/completed/boilerplate/i18n-translations-audit/`
 
 | File | Description |
 | --- | --- |

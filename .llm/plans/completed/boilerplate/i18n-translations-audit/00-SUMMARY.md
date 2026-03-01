@@ -1,5 +1,11 @@
 # i18n translations audit – Summary
 
+**Completed.** This plan set was moved to completed after verification that audit and process
+work was done (provider strategy, key conventions, i18n:validate/i18n:compile, CI, docs;
+pages and packages/ui use useTranslations/t() throughout).
+
+---
+
 ## Scope
 
 1. **Scan** all current pages and components (apps/web, apps/management-web, packages/ui) for
@@ -37,13 +43,13 @@ process quality.
   overrides/compiled layout, and `t()`/useTranslations usage pattern. The audit can still run
   to produce a list of files and strings to fix before or after plan 21 is complete.
 
-## Decisions (to be recorded during implementation)
+## Decisions (recorded during implementation)
 
-- How shared UI components get translated: props (labels from app) vs provider/context in
-  app that UI consumes.
-- Key naming convention (e.g. `auth.login.title`, `settings.theme.dark`) and namespace
-  split (per-app vs shared).
-- Validation rules: no empty values in originals; all locales have same keys; compile fails
-  on missing keys.
-- Whether to add an automated scan (e.g. script or ESLint plugin) to detect hardcoded
-  strings in TSX/JSX.
+- **Shared UI:** Provider approach — UI package uses `useTranslations('ui')`; apps supply
+  `ui` namespace in originals. Documented in `docs/localization/I18N.md` and
+  `packages/ui/I18N-KEYS.md`.
+- **Key naming:** Namespaces auth, common, dashboard, settings, errors, ui; management-web
+  uses same key structure (no prefix). Key parity enforced by i18n:validate.
+- **Validation:** i18n:validate checks same keys, no empty en-US originals, override
+  structure; run in CI. i18n:compile syncs overrides and produces compiled output.
+- **Automated scan (optional):** Not implemented; left as future improvement.

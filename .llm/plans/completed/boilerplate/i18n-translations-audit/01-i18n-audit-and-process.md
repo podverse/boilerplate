@@ -1,5 +1,9 @@
 # Plan 01: i18n audit and process reliability
 
+**Completed.** Audit and process work verified; plan retained for reference.
+
+---
+
 ## Scope
 
 1. **Audit** every page and component that renders user-facing text and ensure they use i18n
@@ -47,7 +51,7 @@ receive translated strings from the app or use the chosen mechanism.
 - Add missing keys to the originals file (e.g. `apps/web/i18n/originals/en-US.json` and
   equivalent for management-web if it has its own namespace or app-specific file).
 - Replace hardcoded strings with `t('key')` (or the chosen API). Ensure server vs client
-  usage follows the library’s rules (e.g. getTranslations on server, useTranslations on
+  usage follows the library's rules (e.g. getTranslations on server, useTranslations on
   client for next-intl).
 
 ### 4. Audit packages/ui
@@ -58,9 +62,9 @@ receive translated strings from the app or use the chosen mechanism.
     any default hardcoded strings or document them as fallbacks only when prop is omitted.
   - **Provider approach:** Ensure the component uses `useTranslations()` (or injected `t`)
     and replace hardcoded strings with keys. Add those keys to a shared namespace or to
-    each app’s originals if UI keys are app-owned.
+    each app's originals if UI keys are app-owned.
 - Storybook stories: Prefer passing translated strings as props in stories (or mock `t` in
-  provider) so stories don’t depend on a real locale bundle; document in component docs.
+  provider) so stories don't depend on a real locale bundle; document in component docs.
 
 ### 5. Key conventions and namespacing
 
