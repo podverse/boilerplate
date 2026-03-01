@@ -1,5 +1,5 @@
 # Boilerplate Management API – local Docker (build from repo root)
-FROM node:24-slim
+FROM node:25-slim
 
 WORKDIR /app
 
