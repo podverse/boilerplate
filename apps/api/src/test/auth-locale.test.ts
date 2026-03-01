@@ -187,9 +187,7 @@ describe('locale (mailer-enabled)', () => {
           displayName: 'Weak',
         })
         .expect(400);
-      expect(res.body.message).toBe(
-        'La contraseña debe tener al menos 8 caracteres'
-      );
+      expect(res.body.message).toBe('La contraseña debe tener al menos 8 caracteres');
     });
 
     it('returns 400 with default-locale password validation message when password too short and no Accept-Language', async () => {

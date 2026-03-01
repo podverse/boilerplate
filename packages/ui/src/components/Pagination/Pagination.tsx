@@ -114,11 +114,7 @@ export function Pagination({
       <nav className={styles.bar} aria-label={t('ariaPagination')}>
         <div className={styles.controls}>
           {currentPage > 1 ? (
-            <a
-              href={getPageUrl(1)}
-              className={styles.iconButton}
-              aria-label={t('ariaFirstPage')}
-            >
+            <a href={getPageUrl(1)} className={styles.iconButton} aria-label={t('ariaFirstPage')}>
               <i className="fa-solid fa-angles-left" aria-hidden />
             </a>
           ) : (

@@ -3,7 +3,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 
 import { AUTH_MESSAGE_LOGIN_FAILED } from '@boilerplate/helpers';
-import { webAuth } from '@boilerplate/helpers-requests';
+import { getRateLimitRetrySeconds, webAuth } from '@boilerplate/helpers-requests';
 
 import { getApiBaseUrl } from '../lib/api-client';
 import { isPublicPath, ROUTES } from '../lib/routes';
@@ -20,7 +20,9 @@ export type AuthContextValue = {
   login: (
     email: string,
     password: string
-  ) => Promise<{ ok: true } | { ok: false; message: string }>;
+  ) => Promise<
+    { ok: true } | { ok: false; message: string; rateLimit?: { retryAfterSeconds: number } }
+  >;
   logout: () => void;
   setSession: (user: AuthUser) => void;
   hydrate: () => Promise<void>;
@@ -114,11 +116,23 @@ export function AuthProvider({ children, initialUser }: AuthProviderProps) {
     async (
       email: string,
       password: string
-    ): Promise<{ ok: true } | { ok: false; message: string }> => {
+    ): Promise<
+      { ok: true } | { ok: false; message: string; rateLimit?: { retryAfterSeconds: number } }
+    > => {
       const baseUrl = getApiBaseUrl();
       const res = await webAuth.login(baseUrl, email, password);
       if (!res.ok) {
-        return { ok: false, message: res.error?.message ?? AUTH_MESSAGE_LOGIN_FAILED };
+        const message = res.error?.message ?? AUTH_MESSAGE_LOGIN_FAILED;
+        const rateLimit =
+          res.status === 429
+            ? {
+                retryAfterSeconds: getRateLimitRetrySeconds(
+                  'auth:login',
+                  res.error?.retryAfterSeconds
+                ),
+              }
+            : undefined;
+        return { ok: false, message, rateLimit };
       }
       const data = res.data as { user?: { id: string; email: string; displayName: string | null } };
       const u = data?.user

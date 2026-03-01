@@ -13,8 +13,8 @@ import { config } from '../config/index.js';
 import { createSuperAdminForTest } from './createSuperAdminForTest.js';
 
 const API = config.apiVersionPath;
-const superAdminEmail = `super-${Date.now()}@example.com`;
-const superAdminPassword = 'super-admin-password-1';
+const superAdminEmail = 'test-super-admin@example.com';
+const superAdminPassword = 'test-super-admin-password-1';
 
 describe('management-api', () => {
   let app: ReturnType<typeof createApp>;
@@ -108,6 +108,67 @@ describe('management-api', () => {
     });
   });
 
+  describe('POST /auth/logout', () => {
+    it('returns 204 without auth', async () => {
+      await request(app).post(`${API}/auth/logout`).expect(204);
+    });
+
+    it('returns 204 and clears cookies when authenticated', async () => {
+      const tempAgent = request.agent(app);
+      await tempAgent
+        .post(`${API}/auth/login`)
+        .send({ email: superAdminEmail, password: superAdminPassword })
+        .expect(200);
+      const res = await tempAgent.post(`${API}/auth/logout`).expect(204);
+      const setCookie = res.headers['set-cookie'];
+      const cookies = Array.isArray(setCookie)
+        ? setCookie
+        : setCookie !== undefined
+          ? [setCookie]
+          : [];
+      const sessionCleared = cookies.some(
+        (c: string) => c.startsWith(config.sessionCookieName + '=;') || c.includes('Max-Age=0')
+      );
+      const refreshCleared = cookies.some(
+        (c: string) => c.startsWith(config.refreshCookieName + '=;') || c.includes('Max-Age=0')
+      );
+      expect(sessionCleared).toBe(true);
+      expect(refreshCleared).toBe(true);
+    });
+  });
+
+  describe('POST /auth/refresh', () => {
+    it('returns 401 without refresh cookie', async () => {
+      await request(app).post(`${API}/auth/refresh`).expect(401);
+    });
+
+    it('returns 401 with invalid refresh token', async () => {
+      const res = await request(app)
+        .post(`${API}/auth/refresh`)
+        .set('Cookie', `${config.refreshCookieName}=invalid-token`)
+        .expect(401);
+      expect(res.body.message).toBe('Invalid or expired session');
+    });
+
+    it('returns 200 with user and new cookies for valid refresh token', async () => {
+      const refreshAgent = request.agent(app);
+      await refreshAgent
+        .post(`${API}/auth/login`)
+        .send({ email: superAdminEmail, password: superAdminPassword })
+        .expect(200);
+      const res = await refreshAgent.post(`${API}/auth/refresh`).expect(200);
+      expect(res.body).toHaveProperty('user');
+      expect(res.body.user.email).toBe(superAdminEmail);
+      const setCookie = res.headers['set-cookie'];
+      const cookies = Array.isArray(setCookie)
+        ? setCookie
+        : setCookie !== undefined
+          ? [setCookie]
+          : [];
+      expect(cookies.length).toBeGreaterThanOrEqual(2);
+    });
+  });
+
   describe('GET /events', () => {
     it('returns 401 without auth', async () => {
       await request(app).get(`${API}/events`).expect(401);
@@ -124,6 +185,40 @@ describe('management-api', () => {
     let adminId: string;
     const adminEmail = `admin-${Date.now()}@example.com`;
     const adminPassword = 'admin-password-1';
+    const ts = Date.now();
+
+    it('GET /admins returns 401 without auth', async () => {
+      await request(app).get(`${API}/admins`).expect(401);
+    });
+
+    it('GET /admins/:id returns 401 without auth', async () => {
+      await request(app).get(`${API}/admins/nonexistent-id`).expect(401);
+    });
+
+    it('POST /admins returns 401 without auth', async () => {
+      await request(app)
+        .post(`${API}/admins`)
+        .send({ email: 'x@x.com', password: 'p', displayName: 'd' })
+        .expect(401);
+    });
+
+    it('PATCH /admins/:id returns 401 without auth', async () => {
+      await request(app)
+        .patch(`${API}/admins/nonexistent-id`)
+        .send({ displayName: 'x' })
+        .expect(401);
+    });
+
+    it('DELETE /admins/:id returns 401 without auth', async () => {
+      await request(app).delete(`${API}/admins/nonexistent-id`).expect(401);
+    });
+
+    it('POST /admins/change-password returns 401 without auth', async () => {
+      await request(app)
+        .post(`${API}/admins/change-password`)
+        .send({ currentPassword: 'x', newPassword: 'y' })
+        .expect(401);
+    });
 
     it('POST /admins creates admin and returns 201', async () => {
       const res = await superAdminAgent
@@ -158,12 +253,51 @@ describe('management-api', () => {
       expect(res.body.admin.email).toBe(adminEmail);
     });
 
+    it('GET /admins/:id returns 404 for nonexistent id', async () => {
+      await superAdminAgent
+        .get(`${API}/admins/00000000-0000-0000-0000-000000000000`)
+        .expect(404, { message: 'Admin not found' });
+    });
+
     it('PATCH /admins/:id updates admin', async () => {
       const res = await superAdminAgent
         .patch(`${API}/admins/${adminId}`)
         .send({ displayName: 'Updated Admin' })
         .expect(200);
       expect(res.body.admin.displayName).toBe('Updated Admin');
+    });
+
+    it('PATCH /admins/:id returns 404 for nonexistent id', async () => {
+      await superAdminAgent
+        .patch(`${API}/admins/00000000-0000-0000-0000-000000000000`)
+        .send({ displayName: 'Ghost' })
+        .expect(404);
+    });
+
+    it('POST /admins returns 409 when email already in use', async () => {
+      await superAdminAgent
+        .post(`${API}/admins`)
+        .send({
+          email: adminEmail,
+          password: 'another-password',
+          displayName: `Dup Admin ${ts}`,
+          adminsCrud: 0,
+          usersCrud: 0,
+          eventVisibility: 'own',
+        })
+        .expect(409, { message: 'Email already in use' });
+    });
+
+    it('POST /admins/change-password returns 401 when current password wrong', async () => {
+      const adminAgent = request.agent(app);
+      await adminAgent
+        .post(`${API}/auth/login`)
+        .send({ email: adminEmail, password: adminPassword })
+        .expect(200);
+      await adminAgent
+        .post(`${API}/admins/change-password`)
+        .send({ currentPassword: 'wrong-password', newPassword: 'new-admin-pass' })
+        .expect(401, { message: 'Current password is incorrect' });
     });
 
     it('POST /admins/change-password changes own password', async () => {
@@ -190,6 +324,21 @@ describe('management-api', () => {
   });
 
   describe('users CRUD (super admin, main DB)', () => {
+    let userId: string;
+    const userEmail = `user-crud-${Date.now()}@example.com`;
+    const userPassword = 'user-password-1';
+
+    it('GET /users returns 401 without auth', async () => {
+      await request(app).get(`${API}/users`).expect(401);
+    });
+
+    it('POST /users returns 401 without auth', async () => {
+      await request(app)
+        .post(`${API}/users`)
+        .send({ email: 'x@x.com', password: 'p' })
+        .expect(401);
+    });
+
     it('GET /users returns 200 with users array', async () => {
       const res = await superAdminAgent.get(`${API}/users`).expect(200);
       expect(res.body).toHaveProperty('users');
@@ -197,23 +346,92 @@ describe('management-api', () => {
     });
 
     it('POST /users creates main-app user and GET /users/:id returns it', async () => {
-      const email = `user-${Date.now()}@example.com`;
-      const password = 'user-password-1';
       const createRes = await superAdminAgent
         .post(`${API}/users`)
         .send({
-          email,
-          password,
+          email: userEmail,
+          password: userPassword,
           displayName: 'Test User',
         })
         .expect(201);
       expect(createRes.body.user).toHaveProperty('id');
-      expect(createRes.body.user.email).toBe(email);
-      const userId = createRes.body.user.id;
+      expect(createRes.body.user.email).toBe(userEmail);
+      userId = createRes.body.user.id;
 
       const getRes = await superAdminAgent.get(`${API}/users/${userId}`).expect(200);
       expect(getRes.body.user.id).toBe(userId);
-      expect(getRes.body.user.email).toBe(email);
+      expect(getRes.body.user.email).toBe(userEmail);
+    });
+
+    it('GET /users/:id returns 404 for nonexistent id', async () => {
+      await superAdminAgent
+        .get(`${API}/users/00000000-0000-0000-0000-000000000000`)
+        .expect(404, { message: 'User not found' });
+    });
+
+    it('POST /users returns 409 when email already in use', async () => {
+      await superAdminAgent
+        .post(`${API}/users`)
+        .send({
+          email: userEmail,
+          password: userPassword,
+          displayName: 'Duplicate User',
+        })
+        .expect(409, { message: 'Email already in use' });
+    });
+
+    it('PATCH /users/:id updates user', async () => {
+      const res = await superAdminAgent
+        .patch(`${API}/users/${userId}`)
+        .send({ displayName: 'Updated User' })
+        .expect(200);
+      expect(res.body.user.displayName).toBe('Updated User');
+    });
+
+    it('PATCH /users/:id returns 404 for nonexistent id', async () => {
+      await superAdminAgent
+        .patch(`${API}/users/00000000-0000-0000-0000-000000000000`)
+        .send({ displayName: 'Ghost' })
+        .expect(404, { message: 'User not found' });
+    });
+
+    it('PATCH /users/:id returns 401 without auth', async () => {
+      await request(app)
+        .patch(`${API}/users/${userId}`)
+        .send({ displayName: 'Unauthorized' })
+        .expect(401);
+    });
+
+    it('POST /users/:id/change-password changes user password (super admin)', async () => {
+      const newPassword = 'user-password-2';
+      await superAdminAgent
+        .post(`${API}/users/${userId}/change-password`)
+        .send({ newPassword })
+        .expect(204);
+    });
+
+    it('POST /users/:id/change-password returns 404 for nonexistent user', async () => {
+      await superAdminAgent
+        .post(`${API}/users/00000000-0000-0000-0000-000000000000/change-password`)
+        .send({ newPassword: 'new-pass-1' })
+        .expect(404, { message: 'User not found' });
+    });
+
+    it('DELETE /users/:id removes user', async () => {
+      await superAdminAgent.delete(`${API}/users/${userId}`).expect(204);
+      await superAdminAgent.get(`${API}/users/${userId}`).expect(404);
+    });
+
+    it('DELETE /users/:id returns 404 for nonexistent id', async () => {
+      await superAdminAgent
+        .delete(`${API}/users/00000000-0000-0000-0000-000000000000`)
+        .expect(404, { message: 'User not found' });
+    });
+
+    it('DELETE /users/:id returns 401 without auth', async () => {
+      await request(app)
+        .delete(`${API}/users/00000000-0000-0000-0000-000000000000`)
+        .expect(401);
     });
   });
 });

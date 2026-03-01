@@ -16,8 +16,10 @@ export type LoginFormProps = {
   emailError?: string | null;
   passwordError?: string | null;
   submitError?: string | null;
-  signupHref: string;
-  forgotPasswordHref: string;
+  /** When omitted, the sign-up link is not rendered. */
+  signupHref?: string;
+  /** When omitted, the forgot-password link is not rendered. */
+  forgotPasswordHref?: string;
   /** Optional override for the link component used in form links (defaults to Next.js Link). */
   LinkComponent?: FormLinkComponent;
 };
@@ -37,6 +39,10 @@ export function LoginForm({
   LinkComponent,
 }: LoginFormProps) {
   const t = useTranslations('ui.auth.login');
+  const linkItems = [
+    signupHref !== undefined ? { href: signupHref, children: t('signUp') } : null,
+    forgotPasswordHref !== undefined ? { href: forgotPasswordHref, children: t('forgotPassword') } : null,
+  ].filter((item): item is { href: string; children: string } => item !== null);
   return (
     <Form title={t('title')} submitError={submitError} onSubmit={onSubmit}>
       <Input
@@ -62,13 +68,12 @@ export function LoginForm({
       <Button type="submit" variant="primary" loading={loading}>
         {t('submit')}
       </Button>
-      <FormLinks
-        {...(LinkComponent !== undefined && { LinkComponent })}
-        items={[
-          { href: signupHref, children: t('signUp') },
-          { href: forgotPasswordHref, children: t('forgotPassword') },
-        ]}
-      />
+      {linkItems.length > 0 && (
+        <FormLinks
+          {...(LinkComponent !== undefined && { LinkComponent })}
+          items={linkItems}
+        />
+      )}
     </Form>
   );
 }

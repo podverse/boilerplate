@@ -4,8 +4,6 @@
 export const ROUTES = {
   HOME: '/dashboard',
   LOGIN: '/login',
-  SIGNUP: '/signup',
-  FORGOT_PASSWORD: '/forgot-password',
   DASHBOARD: '/dashboard',
   SETTINGS: '/settings',
   ADMINS: '/admins',
@@ -13,12 +11,7 @@ export const ROUTES = {
 } as const;
 
 /** Paths where unauthenticated users are allowed; 401 on these should not trigger redirect. */
-export const PUBLIC_PATHS: readonly string[] = [
-  '/',
-  ROUTES.LOGIN,
-  ROUTES.SIGNUP,
-  ROUTES.FORGOT_PASSWORD,
-];
+export const PUBLIC_PATHS: readonly string[] = ['/', ROUTES.LOGIN];
 
 export function isPublicPath(pathname: string): boolean {
   return PUBLIC_PATHS.includes(pathname);

@@ -80,6 +80,14 @@ All keys are under `ui.*`. Use nested objects in your `i18n/originals/en-US.json
 
 - `separator` — • (bullet between links)
 
+## rateLimitModal (RateLimitModal component)
+
+- `title` — Too many attempts (modal heading)
+- `bodyWithTime` — You can try again in {time}. (supports `time` placeholder; time is a localized duration from timeMinutes/timeSeconds)
+- `bodyFallback` — You can try again in a few minutes. (when retry-after is unknown)
+- `timeMinutes` — ICU plural: "{count, plural, one {# minute} other {# minutes}}" (duration in minutes; supports `count` placeholder)
+- `timeSeconds` — ICU plural: "{count, plural, one {# second} other {# seconds}}" (duration in seconds; supports `count` placeholder)
+
 ## validation (auth form validation messages; used by useAuthValidation)
 
 - `emailRequired` — Email is required

@@ -3,8 +3,8 @@
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
-import { SignupForm, useAuthValidation } from '@boilerplate/ui';
-import { webAuth } from '@boilerplate/helpers-requests';
+import { RateLimitModal, SignupForm, useAuthValidation } from '@boilerplate/ui';
+import { getRateLimitRetrySeconds, webAuth } from '@boilerplate/helpers-requests';
 import { useAuth } from '../../../context/AuthContext';
 import { getApiBaseUrl } from '../../../lib/api-client';
 import { ROUTES } from '../../../lib/routes';
@@ -25,6 +25,8 @@ export default function SignupPage() {
   const [confirmError, setConfirmError] = useState<string | null>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [showRateLimitModal, setShowRateLimitModal] = useState(false);
+  const [rateLimitRetrySeconds, setRateLimitRetrySeconds] = useState<number | undefined>(undefined);
 
   const handleSubmit = async (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -71,28 +73,40 @@ export default function SignupPage() {
       router.push(ROUTES.DASHBOARD);
     } else if (res.ok) {
       router.push(ROUTES.LOGIN);
+    } else if (res.status === 429) {
+      setRateLimitRetrySeconds(
+        getRateLimitRetrySeconds('auth:signup', res.error?.retryAfterSeconds)
+      );
+      setShowRateLimitModal(true);
     } else {
       setSubmitError(res.error?.message ?? tErrors('signupFailed'));
     }
   };
 
   return (
-    <SignupForm
-      email={email}
-      password={password}
-      confirmPassword={confirmPassword}
-      displayName={displayName}
-      onEmailChange={setEmail}
-      onPasswordChange={setPassword}
-      onConfirmPasswordChange={setConfirmPassword}
-      onDisplayNameChange={setDisplayName}
-      onSubmit={handleSubmit}
-      loading={loading}
-      emailError={emailError}
-      passwordError={passwordError}
-      confirmError={confirmError}
-      submitError={submitError}
-      loginHref={ROUTES.LOGIN}
-    />
+    <>
+      <RateLimitModal
+        open={showRateLimitModal}
+        onClose={() => setShowRateLimitModal(false)}
+        retryAfterSeconds={rateLimitRetrySeconds}
+      />
+      <SignupForm
+        email={email}
+        password={password}
+        confirmPassword={confirmPassword}
+        displayName={displayName}
+        onEmailChange={setEmail}
+        onPasswordChange={setPassword}
+        onConfirmPasswordChange={setConfirmPassword}
+        onDisplayNameChange={setDisplayName}
+        onSubmit={handleSubmit}
+        loading={loading}
+        emailError={emailError}
+        passwordError={passwordError}
+        confirmError={confirmError}
+        submitError={submitError}
+        loginHref={ROUTES.LOGIN}
+      />
+    </>
   );
 }

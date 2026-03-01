@@ -3,8 +3,14 @@
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useLocale, useTranslations } from 'next-intl';
 import { Suspense, useState } from 'react';
-import { Container, LoadingSpinner, ResetPasswordForm, useAuthValidation } from '@boilerplate/ui';
-import { webAuth } from '@boilerplate/helpers-requests';
+import {
+  Container,
+  LoadingSpinner,
+  RateLimitModal,
+  ResetPasswordForm,
+  useAuthValidation,
+} from '@boilerplate/ui';
+import { getRateLimitRetrySeconds, webAuth } from '@boilerplate/helpers-requests';
 import { getApiBaseUrl } from '../../../lib/api-client';
 import { ROUTES } from '../../../lib/routes';
 
@@ -24,6 +30,8 @@ function ResetPasswordContent() {
   const [confirmError, setConfirmError] = useState<string | null>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [showRateLimitModal, setShowRateLimitModal] = useState(false);
+  const [rateLimitRetrySeconds, setRateLimitRetrySeconds] = useState<number | undefined>(undefined);
 
   const handleSubmit = async (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -53,27 +61,39 @@ function ResetPasswordContent() {
 
     if (res.ok) {
       router.push(ROUTES.LOGIN);
+    } else if (res.status === 429) {
+      setRateLimitRetrySeconds(
+        getRateLimitRetrySeconds('auth:resetPassword', res.error?.retryAfterSeconds)
+      );
+      setShowRateLimitModal(true);
     } else {
       setSubmitError(res.error?.message ?? tErrors('resetFailed'));
     }
   };
 
   return (
-    <ResetPasswordForm
-      token={token}
-      password={password}
-      confirmPassword={confirmPassword}
-      onTokenChange={setToken}
-      onPasswordChange={setPassword}
-      onConfirmPasswordChange={setConfirmPassword}
-      onSubmit={handleSubmit}
-      loading={loading}
-      tokenError={tokenError}
-      passwordError={passwordError}
-      confirmError={confirmError}
-      submitError={submitError}
-      loginHref={ROUTES.LOGIN}
-    />
+    <>
+      <RateLimitModal
+        open={showRateLimitModal}
+        onClose={() => setShowRateLimitModal(false)}
+        retryAfterSeconds={rateLimitRetrySeconds}
+      />
+      <ResetPasswordForm
+        token={token}
+        password={password}
+        confirmPassword={confirmPassword}
+        onTokenChange={setToken}
+        onPasswordChange={setPassword}
+        onConfirmPasswordChange={setConfirmPassword}
+        onSubmit={handleSubmit}
+        loading={loading}
+        tokenError={tokenError}
+        passwordError={passwordError}
+        confirmError={confirmError}
+        submitError={submitError}
+        loginHref={ROUTES.LOGIN}
+      />
+    </>
   );
 }
 

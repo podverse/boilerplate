@@ -95,8 +95,31 @@ describe('auth (shared)', () => {
   });
 
   describe('POST /auth/logout', () => {
-    it('returns 204', async () => {
+    it('returns 204 without auth', async () => {
       await request(app).post(`${API}/auth/logout`).expect(204);
+    });
+
+    it('returns 204 and clears cookies when authenticated', async () => {
+      const agent = request.agent(app);
+      await agent
+        .post(`${API}/auth/login`)
+        .send({ email: testUserEmail, password: testUserPassword })
+        .expect(200);
+      const res = await agent.post(`${API}/auth/logout`).expect(204);
+      const setCookie = res.headers['set-cookie'];
+      const cookies = Array.isArray(setCookie)
+        ? setCookie
+        : setCookie !== undefined
+          ? [setCookie]
+          : [];
+      const sessionCleared = cookies.some(
+        (c: string) => c.startsWith(config.sessionCookieName + '=;') || c.includes('Max-Age=0')
+      );
+      const refreshCleared = cookies.some(
+        (c: string) => c.startsWith(config.refreshCookieName + '=;') || c.includes('Max-Age=0')
+      );
+      expect(sessionCleared).toBe(true);
+      expect(refreshCleared).toBe(true);
     });
   });
 
@@ -110,6 +133,29 @@ describe('auth (shared)', () => {
         .get(`${API}/auth/me`)
         .set('Authorization', 'Bearer invalid-token')
         .expect(401);
+    });
+
+    it('returns 200 with user when authenticated via Bearer token', async () => {
+      const loginRes = await request(app)
+        .post(`${API}/auth/login`)
+        .send({ email: testUserEmail, password: testUserPassword })
+        .expect(200);
+      const setCookie: string[] | string | undefined = loginRes.headers['set-cookie'];
+      const cookies = Array.isArray(setCookie)
+        ? setCookie
+        : setCookie !== undefined
+          ? [setCookie]
+          : [];
+      const sessionCookie = cookies.find((c: string) =>
+        c.startsWith(config.sessionCookieName + '=')
+      );
+      expect(sessionCookie).toBeDefined();
+      const token = sessionCookie!.split(';')[0].split('=').slice(1).join('=');
+      const res = await request(app)
+        .get(`${API}/auth/me`)
+        .set('Authorization', `Bearer ${token}`)
+        .expect(200);
+      expect(res.body.user.email).toBe(testUserEmail);
     });
 
     it('returns 200 with user when authenticated via cookie', async () => {
@@ -126,6 +172,14 @@ describe('auth (shared)', () => {
   describe('POST /auth/refresh', () => {
     it('returns 401 without refresh cookie', async () => {
       await request(app).post(`${API}/auth/refresh`).expect(401);
+    });
+
+    it('returns 401 with invalid refresh token', async () => {
+      const res = await request(app)
+        .post(`${API}/auth/refresh`)
+        .set('Cookie', `${config.refreshCookieName}=invalid-token`)
+        .expect(401);
+      expect(res.body.message).toBe('Invalid or expired session');
     });
 
     it('returns 200 with user and new cookies when refresh cookie valid', async () => {
@@ -163,6 +217,19 @@ describe('auth (shared)', () => {
         .expect(200);
       await agent.post(`${API}/auth/change-password`).send({ newPassword: 'new1' }).expect(400);
       await agent.post(`${API}/auth/change-password`).send({ currentPassword: 'old' }).expect(400);
+    });
+
+    it('returns 400 when newPassword fails validation (too short)', async () => {
+      const agent = request.agent(app);
+      await agent
+        .post(`${API}/auth/login`)
+        .send({ email: testUserEmail, password: testUserPassword })
+        .expect(200);
+      const res = await agent
+        .post(`${API}/auth/change-password`)
+        .send({ currentPassword: testUserPassword, newPassword: 'x' })
+        .expect(400);
+      expect(res.body.message).toBeDefined();
     });
 
     it('returns 401 when current password wrong', async () => {

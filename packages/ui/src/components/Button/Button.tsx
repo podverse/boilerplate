@@ -20,11 +20,7 @@ export function Button({
 }: ButtonProps) {
   const isDisabled = disabled || loading;
   const variantClass =
-    variant === 'primary'
-      ? styles.primary
-      : variant === 'link'
-        ? styles.link
-        : styles.secondary;
+    variant === 'primary' ? styles.primary : variant === 'link' ? styles.link : styles.secondary;
   const cn = [styles.root, variantClass, loading ? styles.loading : '', className]
     .filter(Boolean)
     .join(' ');

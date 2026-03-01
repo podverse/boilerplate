@@ -146,15 +146,15 @@ export function TableWithFilter({
       <div className={styles.filterRow}>
         <div className={styles.filterBarWrapper}>
           <TableFilterBar
-          searchValue={filter}
-          onSearchChange={setFilter}
-          columns={columns}
-          selectedColumnIds={selectedColumnIds}
-          onSelectedColumnIdsChange={handleFilterColumnsChange}
-          placeholder={filterPlaceholder}
-          filterColumnsLabel={filterColumnsLabel}
-          funnelButtonLabel={funnelButtonLabel}
-        />
+            searchValue={filter}
+            onSearchChange={setFilter}
+            columns={columns}
+            selectedColumnIds={selectedColumnIds}
+            onSelectedColumnIdsChange={handleFilterColumnsChange}
+            placeholder={filterPlaceholder}
+            filterColumnsLabel={filterColumnsLabel}
+            funnelButtonLabel={funnelButtonLabel}
+          />
         </div>
         {trailingToolbar !== undefined && trailingToolbar !== null && (
           <div className={styles.trailingToolbar}>{trailingToolbar}</div>

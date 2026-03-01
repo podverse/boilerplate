@@ -21,6 +21,7 @@ export type {
   WithOptionalToken,
 } from './types/index.js';
 export { request, type ApiError, type ApiResponse, type RequestOptions } from './request.js';
+export { getRateLimitRetrySeconds } from './rateLimitClient.js';
 export * as webAuth from './web/auth.js';
 export * as managementWebAuth from './management-web/auth.js';
 export * as managementWebAdmins from './management-web/admins.js';

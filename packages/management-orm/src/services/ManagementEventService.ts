@@ -64,7 +64,7 @@ export class ManagementEventService {
     const searchTrim = options.search?.trim();
     if (searchTrim !== undefined && searchTrim !== '') {
       qb.andWhere(
-        '(e.action ILIKE :searchPattern OR e.actor_type ILIKE :searchPattern OR COALESCE(e.target_type, \'\') ILIKE :searchPattern OR COALESCE(e.target_id, \'\') ILIKE :searchPattern OR COALESCE(e.details, \'\') ILIKE :searchPattern)',
+        "(e.action ILIKE :searchPattern OR e.actor_type ILIKE :searchPattern OR COALESCE(e.target_type, '') ILIKE :searchPattern OR COALESCE(e.target_id, '') ILIKE :searchPattern OR COALESCE(e.details, '') ILIKE :searchPattern)",
         { searchPattern: `%${searchTrim}%` }
       );
     }

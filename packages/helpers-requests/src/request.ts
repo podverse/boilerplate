@@ -4,7 +4,12 @@ import type { BearerToken } from './types/request-types.js';
  * Shared request helper. All API request modules use this for consistent
  * behavior (base URL, auth header, JSON, error shape).
  */
-export type ApiError = { status: number; message: string };
+export type ApiError = {
+  status: number;
+  message: string;
+  /** Present when status is 429; seconds until the client can retry. */
+  retryAfterSeconds?: number;
+};
 
 export type ApiResponse<T = unknown> =
   | { ok: true; status: number; data?: T }
@@ -61,7 +66,22 @@ export async function request<T = unknown>(
       typeof (data as { message: unknown }).message === 'string'
         ? (data as { message: string }).message
         : res.statusText || 'Request failed';
-    return { ok: false, status: res.status, error: { status: res.status, message } };
+    const error: ApiError = { status: res.status, message };
+    if (res.status === 429) {
+      // retryAfterSeconds is in the JSON body — the single source of truth for how long
+      // until the client can retry. Browser fetch can always read the body regardless of
+      // CORS header-exposure rules (unlike the Retry-After header).
+      if (
+        typeof data === 'object' &&
+        data !== null &&
+        'retryAfterSeconds' in data &&
+        typeof (data as { retryAfterSeconds: unknown }).retryAfterSeconds === 'number' &&
+        (data as { retryAfterSeconds: number }).retryAfterSeconds > 0
+      ) {
+        error.retryAfterSeconds = (data as { retryAfterSeconds: number }).retryAfterSeconds;
+      }
+    }
+    return { ok: false, status: res.status, error };
   }
 
   // JSON parse returns unknown; caller supplies type via request<T>() for typed data

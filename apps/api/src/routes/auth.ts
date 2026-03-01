@@ -2,6 +2,7 @@ import type { RequestHandler } from 'express';
 import { Router } from 'express';
 import * as authController from '../controllers/authController.js';
 import { isMailerEnabled } from '../lib/mailer/send.js';
+import { moderateAuthRateLimiter, strictAuthRateLimiter } from '../middleware/rateLimit.js';
 import { validateBody } from '../middleware/validateBody.js';
 import {
   loginSchema,
@@ -18,7 +19,7 @@ export function createAuthRouter(
 ): Router {
   const router = Router();
 
-  router.post('/login', validateBody(loginSchema), (req, res) => {
+  router.post('/login', strictAuthRateLimiter, validateBody(loginSchema), (req, res) => {
     void authController.login(req, res);
   });
   router.post('/logout', (req, res) => {
@@ -29,6 +30,7 @@ export function createAuthRouter(
   });
   router.post(
     '/change-password',
+    moderateAuthRateLimiter,
     requireAuthMiddleware,
     validateBody(changePasswordSchema),
     (req, res) => {
@@ -40,39 +42,50 @@ export function createAuthRouter(
   });
 
   if (mountSignup) {
-    router.post('/signup', validateBody(signupSchema), (req, res) => {
+    router.post('/signup', strictAuthRateLimiter, validateBody(signupSchema), (req, res) => {
       void authController.signup(req, res);
     });
   } else {
-    router.post('/signup', (_req, res) => {
+    router.post('/signup', strictAuthRateLimiter, (_req, res) => {
       res.status(403).json({ message: 'Registration is by admin only' });
     });
   }
 
   // Plan 34: verification flows (mailer mode only)
-  router.post('/verify-email', (req, res) => {
+  router.post('/verify-email', strictAuthRateLimiter, (req, res) => {
     if (!isMailerEnabled()) {
       res.status(403).json({ message: 'Email verification is not enabled' });
       return;
     }
     void authController.verifyEmail(req, res);
   });
-  router.post('/forgot-password', validateBody(forgotPasswordSchema), (req, res) => {
-    if (!isMailerEnabled()) {
-      res.status(403).json({ message: 'Email verification is not enabled' });
-      return;
+  router.post(
+    '/forgot-password',
+    strictAuthRateLimiter,
+    validateBody(forgotPasswordSchema),
+    (req, res) => {
+      if (!isMailerEnabled()) {
+        res.status(403).json({ message: 'Email verification is not enabled' });
+        return;
+      }
+      void authController.forgotPassword(req, res);
     }
-    void authController.forgotPassword(req, res);
-  });
-  router.post('/reset-password', validateBody(resetPasswordSchema), (req, res) => {
-    if (!isMailerEnabled()) {
-      res.status(403).json({ message: 'Email verification is not enabled' });
-      return;
+  );
+  router.post(
+    '/reset-password',
+    strictAuthRateLimiter,
+    validateBody(resetPasswordSchema),
+    (req, res) => {
+      if (!isMailerEnabled()) {
+        res.status(403).json({ message: 'Email verification is not enabled' });
+        return;
+      }
+      void authController.resetPassword(req, res);
     }
-    void authController.resetPassword(req, res);
-  });
+  );
   router.post(
     '/request-email-change',
+    strictAuthRateLimiter,
     requireAuthMiddleware,
     validateBody(requestEmailChangeSchema),
     (req, res) => {
@@ -83,7 +96,7 @@ export function createAuthRouter(
       void authController.requestEmailChange(req, res);
     }
   );
-  router.post('/confirm-email-change', (req, res) => {
+  router.post('/confirm-email-change', strictAuthRateLimiter, (req, res) => {
     if (!isMailerEnabled()) {
       res.status(403).json({ message: 'Email verification is not enabled' });
       return;

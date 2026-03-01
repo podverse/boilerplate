@@ -7,7 +7,7 @@
   "scripts": {
     "build": "tsc",
     "dev": "tsc && node ./dist/index.js",
-    "dev:watch": "tsc && concurrently \"tsc --watch --preserveWatchOutput\" \"sleep 4 && nodemon --delay 2500ms --watch dist --watch .env --watch ../../packages/helpers/dist --watch ../../packages/orm/dist dist/index.js\"",
+    "dev:watch": "tsc && concurrently \"tsc --watch --preserveWatchOutput\" \"sleep 4 && nodemon --delay 2500ms --watch dist --watch .env --watch ../../packages/helpers/dist --watch ../../packages/helpers-backend-api/dist --watch ../../packages/orm/dist dist/index.js\"",
     "start": "node ./dist/index.js",
     "lint": "eslint ./src --max-warnings 0",
     "lint:fix": "eslint ./src --fix",
@@ -18,6 +18,7 @@
   },
   "dependencies": {
     "@boilerplate/helpers": "*",
+    "@boilerplate/helpers-backend-api": "*",
     "@boilerplate/helpers-requests": "*",
     "@boilerplate/helpers-i18n": "*",
     "@boilerplate/orm": "*",

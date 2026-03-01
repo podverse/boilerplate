@@ -188,6 +188,13 @@
     "modal": {
       "ariaClose": ""
     },
+    "rateLimitModal": {
+      "title": "",
+      "bodyWithTime": "",
+      "bodyFallback": "",
+      "timeMinutes": "",
+      "timeSeconds": ""
+    },
     "tableFilterBar": {
       "placeholder": "",
       "filterColumnsLabel": "",

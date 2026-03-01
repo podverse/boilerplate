@@ -79,8 +79,8 @@ export { Tabs } from './components/Tabs';
 export type { TabItem, TabsLinkComponentProps, TabsProps } from './components/Tabs';
 export { LoadingSpinner } from './components/LoadingSpinner';
 export type { LoadingSpinnerProps } from './components/LoadingSpinner';
-export { Modal, NavigationLoadingOverlay } from './components/Modal';
-export type { ModalProps } from './components/Modal';
+export { Modal, NavigationLoadingOverlay, RateLimitModal } from './components/Modal';
+export type { ModalProps, RateLimitModalProps } from './components/Modal';
 export { Table } from './components/Table';
 export type {
   TableProps,

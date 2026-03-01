@@ -174,6 +174,12 @@ export const openApiDocument = {
               'application/json': { schema: { $ref: '#/components/schemas/ErrorMessage' } },
             },
           },
+          '429': {
+            description: 'Too many requests; rate limit exceeded. Retry after the window.',
+            content: {
+              'application/json': { schema: { $ref: '#/components/schemas/ErrorMessage' } },
+            },
+          },
         },
       },
     },
@@ -240,6 +246,12 @@ export const openApiDocument = {
               'application/json': { schema: { $ref: '#/components/schemas/ErrorMessage' } },
             },
           },
+          '429': {
+            description: 'Too many requests; rate limit exceeded.',
+            content: {
+              'application/json': { schema: { $ref: '#/components/schemas/ErrorMessage' } },
+            },
+          },
         },
       },
     },
@@ -287,6 +299,12 @@ export const openApiDocument = {
               'application/json': { schema: { $ref: '#/components/schemas/ErrorMessage' } },
             },
           },
+          '429': {
+            description: 'Too many requests; rate limit exceeded.',
+            content: {
+              'application/json': { schema: { $ref: '#/components/schemas/ErrorMessage' } },
+            },
+          },
         },
       },
     },
@@ -321,6 +339,12 @@ export const openApiDocument = {
               'application/json': { schema: { $ref: '#/components/schemas/ErrorMessage' } },
             },
           },
+          '429': {
+            description: 'Too many requests; rate limit exceeded.',
+            content: {
+              'application/json': { schema: { $ref: '#/components/schemas/ErrorMessage' } },
+            },
+          },
         },
       },
     },
@@ -351,6 +375,12 @@ export const openApiDocument = {
               'application/json': { schema: { $ref: '#/components/schemas/ErrorMessage' } },
             },
           },
+          '429': {
+            description: 'Too many requests; rate limit exceeded.',
+            content: {
+              'application/json': { schema: { $ref: '#/components/schemas/ErrorMessage' } },
+            },
+          },
         },
       },
     },
@@ -375,6 +405,12 @@ export const openApiDocument = {
           },
           '403': {
             description: 'Email verification not enabled',
+            content: {
+              'application/json': { schema: { $ref: '#/components/schemas/ErrorMessage' } },
+            },
+          },
+          '429': {
+            description: 'Too many requests; rate limit exceeded.',
             content: {
               'application/json': { schema: { $ref: '#/components/schemas/ErrorMessage' } },
             },
@@ -428,6 +464,12 @@ export const openApiDocument = {
               'application/json': { schema: { $ref: '#/components/schemas/ErrorMessage' } },
             },
           },
+          '429': {
+            description: 'Too many requests; rate limit exceeded.',
+            content: {
+              'application/json': { schema: { $ref: '#/components/schemas/ErrorMessage' } },
+            },
+          },
         },
       },
     },
@@ -458,6 +500,12 @@ export const openApiDocument = {
           },
           '403': {
             description: 'Email verification not enabled',
+            content: {
+              'application/json': { schema: { $ref: '#/components/schemas/ErrorMessage' } },
+            },
+          },
+          '429': {
+            description: 'Too many requests; rate limit exceeded.',
             content: {
               'application/json': { schema: { $ref: '#/components/schemas/ErrorMessage' } },
             },

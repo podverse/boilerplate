@@ -14,8 +14,8 @@ All plans: `.llm/plans/active/rate-limiting-critical-endpoints/`
 ## Phase 1: Implement rate limiting
 
 1. **01-rate-limiting-critical-endpoints** – Single plan: choose strategy (e.g. express-rate-limit
-   or Valkey-backed), add middleware, apply to critical endpoints in `apps/api` and
-   `apps/management-api`, add tests and document limits.
+   or Valkey-backed), add middleware, apply to critical endpoints in **apps/api only**, add
+   tests and document limits.
 
 ## Rules
 

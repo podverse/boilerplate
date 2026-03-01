@@ -16,7 +16,12 @@
 }
 
 .overlayBackdrop {
-  background: rgb(0 0 0 / 0.15);
+  background: var(--color-overlay-backdrop);
+}
+
+/* Opaque backdrop for dialogs that must be easy to read (e.g. rate limit). */
+.overlayBackdropOpaque {
+  background: var(--color-overlay-backdrop-opaque);
 }
 
 .content {
@@ -29,8 +34,8 @@
 
 .closeButton {
   position: absolute;
-  top: 0;
-  right: 0;
+  top: $space-2;
+  right: $space-2;
   width: $size-md;
   height: $size-md;
   padding: 0;

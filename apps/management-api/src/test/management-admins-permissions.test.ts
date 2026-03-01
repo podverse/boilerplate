@@ -1,0 +1,250 @@
+/**
+ * Management API – admins CRUD permission-based integration tests.
+ * Tests that admins with limited permissions are properly gated by requireCrud / requireSuperAdmin.
+ * Super admin fixtures are shared; limited-permission admin fixtures are created per describe block.
+ */
+import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import request from 'supertest';
+
+import { appDataSource } from '@boilerplate/orm';
+import { managementDataSource } from '@boilerplate/management-orm';
+import { createApp } from '../app.js';
+import { config } from '../config/index.js';
+import { createSuperAdminForTest } from './createSuperAdminForTest.js';
+
+const API = config.apiVersionPath;
+const superAdminEmail = 'test-super-admin@example.com';
+const superAdminPassword = 'test-super-admin-password-1';
+
+describe('management-api admins permissions', () => {
+  let app: ReturnType<typeof createApp>;
+  let superAdminAgent: ReturnType<typeof request.agent>;
+
+  beforeAll(async () => {
+    await appDataSource.initialize();
+    await managementDataSource.initialize();
+    await createSuperAdminForTest(superAdminEmail, superAdminPassword);
+    app = createApp();
+    superAdminAgent = request.agent(app);
+    await superAdminAgent
+      .post(`${API}/auth/login`)
+      .send({ email: superAdminEmail, password: superAdminPassword })
+      .expect(200);
+  });
+
+  afterAll(async () => {
+    if (appDataSource.isInitialized) {
+      await appDataSource.destroy();
+    }
+    if (managementDataSource.isInitialized) {
+      await managementDataSource.destroy();
+    }
+  });
+
+  describe('admin with read-only permissions on admins', () => {
+    const ts = Date.now();
+    const readOnlyEmail = `read-only-admin-${ts}@example.com`;
+    const readOnlyPassword = 'read-only-password-1';
+    let readOnlyAdminId: string;
+    let readOnlyAgent: ReturnType<typeof request.agent>;
+
+    beforeAll(async () => {
+      const res = await superAdminAgent
+        .post(`${API}/admins`)
+        .send({
+          email: readOnlyEmail,
+          password: readOnlyPassword,
+          displayName: `Read Only Admin ${ts}`,
+          adminsCrud: 2, // read only (CrudMask: create=1, read=2, update=4, delete=8)
+          usersCrud: 0,
+          eventVisibility: 'own',
+        })
+        .expect(201);
+      readOnlyAdminId = res.body.admin.id;
+
+      readOnlyAgent = request.agent(app);
+      await readOnlyAgent
+        .post(`${API}/auth/login`)
+        .send({ email: readOnlyEmail, password: readOnlyPassword })
+        .expect(200);
+    });
+
+    it('GET /admins returns 200 (has read)', async () => {
+      const res = await readOnlyAgent.get(`${API}/admins`).expect(200);
+      expect(Array.isArray(res.body.admins)).toBe(true);
+    });
+
+    it('GET /admins/:id returns 200 (has read)', async () => {
+      const res = await readOnlyAgent.get(`${API}/admins/${readOnlyAdminId}`).expect(200);
+      expect(res.body.admin.id).toBe(readOnlyAdminId);
+    });
+
+    it('POST /admins returns 403 (not super admin)', async () => {
+      await readOnlyAgent
+        .post(`${API}/admins`)
+        .send({
+          email: `new-by-readonly-${ts}@example.com`,
+          password: 'password-1',
+          displayName: `New By Readonly ${ts}`,
+          adminsCrud: 0,
+          usersCrud: 0,
+          eventVisibility: 'own',
+        })
+        .expect(403);
+    });
+
+    it('PATCH /admins/:id returns 403 (no update permission)', async () => {
+      await readOnlyAgent
+        .patch(`${API}/admins/${readOnlyAdminId}`)
+        .send({ displayName: `Updated By Readonly ${ts}` })
+        .expect(403);
+    });
+
+    it('DELETE /admins/:id returns 403 (no delete permission)', async () => {
+      await readOnlyAgent.delete(`${API}/admins/${readOnlyAdminId}`).expect(403);
+    });
+
+    it('PATCH /admins/:id permission update returns 403 (only super admin can change permissions)', async () => {
+      // Admin with update permission tries to update another admin's permissions — super admin only
+      const updateAgent = request.agent(app);
+      const updateEmail = `update-perm-${ts}@example.com`;
+      const createRes = await superAdminAgent
+        .post(`${API}/admins`)
+        .send({
+          email: updateEmail,
+          password: 'update-password-1',
+          displayName: `Update Perm Admin ${ts}`,
+          adminsCrud: 4, // update only
+          usersCrud: 0,
+          eventVisibility: 'own',
+        })
+        .expect(201);
+      const updateAdminId = createRes.body.admin.id;
+      await updateAgent
+        .post(`${API}/auth/login`)
+        .send({ email: updateEmail, password: 'update-password-1' })
+        .expect(200);
+      // Trying to update permissions via PATCH — should fail with 403
+      await updateAgent
+        .patch(`${API}/admins/${readOnlyAdminId}`)
+        .send({ adminsCrud: 15 })
+        .expect(403, { message: 'Only super admin can update permissions' });
+      // Cleanup
+      await superAdminAgent.delete(`${API}/admins/${updateAdminId}`).expect(204);
+    });
+
+    afterAll(async () => {
+      // Cleanup read-only admin
+      await superAdminAgent.delete(`${API}/admins/${readOnlyAdminId}`).expect(204);
+    });
+  });
+
+  describe('admin with no permissions on admins', () => {
+    const ts2 = Date.now() + 1;
+    const noPermEmail = `no-perm-${ts2}@example.com`;
+    const noPermPassword = 'no-perm-password-1';
+    let noPermAdminId: string;
+    let noPermAgent: ReturnType<typeof request.agent>;
+
+    beforeAll(async () => {
+      const res = await superAdminAgent
+        .post(`${API}/admins`)
+        .send({
+          email: noPermEmail,
+          password: noPermPassword,
+          displayName: `No Perm Admin ${ts2}`,
+          adminsCrud: 0,
+          usersCrud: 0,
+          eventVisibility: 'own',
+        })
+        .expect(201);
+      noPermAdminId = res.body.admin.id;
+
+      noPermAgent = request.agent(app);
+      await noPermAgent
+        .post(`${API}/auth/login`)
+        .send({ email: noPermEmail, password: noPermPassword })
+        .expect(200);
+    });
+
+    it('GET /admins returns 403 (no read permission)', async () => {
+      await noPermAgent.get(`${API}/admins`).expect(403);
+    });
+
+    it('GET /admins/:id returns 403 (no read permission)', async () => {
+      await noPermAgent.get(`${API}/admins/${noPermAdminId}`).expect(403);
+    });
+
+    afterAll(async () => {
+      await superAdminAgent.delete(`${API}/admins/${noPermAdminId}`).expect(204);
+    });
+  });
+
+  describe('super admin cannot be retrieved via GET /admins/:id', () => {
+    it('returns 404 when looking up super admin by id (super admins are hidden)', async () => {
+      // Get super admin's id via me
+      const meRes = await superAdminAgent.get(`${API}/auth/me`).expect(200);
+      const superAdminId = meRes.body.user.id;
+      // GET /admins/:id should return 404 for super admin (hidden from admin list)
+      await superAdminAgent.get(`${API}/admins/${superAdminId}`).expect(404);
+    });
+  });
+
+  describe('display name uniqueness', () => {
+    const ts3 = Date.now() + 2;
+    let adminIdA: string;
+
+    beforeAll(async () => {
+      const res = await superAdminAgent
+        .post(`${API}/admins`)
+        .send({
+          email: `dn-a-${ts3}@example.com`,
+          password: 'dn-a-password',
+          displayName: `Unique DN Admin ${ts3}`,
+          adminsCrud: 0,
+          usersCrud: 0,
+          eventVisibility: 'own',
+        })
+        .expect(201);
+      adminIdA = res.body.admin.id;
+    });
+
+    it('POST /admins returns 409 when display name already in use', async () => {
+      await superAdminAgent
+        .post(`${API}/admins`)
+        .send({
+          email: `dn-b-${ts3}@example.com`,
+          password: 'dn-b-password',
+          displayName: `Unique DN Admin ${ts3}`,
+          adminsCrud: 0,
+          usersCrud: 0,
+          eventVisibility: 'own',
+        })
+        .expect(409, { message: 'Display name already in use' });
+    });
+
+    it('PATCH /admins/:id returns 409 when display name already in use', async () => {
+      // Get super admin's display name
+      const meRes = await superAdminAgent.get(`${API}/auth/me`).expect(200);
+      const superAdminDisplayName = meRes.body.user.displayName;
+      if (superAdminDisplayName !== null) {
+        await superAdminAgent
+          .patch(`${API}/admins/${adminIdA}`)
+          .send({ displayName: superAdminDisplayName })
+          .expect(409, { message: 'Display name already in use' });
+      }
+    });
+
+    afterAll(async () => {
+      await superAdminAgent.delete(`${API}/admins/${adminIdA}`).expect(204);
+    });
+  });
+
+  describe('DELETE /admins/:id returns 404 for nonexistent id', () => {
+    it('returns 404', async () => {
+      await superAdminAgent
+        .delete(`${API}/admins/00000000-0000-0000-0000-000000000000`)
+        .expect(404);
+    });
+  });
+});

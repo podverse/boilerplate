@@ -24,27 +24,35 @@ export async function createSuperAdminForTest(email: string, password: string): 
   const id = uuidv4();
   const passwordHash = await bcrypt.hash(password, SALT_ROUNDS);
 
-  await managementDataSource.transaction(async (manager) => {
-    const userRepo = manager.getRepository(ManagementUser);
-    const credRepo = manager.getRepository(ManagementUserCredentials);
-    const bioRepo = manager.getRepository(ManagementUserBio);
+  try {
+    await managementDataSource.transaction(async (manager) => {
+      const userRepo = manager.getRepository(ManagementUser);
+      const credRepo = manager.getRepository(ManagementUserCredentials);
+      const bioRepo = manager.getRepository(ManagementUserBio);
 
-    const user = userRepo.create({
-      id,
-      isSuperAdmin: true,
-      createdBy: null,
+      const user = userRepo.create({
+        id,
+        isSuperAdmin: true,
+        createdBy: null,
+      });
+      await userRepo.save(user);
+      const cred = credRepo.create({
+        managementUserId: id,
+        email,
+        passwordHash,
+      });
+      await credRepo.save(cred);
+      const bio = bioRepo.create({
+        managementUserId: id,
+        displayName: 'Super Admin',
+      });
+      await bioRepo.save(bio);
     });
-    await userRepo.save(user);
-    const cred = credRepo.create({
-      managementUserId: id,
-      email,
-      passwordHash,
-    });
-    await credRepo.save(cred);
-    const bio = bioRepo.create({
-      managementUserId: id,
-      displayName: 'Super Admin',
-    });
-    await bioRepo.save(bio);
-  });
+  } catch {
+    // Another parallel test process may have created the super admin between our check and
+    // insert — tolerate the duplicate key violation from idx_one_super_admin.
+    const recheck = await ManagementUserService.findSuperAdmin();
+    if (recheck !== null) return;
+    throw new Error('createSuperAdminForTest: unexpected error creating super admin');
+  }
 }

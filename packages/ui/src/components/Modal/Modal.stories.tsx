@@ -9,6 +9,7 @@ const meta: Meta<typeof Modal> = {
   tags: ['autodocs'],
   argTypes: {
     withBackdrop: { control: 'boolean' },
+    backdropOpaque: { control: 'boolean' },
   },
 };
 
@@ -34,5 +35,13 @@ export const WithContent: Story = {
   args: {
     withBackdrop: true,
     children: <div className={styles.content}>Modal content slot (e.g. dialog or spinner)</div>,
+  },
+};
+
+export const WithOpaqueBackdrop: Story = {
+  args: {
+    withBackdrop: true,
+    backdropOpaque: true,
+    children: <div className={styles.content}>Opaque backdrop for better readability</div>,
   },
 };

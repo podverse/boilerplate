@@ -77,6 +77,36 @@ describe('mailer-enabled (mocked)', () => {
       expect(res.body.user.email).toBe(signupEmail);
       expect(captured.verifyEmail).not.toBe('');
     });
+
+    it('returns 400 when email missing', async () => {
+      await request(app)
+        .post(`${API}/auth/signup`)
+        .send({ password: signupPassword })
+        .expect(400);
+    });
+
+    it('returns 400 when password missing', async () => {
+      await request(app)
+        .post(`${API}/auth/signup`)
+        .send({ email: 'missing-pass@example.com' })
+        .expect(400);
+    });
+
+    it('returns 400 when password fails validation (too short)', async () => {
+      const res = await request(app)
+        .post(`${API}/auth/signup`)
+        .send({ email: `weak-${Date.now()}@example.com`, password: 'x' })
+        .expect(400);
+      expect(res.body.message).toBeDefined();
+    });
+
+    it('returns 201 for duplicate email without leaking existence (anti-enumeration)', async () => {
+      const res = await request(app)
+        .post(`${API}/auth/signup`)
+        .send({ email: signupEmail, password: signupPassword })
+        .expect(201);
+      expect(res.body.message).toBeDefined();
+    });
   });
 
   describe('POST /auth/verify-email', () => {
@@ -93,9 +123,28 @@ describe('mailer-enabled (mocked)', () => {
         .send({ token: 'invalid-token' })
         .expect(400, { message: 'Invalid or expired link' });
     });
+
+    it('returns 400 when token is missing', async () => {
+      await request(app)
+        .post(`${API}/auth/verify-email`)
+        .send({})
+        .expect(400, { message: 'Invalid or expired link' });
+    });
   });
 
   describe('POST /auth/forgot-password and reset-password', () => {
+    it('forgot-password returns 400 when email missing', async () => {
+      await request(app).post(`${API}/auth/forgot-password`).send({}).expect(400);
+    });
+
+    it('forgot-password returns 200 for unknown email (anti-enumeration)', async () => {
+      const res = await request(app)
+        .post(`${API}/auth/forgot-password`)
+        .send({ email: 'no-such-user@example.com' })
+        .expect(200);
+      expect(res.body.message).toBeDefined();
+    });
+
     it('forgot-password returns 200 and captures token; reset-password returns 204', async () => {
       captured.passwordReset = '';
       await request(app)
@@ -127,6 +176,28 @@ describe('mailer-enabled (mocked)', () => {
         .send({ token: 'any-token' })
         .expect(400);
     });
+
+    it('reset-password returns 400 when newPassword fails validation (too short)', async () => {
+      // First obtain a fresh reset token via forgot-password
+      captured.passwordReset = '';
+      const freshEmail = `reset-weak-${Date.now()}@example.com`;
+      const freshAgent = request.agent(app);
+      await freshAgent
+        .post(`${API}/auth/signup`)
+        .send({ email: freshEmail, password: signupPassword })
+        .expect(201);
+      await request(app)
+        .post(`${API}/auth/forgot-password`)
+        .send({ email: freshEmail })
+        .expect(200);
+      if (captured.passwordReset !== '') {
+        const res = await request(app)
+          .post(`${API}/auth/reset-password`)
+          .send({ token: captured.passwordReset, newPassword: 'x' })
+          .expect(400);
+        expect(res.body.message).toBeDefined();
+      }
+    });
   });
 
   describe('POST /auth/request-email-change and confirm-email-change', () => {
@@ -151,6 +222,40 @@ describe('mailer-enabled (mocked)', () => {
         .post(`${API}/auth/login`)
         .send({ email: newEmail, password: 'reset-new-pass' })
         .expect(200);
+    });
+
+    it('request-email-change returns 400 when new email equals current', async () => {
+      const sameEmailAgent = request.agent(app);
+      const sameEmailAddr = `same-email-${Date.now()}@example.com`;
+      await sameEmailAgent
+        .post(`${API}/auth/signup`)
+        .send({ email: sameEmailAddr, password: signupPassword })
+        .expect(201);
+      const res = await sameEmailAgent
+        .post(`${API}/auth/request-email-change`)
+        .send({ newEmail: sameEmailAddr })
+        .expect(400);
+      expect(res.body.message).toBeDefined();
+    });
+
+    it('request-email-change returns 409 when new email already in use', async () => {
+      const conflictAgent = request.agent(app);
+      const conflictEmail1 = `conflict-a-${Date.now()}@example.com`;
+      const conflictEmail2 = `conflict-b-${Date.now()}@example.com`;
+      await conflictAgent
+        .post(`${API}/auth/signup`)
+        .send({ email: conflictEmail1, password: signupPassword })
+        .expect(201);
+      // Also create user 2 so that email2 is taken
+      await request(app)
+        .post(`${API}/auth/signup`)
+        .send({ email: conflictEmail2, password: signupPassword })
+        .expect(201);
+      const res = await conflictAgent
+        .post(`${API}/auth/request-email-change`)
+        .send({ newEmail: conflictEmail2 })
+        .expect(409);
+      expect(res.body.message).toBeDefined();
     });
 
     it('request-email-change returns 401 without cookie or Authorization', async () => {
@@ -180,6 +285,13 @@ describe('mailer-enabled (mocked)', () => {
       await request(app)
         .post(`${API}/auth/confirm-email-change`)
         .send({ token: 'invalid-token' })
+        .expect(400, { message: 'Invalid or expired link' });
+    });
+
+    it('confirm-email-change returns 400 when token is missing', async () => {
+      await request(app)
+        .post(`${API}/auth/confirm-email-change`)
+        .send({})
         .expect(400, { message: 'Invalid or expired link' });
     });
   });

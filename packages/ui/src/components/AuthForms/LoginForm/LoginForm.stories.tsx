@@ -80,3 +80,16 @@ export const Loading: Story = {
     loading: true,
   },
 };
+
+export const NoLinks: Story = {
+  render: (args) => (
+    <LoginFormWrapper
+      {...args}
+      email=""
+      password=""
+    />
+  ),
+  args: {
+    loading: false,
+  },
+};

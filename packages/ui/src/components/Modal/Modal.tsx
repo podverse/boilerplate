@@ -6,8 +6,10 @@ import styles from './Modal.module.scss';
 
 export type ModalProps = {
   children: React.ReactNode;
-  /** When true, overlay has a subtle dark backdrop; when false, fully transparent. Default false. */
+  /** When true, overlay has a dark backdrop; when false, fully transparent. Default false. */
   withBackdrop?: boolean;
+  /** When true (and withBackdrop), backdrop is opaque for better readability. Default false. */
+  backdropOpaque?: boolean;
   /** Optional className for the overlay. */
   className?: string;
   /** When provided, a close button is shown in the upper-right corner of the modal content. */
@@ -19,11 +21,21 @@ export type ModalProps = {
  * other modal content. Transparent by default; set withBackdrop for a dimmed backdrop.
  * When onClose is provided, a close button appears in the upper-right corner of the content.
  */
-export function Modal({ children, withBackdrop = false, className = '', onClose }: ModalProps) {
+export function Modal({
+  children,
+  withBackdrop = false,
+  backdropOpaque = false,
+  className = '',
+  onClose,
+}: ModalProps) {
   const t = useTranslations('ui.modal');
   const overlayClass = [
     styles.overlay,
-    withBackdrop ? styles.overlayBackdrop : styles.overlayTransparent,
+    withBackdrop
+      ? backdropOpaque
+        ? styles.overlayBackdropOpaque
+        : styles.overlayBackdrop
+      : styles.overlayTransparent,
     className,
   ]
     .filter(Boolean)

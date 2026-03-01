@@ -2,8 +2,8 @@
 
 import { useState } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
-import { ForgotPasswordForm, useAuthValidation } from '@boilerplate/ui';
-import { webAuth } from '@boilerplate/helpers-requests';
+import { ForgotPasswordForm, RateLimitModal, useAuthValidation } from '@boilerplate/ui';
+import { getRateLimitRetrySeconds, webAuth } from '@boilerplate/helpers-requests';
 import { getApiBaseUrl } from '../../../lib/api-client';
 import { ROUTES } from '../../../lib/routes';
 
@@ -16,6 +16,8 @@ export default function ForgotPasswordPage() {
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [showRateLimitModal, setShowRateLimitModal] = useState(false);
+  const [rateLimitRetrySeconds, setRateLimitRetrySeconds] = useState<number | undefined>(undefined);
 
   const handleSubmit = async (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -31,21 +33,33 @@ export default function ForgotPasswordPage() {
 
     if (res.ok) {
       setSuccess(true);
+    } else if (res.status === 429) {
+      setRateLimitRetrySeconds(
+        getRateLimitRetrySeconds('auth:forgotPassword', res.error?.retryAfterSeconds)
+      );
+      setShowRateLimitModal(true);
     } else {
       setSubmitError(res.error?.message ?? tErrors('requestFailed'));
     }
   };
 
   return (
-    <ForgotPasswordForm
-      email={email}
-      onEmailChange={setEmail}
-      onSubmit={handleSubmit}
-      loading={loading}
-      emailError={emailError}
-      submitError={submitError}
-      success={success}
-      loginHref={ROUTES.LOGIN}
-    />
+    <>
+      <RateLimitModal
+        open={showRateLimitModal}
+        onClose={() => setShowRateLimitModal(false)}
+        retryAfterSeconds={rateLimitRetrySeconds}
+      />
+      <ForgotPasswordForm
+        email={email}
+        onEmailChange={setEmail}
+        onSubmit={handleSubmit}
+        loading={loading}
+        emailError={emailError}
+        submitError={submitError}
+        success={success}
+        loginHref={ROUTES.LOGIN}
+      />
+    </>
   );
 }

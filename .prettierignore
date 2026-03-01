@@ -11,3 +11,4 @@ package-lock.json
 **/.env
 **/.env.*
 .llm/
+**/i18n/**/*.json

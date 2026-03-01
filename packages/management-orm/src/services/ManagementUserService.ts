@@ -112,18 +112,15 @@ export class ManagementUserService {
   /**
    * Create an admin (non–super-admin). Always creates management_user, credentials,
    * management_user_bio (display_name required), and admin_permissions in a single transaction.
-   * The DB enforces that every management_user has exactly one credentials and one bio row
-   * (created in the same transaction) and that cred/bio rows cannot be deleted directly—delete
-   * management_user only (CASCADE removes cred and bio).
-   * This method sets the ensure_management_user_has_cred_and_bio constraint to DEFERRED at the
-   * start of the transaction so the check runs at commit and sees user, credentials, and bio.
+   * Atomicity is enforced at the application layer; FK ON DELETE CASCADE on
+   * management_user_credentials and management_user_bio handles cleanup when a management_user
+   * row is deleted.
    */
   static async createAdmin(data: CreateAdminData): Promise<ManagementUser> {
     const qr = managementDataSource.createQueryRunner();
     await qr.connect();
     await qr.startTransaction();
     try {
-      await qr.manager.query('SET CONSTRAINTS ensure_management_user_has_cred_and_bio DEFERRED');
       const userRepo = qr.manager.getRepository(ManagementUser);
       const credRepo = qr.manager.getRepository(ManagementUserCredentials);
       const bioRepo = qr.manager.getRepository(ManagementUserBio);

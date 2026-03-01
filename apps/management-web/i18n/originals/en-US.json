@@ -188,6 +188,13 @@
     "modal": {
       "ariaClose": "Close"
     },
+    "rateLimitModal": {
+      "title": "Too many attempts",
+      "bodyWithTime": "You can try again in {time}.",
+      "bodyFallback": "You can try again in a few minutes.",
+      "timeMinutes": "{count, plural, one {# minute} other {# minutes}}",
+      "timeSeconds": "{count, plural, one {# second} other {# seconds}}"
+    },
     "tableFilterBar": {
       "placeholder": "Filter…",
       "filterColumnsLabel": "Search in columns",
