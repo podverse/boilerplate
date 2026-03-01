@@ -80,7 +80,7 @@ Default branch is **develop**; open PRs against `develop`. Use `npm run start-fe
 
 **Alpha publish:** Merging to the `alpha` branch runs the Publish Alpha workflow and pushes Docker images (api, web, web-sidecar) to GHCR. See [docs/PUBLISH.md](docs/PUBLISH.md).
 
-**GitHub labels:** Run `./scripts/github/setup-all-labels.sh` to create or update repo labels (requires `gh auth login`). See [scripts/github/SCRIPTS-GITHUB.md](scripts/github/SCRIPTS-GITHUB.md) and [docs/repo-management/GITHUB-LABELS.md](docs/repo-management/GITHUB-LABELS.md). For one-time repo setup (labels, branch protection, default branch), see [docs/repo-management/GITHUB-SETUP.md](docs/repo-management/GITHUB-SETUP.md).
+**GitHub labels:** Run `./scripts/github/setup-all-labels.sh` to create or update repo labels (requires `gh auth login`). See [scripts/github/SCRIPTS-GITHUB.md](scripts/github/SCRIPTS-GITHUB.md) and [docs/repo-management/GITHUB-LABELS.md](docs/repo-management/GITHUB-LABELS.md). For one-time repo setup (labels, branch protection, default branch), see [docs/repo-management/GITHUB-SETUP.md](docs/repo-management/GITHUB-SETUP.md). Dependency update policy and Dependabot (npm, Docker, Actions; Node LTS ≥ 24): [docs/repo-management/DEPENDABOT.md](docs/repo-management/DEPENDABOT.md).
 
 ## LLM / Cursor
 

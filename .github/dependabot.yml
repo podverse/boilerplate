@@ -1,0 +1,117 @@
+# Dependabot configuration – aligned with Podverse monorepo
+# Targets develop branch. Node LTS >= 24 only (even versions: 24, 26, 28...).
+
+version: 2
+
+updates:
+  # npm dependencies (root and workspaces)
+  - package-ecosystem: "npm"
+    directory: "/"
+    target-branch: "develop"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "08:00"
+      timezone: "America/Chicago"
+    open-pull-requests-limit: 10
+    labels:
+      - "dependencies"
+    commit-message:
+      prefix: "chore(deps)"
+    # Node LTS >= 24 only: ignore pre-24 and odd (non-LTS) versions
+    ignore:
+      - dependency-name: "@types/node"
+        versions: ["18.x", "19.x", "20.x", "21.x", "22.x", "23.x", "25.x", "27.x", "29.x"]
+    groups:
+      production-minor-patch:
+        applies-to: version-updates
+        patterns:
+          - "*"
+        exclude-patterns:
+          - "@types/*"
+          - "eslint*"
+          - "typescript"
+        update-types:
+          - "minor"
+          - "patch"
+      typescript-ecosystem:
+        patterns:
+          - "typescript"
+          - "@types/*"
+          - "eslint*"
+      dev-dependencies:
+        applies-to: version-updates
+        dependency-type: "development"
+        update-types:
+          - "minor"
+          - "patch"
+
+  # Docker images – infra/docker/local/*
+  - package-ecosystem: "docker"
+    directory: "/infra/docker/local/api"
+    target-branch: "develop"
+    schedule:
+      interval: "weekly"
+    labels:
+      - "dependencies"
+      - "docker"
+    ignore:
+      - dependency-name: "node"
+        versions: ["18.x", "19.x", "20.x", "21.x", "22.x", "23.x", "25.x", "27.x", "29.x"]
+
+  - package-ecosystem: "docker"
+    directory: "/infra/docker/local/web"
+    target-branch: "develop"
+    schedule:
+      interval: "weekly"
+    labels:
+      - "dependencies"
+      - "docker"
+    ignore:
+      - dependency-name: "node"
+        versions: ["18.x", "19.x", "20.x", "21.x", "22.x", "23.x", "25.x", "27.x", "29.x"]
+
+  - package-ecosystem: "docker"
+    directory: "/infra/docker/local/web-sidecar"
+    target-branch: "develop"
+    schedule:
+      interval: "weekly"
+    labels:
+      - "dependencies"
+      - "docker"
+    ignore:
+      - dependency-name: "node"
+        versions: ["18.x", "19.x", "20.x", "21.x", "22.x", "23.x", "25.x", "27.x", "29.x"]
+
+  - package-ecosystem: "docker"
+    directory: "/infra/docker/local/management-api"
+    target-branch: "develop"
+    schedule:
+      interval: "weekly"
+    labels:
+      - "dependencies"
+      - "docker"
+    ignore:
+      - dependency-name: "node"
+        versions: ["18.x", "19.x", "20.x", "21.x", "22.x", "23.x", "25.x", "27.x", "29.x"]
+
+  - package-ecosystem: "docker"
+    directory: "/infra/docker/local/management-web"
+    target-branch: "develop"
+    schedule:
+      interval: "weekly"
+    labels:
+      - "dependencies"
+      - "docker"
+    ignore:
+      - dependency-name: "node"
+        versions: ["18.x", "19.x", "20.x", "21.x", "22.x", "23.x", "25.x", "27.x", "29.x"]
+
+  # GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    target-branch: "develop"
+    schedule:
+      interval: "weekly"
+    labels:
+      - "dependencies"

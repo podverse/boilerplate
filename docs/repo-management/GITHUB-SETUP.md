@@ -44,3 +44,10 @@ If you use a GitHub App for CI status checks, deployment, or other automation:
 - Store App ID and private key (or installation token) in secrets as required by your workflows
 
 This is optional; the repository works with the default GitHub Actions permissions without an App.
+
+## 6. Dependency updates (Dependabot)
+
+Dependabot is configured in [`.github/dependabot.yml`](../../.github/dependabot.yml) and opens
+PRs for npm, Docker, and GitHub Actions updates. Schedule, grouping, and Node LTS policy
+(≥ 24 only) are described in [DEPENDABOT.md](DEPENDABOT.md). Ensure labels `dependencies`
+and `docker` exist (section 2) so Dependabot can apply them.
