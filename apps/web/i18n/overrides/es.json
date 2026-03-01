@@ -167,8 +167,10 @@
       "next": "",
       "goToPage": "",
       "ariaPagination": "",
+      "ariaFirstPage": "",
       "ariaPreviousPage": "",
       "ariaNextPage": "",
+      "ariaLastPage": "",
       "pagesRangeOf": "",
       "goToPageModal": {
         "title": "",

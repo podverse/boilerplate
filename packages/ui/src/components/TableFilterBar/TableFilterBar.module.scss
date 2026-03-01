@@ -88,4 +88,10 @@
   height: $size-sm;
   margin: 0;
   cursor: pointer;
+  /* Restore visible checkbox (reset strips appearance/border/background from all inputs) */
+  -webkit-appearance: checkbox;
+  appearance: checkbox;
+  border: $border-width solid var(--color-border);
+  background-color: var(--color-bg);
+  accent-color: var(--color-primary);
 }

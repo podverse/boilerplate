@@ -10,13 +10,8 @@
   width: 100%;
   margin-left: auto;
   margin-right: auto;
-  padding-left: $space-4;
-  padding-right: $space-4;
-
-  @include at-least-md {
-    padding-left: $space-6;
-    padding-right: $space-6;
-  }
+  padding-left: $space-2;
+  padding-right: $space-2;
 }
 
 // Main content area: same as container, for <main>. Fills viewport and scrolls internally.
@@ -25,8 +20,6 @@
   flex: 1;
   min-height: 0;
   overflow: auto;
-  padding-top: $space-4;
-  padding-bottom: $space-4;
 }
 
 // Full-viewport wrapper so the window never scrolls; only nested content scrolls.

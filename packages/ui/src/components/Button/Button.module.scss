@@ -17,8 +17,12 @@
     background-color $transition-fast,
     border-color $transition-fast;
 
-  @include focus-ring;
   @include disabled-state;
+}
+
+.primary,
+.secondary {
+  @include focus-ring;
 }
 
 .primary {
@@ -41,6 +45,20 @@
   }
 }
 
+.link {
+  color: var(--color-primary);
+  background-color: transparent;
+  border: none;
+
+  &:hover:not(:disabled) {
+    background-color: var(--color-border);
+  }
+
+  &:focus-visible {
+    outline: none;
+  }
+}
+
 .loading {
   position: relative;
   color: transparent;
@@ -59,7 +77,8 @@
 }
 
 .primary.loading::after,
-.secondary.loading::after {
+.secondary.loading::after,
+.link.loading::after {
   border-color: transparent;
   border-right-color: currentColor;
   color: inherit;

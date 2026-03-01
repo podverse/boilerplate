@@ -82,7 +82,7 @@ export default async function AdminsPage({ searchParams }: PageProps) {
 
   const resolved = searchParams !== undefined ? await searchParams : {};
   const page = Math.max(1, Number(resolved.page) || 1);
-  const limit = Math.min(100, Math.max(1, Number(resolved.limit) || DEFAULT_PAGE_LIMIT));
+  const limit = DEFAULT_PAGE_LIMIT;
   const filterColumnsRaw = resolved.filterColumns ?? '';
   const adminColumnIds = ['email', 'displayName'];
   const initialFilterColumns =
@@ -118,7 +118,6 @@ export default async function AdminsPage({ searchParams }: PageProps) {
 
   const currentQueryParams: Record<string, string> = {};
   if (page > 1) currentQueryParams.page = String(page);
-  if (limit !== DEFAULT_PAGE_LIMIT) currentQueryParams.limit = String(limit);
   if (filterColumnsRaw.trim() !== '') currentQueryParams.filterColumns = filterColumnsRaw;
   if (search !== '') currentQueryParams.search = search;
 

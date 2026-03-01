@@ -3,6 +3,7 @@
 import { useState, useMemo } from 'react';
 import { useTranslations } from 'next-intl';
 
+import { Button } from '../Button/Button';
 import { GoToPageModal, type GoToPageModalProps } from './GoToPageModal';
 
 import styles from './Pagination.module.scss';
@@ -179,13 +180,14 @@ export function Pagination({
           )}
         </div>
         <div className={styles.goToPageWrap}>
-          <button
+          <Button
             type="button"
+            variant="link"
             className={styles.goToPageButton}
             onClick={() => setGoToPageOpen(true)}
           >
             {goToPage}
-          </button>
+          </Button>
         </div>
       </nav>
       <GoToPageModal

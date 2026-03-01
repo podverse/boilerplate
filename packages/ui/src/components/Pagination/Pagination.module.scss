@@ -84,11 +84,10 @@ $pagination-gap: $space-1;
 
 .goToPageButton {
   padding: $space-2 $space-4;
-  font-size: $font-size-base;
+  font-size: $font-size-sm;
   font-family: inherit;
   color: var(--color-primary);
   background: transparent;
-  border: $border-width solid var(--color-border);
   border-radius: $radius-sm;
   cursor: pointer;
 }

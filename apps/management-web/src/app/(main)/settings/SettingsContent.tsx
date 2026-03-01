@@ -6,7 +6,6 @@ import { ALL_AVAILABLE_LOCALES, type Locale } from '@boilerplate/helpers';
 import {
   Card,
   Container,
-  PageHeader,
   Stack,
   Select,
   ThemeSelector,
@@ -28,21 +27,24 @@ export function SettingsContent({ settingsCookieName }: SettingsContentProps) {
 
   return (
     <Container>
-      <PageHeader title={t('title')} />
       <Stack>
-        <Card title={t('theme')}>
-          <ThemeSelector />
-        </Card>
-        <Card title={t('languages.language')}>
-          <Select
-            options={localeOptions}
-            value={locale}
-            onChange={(value) => {
-              setSettingsCookie(settingsCookieName, { locale: value });
-              router.refresh();
-            }}
-            aria-label={t('languages.language')}
-          />
+        <Card title={t('title')}>
+          <Stack>
+            <Card title={t('theme')}>
+              <ThemeSelector />
+            </Card>
+            <Card title={t('languages.language')}>
+              <Select
+                options={localeOptions}
+                value={locale}
+                onChange={(value) => {
+                  setSettingsCookie(settingsCookieName, { locale: value });
+                  router.refresh();
+                }}
+                aria-label={t('languages.language')}
+              />
+            </Card>
+          </Stack>
         </Card>
       </Stack>
     </Container>

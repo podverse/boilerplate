@@ -51,6 +51,10 @@
 .select {
   width: 100%;
   max-width: $select-max-width;
+
+  @media (max-width: $breakpoint-sm - 1px) {
+    max-width: none;
+  }
 }
 
 .selectSizeToSelected {

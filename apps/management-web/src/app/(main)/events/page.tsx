@@ -1,12 +1,11 @@
 import { redirect } from 'next/navigation';
 import { cookies } from 'next/headers';
 import { getLocale, getTranslations } from 'next-intl/server';
-import { DEFAULT_PAGE_LIMIT, MAX_PAGE_SIZE } from '@boilerplate/helpers';
+import { DEFAULT_PAGE_LIMIT } from '@boilerplate/helpers';
 import { request } from '@boilerplate/helpers-requests';
 import { formatDateTimeReadable } from '@boilerplate/helpers-i18n';
 import { Card, Container, Stack, Text } from '@boilerplate/ui';
 
-import { EventsLimitSelect } from '../../../components/EventsLimitSelect';
 import { EventsSortSelect } from '../../../components/EventsSortSelect';
 import { EventsTableWithFilter } from '../../../components/EventsTableWithFilter';
 import { getServerUser } from '../../../lib/server-auth';
@@ -98,7 +97,7 @@ export default async function EventsPage({ searchParams }: PageProps) {
 
   const resolved = searchParams !== undefined ? await searchParams : {};
   const page = Math.max(1, Number(resolved.page) || 1);
-  const limit = Math.min(MAX_PAGE_SIZE, Math.max(1, Number(resolved.limit) || DEFAULT_PAGE_LIMIT));
+  const limit = DEFAULT_PAGE_LIMIT;
   const sort = resolved.sort === 'oldest' ? 'oldest' : 'recent';
   const filterColumnsRaw = resolved.filterColumns ?? '';
   const eventColumnIds = ['timestamp', 'actorType', 'action', 'target', 'details'];
@@ -145,7 +144,6 @@ export default async function EventsPage({ searchParams }: PageProps) {
 
   const currentQueryParams: Record<string, string> = {};
   if (page > 1) currentQueryParams.page = String(page);
-  if (limit !== DEFAULT_PAGE_LIMIT) currentQueryParams.limit = String(limit);
   if (sort === 'oldest') currentQueryParams.sort = 'oldest';
   if (filterColumnsRaw.trim() !== '') currentQueryParams.filterColumns = filterColumnsRaw;
   if (search !== '') currentQueryParams.search = search;
@@ -187,12 +185,6 @@ export default async function EventsPage({ searchParams }: PageProps) {
                     }}
                   />
                 }
-              />
-              <EventsLimitSelect
-                sort={sort}
-                limit={limit}
-                defaultLimit={DEFAULT_PAGE_LIMIT}
-                label={tCommon('eventsLimit.label')}
               />
             </Stack>
           )}

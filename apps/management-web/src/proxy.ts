@@ -22,11 +22,10 @@ export function proxy(request: NextRequest) {
     return NextResponse.redirect(loginUrl);
   }
 
-  // Already logged in visiting login/signup -> redirect to dashboard
-  if (hasSession && (pathname === ROUTES.LOGIN || pathname === ROUTES.SIGNUP || pathname === '/')) {
-    const dashboardUrl = new URL(ROUTES.DASHBOARD, request.url);
-    return NextResponse.redirect(dashboardUrl);
-  }
+  // Do not redirect away from login/signup here. A stale or invalid session cookie
+  // would cause a loop: proxy sends /login -> dashboard, then getServerUser() fails
+  // and dashboard redirects to /login. Let the login/signup pages and API handle
+  // validity; they redirect to dashboard only when the session is actually valid.
 
   return NextResponse.next();
 }

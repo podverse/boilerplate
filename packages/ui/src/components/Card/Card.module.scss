@@ -2,9 +2,8 @@
 
 .root {
   min-width: 0; // allow shrinking inside flex so content doesn't overflow
-  padding: $space-6 $space-6;
+  padding: $space-4 $space-4;
   background-color: var(--color-bg);
-  border: $border-width solid var(--color-border);
   border-radius: $radius-md;
 }
 
