@@ -14,7 +14,7 @@ code and workflows are in place.
   `docs/GITFLOW.md`) that describes how to configure GitHub for this repo.
 - **No automation of branch protection or App creation** in this plan (those require org/repo
   admin and tokens); the doc gives step-by-step instructions.
-- Satisfies the “required from other plans” setup: plan 10 (labels script exists; doc says
+- Satisfies the "required from other plans" setup: plan 10 (labels script exists; doc says
   how to run it), plan 09 (CI on PR to develop; doc says set default branch and protection),
   plan 26 (pre-push blocks direct push to develop; doc says enable branch protection so
   server-side enforcement matches). Plan 13 (publish-alpha) and plan 21 (i18n) use
@@ -25,7 +25,7 @@ code and workflows are in place.
 ## Steps
 
 1. **Create or extend setup doc**
-   - Create `docs/GITHUB-SETUP.md` (or add a “GitHub repository setup” section to
+   - Create `docs/GITHUB-SETUP.md` (or add a "GitHub repository setup" section to
      `docs/GITFLOW.md` if that exists).   The doc will cover labels, branch protection, repository secrets, and
      optional GitHub App.
 
@@ -45,8 +45,8 @@ code and workflows are in place.
      allow bypass for admins per team policy); do not allow force pushes; optionally
      require status checks to pass if CI (plan 09) reports status. Restrict who can push
      to develop if desired.
-   - Explain why: plan 26’s pre-push hook blocks direct push to develop locally; branch
-     protection enforces the same rule on the server. Plan 09’s CI runs on PRs targeting
+   - Explain why: plan 26's pre-push hook blocks direct push to develop locally; branch
+     protection enforces the same rule on the server. Plan 09's CI runs on PRs targeting
      develop; protection ensures changes land via PR so CI runs.
 
 4. **Default branch**
@@ -67,17 +67,17 @@ code and workflows are in place.
      token (e.g. PAT or GHCR_REGISTRY_TOKEN), document that here and in docs/PUBLISH.md.
 
 6. **GitHub App (optional)**
-   - Add a short subsection “Optional: GitHub App” for teams that use a GitHub App for CI
+   - Add a short subsection "Optional: GitHub App" for teams that use a GitHub App for CI
      status checks, deployment, or /test automation. Document: create an App in the org
      (or user) settings; install it on this repo; store App ID and private key (or
      installation token) in secrets; link to GitHub docs for creating and installing
-     Apps. If plan 09’s /test workflow is extended to use an App for posting status or
+     Apps. If plan 09's /test workflow is extended to use an App for posting status or
      comments, mention that here and point to the workflow file.
 
 7. **README or docs index**
    - Add a line in README or in `docs/README.md` (if present) pointing to the GitHub
-     setup doc so new maintainers find it (e.g. “For one-time GitHub configuration
-     (labels, branch protection), see [docs/GITHUB-SETUP.md](docs/GITHUB-SETUP.md).”).
+     setup doc so new maintainers find it (e.g. "For one-time GitHub configuration
+     (labels, branch protection), see [docs/GITHUB-SETUP.md](docs/GITHUB-SETUP.md).").
 
 ## Key files
 

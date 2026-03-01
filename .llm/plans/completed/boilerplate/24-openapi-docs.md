@@ -13,7 +13,7 @@ section so management endpoints are described and testable independently from th
 
 - **OpenAPI 3.x** is the standard for describing REST APIs (JSON or YAML); tooling and
   codegen are widely supported.
-- **Swagger UI** (or ReDoc) consumes an OpenAPI spec and renders a page with “Try it out”
+- **Swagger UI** (or ReDoc) consumes an OpenAPI spec and renders a page with "Try it out"
   so you can send real requests. Served from the API app so it stays in sync and is
   available in every environment (local, Docker, deployed).
 
@@ -38,28 +38,28 @@ section so management endpoints are described and testable independently from th
 3. **Swagger UI (or ReDoc)**
    - Add a dependency (e.g. `swagger-ui-express` for Express) and mount the UI at a
      route such as `/api-docs` or `/docs`. Point it at the spec URL (same origin or
-     absolute path). In development and Docker, the page should load and “Try it out”
+     absolute path). In development and Docker, the page should load and "Try it out"
      should hit the same API (same port or document the base URL).
    - Optional: disable Swagger UI in production or restrict by env (e.g. only when
      NODE_ENV !== production or when ENABLE_API_DOCS=true). For a boilerplate, leaving
      it on is acceptable; document in README.
 
 4. **Auth in the test UI**
-   - Swagger UI supports “Authorize” with Bearer token. Document in the spec how to get a
+   - Swagger UI supports "Authorize" with Bearer token. Document in the spec how to get a
      token (e.g. call POST /auth/login, copy the token, paste into Authorize). Optional:
-     add a short note in the UI or in README (e.g. “Log in via POST /auth/login, then
-     Authorize with the returned token”).
+     add a short note in the UI or in README (e.g. "Log in via POST /auth/login, then
+     Authorize with the returned token").
 
 5. **Keep spec in sync**
    - Prefer maintaining the spec by hand (or from a single source) so it stays the
      contract. When adding or changing routes (auth, messages, etc.), update the OpenAPI
      file. Optionally add a CI or script that validates the spec (e.g. openapi lint) or
-     that the server’s routes match the spec; for boilerplate, manual sync is fine if
+     that the server's routes match the spec; for boilerplate, manual sync is fine if
      documented.
 
 6. **Documentation**
-   - README or docs: “API documentation and testing: run the API and open
-     http://localhost:4000/api-docs (or /docs).” Mention that the spec is OpenAPI 3.x
+   - README or docs: "API documentation and testing: run the API and open
+     http://localhost:4000/api-docs (or /docs)." Mention that the spec is OpenAPI 3.x
      and can be imported into Postman, Insomnia, or other tools.
 
 ## Key files
@@ -73,8 +73,8 @@ section so management endpoints are described and testable independently from th
 ## Verification
 
 - Start the API; open /api-docs in the browser; Swagger UI loads and shows all paths.
-- Use “Try it out” on a public route (e.g. health or signup); request succeeds.
-- Use “Authorize” with a JWT from login; “Try it out” on a protected route (e.g. GET
+- Use "Try it out" on a public route (e.g. health or signup); request succeeds.
+- Use "Authorize" with a JWT from login; "Try it out" on a protected route (e.g. GET
   /api/messages) succeeds with 200.
 
 ## Dependencies

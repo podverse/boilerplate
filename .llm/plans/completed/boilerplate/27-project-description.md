@@ -20,7 +20,7 @@ Update the project description so it is clearly **Boilerplate**-specific and lis
 1. Update root `package.json` `description` to a single line that is Boilerplate-specific (e.g. "Boilerplate monorepo: Express API + Next.js app with auth, real-time messages (Valkey), Postgres, and Podverse-aligned structure" or similar).
 2. In README.md (or the doc that serves as project overview):
    - Add or rewrite a **Project description** (or **What is Boilerplate?**) subsection.
-   - Under it, add an **Implementation details** (or **What’s included**) list covering:
+   - Under it, add an **Implementation details** (or **What's included**) list covering:
      - Stack (Node, TS, Express, Next.js, Postgres, Valkey, etc.).
      - Features (auth, messages, dashboard, settings, i18n, themes, OpenAPI/Swagger).
      - Repo structure (apps, packages, infra, tools, scripts, CI, Makefile).

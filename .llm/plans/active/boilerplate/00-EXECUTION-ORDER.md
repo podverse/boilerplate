@@ -24,24 +24,24 @@ All plans: `.llm/plans/active/boilerplate/`
 | [13-alpha-publish-stub.md](../../completed/boilerplate/13-alpha-publish-stub.md) (completed) | Alpha publish (images on merge to alpha) |
 | [14-joi-validation.md](../../completed/boilerplate/14-joi-validation.md) (completed) | Joi validation |
 | [15-auth-handling.md](../../completed/boilerplate/15-auth-handling.md) (completed) | Auth handling |
-| [16-scss.md](16-scss.md) | SCSS setup |
-| [17-responsive-layout.md](17-responsive-layout.md) | Responsive layout |
-| [18-themes.md](18-themes.md) | Dark/light themes |
-| [19-basic-components.md](19-basic-components.md) | Basic components |
-| [20-settings-page.md](20-settings-page.md) | Settings page (i18n + theme) |
-| [21-i18n-translations.md](21-i18n-translations.md) | i18n translations |
+| [16-scss.md](../../completed/boilerplate/16-scss.md) (completed) | SCSS setup |
+| [17-responsive-layout.md](../../completed/boilerplate/17-responsive-layout.md) (completed) | Responsive layout |
+| [18-themes.md](../../completed/boilerplate/18-themes.md) (completed) | Dark/light themes |
+| [19-basic-components.md](../../completed/boilerplate/19-basic-components.md) (completed) | Basic components |
+| [20-settings-page.md](../../completed/boilerplate/20-settings-page.md) (completed) | Settings page (i18n + theme) |
+| [21-i18n-translations.md](../../completed/boilerplate/21-i18n-translations.md) (completed) | i18n translations |
 | [22-dashboard-realtime.md](22-dashboard-realtime.md) | Dashboard and real-time messages |
 | [23-documentation-diagrams.md](23-documentation-diagrams.md) | Documentation and diagrams |
-| [24-openapi-docs.md](24-openapi-docs.md) | OpenAPI spec and Swagger UI (API docs + test page) |
-| [25-llm-alignment-skills-rules.md](25-llm-alignment-skills-rules.md) | Skills, rules, AGENTS.md for LLM alignment (keep API↔OpenAPI, env↔validation, etc. in sync) |
+| [24-openapi-docs.md](../../completed/boilerplate/24-openapi-docs.md) (completed) | OpenAPI spec and Swagger UI (API docs + test page) |
+| [25-llm-alignment-skills-rules.md](../../completed/boilerplate/25-llm-alignment-skills-rules.md) (completed) | Skills, rules, AGENTS.md for LLM alignment (keep API↔OpenAPI, env↔validation, etc. in sync) |
 | [26-git-hooks.md](26-git-hooks.md) | Git hooks (Podverse-aligned): pre-commit, commit-msg, pre-push; install via prepare |
-| [27-project-description.md](27-project-description.md) | Project description: Boilerplate-specific wording and implementation details (package.json + README) |
-| [28-github-repo-setup.md](28-github-repo-setup.md) | Documentation: GitHub labels, branch protection, optional GitHub App (as required from plans 09, 10, 26) |
-| [29-dependabot.md](29-dependabot.md) | Dependabot: .github/dependabot.yml and docs/repo-management/DEPENDABOT.md |
+| [27-project-description.md](../../completed/boilerplate/27-project-description.md) (completed) | Project description: Boilerplate-specific wording and implementation details (package.json + README) |
+| [28-github-repo-setup.md](../../completed/boilerplate/28-github-repo-setup.md) (completed) | Documentation: GitHub labels, branch protection, optional GitHub App (as required from plans 09, 10, 26) |
+| [29-dependabot.md](../../completed/boilerplate/29-dependabot.md) (completed) | Dependabot: .github/dependabot.yml and docs/repo-management/DEPENDABOT.md |
 | [30-jenkins-local.md](30-jenkins-local.md) | Jenkins local: run locally, folder "local", programmatic setup, deployment-only, sparse checkout |
 | [31-management-database.md](../../completed/boilerplate/31-management-database.md) (completed) | Management DB (identities, permissions, audit events) (completed) |
-| [32-management-api.md](32-management-api.md) | Management API (auth, admin CRUD, events API) |
-| [33-management-web.md](33-management-web.md) | Management Web (UI, Events page; uses shared UI package) |
+| [32-management-api.md](../../completed/boilerplate/32-management-api.md) (completed) | Management API (auth, admin CRUD, events API) |
+| [33-management-web.md](../../completed/boilerplate/33-management-web.md) (completed) | Management Web (UI, Events page; uses shared UI package) |
 | [34-signup-verification-and-password-flows.md](../../completed/boilerplate/34-signup-verification-and-password-flows.md) (completed) | Sign-up verification and password flows (email verify, forgot/reset password, change email) |
 | [35-api-integration-test-setup.md](../../completed/boilerplate/35-api-integration-test-setup.md) (completed) | API integration test setup (Vitest, supertest, app factory, test DB, mailer mock) |
 | [36-api-integration-auth-tests.md](../../completed/boilerplate/36-api-integration-auth-tests.md) (completed) | API integration auth tests (login, signup, verification flows; CI test step) |
@@ -97,27 +97,27 @@ Implemented. Plan files are in `.llm/plans/completed/boilerplate/`. Do not re-ex
 - **35-api-integration-test-setup** – Run after 34. (completed)
 - **36-api-integration-auth-tests** – Run after 35. (completed)
 
-## Management (before Phase 7)
+## Management (before Phase 7) (completed)
 
 Run after Phase 6 so that management DB, API, and (after Phase 7a and 33) Web are minimally functional before Phase 7b.
 
 - **31-management-database** (completed) – Run after Phase 6. Dedicated store (SQLite default) for
   management identities, permissions, and audit events. Plan 31 is implemented; plan file is in
   `.llm/plans/completed/boilerplate/`.
-- **32-management-api** – Run after 31. Express app; auth, events API, main-user CRUD via
-  main DB.
+- **32-management-api** (completed) – Run after 31. Express app; auth, events API, main-user CRUD via
+  main DB. Plan 32 is implemented; plan file is in `.llm/plans/completed/boilerplate/`.
 
-## Phase 7a: Shared UI package
+## Phase 7a: Shared UI package (completed)
 
 - **16-scss**, **17-responsive-layout**, **18-themes**, **19-basic-components** – Run in
   parallel after 32. Deliver into `packages/ui` / `@boilerplate/ui` so that both
-  `apps/web` and `apps/management-web` depend on it for components and styles.
+  `apps/web` and `apps/management-web` depend on it for components and styles. (completed)
 
-## Management Web (after Phase 7a)
+## Management Web (after Phase 7a) (completed)
 
 - **33-management-web** – Run after Phase 7a. Next.js app; login to management API,
   permission-based UI, Events page; consumes shared UI. Management is now minimally
-  functional (DB + API + Web).
+  functional (DB + API + Web). (completed)
 
 ## Phase 7b: Main web frontend
 
@@ -128,9 +128,9 @@ Requires web app to exist (`apps/web` already exists). Adds i18n, settings, and 
 - **20-settings-page** – Run after 21 (uses locale selector and t() from i18n).
 - **22-dashboard-realtime** – After 20; auth, API messages, Valkey, and privacy flag.
 
-## Phase 8: API documentation (OpenAPI + test UI)
+## Phase 8: API documentation (OpenAPI + test UI) (completed)
 
-- **24-openapi-docs** – Run after Phase 6 and plan 22 (auth and messages API exist). Add
+- **24-openapi-docs** (completed) – Run after Phase 6 and plan 22 (auth and messages API exist). Add
   OpenAPI 3.x spec and Swagger UI at e.g. /api-docs for interactive testing. Can run in
   parallel with Phase 7 or Phase 9.
 
@@ -139,9 +139,9 @@ Requires web app to exist (`apps/web` already exists). Adds i18n, settings, and 
 - **23-documentation-diagrams** – Can start in parallel with Phase 7; update as features
   land.
 
-## Phase 10: LLM alignment
+## Phase 10: LLM alignment (completed)
 
-- **25-llm-alignment-skills-rules** – After the repo has OpenAPI (24), validation
+- **25-llm-alignment-skills-rules** (completed) – After the repo has OpenAPI (24), validation
   (11), ORM and init script (12), i18n (21), and docs (23). Add and update skills, cursor
   rules, and an “LLM alignment” section in AGENTS.md so that when API endpoints, env vars,
   DB schema, i18n, or docs change, LLMs are reminded to update the corresponding artifacts
@@ -155,23 +155,23 @@ Requires web app to exist (`apps/web` already exists). Adds i18n, settings, and 
   .dockerignore excludes scripts/git-hooks/. Depends on lint/format (05) and GITFLOW docs
   (09).
 
-## Phase 12: Project description
+## Phase 12: Project description (completed)
 
-- **27-project-description** – Update the project description to be clearly
+- **27-project-description** (completed) – Update the project description to be clearly
   Boilerplate-specific: root `package.json` description and a README section that
   describes what Boilerplate is and lists implementation details (stack, features, repo
   structure). No technical dependency; run after 26 when docs and structure are in place.
 
-## Phase 13: GitHub repo setup (documentation)
+## Phase 13: GitHub repo setup (documentation) (completed)
 
-- **28-github-repo-setup** – Run after 27. Add documentation for one-time GitHub
+- **28-github-repo-setup** (completed) – Run after 27. Add documentation for one-time GitHub
   configuration: how to run the labels script (plan 10), how to configure branch
   protection and default branch for develop (plans 09, 26), and optional GitHub App setup.
   Creates or extends `docs/GITHUB-SETUP.md` and links from README or docs index.
 
-## Phase 14: Dependabot
+## Phase 14: Dependabot (completed)
 
-- **29-dependabot** – Run after 10 (labels exist). Add `.github/dependabot.yml` (npm at root
+- **29-dependabot** (completed) – Run after 10 (labels exist). Add `.github/dependabot.yml` (npm at root
   with groups, Docker for infra/docker/local/api, web, web-sidecar, github-actions) and
   `docs/repo-management/DEPENDABOT.md`. Node LTS policy for Docker (even versions only).
 

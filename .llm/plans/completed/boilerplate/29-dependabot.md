@@ -2,7 +2,7 @@
 
 ## Goal
 
-Enable GitHub Dependabot for npm, Docker, and GitHub Actions so dependency and image updates are proposed as pull requests against `develop`, with appropriate labels and grouping. Align with Podverse’s Dependabot pattern; scope to boilerplate’s structure (npm workspaces, Dockerfiles under `infra/docker/local/`, Actions in `.github/`).
+Enable GitHub Dependabot for npm, Docker, and GitHub Actions so dependency and image updates are proposed as pull requests against `develop`, with appropriate labels and grouping. Align with Podverse's Dependabot pattern; scope to boilerplate's structure (npm workspaces, Dockerfiles under `infra/docker/local/`, Actions in `.github/`).
 
 ## Scope
 

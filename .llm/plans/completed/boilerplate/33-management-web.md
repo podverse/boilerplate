@@ -14,10 +14,10 @@ displays the audit log (main apps do not have this). Consumes the **shared UI pa
    - Login page (calls management API login).
 
 2. **Permission-based UI**
-   - After login, show only actions allowed by current user’s permissions. Super admin:
+   - After login, show only actions allowed by current user's permissions. Super admin:
      full UI (create/delete admins with permission checkboxes and **event_visibility**,
      create/delete main users, change any password, assign permissions to admins). Admins:
-     scoped UI (e.g. only “manage users” or “change passwords” as per their flags).
+     scoped UI (e.g. only "manage users" or "change passwords" as per their flags).
 
 3. **Events page**
    - One page that displays the audit log (data from GET /events). **Super admin** sees

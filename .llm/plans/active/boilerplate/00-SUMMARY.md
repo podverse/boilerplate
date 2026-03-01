@@ -34,24 +34,24 @@
 | 13 | 13-alpha-publish-stub.md | 5 (completed) |
 | 14 | 14-joi-validation.md | 6 (completed) |
 | 15 | 15-auth-handling.md | 6 (completed) |
-| 16 | 16-scss.md | 7 |
-| 17 | 17-responsive-layout.md | 7 |
-| 18 | 18-themes.md | 7 |
-| 19 | 19-basic-components.md | 7 |
-| 20 | 20-settings-page.md | 7 |
-| 21 | 21-i18n-translations.md | 7 |
+| 16 | [16-scss.md](../../completed/boilerplate/16-scss.md) | 7 (completed) |
+| 17 | [17-responsive-layout.md](../../completed/boilerplate/17-responsive-layout.md) | 7 (completed) |
+| 18 | [18-themes.md](../../completed/boilerplate/18-themes.md) | 7 (completed) |
+| 19 | [19-basic-components.md](../../completed/boilerplate/19-basic-components.md) | 7 (completed) |
+| 20 | [20-settings-page.md](../../completed/boilerplate/20-settings-page.md) | 7 (completed) |
+| 21 | [21-i18n-translations.md](../../completed/boilerplate/21-i18n-translations.md) | 7 (completed) |
 | 22 | 22-dashboard-realtime.md | 7 |
 | 23 | 23-documentation-diagrams.md | 9 |
-| 24 | 24-openapi-docs.md | 8 |
-| 25 | 25-llm-alignment-skills-rules.md | 10 |
+| 24 | [24-openapi-docs.md](../../completed/boilerplate/24-openapi-docs.md) | 8 (completed) |
+| 25 | [25-llm-alignment-skills-rules.md](../../completed/boilerplate/25-llm-alignment-skills-rules.md) | 10 (completed) |
 | 26 | 26-git-hooks.md | 11 |
-| 27 | 27-project-description.md | 12 |
-| 28 | 28-github-repo-setup.md | 13 |
-| 29 | 29-dependabot.md | 14 |
+| 27 | [27-project-description.md](../../completed/boilerplate/27-project-description.md) | 12 (completed) |
+| 28 | [28-github-repo-setup.md](../../completed/boilerplate/28-github-repo-setup.md) | 13 (completed) |
+| 29 | [29-dependabot.md](../../completed/boilerplate/29-dependabot.md) | 14 (completed) |
 | 30 | 30-jenkins-local.md | 15 |
 | 31 | [31-management-database.md](../../completed/boilerplate/31-management-database.md) | Management track (completed) |
-| 32 | 32-management-api.md | Management track |
-| 33 | 33-management-web.md | Management track |
+| 32 | [32-management-api.md](../../completed/boilerplate/32-management-api.md) | Management track (completed) |
+| 33 | [33-management-web.md](../../completed/boilerplate/33-management-web.md) | Management track (completed) |
 | 34 | 34-signup-verification-and-password-flows.md | Phase 6b (completed) |
 | 35 | 35-api-integration-test-setup.md | Phase 6c (completed) |
 | 36 | 36-api-integration-auth-tests.md | Phase 6c (completed) |
@@ -77,7 +77,7 @@
 - **27** → 28 (GitHub repo setup doc runs after project description; references 09, 10, 26).
 - **10** → 29 (Dependabot uses labels dependencies, docker; 29 can run after 28 or in Phase 14).
 - **29** → 30 (Jenkins local runs after all other phases).
-- **Management (before Phase 7):** Plan 31 (management database) is complete; 32 and 33 remain.
+- **Management (before Phase 7):** Plans 31, 32, 33 (management database, API, web) are complete.
   After Phase 6 run **31** → **32** (management DB, then API). Then **16–19** (shared UI
   package). Then **33** (management web; consumes shared UI). Then **21** → **20** → **22**
   (Phase 7b; main web frontend). 12 (main ORM) → 32 (management API needs main DB for user
@@ -111,10 +111,14 @@
 
 ## Current state
 
-- **Phases 1–5 and Phase 6 (auth, Joi, verification, API integration tests) are complete.**
-- **Repo has:** packages (helpers, orm), infra (database, docker, migrations), .github (CI with
-  /test: build, lint, type-check, test), Makefile, auth (mailer + no-mailer), verification
-  flows (verify-email, forgot/reset-password, request/confirm-email-change), Vitest + supertest,
-  CI test step with Postgres + Valkey and test DB init.
-- **Phase 7** (shared UI, then management-web, then i18n/settings/dashboard) and later
-  phases (8–15) are not yet implemented; Management is planned to run before Phase 7b.
+- **Phases 1–8, 10, 12, 13, 14 and Management (31, 32, 33) are complete.** Phase 7a (shared UI),
+  Management Web (33), Phase 8 (OpenAPI/Swagger), Phase 10 (LLM alignment), Phase 12
+  (project description), Phase 13 (GitHub repo setup docs), Phase 14 (Dependabot) are
+  implemented.
+- **Repo has:** packages (helpers, orm, ui), apps (api, web, management-api, management-web,
+  web/sidecar), infra (database, docker, migrations), .github (CI with /test, dependabot),
+  Makefile, auth (mailer + no-mailer), verification flows, Vitest + supertest,
+  OpenAPI/Swagger at /api-docs, skills/rules/AGENTS.md, docs (GITFLOW, GITHUB-SETUP,
+  DEPENDABOT, etc.).
+- **Remaining active:** Phase 7b (22 dashboard/realtime messages), Phase 9 (23
+  documentation/diagrams), Phase 11 (26 git hooks), Phase 15 (30 Jenkins local).
