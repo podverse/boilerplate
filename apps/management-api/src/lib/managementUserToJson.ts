@@ -10,7 +10,7 @@ import type { EventVisibility } from '@boilerplate/management-orm';
 export interface PublicManagementUser {
   id: string;
   email: string;
-  displayName: string | null;
+  displayName: string;
   isSuperAdmin: boolean;
   createdAt: string;
   createdBy: string | null;
@@ -28,7 +28,7 @@ export function managementUserToJson(user: ManagementUser): PublicManagementUser
   return {
     id: user.id,
     email: user.credentials.email,
-    displayName: user.bio?.displayName ?? null,
+    displayName: user.bio?.displayName ?? '',
     isSuperAdmin: user.isSuperAdmin,
     createdAt: user.createdAt.toISOString(),
     createdBy: user.createdBy,

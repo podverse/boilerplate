@@ -36,6 +36,13 @@ export default router;
 
 Wrap async route handlers to avoid unhandled rejections (e.g. try/catch and pass errors to Express error middleware, or use a small `asyncHandler` wrapper).
 
+### Request body validation and controller typing
+
+- **Validate at the route**: Use `validateBody(schema)` middleware (Joi) on any route that accepts a JSON body. Validation runs before the controller; invalid requests get 400 with details and never reach the controller.
+- **Type the validated body**: In the schema file, export an interface that matches the shape Joi validates (e.g. `CreateAdminBody` for `createAdminSchema`). Use `.default()` in Joi so optional fields have a known shape after validation.
+- **Controllers assume valid body**: In the controller, cast `req.body` to the exported type (e.g. `req.body as CreateAdminBody`). Do **not** repeat “field is required” or “field must be a string” checks for fields that are required and validated by the schema; those errors are already handled by the middleware. Controllers only do business checks (e.g. “email already in use”, “display name already in use”, auth checks).
+- **Same pattern in management-api**: Apply the same pattern in `apps/management-api`: schemas in `schemas/*.ts` with exported body types, routes using `validateBody(schema)`, controllers using the types and no redundant presence/type checks for validated fields.
+
 ## Scripts
 
 - `npm run dev` – Build and run (from `apps/api`)

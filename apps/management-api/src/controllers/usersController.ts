@@ -1,11 +1,10 @@
 import type { Request, Response } from 'express';
 import type { UserWithRelations } from '@boilerplate/orm';
 import { validatePassword } from '@boilerplate/helpers';
-import {
-  getPasswordValidationMessages,
-  resolveLocale,
-} from '@boilerplate/helpers-i18n';
+import { getPasswordValidationMessages, resolveLocale } from '@boilerplate/helpers-i18n';
+import { EVENT_ACTIONS, EVENT_TARGET_TYPES } from '@boilerplate/management-orm';
 import { UserService, appDataSource, User, UserBio } from '@boilerplate/orm';
+import type { CreateUserBody, UpdateUserBody, ChangeUserPasswordBody } from '../schemas/users.js';
 import { hashPassword } from '../lib/auth/hash.js';
 import { recordEvent } from '../lib/recordEvent.js';
 
@@ -52,36 +51,31 @@ export async function createUser(req: Request, res: Response): Promise<void> {
     res.status(401).json({ message: 'Authentication required' });
     return;
   }
-  const { email, password, displayName, profileVisibility } = req.body as {
-    email: string;
-    password: string;
-    displayName?: string | null;
-    profileVisibility?: boolean;
-  };
-  const existing = await UserService.findByEmail(email);
+  const body = req.body as CreateUserBody;
+  const existing = await UserService.findByEmail(body.email);
   if (existing !== null) {
     res.status(409).json({ message: 'Email already in use' });
     return;
   }
   const locale = resolveLocale(req.get('Accept-Language'));
-  const passwordCheck = validatePassword(password, getPasswordValidationMessages(locale));
+  const passwordCheck = validatePassword(body.password, getPasswordValidationMessages(locale));
   if (!passwordCheck.valid) {
     res.status(400).json({ message: passwordCheck.message });
     return;
   }
-  const hashed = await hashPassword(password);
+  const hashed = await hashPassword(body.password);
   const user = await UserService.create({
-    email,
+    email: body.email,
     password: hashed,
-    displayName: displayName ?? null,
-    profileVisibility: profileVisibility ?? false,
+    displayName: body.displayName ?? null,
+    profileVisibility: body.profileVisibility,
   });
   await recordEvent({
     actor,
-    action: 'user_created',
-    targetType: 'user',
+    action: EVENT_ACTIONS.user.created,
+    targetType: EVENT_TARGET_TYPES.user,
     targetId: user.id,
-    details: email,
+    details: body.email,
   });
   res.status(201).json({ user: userToJson(user) });
 }
@@ -98,11 +92,7 @@ export async function updateUser(req: Request, res: Response): Promise<void> {
     res.status(404).json({ message: 'User not found' });
     return;
   }
-  const body = req.body as {
-    email?: string;
-    displayName?: string | null;
-    profileVisibility?: boolean;
-  };
+  const body = req.body as UpdateUserBody;
   if (body.email !== undefined) {
     await UserService.updateEmail(id, body.email);
   }
@@ -118,8 +108,8 @@ export async function updateUser(req: Request, res: Response): Promise<void> {
   }
   await recordEvent({
     actor,
-    action: 'user_updated',
-    targetType: 'user',
+    action: EVENT_ACTIONS.user.updated,
+    targetType: EVENT_TARGET_TYPES.user,
     targetId: id,
   });
   const updated = await UserService.findById(id);
@@ -142,8 +132,8 @@ export async function deleteUser(req: Request, res: Response): Promise<void> {
   await userRepo.delete(id);
   await recordEvent({
     actor,
-    action: 'user_deleted',
-    targetType: 'user',
+    action: EVENT_ACTIONS.user.deleted,
+    targetType: EVENT_TARGET_TYPES.user,
     targetId: id,
     details: user.credentials.email,
   });
@@ -169,11 +159,7 @@ export async function changeUserPassword(req: Request, res: Response): Promise<v
     res.status(404).json({ message: 'User not found' });
     return;
   }
-  const { newPassword } = req.body as { newPassword?: string };
-  if (newPassword === undefined) {
-    res.status(400).json({ message: 'newPassword required' });
-    return;
-  }
+  const { newPassword } = req.body as ChangeUserPasswordBody;
   const locale = resolveLocale(req.get('Accept-Language'));
   const passwordCheck = validatePassword(newPassword, getPasswordValidationMessages(locale));
   if (!passwordCheck.valid) {
@@ -184,8 +170,8 @@ export async function changeUserPassword(req: Request, res: Response): Promise<v
   await UserService.updatePassword(id, hashed);
   await recordEvent({
     actor,
-    action: 'user_password_changed',
-    targetType: 'user',
+    action: EVENT_ACTIONS.user.passwordChanged,
+    targetType: EVENT_TARGET_TYPES.user,
     targetId: id,
   });
   res.status(204).send();

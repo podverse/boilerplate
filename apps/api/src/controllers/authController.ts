@@ -1,18 +1,21 @@
 import type { Request, Response } from 'express';
 import type { UserWithRelations } from '@boilerplate/orm';
 import { AUTH_MESSAGE_INVALID_CREDENTIALS, validatePassword } from '@boilerplate/helpers';
-import {
-  getPasswordValidationMessages,
-  resolveLocale,
-} from '@boilerplate/helpers-i18n';
+import { getPasswordValidationMessages, resolveLocale } from '@boilerplate/helpers-i18n';
 import { UserService, VerificationTokenService, RefreshTokenService } from '@boilerplate/orm';
+import type {
+  ChangePasswordBody,
+  ForgotPasswordBody,
+  LoginBody,
+  RequestEmailChangeBody,
+  ResetPasswordBody,
+  SignupBody,
+  WithOptionalToken,
+} from '@boilerplate/helpers-requests';
 import { config } from '../config/index.js';
 import { hashPassword, comparePassword } from '../lib/auth/hash.js';
 import { signAccessToken } from '../lib/auth/jwt.js';
-import {
-  setSessionCookies,
-  clearSessionCookies,
-} from '../lib/auth/cookies.js';
+import { setSessionCookies, clearSessionCookies } from '../lib/auth/cookies.js';
 import {
   generateToken,
   hashToken,
@@ -61,11 +64,7 @@ function getCookieOptions() {
 }
 
 export async function login(req: Request, res: Response): Promise<void> {
-  const { email, password } = req.body as { email?: string; password?: string };
-  if (email === undefined || password === undefined) {
-    res.status(400).json({ message: 'Email and password required' });
-    return;
-  }
+  const { email, password } = req.body as LoginBody;
 
   const user = await UserService.findByEmail(email);
   if (user === null) {
@@ -132,14 +131,7 @@ export async function changePassword(req: Request, res: Response): Promise<void>
     return;
   }
 
-  const { currentPassword, newPassword } = req.body as {
-    currentPassword?: string;
-    newPassword?: string;
-  };
-  if (currentPassword === undefined || newPassword === undefined) {
-    res.status(400).json({ message: 'currentPassword and newPassword required' });
-    return;
-  }
+  const { currentPassword, newPassword } = req.body as ChangePasswordBody;
 
   const locale = resolveLocale(req.get('Accept-Language'));
   const passwordCheck = validatePassword(newPassword, getPasswordValidationMessages(locale));
@@ -161,34 +153,26 @@ export async function changePassword(req: Request, res: Response): Promise<void>
 }
 
 export async function signup(req: Request, res: Response): Promise<void> {
-  const { email, password, displayName } = req.body as {
-    email?: string;
-    password?: string;
-    displayName?: string;
-  };
-  if (email === undefined || password === undefined) {
-    res.status(400).json({ message: 'Email and password required' });
-    return;
-  }
+  const body = req.body as SignupBody;
 
   const locale = resolveLocale(req.get('Accept-Language'));
-  const passwordCheck = validatePassword(password, getPasswordValidationMessages(locale));
+  const passwordCheck = validatePassword(body.password, getPasswordValidationMessages(locale));
   if (!passwordCheck.valid) {
     res.status(400).json({ message: passwordCheck.message });
     return;
   }
 
-  const existing = await UserService.findByEmail(email);
+  const existing = await UserService.findByEmail(body.email);
   if (existing !== null) {
     res.status(201).json({ message: 'Registration complete.' });
     return;
   }
 
-  const hashed = await hashPassword(password);
+  const hashed = await hashPassword(body.password);
   const user = await UserService.create({
-    email,
+    email: body.email,
     password: hashed,
-    displayName: displayName ?? null,
+    displayName: body.displayName ?? null,
   });
 
   if (isMailerEnabled()) {
@@ -219,7 +203,7 @@ export async function signup(req: Request, res: Response): Promise<void> {
 }
 
 export async function verifyEmail(req: Request, res: Response): Promise<void> {
-  const token = (req.body as { token?: string })?.token ?? (req.query as { token?: string }).token;
+  const token = (req.body as WithOptionalToken)?.token ?? (req.query as WithOptionalToken).token;
   if (token === undefined || typeof token !== 'string' || token === '') {
     res.status(400).json({ message: 'Invalid or expired link' });
     return;
@@ -235,11 +219,7 @@ export async function verifyEmail(req: Request, res: Response): Promise<void> {
 }
 
 export async function forgotPassword(req: Request, res: Response): Promise<void> {
-  const email = (req.body as { email?: string })?.email;
-  if (email === undefined || typeof email !== 'string' || email === '') {
-    res.status(400).json({ message: 'Email required' });
-    return;
-  }
+  const { email } = req.body as ForgotPasswordBody;
   const locale = resolveLocale(req.get('Accept-Language'));
   const user = await UserService.findByEmail(email);
   if (user !== null) {
@@ -264,18 +244,7 @@ export async function forgotPassword(req: Request, res: Response): Promise<void>
 }
 
 export async function resetPassword(req: Request, res: Response): Promise<void> {
-  const { token, newPassword } = req.body as { token?: string; newPassword?: string };
-  if (
-    token === undefined ||
-    typeof token !== 'string' ||
-    token === '' ||
-    newPassword === undefined ||
-    typeof newPassword !== 'string' ||
-    newPassword.length < 1
-  ) {
-    res.status(400).json({ message: 'Invalid or expired link' });
-    return;
-  }
+  const { token, newPassword } = req.body as ResetPasswordBody;
   const tokenHash = hashToken(token);
   const consumed = await VerificationTokenService.consumeToken(tokenHash, 'password_reset');
   if (consumed === null) {
@@ -299,11 +268,7 @@ export async function requestEmailChange(req: Request, res: Response): Promise<v
     res.status(401).json({ message: 'Authentication required' });
     return;
   }
-  const newEmail = (req.body as { newEmail?: string })?.newEmail;
-  if (newEmail === undefined || typeof newEmail !== 'string' || newEmail === '') {
-    res.status(400).json({ message: 'newEmail required' });
-    return;
-  }
+  const { newEmail } = req.body as RequestEmailChangeBody;
   if (newEmail === user.credentials.email) {
     res.status(400).json({ message: 'New email must differ from current' });
     return;
@@ -333,7 +298,7 @@ export async function requestEmailChange(req: Request, res: Response): Promise<v
 }
 
 export async function confirmEmailChange(req: Request, res: Response): Promise<void> {
-  const token = (req.body as { token?: string })?.token ?? (req.query as { token?: string }).token;
+  const token = (req.body as WithOptionalToken)?.token ?? (req.query as WithOptionalToken).token;
   if (token === undefined || typeof token !== 'string' || token === '') {
     res.status(400).json({ message: 'Invalid or expired link' });
     return;

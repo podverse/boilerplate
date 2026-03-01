@@ -159,10 +159,7 @@ describe('mailer-enabled (mocked)', () => {
         .post(`${API}/auth/signup`)
         .send({ email: oneOffEmail, password: 'pass1' })
         .expect(201);
-      const res = await agent
-        .post(`${API}/auth/request-email-change`)
-        .send({})
-        .expect(400);
+      const res = await agent.post(`${API}/auth/request-email-change`).send({}).expect(400);
       expect(res.body.message).toBeDefined();
       expect(
         res.body.message === 'newEmail required' ||

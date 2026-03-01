@@ -19,7 +19,8 @@ export type ManagementUserPermissions = {
 export type ManagementUser = {
   id: string;
   email: string;
-  displayName?: string | null;
+  /** Required and unique for admins. */
+  displayName: string;
   /** Omitted for super admin; present for admins. */
   permissions?: ManagementUserPermissions | null;
 };

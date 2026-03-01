@@ -48,10 +48,14 @@ export function ThemeProvider({
       setThemeState(next);
       if (typeof window === 'undefined') return;
       if (persistWithCookie) {
-        setSettingsCookie(persistWithCookie.name, { theme: next }, {
-          path: persistWithCookie.path ?? DEFAULT_COOKIE_PATH,
-          maxAge: persistWithCookie.maxAge ?? DEFAULT_COOKIE_MAX_AGE,
-        });
+        setSettingsCookie(
+          persistWithCookie.name,
+          { theme: next },
+          {
+            path: persistWithCookie.path ?? DEFAULT_COOKIE_PATH,
+            maxAge: persistWithCookie.maxAge ?? DEFAULT_COOKIE_MAX_AGE,
+          }
+        );
       } else {
         try {
           window.localStorage.setItem(storageKey, next);

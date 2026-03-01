@@ -5,6 +5,18 @@
 
 export type CookieSameSite = 'lax' | 'strict' | 'none';
 
+/**
+ * Options required to set or clear session/refresh cookies (names and flags).
+ * Use for clearSessionCookies or when building Set-Cookie headers. Apps can extend
+ * with accessMaxAgeSeconds/refreshMaxAgeSeconds for setSessionCookies.
+ */
+export interface SessionCookieOptions {
+  sessionCookieName: string;
+  refreshCookieName: string;
+  cookieSecure: boolean;
+  cookieSameSite: CookieSameSite;
+}
+
 const COOKIE_SAME_SITE_VALUES: CookieSameSite[] = ['lax', 'strict', 'none'];
 
 /**
@@ -13,7 +25,10 @@ const COOKIE_SAME_SITE_VALUES: CookieSameSite[] = ['lax', 'strict', 'none'];
  */
 export function parseCorsOrigins(raw: string | undefined): string[] | undefined {
   if (raw === undefined || raw.trim() === '') return undefined;
-  return raw.split(',').map((s) => s.trim()).filter(Boolean);
+  return raw
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean);
 }
 
 /**
@@ -26,7 +41,5 @@ export function parseCookieSameSite(value: string, varName = 'COOKIE_SAME_SITE')
   if (COOKIE_SAME_SITE_VALUES.includes(normalized as CookieSameSite)) {
     return normalized as CookieSameSite;
   }
-  throw new Error(
-    `Invalid ${varName}: "${value}". Must be lax, strict, or none.`
-  );
+  throw new Error(`Invalid ${varName}: "${value}". Must be lax, strict, or none.`);
 }

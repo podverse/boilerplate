@@ -18,8 +18,8 @@ CREATE TABLE IF NOT EXISTS management_user_credentials (
     password_hash varchar_password NOT NULL
 );
 
--- Bio: display name (1:1 with management_user)
+-- Bio: display name (1:1 with management_user); unique so admins are distinguishable without ID
 CREATE TABLE IF NOT EXISTS management_user_bio (
     management_user_id UUID PRIMARY KEY REFERENCES management_user(id) ON DELETE CASCADE,
-    display_name varchar_short NULL
+    display_name varchar_short NOT NULL UNIQUE
 );

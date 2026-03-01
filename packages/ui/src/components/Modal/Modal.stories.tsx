@@ -2,6 +2,8 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import { LoadingSpinner } from '../LoadingSpinner';
 import { Modal } from './Modal';
 
+import styles from './Modal.stories.module.scss';
+
 const meta: Meta<typeof Modal> = {
   component: Modal,
   tags: ['autodocs'],
@@ -31,10 +33,6 @@ export const WithBackdrop: Story = {
 export const WithContent: Story = {
   args: {
     withBackdrop: true,
-    children: (
-      <div style={{ background: 'white', padding: '1.5rem', borderRadius: '0.5rem' }}>
-        Modal content slot (e.g. dialog or spinner)
-      </div>
-    ),
+    children: <div className={styles.content}>Modal content slot (e.g. dialog or spinner)</div>,
   },
 };

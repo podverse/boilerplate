@@ -45,8 +45,6 @@ function getSupportedLocales(): string[] {
   const list = v
     .split(',')
     .map((s) => s.trim())
-    .filter(
-      (s): s is Locale => s !== '' && ALL_AVAILABLE_LOCALES.includes(s as Locale)
-    );
+    .filter((s): s is Locale => s !== '' && ALL_AVAILABLE_LOCALES.includes(s as Locale));
   return list.length > 0 ? list : [getDefaultLocale()];
 }

@@ -20,8 +20,9 @@ export function requireAuth(options: RequireAuthOptions | string) {
     const cookieToken = req.cookies?.[sessionCookieName];
     const authHeader = req.headers.authorization;
     const bearerToken = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : undefined;
-    const token = (typeof cookieToken === 'string' && cookieToken !== '' ? cookieToken : undefined)
-      ?? (bearerToken !== undefined && bearerToken !== '' ? bearerToken : undefined);
+    const token =
+      (typeof cookieToken === 'string' && cookieToken !== '' ? cookieToken : undefined) ??
+      (bearerToken !== undefined && bearerToken !== '' ? bearerToken : undefined);
 
     if (token === undefined || token === '') {
       res.status(401).json({ message: 'Authentication required' });

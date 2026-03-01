@@ -1,4 +1,5 @@
 import type { Request, Response } from 'express';
+import { DEFAULT_PAGE_LIMIT, MAX_PAGE_SIZE, MAX_TOTAL_CAP } from '@boilerplate/helpers';
 import { ManagementEventService } from '@boilerplate/management-orm';
 import type { ActorType } from '@boilerplate/management-orm';
 
@@ -33,17 +34,35 @@ export async function listEvents(req: Request, res: Response): Promise<void> {
     res.status(401).json({ message: 'Authentication required' });
     return;
   }
-  const limit = Number(req.query.limit) || 100;
-  const offset = Number(req.query.offset) || 0;
+  const page = Math.max(1, Number(req.query.page) || 1);
+  const limit = Math.min(
+    MAX_PAGE_SIZE,
+    Math.max(1, Number(req.query.limit) || DEFAULT_PAGE_LIMIT)
+  );
+  const sortRaw = req.query.sort;
+  const order = sortRaw === 'oldest' ? 'oldest' : 'recent';
+  const searchRaw = typeof req.query.search === 'string' ? req.query.search.trim() : undefined;
+  const search = searchRaw === '' ? undefined : searchRaw;
+  const offset = (page - 1) * limit;
   const visibility = user.isSuperAdmin ? 'all' : (user.permissions?.eventVisibility ?? 'own');
-  const events = await ManagementEventService.findEventsWithVisibility({
+  const { events, total } = await ManagementEventService.findEventsWithVisibility({
     visibility,
     actorId: user.id,
     actorType: (user.isSuperAdmin ? 'super_admin' : 'admin') as ActorType,
-    limit: Math.min(limit, 500),
+    limit,
     offset,
+    order,
+    search,
   });
+  const cappedTotal = total > MAX_TOTAL_CAP ? MAX_TOTAL_CAP : total;
+  const totalPages = Math.max(1, Math.ceil(cappedTotal / limit));
+  const truncatedTotal = total > MAX_TOTAL_CAP;
   res.status(200).json({
     events: events.map(eventToJson),
+    total: cappedTotal,
+    page,
+    limit,
+    totalPages,
+    ...(truncatedTotal && { truncatedTotal: true }),
   });
 }

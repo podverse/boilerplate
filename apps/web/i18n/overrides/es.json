@@ -140,6 +140,14 @@
     "loadingSpinner": {
       "ariaLabel": ""
     },
+    "modal": {
+      "ariaClose": ""
+    },
+    "tableFilterBar": {
+      "placeholder": "",
+      "filterColumnsLabel": "",
+      "funnelButtonLabel": ""
+    },
     "tabs": {
       "navAriaLabel": ""
     },
@@ -153,6 +161,25 @@
       "defaultPasswordLabel": "",
       "passwordMinLength": "",
       "passwordMaxLength": ""
+    },
+    "pagination": {
+      "previous": "",
+      "next": "",
+      "goToPage": "",
+      "ariaPagination": "",
+      "ariaPreviousPage": "",
+      "ariaNextPage": "",
+      "pagesRangeOf": "",
+      "goToPageModal": {
+        "title": "",
+        "pageLabel": "",
+        "submitLabel": "",
+        "closeLabel": "",
+        "pagesRange": "",
+        "pagesRangeSingle": "",
+        "pageBetween": "",
+        "placeholder": ""
+      }
     }
   }
 }

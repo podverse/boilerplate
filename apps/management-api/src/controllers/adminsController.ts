@@ -1,5 +1,11 @@
 import type { Request, Response } from 'express';
-import { ManagementUserService, type EventVisibility } from '@boilerplate/management-orm';
+import { DEFAULT_PAGE_LIMIT, MAX_PAGE_SIZE, MAX_TOTAL_CAP } from '@boilerplate/helpers';
+import {
+  EVENT_ACTIONS,
+  EVENT_TARGET_TYPES,
+  ManagementUserService,
+} from '@boilerplate/management-orm';
+import type { ChangePasswordBody, CreateAdminBody, UpdateAdminBody } from '../schemas/admins.js';
 import { hashPassword } from '../lib/auth/hash.js';
 import { managementUserToJson } from '../lib/managementUserToJson.js';
 import { recordEvent } from '../lib/recordEvent.js';
@@ -8,9 +14,24 @@ import { recordEvent } from '../lib/recordEvent.js';
  * All admin responses use managementUserToJson only. Never return req.managementUser or
  * admin.credentials; passwordHash must not appear in any response (see CREDENTIALS-PROTECTION.md).
  */
-export async function listAdmins(_req: Request, res: Response): Promise<void> {
-  const list = await ManagementUserService.listAdmins();
-  res.status(200).json({ admins: list.map(managementUserToJson) });
+export async function listAdmins(req: Request, res: Response): Promise<void> {
+  const page = Math.max(1, Number(req.query.page) || 1);
+  const limit = Math.min(MAX_PAGE_SIZE, Math.max(1, Number(req.query.limit) || DEFAULT_PAGE_LIMIT));
+  const searchRaw = typeof req.query.search === 'string' ? req.query.search.trim() : undefined;
+  const search = searchRaw === '' ? undefined : searchRaw;
+  const offset = (page - 1) * limit;
+  const { admins, total } = await ManagementUserService.listAdminsPaginated(limit, offset, search);
+  const cappedTotal = total > MAX_TOTAL_CAP ? MAX_TOTAL_CAP : total;
+  const totalPages = Math.max(1, Math.ceil(cappedTotal / limit));
+  const truncatedTotal = total > MAX_TOTAL_CAP;
+  res.status(200).json({
+    admins: admins.map(managementUserToJson),
+    total: cappedTotal,
+    page,
+    limit,
+    totalPages,
+    ...(truncatedTotal && { truncatedTotal: true }),
+  });
 }
 
 export async function getAdmin(req: Request, res: Response): Promise<void> {
@@ -29,50 +50,39 @@ export async function createAdmin(req: Request, res: Response): Promise<void> {
     res.status(401).json({ message: 'Authentication required' });
     return;
   }
-  const {
-    email,
-    password,
-    displayName,
-    adminsCrud = 0,
-    usersCrud = 0,
-    canChangePasswords = false,
-    canAssignPermissions = false,
-    eventVisibility = 'own',
-  } = req.body as {
-    email: string;
-    password: string;
-    displayName?: string | null;
-    adminsCrud?: number;
-    usersCrud?: number;
-    canChangePasswords?: boolean;
-    canAssignPermissions?: boolean;
-    eventVisibility?: EventVisibility;
-  };
+  const body = req.body as CreateAdminBody;
 
-  const existing = await ManagementUserService.findByEmail(email);
-  if (existing !== null) {
+  const existingByEmail = await ManagementUserService.findByEmail(body.email);
+  if (existingByEmail !== null) {
     res.status(409).json({ message: 'Email already in use' });
     return;
   }
+  const existingByDisplayName = await ManagementUserService.findByDisplayName(
+    body.displayName.trim()
+  );
+  if (existingByDisplayName !== null) {
+    res.status(409).json({ message: 'Display name already in use' });
+    return;
+  }
 
-  const passwordHash = await hashPassword(password);
+  const passwordHash = await hashPassword(body.password);
   const admin = await ManagementUserService.createAdmin({
-    email,
+    email: body.email,
     passwordHash,
-    displayName: displayName ?? null,
+    displayName: body.displayName.trim(),
     createdBy: actor.id,
-    adminsCrud,
-    usersCrud,
-    canChangePasswords,
-    canAssignPermissions,
-    eventVisibility,
+    adminsCrud: body.adminsCrud,
+    usersCrud: body.usersCrud,
+    canChangePasswords: body.canChangePasswords,
+    canAssignPermissions: body.canAssignPermissions,
+    eventVisibility: body.eventVisibility,
   });
   await recordEvent({
     actor,
-    action: 'admin_created',
-    targetType: 'admin',
+    action: EVENT_ACTIONS.admin.created,
+    targetType: EVENT_TARGET_TYPES.admin,
     targetId: admin.id,
-    details: email,
+    details: body.email,
   });
   res.status(201).json({ admin: managementUserToJson(admin) });
 }
@@ -90,16 +100,14 @@ export async function updateAdmin(req: Request, res: Response): Promise<void> {
     return;
   }
 
-  const body = req.body as {
-    email?: string;
-    displayName?: string | null;
-    password?: string;
-    adminsCrud?: number;
-    usersCrud?: number;
-    canChangePasswords?: boolean;
-    canAssignPermissions?: boolean;
-    eventVisibility?: EventVisibility;
-  };
+  const body = req.body as UpdateAdminBody;
+  if (body.displayName !== undefined) {
+    const other = await ManagementUserService.findByDisplayName(body.displayName.trim());
+    if (other !== null && other.id !== id) {
+      res.status(409).json({ message: 'Display name already in use' });
+      return;
+    }
+  }
   const permissionKeys = [
     'adminsCrud',
     'usersCrud',
@@ -114,7 +122,7 @@ export async function updateAdmin(req: Request, res: Response): Promise<void> {
   }
   const updates: Parameters<typeof ManagementUserService.updateAdmin>[1] = {};
   if (body.email !== undefined) updates.email = body.email;
-  if (body.displayName !== undefined) updates.displayName = body.displayName;
+  if (body.displayName !== undefined) updates.displayName = body.displayName.trim();
   if (body.password !== undefined) updates.passwordHash = await hashPassword(body.password);
   if (body.adminsCrud !== undefined) updates.adminsCrud = body.adminsCrud;
   if (body.usersCrud !== undefined) updates.usersCrud = body.usersCrud;
@@ -132,8 +140,8 @@ export async function updateAdmin(req: Request, res: Response): Promise<void> {
   if (updated !== null) {
     await recordEvent({
       actor,
-      action: 'admin_updated',
-      targetType: 'admin',
+      action: EVENT_ACTIONS.admin.updated,
+      targetType: EVENT_TARGET_TYPES.admin,
       targetId: id,
     });
     res.status(200).json({ admin: managementUserToJson(updated) });
@@ -158,8 +166,8 @@ export async function deleteAdmin(req: Request, res: Response): Promise<void> {
   if (deleted) {
     await recordEvent({
       actor,
-      action: 'admin_deleted',
-      targetType: 'admin',
+      action: EVENT_ACTIONS.admin.deleted,
+      targetType: EVENT_TARGET_TYPES.admin,
       targetId: id,
       details: admin.credentials.email,
     });
@@ -175,14 +183,7 @@ export async function changePassword(req: Request, res: Response): Promise<void>
     res.status(401).json({ message: 'Authentication required' });
     return;
   }
-  const { currentPassword, newPassword } = req.body as {
-    currentPassword?: string;
-    newPassword?: string;
-  };
-  if (currentPassword === undefined || newPassword === undefined) {
-    res.status(400).json({ message: 'currentPassword and newPassword required' });
-    return;
-  }
+  const { currentPassword, newPassword } = req.body as ChangePasswordBody;
   const { comparePassword } = await import('../lib/auth/hash.js');
   const ok = await comparePassword(currentPassword, actor.credentials.passwordHash);
   if (!ok) {
@@ -191,6 +192,11 @@ export async function changePassword(req: Request, res: Response): Promise<void>
   }
   const hashed = await hashPassword(newPassword);
   await ManagementUserService.updatePassword(actor.id, hashed);
-  await recordEvent({ actor, action: 'password_changed', targetType: 'admin', targetId: actor.id });
+  await recordEvent({
+    actor,
+    action: EVENT_ACTIONS.admin.passwordChanged,
+    targetType: EVENT_TARGET_TYPES.admin,
+    targetId: actor.id,
+  });
   res.status(204).send();
 }

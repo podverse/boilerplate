@@ -57,7 +57,44 @@
     "loadingAdmins": "",
     "noAdmins": "",
     "loadingEvents": "",
-    "noEvents": ""
+    "noEvents": "",
+    "eventsTable": {
+      "timestamp": "",
+      "actorType": "",
+      "action": "",
+      "target": "",
+      "details": ""
+    },
+    "eventsSort": {
+      "label": ""
+    },
+    "eventsSortOptions": {
+      "recent": "",
+      "oldest": ""
+    },
+    "eventsLimit": {
+      "label": ""
+    },
+    "tableFilter": {
+      "placeholder": "",
+      "columnsLabel": "",
+      "funnelButtonLabel": ""
+    },
+    "adminsTable": {
+      "email": "",
+      "displayName": ""
+    },
+    "pagination": {
+      "previous": "",
+      "next": "",
+      "goToPage": "",
+      "goToPageModal": {
+        "title": "",
+        "pageLabel": "",
+        "submitLabel": "",
+        "closeLabel": ""
+      }
+    }
   },
   "dashboard": {
     "title": "",
@@ -148,6 +185,14 @@
     "loadingSpinner": {
       "ariaLabel": ""
     },
+    "modal": {
+      "ariaClose": ""
+    },
+    "tableFilterBar": {
+      "placeholder": "",
+      "filterColumnsLabel": "",
+      "funnelButtonLabel": ""
+    },
     "tabs": {
       "navAriaLabel": ""
     },
@@ -161,6 +206,25 @@
       "defaultPasswordLabel": "",
       "passwordMinLength": "",
       "passwordMaxLength": ""
+    },
+    "pagination": {
+      "previous": "",
+      "next": "",
+      "goToPage": "",
+      "ariaPagination": "",
+      "ariaPreviousPage": "",
+      "ariaNextPage": "",
+      "pagesRangeOf": "",
+      "goToPageModal": {
+        "title": "",
+        "pageLabel": "",
+        "submitLabel": "",
+        "closeLabel": "",
+        "pagesRange": "",
+        "pagesRangeSingle": "",
+        "pageBetween": "",
+        "placeholder": ""
+      }
     }
   }
 }

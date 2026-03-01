@@ -30,37 +30,42 @@ export async function seedMain(rows: number): Promise<void> {
     await appDataSource.initialize();
   }
 
-  const userRepo = appDataSource.getRepository(User);
-  const credentialsRepo = appDataSource.getRepository(UserCredentials);
-  const bioRepo = appDataSource.getRepository(UserBio);
   const passwordHash = await getPasswordHash();
 
   for (let i = 0; i < rows; i += 1) {
-    const user = userRepo.create({
-      profileVisibility: faker.datatype.boolean(),
-      emailVerifiedAt: faker.datatype.boolean(0.3) ? faker.date.past() : null,
-    });
-    await userRepo.save(user);
+    await appDataSource.transaction(async (manager) => {
+      // Force deferred check so user + credentials are visible when constraint runs at commit.
+      await manager.query('SET CONSTRAINTS ALL DEFERRED');
+      const uRepo = manager.getRepository(User);
+      const cRepo = manager.getRepository(UserCredentials);
+      const bRepo = manager.getRepository(UserBio);
 
-    const email =
-      i === 0
-        ? faker.internet.email()
-        : `${faker.string.alphanumeric(8)}-${i}-${faker.internet.email()}`;
-    const credentials = credentialsRepo.create({
-      userId: user.id,
-      email,
-      passwordHash,
-    });
-    await credentialsRepo.save(credentials);
+      const user = uRepo.create({
+        profileVisibility: faker.datatype.boolean(),
+        emailVerifiedAt: faker.datatype.boolean(0.3) ? faker.date.past() : null,
+      });
+      await uRepo.save(user);
 
-    const displayName = faker.datatype.boolean(0.8)
-      ? truncateDisplayName(faker.person.fullName())
-      : null;
-    const bio = bioRepo.create({
-      userId: user.id,
-      displayName,
+      const email =
+        i === 0
+          ? faker.internet.email()
+          : `${faker.string.alphanumeric(8)}-${i}-${faker.internet.email()}`;
+      const credentials = cRepo.create({
+        userId: user.id,
+        email,
+        passwordHash,
+      });
+      await cRepo.save(credentials);
+
+      const displayName = faker.datatype.boolean(0.8)
+        ? truncateDisplayName(faker.person.fullName())
+        : null;
+      const bio = bRepo.create({
+        userId: user.id,
+        displayName,
+      });
+      await bRepo.save(bio);
     });
-    await bioRepo.save(bio);
   }
 
   process.stdout.write(`Seeded main DB: ${rows} user(s).\n`);

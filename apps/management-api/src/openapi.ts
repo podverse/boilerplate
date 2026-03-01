@@ -27,7 +27,7 @@ export const openApiDocument = {
         properties: {
           id: { type: 'string', format: 'uuid' },
           email: { type: 'string', format: 'email' },
-          displayName: { type: 'string', nullable: true },
+          displayName: { type: 'string' },
           isSuperAdmin: { type: 'boolean' },
           createdAt: { type: 'string', format: 'date-time' },
           createdBy: { type: 'string', format: 'uuid', nullable: true },
@@ -93,11 +93,11 @@ export const openApiDocument = {
       },
       CreateAdminBody: {
         type: 'object',
-        required: ['email', 'password'],
+        required: ['email', 'password', 'displayName'],
         properties: {
           email: { type: 'string', format: 'email' },
           password: { type: 'string', minLength: 8 },
-          displayName: { type: 'string', maxLength: 50, nullable: true },
+          displayName: { type: 'string', maxLength: 50, minLength: 1 },
           adminsCrud: { type: 'integer', minimum: 0, maximum: 15, default: 0 },
           usersCrud: { type: 'integer', minimum: 0, maximum: 15, default: 0 },
           canChangePasswords: { type: 'boolean', default: false },
@@ -109,7 +109,7 @@ export const openApiDocument = {
         type: 'object',
         properties: {
           email: { type: 'string', format: 'email' },
-          displayName: { type: 'string', maxLength: 50, nullable: true },
+          displayName: { type: 'string', maxLength: 50, minLength: 1 },
           password: { type: 'string', minLength: 8 },
           adminsCrud: { type: 'integer', minimum: 0, maximum: 15 },
           usersCrud: { type: 'integer', minimum: 0, maximum: 15 },
@@ -742,7 +742,7 @@ export const openApiDocument = {
             name: 'limit',
             in: 'query',
             schema: { type: 'integer', default: 100 },
-            description: 'Max events to return (cap 500)',
+            description: 'Max events to return (standard page size cap)',
           },
           {
             name: 'offset',

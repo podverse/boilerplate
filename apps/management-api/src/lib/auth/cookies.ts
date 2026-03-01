@@ -1,11 +1,7 @@
-import type { CookieSameSite } from '@boilerplate/helpers';
+import type { SessionCookieOptions } from '@boilerplate/helpers';
 import type { Response } from 'express';
 
-export interface CookieOptions {
-  sessionCookieName: string;
-  refreshCookieName: string;
-  cookieSecure: boolean;
-  cookieSameSite: CookieSameSite;
+export interface CookieOptions extends SessionCookieOptions {
   accessMaxAgeSeconds: number;
   refreshMaxAgeSeconds: number;
 }
@@ -28,7 +24,7 @@ export function setSessionCookies(
 
 export function clearSessionCookies(
   res: Response,
-  options: Pick<CookieOptions, 'sessionCookieName' | 'refreshCookieName' | 'cookieSecure' | 'cookieSameSite'>
+  options: SessionCookieOptions
 ): void {
   const sameSite = options.cookieSameSite;
   const secure = options.cookieSecure;

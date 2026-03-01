@@ -83,7 +83,11 @@ describe('auth (shared)', () => {
       expect(res.body.user.email).toBe(testUserEmail);
       expect(res.body.user.displayName).toBe('Test User');
       const setCookie = res.headers['set-cookie'];
-      const cookies = Array.isArray(setCookie) ? setCookie : setCookie !== undefined ? [setCookie] : [];
+      const cookies = Array.isArray(setCookie)
+        ? setCookie
+        : setCookie !== undefined
+          ? [setCookie]
+          : [];
       expect(cookies.length).toBeGreaterThanOrEqual(2);
       expect(cookies.some((c: string) => c.startsWith(config.sessionCookieName + '='))).toBe(true);
       expect(cookies.some((c: string) => c.startsWith(config.refreshCookieName + '='))).toBe(true);
@@ -134,7 +138,11 @@ describe('auth (shared)', () => {
       expect(res.body).toHaveProperty('user');
       expect(res.body.user.email).toBe(testUserEmail);
       const setCookie = res.headers['set-cookie'];
-      const cookies = Array.isArray(setCookie) ? setCookie : setCookie !== undefined ? [setCookie] : [];
+      const cookies = Array.isArray(setCookie)
+        ? setCookie
+        : setCookie !== undefined
+          ? [setCookie]
+          : [];
       expect(cookies.length).toBeGreaterThanOrEqual(2);
     });
   });
@@ -153,14 +161,8 @@ describe('auth (shared)', () => {
         .post(`${API}/auth/login`)
         .send({ email: testUserEmail, password: testUserPassword })
         .expect(200);
-      await agent
-        .post(`${API}/auth/change-password`)
-        .send({ newPassword: 'new1' })
-        .expect(400);
-      await agent
-        .post(`${API}/auth/change-password`)
-        .send({ currentPassword: 'old' })
-        .expect(400);
+      await agent.post(`${API}/auth/change-password`).send({ newPassword: 'new1' }).expect(400);
+      await agent.post(`${API}/auth/change-password`).send({ currentPassword: 'old' }).expect(400);
     });
 
     it('returns 401 when current password wrong', async () => {

@@ -28,11 +28,7 @@ function interpolate(text: string, params: Record<string, string | number>): str
  * Return the message for a locale and key. Key is dot-notation (e.g. 'password.required', 'email.verifySubject').
  * If params are provided, replaces {key} placeholders in the message.
  */
-export function t(
-  locale: string,
-  key: string,
-  params?: Record<string, string | number>
-): string {
+export function t(locale: string, key: string, params?: Record<string, string | number>): string {
   const messages = loadMessages(locale);
   const value = getNested(messages, key);
   const text = typeof value === 'string' ? value : key;

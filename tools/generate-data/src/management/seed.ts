@@ -11,6 +11,8 @@ import bcrypt from 'bcrypt';
 import { v4 as uuidv4 } from 'uuid';
 
 import {
+  EVENT_ACTIONS,
+  EVENT_TARGET_TYPES,
   managementDataSource,
   AdminPermissions,
   ManagementEvent,
@@ -20,7 +22,6 @@ import {
 } from '@boilerplate/management-orm';
 
 import type { ActorType, EventVisibility } from '@boilerplate/management-orm';
-import { SHORT_TEXT_MAX_LENGTH } from '@boilerplate/helpers';
 
 const TEST_PASSWORD_PLAIN = 'Test!1Aa';
 const SUPER_ADMIN_EMAIL = 'superadmin@example.com';
@@ -28,17 +29,17 @@ const SUPER_ADMIN_EMAIL = 'superadmin@example.com';
 const EVENT_VISIBILITY_VALUES: EventVisibility[] = ['own', 'all_admins', 'all'];
 
 const MANAGEMENT_EVENT_ACTIONS = [
-  'user_created',
-  'user_updated',
-  'user_deleted',
-  'user_password_changed',
-  'admin_created',
-  'admin_updated',
-  'admin_deleted',
-  'password_changed',
+  EVENT_ACTIONS.user.created,
+  EVENT_ACTIONS.user.updated,
+  EVENT_ACTIONS.user.deleted,
+  EVENT_ACTIONS.user.passwordChanged,
+  EVENT_ACTIONS.admin.created,
+  EVENT_ACTIONS.admin.updated,
+  EVENT_ACTIONS.admin.deleted,
+  EVENT_ACTIONS.admin.passwordChanged,
 ] as const;
 
-const TARGET_TYPES = ['user', 'admin'] as const;
+const TARGET_TYPES = [EVENT_TARGET_TYPES.user, EVENT_TARGET_TYPES.admin] as const;
 
 let cachedPasswordHash: string | null = null;
 
@@ -46,11 +47,6 @@ async function getPasswordHash(): Promise<string> {
   if (cachedPasswordHash !== null) return cachedPasswordHash;
   cachedPasswordHash = await bcrypt.hash(TEST_PASSWORD_PLAIN, 10);
   return cachedPasswordHash;
-}
-
-function truncateDisplayName(name: string): string {
-  if (name.length <= SHORT_TEXT_MAX_LENGTH) return name;
-  return name.slice(0, SHORT_TEXT_MAX_LENGTH);
 }
 
 function randomCrud(): number {
@@ -99,14 +95,9 @@ async function seedManagementEvents(
   }
 }
 
-/** Create super admin (superadmin@example.com) only if none exists. */
-async function ensureSuperAdmin(
-  userRepo: ReturnType<typeof managementDataSource.getRepository<ManagementUser>>,
-  credentialsRepo: ReturnType<typeof managementDataSource.getRepository<ManagementUserCredentials>>,
-  bioRepo: ReturnType<typeof managementDataSource.getRepository<ManagementUserBio>>,
-  passwordHash: string
-): Promise<void> {
-  const existing = await userRepo.findOne({
+/** Create super admin (superadmin@example.com) only if none exists. User + credentials + bio in one transaction. */
+async function ensureSuperAdmin(passwordHash: string): Promise<void> {
+  const existing = await managementDataSource.getRepository(ManagementUser).findOne({
     where: { isSuperAdmin: true },
     select: ['id'],
   });
@@ -115,26 +106,33 @@ async function ensureSuperAdmin(
     return;
   }
 
-  const id = uuidv4();
-  const user = userRepo.create({
-    id,
-    isSuperAdmin: true,
-    createdBy: null,
-  });
-  await userRepo.save(user);
+  await managementDataSource.transaction(async (manager) => {
+    await manager.query('SET CONSTRAINTS ALL DEFERRED');
+    const userRepo = manager.getRepository(ManagementUser);
+    const credentialsRepo = manager.getRepository(ManagementUserCredentials);
+    const bioRepo = manager.getRepository(ManagementUserBio);
 
-  const credentials = credentialsRepo.create({
-    managementUserId: id,
-    email: SUPER_ADMIN_EMAIL,
-    passwordHash,
-  });
-  await credentialsRepo.save(credentials);
+    const id = uuidv4();
+    const user = userRepo.create({
+      id,
+      isSuperAdmin: true,
+      createdBy: null,
+    });
+    await userRepo.save(user);
 
-  const bio = bioRepo.create({
-    managementUserId: id,
-    displayName: null,
+    const credentials = credentialsRepo.create({
+      managementUserId: id,
+      email: SUPER_ADMIN_EMAIL,
+      passwordHash,
+    });
+    await credentialsRepo.save(credentials);
+
+    const bio = bioRepo.create({
+      managementUserId: id,
+      displayName: 'Super Admin',
+    });
+    await bioRepo.save(bio);
   });
-  await bioRepo.save(bio);
 
   process.stdout.write(`Created super admin (${SUPER_ADMIN_EMAIL}).\n`);
 }
@@ -145,52 +143,55 @@ export async function seedManagement(rows: number): Promise<void> {
   }
 
   const userRepo = managementDataSource.getRepository(ManagementUser);
-  const credentialsRepo = managementDataSource.getRepository(ManagementUserCredentials);
-  const bioRepo = managementDataSource.getRepository(ManagementUserBio);
-  const permissionsRepo = managementDataSource.getRepository(AdminPermissions);
   const eventRepo = managementDataSource.getRepository(ManagementEvent);
   const passwordHash = await getPasswordHash();
 
-  await ensureSuperAdmin(userRepo, credentialsRepo, bioRepo, passwordHash);
+  await ensureSuperAdmin(passwordHash);
 
   for (let i = 0; i < rows; i += 1) {
-    const id = uuidv4();
-    const user = userRepo.create({
-      id,
-      isSuperAdmin: false,
-      createdBy: null,
-    });
-    await userRepo.save(user);
+    await managementDataSource.transaction(async (manager) => {
+      await manager.query('SET CONSTRAINTS ALL DEFERRED');
+      const uRepo = manager.getRepository(ManagementUser);
+      const cRepo = manager.getRepository(ManagementUserCredentials);
+      const bRepo = manager.getRepository(ManagementUserBio);
+      const pRepo = manager.getRepository(AdminPermissions);
 
-    const email =
-      i === 0
-        ? faker.internet.email()
-        : `${faker.string.alphanumeric(8)}-${i}-${faker.internet.email()}`;
-    const credentials = credentialsRepo.create({
-      managementUserId: id,
-      email,
-      passwordHash,
-    });
-    await credentialsRepo.save(credentials);
+      const id = uuidv4();
+      const user = uRepo.create({
+        id,
+        isSuperAdmin: false,
+        createdBy: null,
+      });
+      await uRepo.save(user);
 
-    const displayName = faker.datatype.boolean(0.8)
-      ? truncateDisplayName(faker.person.fullName())
-      : null;
-    const bio = bioRepo.create({
-      managementUserId: id,
-      displayName,
-    });
-    await bioRepo.save(bio);
+      const email =
+        i === 0
+          ? faker.internet.email()
+          : `${faker.string.alphanumeric(8)}-${i}-${faker.internet.email()}`;
+      const credentials = cRepo.create({
+        managementUserId: id,
+        email,
+        passwordHash,
+      });
+      await cRepo.save(credentials);
 
-    const permissions = permissionsRepo.create({
-      adminId: id,
-      adminsCrud: randomCrud(),
-      usersCrud: randomCrud(),
-      canChangePasswords: faker.datatype.boolean(),
-      canAssignPermissions: faker.datatype.boolean(),
-      eventVisibility: randomEventVisibility(),
+      const displayName = `Admin ${i + 1}`;
+      const bio = bRepo.create({
+        managementUserId: id,
+        displayName,
+      });
+      await bRepo.save(bio);
+
+      const permissions = pRepo.create({
+        adminId: id,
+        adminsCrud: randomCrud(),
+        usersCrud: randomCrud(),
+        canChangePasswords: faker.datatype.boolean(),
+        canAssignPermissions: faker.datatype.boolean(),
+        eventVisibility: randomEventVisibility(),
+      });
+      await pRepo.save(permissions);
     });
-    await permissionsRepo.save(permissions);
   }
 
   const managementUserIds = await userRepo.find({

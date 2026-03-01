@@ -1,5 +1,6 @@
 import { v4 as uuidv4 } from 'uuid';
 
+import { buildSimplePrefixTsquery } from '../fts-utils.js';
 import { managementDataSource } from '../data-source.js';
 import { AdminPermissions } from '../entities/AdminPermissions.js';
 import { ManagementUser } from '../entities/ManagementUser.js';
@@ -10,7 +11,7 @@ import type { EventVisibility } from '../entities/AdminPermissions.js';
 export type CreateAdminData = {
   email: string;
   passwordHash: string;
-  displayName?: string | null;
+  displayName: string;
   createdBy: string;
   adminsCrud: number;
   usersCrud: number;
@@ -21,7 +22,7 @@ export type CreateAdminData = {
 
 export type UpdateAdminData = {
   email?: string;
-  displayName?: string | null;
+  displayName?: string;
   passwordHash?: string;
   adminsCrud?: number;
   usersCrud?: number;
@@ -35,6 +36,14 @@ export class ManagementUserService {
     const repo = managementDataSource.getRepository(ManagementUser);
     return repo.findOne({
       where: { credentials: { email } },
+      relations: ['credentials', 'bio', 'permissions'],
+    });
+  }
+
+  static async findByDisplayName(displayName: string): Promise<ManagementUser | null> {
+    const repo = managementDataSource.getRepository(ManagementUser);
+    return repo.findOne({
+      where: { bio: { displayName } },
       relations: ['credentials', 'bio', 'permissions'],
     });
   }
@@ -65,11 +74,57 @@ export class ManagementUserService {
     });
   }
 
+  /** Paginated list of admins (non–super-admin users) and total count. Optional FTS search over email and display_name. */
+  static async listAdminsPaginated(
+    limit: number,
+    offset: number,
+    search?: string
+  ): Promise<{ admins: ManagementUser[]; total: number }> {
+    const repo = managementDataSource.getRepository(ManagementUser);
+    const qTrim = search?.trim();
+    const ftsQuery = qTrim !== undefined && qTrim !== '' ? buildSimplePrefixTsquery(qTrim) : '';
+    if (ftsQuery === '') {
+      const [admins, total] = await repo.findAndCount({
+        where: { isSuperAdmin: false },
+        relations: ['credentials', 'bio', 'permissions'],
+        order: { createdAt: 'ASC' },
+        take: limit,
+        skip: offset,
+      });
+      return { admins, total };
+    }
+    const qb = repo
+      .createQueryBuilder('u')
+      .leftJoinAndSelect('u.credentials', 'credentials')
+      .leftJoinAndSelect('u.bio', 'bio')
+      .leftJoinAndSelect('u.permissions', 'permissions')
+      .where('u.is_super_admin = :superAdmin', { superAdmin: false })
+      .andWhere(
+        "(to_tsvector('simple', credentials.email) @@ to_tsquery('simple', :ftsQuery) OR to_tsvector('simple', bio.display_name) @@ to_tsquery('simple', :ftsQuery))",
+        { ftsQuery }
+      )
+      .orderBy('u.createdAt', 'ASC')
+      .take(limit)
+      .skip(offset);
+    const [admins, total] = await qb.getManyAndCount();
+    return { admins, total };
+  }
+
+  /**
+   * Create an admin (non–super-admin). Always creates management_user, credentials,
+   * management_user_bio (display_name required), and admin_permissions in a single transaction.
+   * The DB enforces that every management_user has exactly one credentials and one bio row
+   * (created in the same transaction) and that cred/bio rows cannot be deleted directly—delete
+   * management_user only (CASCADE removes cred and bio).
+   * This method sets the ensure_management_user_has_cred_and_bio constraint to DEFERRED at the
+   * start of the transaction so the check runs at commit and sees user, credentials, and bio.
+   */
   static async createAdmin(data: CreateAdminData): Promise<ManagementUser> {
     const qr = managementDataSource.createQueryRunner();
     await qr.connect();
     await qr.startTransaction();
     try {
+      await qr.manager.query('SET CONSTRAINTS ensure_management_user_has_cred_and_bio DEFERRED');
       const userRepo = qr.manager.getRepository(ManagementUser);
       const credRepo = qr.manager.getRepository(ManagementUserCredentials);
       const bioRepo = qr.manager.getRepository(ManagementUserBio);
@@ -92,7 +147,7 @@ export class ManagementUserService {
 
       const bio = bioRepo.create({
         managementUserId: id,
-        displayName: data.displayName ?? null,
+        displayName: data.displayName,
       });
       await bioRepo.save(bio);
 
@@ -131,10 +186,10 @@ export class ManagementUserService {
           .getRepository(ManagementUserCredentials)
           .update({ managementUserId: id }, { email: data.email });
       }
-      if (data.displayName !== undefined) {
+      if (data.displayName !== undefined && data.displayName.trim() !== '') {
         await qr.manager
           .getRepository(ManagementUserBio)
-          .update({ managementUserId: id }, { displayName: data.displayName });
+          .update({ managementUserId: id }, { displayName: data.displayName.trim() });
       }
       if (data.passwordHash !== undefined) {
         await qr.manager

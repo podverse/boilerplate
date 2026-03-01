@@ -10,7 +10,7 @@ import { appDataSource } from '@boilerplate/orm';
 import { managementDataSource } from '@boilerplate/management-orm';
 import { createApp } from '../app.js';
 import { config } from '../config/index.js';
-import { bootstrapSuperAdmin } from '../lib/bootstrapSuperAdmin.js';
+import { createSuperAdminForTest } from './createSuperAdminForTest.js';
 
 const API = config.apiVersionPath;
 const superAdminEmail = `super-${Date.now()}@example.com`;
@@ -21,11 +21,9 @@ describe('management-api', () => {
   let superAdminAgent: ReturnType<typeof request.agent>;
 
   beforeAll(async () => {
-    process.env.SUPER_ADMIN_EMAIL = superAdminEmail;
-    process.env.SUPER_ADMIN_PASSWORD = superAdminPassword;
     await appDataSource.initialize();
     await managementDataSource.initialize();
-    await bootstrapSuperAdmin();
+    await createSuperAdminForTest(superAdminEmail, superAdminPassword);
     app = createApp();
     superAdminAgent = request.agent(app);
     await superAdminAgent
@@ -116,9 +114,7 @@ describe('management-api', () => {
     });
 
     it('returns 200 with events array when authenticated', async () => {
-      const res = await superAdminAgent
-        .get(`${API}/events`)
-        .expect(200);
+      const res = await superAdminAgent.get(`${API}/events`).expect(200);
       expect(res.body).toHaveProperty('events');
       expect(Array.isArray(res.body.events)).toBe(true);
     });
@@ -149,9 +145,7 @@ describe('management-api', () => {
     });
 
     it('GET /admins returns list including new admin', async () => {
-      const res = await superAdminAgent
-        .get(`${API}/admins`)
-        .expect(200);
+      const res = await superAdminAgent.get(`${API}/admins`).expect(200);
       expect(res.body.admins).toBeDefined();
       const found = res.body.admins.find((a: { id: string }) => a.id === adminId);
       expect(found).toBeDefined();
@@ -159,9 +153,7 @@ describe('management-api', () => {
     });
 
     it('GET /admins/:id returns admin', async () => {
-      const res = await superAdminAgent
-        .get(`${API}/admins/${adminId}`)
-        .expect(200);
+      const res = await superAdminAgent.get(`${API}/admins/${adminId}`).expect(200);
       expect(res.body.admin.id).toBe(adminId);
       expect(res.body.admin.email).toBe(adminEmail);
     });
@@ -192,20 +184,14 @@ describe('management-api', () => {
     });
 
     it('DELETE /admins/:id removes admin', async () => {
-      await superAdminAgent
-        .delete(`${API}/admins/${adminId}`)
-        .expect(204);
-      await superAdminAgent
-        .get(`${API}/admins/${adminId}`)
-        .expect(404);
+      await superAdminAgent.delete(`${API}/admins/${adminId}`).expect(204);
+      await superAdminAgent.get(`${API}/admins/${adminId}`).expect(404);
     });
   });
 
   describe('users CRUD (super admin, main DB)', () => {
     it('GET /users returns 200 with users array', async () => {
-      const res = await superAdminAgent
-        .get(`${API}/users`)
-        .expect(200);
+      const res = await superAdminAgent.get(`${API}/users`).expect(200);
       expect(res.body).toHaveProperty('users');
       expect(Array.isArray(res.body.users)).toBe(true);
     });
@@ -225,9 +211,7 @@ describe('management-api', () => {
       expect(createRes.body.user.email).toBe(email);
       const userId = createRes.body.user.id;
 
-      const getRes = await superAdminAgent
-        .get(`${API}/users/${userId}`)
-        .expect(200);
+      const getRes = await superAdminAgent.get(`${API}/users/${userId}`).expect(200);
       expect(getRes.body.user.id).toBe(userId);
       expect(getRes.body.user.email).toBe(email);
     });

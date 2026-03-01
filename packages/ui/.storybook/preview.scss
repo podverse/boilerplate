@@ -6,3 +6,11 @@
   min-height: unset;
   height: auto;
 }
+
+.previewWrapper {
+  padding: 3rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  box-sizing: border-box;
+}

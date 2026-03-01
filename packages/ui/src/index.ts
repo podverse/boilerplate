@@ -81,4 +81,20 @@ export { LoadingSpinner } from './components/LoadingSpinner';
 export type { LoadingSpinnerProps } from './components/LoadingSpinner';
 export { Modal, NavigationLoadingOverlay } from './components/Modal';
 export type { ModalProps } from './components/Modal';
+export { Table } from './components/Table';
+export type {
+  TableProps,
+  TableScrollContainerProps,
+  TableHeadProps,
+  TableBodyProps,
+  TableRowProps,
+  TableHeaderCellProps,
+  TableCellProps,
+} from './components/Table';
+export { TableFilterBar } from './components/TableFilterBar';
+export type { TableFilterBarColumn, TableFilterBarProps } from './components/TableFilterBar';
+export { TableWithFilter } from './components/TableWithFilter';
+export type { FilterableTableRow, TableWithFilterProps } from './components/TableWithFilter';
+export { Pagination, GoToPageModal } from './components/Pagination';
+export type { PaginationProps, GoToPageModalProps } from './components/Pagination';
 export { NavigationProvider, useNavigationContext } from './contexts/NavigationContext';

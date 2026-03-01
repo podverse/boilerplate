@@ -30,18 +30,11 @@ const preview: Preview = {
   decorators: [
     (Story, context) => {
       const raw = context.globals.theme as string | undefined;
-      const theme: Theme = raw !== undefined && THEMES.includes(raw as Theme) ? (raw as Theme) : defaultTheme;
+      const theme: Theme =
+        raw !== undefined && THEMES.includes(raw as Theme) ? (raw as Theme) : defaultTheme;
       return (
         <ThemeProvider key={theme} defaultTheme={theme} storageKey="storybook-theme">
-          <div
-            style={{
-              padding: '3rem',
-              display: 'flex',
-              justifyContent: 'center',
-              alignItems: 'center',
-              boxSizing: 'border-box',
-            }}
-          >
+          <div className="previewWrapper">
             <Story />
           </div>
         </ThemeProvider>

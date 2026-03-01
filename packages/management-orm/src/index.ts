@@ -21,3 +21,4 @@ export {
   ManagementEventService,
   type ListEventsOptions,
 } from './services/ManagementEventService.js';
+export { EVENT_ACTIONS, EVENT_TARGET_TYPES } from './event-actions.js';

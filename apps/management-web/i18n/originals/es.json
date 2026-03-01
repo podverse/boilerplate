@@ -55,9 +55,46 @@
     "admins": "Administradores",
     "events": "Eventos",
     "loadingAdmins": "Cargando administradores…",
-    "noAdmins": "No hay administradores.",
+    "noAdmins": "No se encontraron administradores.",
     "loadingEvents": "Cargando eventos…",
-    "noEvents": "No hay eventos."
+    "noEvents": "No se encontraron eventos.",
+    "eventsTable": {
+      "timestamp": "Fecha y hora",
+      "actorType": "Tipo de actor",
+      "action": "Acción",
+      "target": "Objetivo",
+      "details": "Detalles"
+    },
+    "eventsSort": {
+      "label": "Ordenar"
+    },
+    "eventsSortOptions": {
+      "recent": "Recientes",
+      "oldest": "Antiguos"
+    },
+    "eventsLimit": {
+      "label": "Elementos por página"
+    },
+    "tableFilter": {
+      "placeholder": "Filtrar tabla…",
+      "columnsLabel": "Buscar en columnas",
+      "funnelButtonLabel": "Elegir columnas para buscar"
+    },
+    "adminsTable": {
+      "email": "Correo electrónico",
+      "displayName": "Nombre para mostrar"
+    },
+    "pagination": {
+      "previous": "Anterior",
+      "next": "Siguiente",
+      "goToPage": "Ir a página",
+      "goToPageModal": {
+        "title": "Ir a página",
+        "pageLabel": "Página",
+        "submitLabel": "Ir",
+        "closeLabel": "Cerrar"
+      }
+    }
   },
   "dashboard": {
     "title": "Panel",
@@ -148,6 +185,14 @@
     "loadingSpinner": {
       "ariaLabel": "Cargando"
     },
+    "modal": {
+      "ariaClose": "Cerrar"
+    },
+    "tableFilterBar": {
+      "placeholder": "Filtrar…",
+      "filterColumnsLabel": "Buscar en columnas",
+      "funnelButtonLabel": "Elegir columnas para buscar"
+    },
     "tabs": {
       "navAriaLabel": "Navegación de sección"
     },
@@ -161,6 +206,25 @@
       "defaultPasswordLabel": "Contraseña",
       "passwordMinLength": "La contraseña debe tener al menos {count} caracteres",
       "passwordMaxLength": "La contraseña no puede tener más de {count} caracteres"
+    },
+    "pagination": {
+      "previous": "Anterior",
+      "next": "Siguiente",
+      "goToPage": "Ir a la página",
+      "ariaPagination": "Paginación",
+      "ariaPreviousPage": "Página anterior",
+      "ariaNextPage": "Página siguiente",
+      "pagesRangeOf": "Páginas 1 a {max} de 500+",
+      "goToPageModal": {
+        "title": "Ir a la página",
+        "pageLabel": "Página",
+        "submitLabel": "Ir",
+        "closeLabel": "Cerrar",
+        "pagesRange": "Páginas 1 a {totalPages}",
+        "pagesRangeSingle": "Páginas 1 a 1",
+        "pageBetween": "Introduce una página entre 1 y {totalPages}",
+        "placeholder": "1–{max}"
+      }
     }
   }
 }

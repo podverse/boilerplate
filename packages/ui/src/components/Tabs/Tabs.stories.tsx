@@ -1,7 +1,15 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { Tabs } from './Tabs';
 
-function MockLink({ href, children, className }: { href: string; children: React.ReactNode; className?: string }) {
+function MockLink({
+  href,
+  children,
+  className,
+}: {
+  href: string;
+  children: React.ReactNode;
+  className?: string;
+}) {
   return (
     <a href={href} className={className}>
       {children}
@@ -13,7 +21,10 @@ const meta: Meta<typeof Tabs> = {
   component: Tabs,
   tags: ['autodocs'],
   argTypes: {
-    activeHref: { control: 'text', description: 'Current path (for active tab). Omit in Next.js to use usePathname().' },
+    activeHref: {
+      control: 'text',
+      description: 'Current path (for active tab). Omit in Next.js to use usePathname().',
+    },
   },
 };
 

@@ -1,0 +1,38 @@
+@use '../../styles/variables' as *;
+
+.scrollContainer {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.root {
+  width: 100%;
+  min-width: 32rem;
+  border-collapse: collapse;
+  font-size: $font-size-base;
+  color: var(--color-text);
+}
+
+.body {
+  tr:last-child .cell {
+    border-bottom-width: 0;
+  }
+}
+
+.headerCell {
+  padding: $space-3 $space-4;
+  text-align: left;
+  font-weight: $font-weight-semibold;
+  color: var(--color-text);
+  border-bottom: $border-width solid var(--color-border);
+  background-color: var(--color-bg);
+  white-space: nowrap;
+}
+
+.cell {
+  padding: $space-3 $space-4;
+  border-bottom: $border-width solid var(--color-border);
+  vertical-align: top;
+  white-space: nowrap;
+}

@@ -1,0 +1,9 @@
+@use '../../styles/variables' as *;
+
+.filterBarWrapper {
+  margin-bottom: $space-4;
+}
+
+.emptyMessage {
+  margin-bottom: $space-4;
+}

@@ -46,6 +46,14 @@ $focus-outline-offset: 2px;
 $opacity-disabled: 0.6;
 $transition-fast: 0.15s;
 
+// Generic sizes (square touch targets, controls, inline elements)
+$size-sm: 1rem;
+$size-md: 2rem;
+$size-lg: 2.5rem;
+$icon-size: $font-size-lg;
+$size-inline: 1em;
+$control-radius: $radius-sm;
+
 // Animation
 $animation-spin-duration: 0.75s;
 $rotation-full: 360deg;
@@ -57,8 +65,12 @@ $z-modal: 100;
 // CenterInViewport (centered auth/form content)
 $center-in-viewport-content-max-width: 24rem;
 
-// Dropdown
+// Form / modal form (min width for small forms e.g. go-to-page modal)
+$form-min-width: 18rem;
+
+// Dropdown / popover panels
 $dropdown-panel-min-width: 10rem;
+$dropdown-panel-min-width-lg: 14rem;
 
 // Select
 $select-max-width: 20rem;
@@ -66,8 +78,10 @@ $shadow-dropdown:
   0 4px 6px -1px rgb(0 0 0 / 0.1),
   0 2px 4px -2px rgb(0 0 0 / 0.1);
 
-// Loading spinner
-$loading-spinner-size: 1em;
+// Modal / form overlay (e.g. go-to-page modal, dialogs)
+$shadow-modal: 0 4px 12px rgb(0 0 0 / 0.15);
+
+// Loading spinner (stroke; dimensions use $size-inline or component sizes)
 $loading-spinner-border-width: 2px;
 
 // Breakpoints (plan 17 responsive layout)

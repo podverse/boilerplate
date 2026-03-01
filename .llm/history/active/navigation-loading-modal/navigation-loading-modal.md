@@ -20,7 +20,7 @@ Whenever a link is pressed in web or management web that will navigate to anothe
 
 ### Files Created/Modified
 
-- packages/ui: LoadingSpinner (xl size), LoadingSpinner.module.scss, Modal (new), Modal.module.scss, Modal.stories.tsx, NavigationLoadingOverlay.tsx, Modal/index.ts, NavigationContext.tsx, Link.tsx, styles/_variables.scss ($z-modal), index.ts (exports).
+- packages/ui: LoadingSpinner (xl size), LoadingSpinner.module.scss, Modal (new), Modal.module.scss, Modal.stories.tsx, NavigationLoadingOverlay.tsx, Modal/index.ts, NavigationContext.tsx, Link.tsx, styles/\_variables.scss ($z-modal), index.ts (exports).
 - apps/web/layout.tsx: NavigationProvider wrap.
 - apps/management-web/layout.tsx: NavigationProvider wrap.
 - packages/ui: LoadingSpinner.stories.tsx (xl in options and Sizes story).

@@ -5,7 +5,10 @@
 
 import { t } from './t.js';
 
-export function getVerificationEmailContent(locale: string, link: string): {
+export function getVerificationEmailContent(
+  locale: string,
+  link: string
+): {
   subject: string;
   text: string;
   html: string;
@@ -17,7 +20,10 @@ export function getVerificationEmailContent(locale: string, link: string): {
   };
 }
 
-export function getPasswordResetEmailContent(locale: string, link: string): {
+export function getPasswordResetEmailContent(
+  locale: string,
+  link: string
+): {
   subject: string;
   text: string;
   html: string;
@@ -29,7 +35,10 @@ export function getPasswordResetEmailContent(locale: string, link: string): {
   };
 }
 
-export function getEmailChangeVerificationContent(locale: string, link: string): {
+export function getEmailChangeVerificationContent(
+  locale: string,
+  link: string
+): {
   subject: string;
   text: string;
   html: string;

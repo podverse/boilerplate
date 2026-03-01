@@ -18,6 +18,7 @@
   },
   "dependencies": {
     "@boilerplate/helpers": "*",
+    "@boilerplate/helpers-requests": "*",
     "@boilerplate/helpers-i18n": "*",
     "@boilerplate/orm": "*",
     "bcrypt": "^6.0.0",

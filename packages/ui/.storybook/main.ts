@@ -1,6 +1,8 @@
 import { fileURLToPath } from 'node:url';
-import { dirname } from 'node:path';
+import { dirname, join } from 'node:path';
 import type { StorybookConfig } from '@storybook/react-vite';
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
 
 const config: StorybookConfig = {
   stories: ['../src/**/*.stories.@(ts|tsx)'],
@@ -8,6 +10,19 @@ const config: StorybookConfig = {
   framework: {
     name: getAbsolutePath('@storybook/react-vite'),
     options: {},
+  },
+  async viteFinal(config) {
+    const nextNavMock = join(__dirname, 'mocks', 'next-navigation.ts');
+    const alias = Array.isArray(config.resolve?.alias)
+      ? [...config.resolve.alias, { find: 'next/navigation', replacement: nextNavMock }]
+      : { ...config.resolve?.alias, 'next/navigation': nextNavMock };
+    return {
+      ...config,
+      resolve: {
+        ...config.resolve,
+        alias,
+      },
+    };
   },
 };
 

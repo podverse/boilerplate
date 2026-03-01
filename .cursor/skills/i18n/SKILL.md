@@ -52,11 +52,11 @@ Locale list and default are defined once in **`packages/helpers/src/locale/const
 
 ### Sync points (all locations to update when adding a locale or changing default/supported)
 
-| Purpose | File |
-|--------|------|
+| Purpose                                   | File                                                                                                                                                                |
+| ----------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Locale constants (single source of truth) | `packages/helpers/src/locale/constants.ts` — `ALL_AVAILABLE_LOCALES`, `DEFAULT_LOCALE`. Web, management-web, and helpers-i18n use these via `@boilerplate/helpers`. |
-| Web: env var documentation | `apps/web/.env.example` — `DEFAULT_LOCALE`, `SUPPORTED_LOCALES` |
-| Management-web: env var documentation | `apps/management-web/.env.example` — `DEFAULT_LOCALE`, `SUPPORTED_LOCALES` |
+| Web: env var documentation                | `apps/web/.env.example` — `DEFAULT_LOCALE`, `SUPPORTED_LOCALES`                                                                                                     |
+| Management-web: env var documentation     | `apps/management-web/.env.example` — `DEFAULT_LOCALE`, `SUPPORTED_LOCALES`                                                                                          |
 
 - **`DEFAULT_LOCALE`** (env) — Overrides the default locale (e.g. `en-US`). Must be one of the values in that app’s `ALL_AVAILABLE_LOCALES`.
 - **`SUPPORTED_LOCALES`** (env) — Unset or `all-available`: use the full hardcoded list. Comma-delimited (e.g. `en-US,es`): only those locales are active; values must be in `ALL_AVAILABLE_LOCALES`.
@@ -65,16 +65,16 @@ Locale list and default are defined once in **`packages/helpers/src/locale/const
 
 ## Where things live
 
-| Item                             | Location                                                                             |
-| -------------------------------- | ------------------------------------------------------------------------------------ |
-| App originals                    | `apps/<app>/i18n/originals/` (e.g. `en-US.json`, `es.json`)                          |
-| App overrides                    | `apps/<app>/i18n/overrides/` (e.g. `es.json`)                                        |
-| App compiled                     | `apps/<app>/i18n/compiled/` (generated; do not edit)                                 |
-| App locale list / request config | `apps/<app>/src/i18n/request.ts` (hardcoded `ALL_AVAILABLE_LOCALES`; align with env) |
-| Backend i18n (API / management-api) | `packages/helpers-i18n/` — same originals/overrides/compiled; `resolveLocale()`, `getPasswordValidationMessages()`, email content helpers. User-facing messages only (password validation, email body). |
-| Locale constants (all apps + backend) | `packages/helpers/src/locale/constants.ts`; import from `@boilerplate/helpers` everywhere. |
-| UI keys reference                | `packages/ui/I18N-KEYS.md`                                                           |
-| Full doc                         | `docs/localization/I18N.md`                                                          |
+| Item                                  | Location                                                                                                                                                                                                |
+| ------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| App originals                         | `apps/<app>/i18n/originals/` (e.g. `en-US.json`, `es.json`)                                                                                                                                             |
+| App overrides                         | `apps/<app>/i18n/overrides/` (e.g. `es.json`)                                                                                                                                                           |
+| App compiled                          | `apps/<app>/i18n/compiled/` (generated; do not edit)                                                                                                                                                    |
+| App locale list / request config      | `apps/<app>/src/i18n/request.ts` (hardcoded `ALL_AVAILABLE_LOCALES`; align with env)                                                                                                                    |
+| Backend i18n (API / management-api)   | `packages/helpers-i18n/` — same originals/overrides/compiled; `resolveLocale()`, `getPasswordValidationMessages()`, email content helpers. User-facing messages only (password validation, email body). |
+| Locale constants (all apps + backend) | `packages/helpers/src/locale/constants.ts`; import from `@boilerplate/helpers` everywhere.                                                                                                              |
+| UI keys reference                     | `packages/ui/I18N-KEYS.md`                                                                                                                                                                              |
+| Full doc                              | `docs/localization/I18N.md`                                                                                                                                                                             |
 
 ## Quick checklist when you add or change strings
 

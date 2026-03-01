@@ -26,7 +26,7 @@ Add I eighteen handling to The API and management API. The default should be the
 - package.json (workspaces + helpers-i18n, i18n:compile extended)
 - scripts/i18n/validate.mjs (validateI18nDir, validateHelpersI18n, run helpers-i18n when no arg)
 - apps/api/package.json (dependency @boilerplate/helpers-i18n)
-- apps/api/src/controllers/authController.ts (use resolveLocale, getPasswordValidationMessages, pass locale to send*Email)
+- apps/api/src/controllers/authController.ts (use resolveLocale, getPasswordValidationMessages, pass locale to send\*Email)
 - apps/api/src/lib/mailer/send.ts (accept locale, use helpers-i18n email content)
 - apps/api/src/lib/password-messages.ts (deleted)
 - apps/management-api/package.json (dependency @boilerplate/helpers-i18n)

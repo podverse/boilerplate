@@ -20,14 +20,7 @@ const options = [
 export const Default: Story = {
   render: function DefaultSelect() {
     const [value, setValue] = useState('b');
-    return (
-      <Select
-        label="Choose one"
-        options={options}
-        value={value}
-        onChange={setValue}
-      />
-    );
+    return <Select label="Choose one" options={options} value={value} onChange={setValue} />;
   },
 };
 

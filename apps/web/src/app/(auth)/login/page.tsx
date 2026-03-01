@@ -26,7 +26,9 @@ export default function LoginPage() {
     if (result.ok) {
       router.push(ROUTES.DASHBOARD);
     } else {
-      setSubmitError(result.message === AUTH_MESSAGE_LOGIN_FAILED ? tErrors('loginFailed') : result.message);
+      setSubmitError(
+        result.message === AUTH_MESSAGE_LOGIN_FAILED ? tErrors('loginFailed') : result.message
+      );
     }
   };
 

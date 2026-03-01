@@ -18,6 +18,7 @@
   },
   "dependencies": {
     "@boilerplate/helpers": "*",
+    "@boilerplate/helpers-requests": "*",
     "@boilerplate/helpers-i18n": "*",
     "@boilerplate/management-orm": "*",
     "@boilerplate/orm": "*",

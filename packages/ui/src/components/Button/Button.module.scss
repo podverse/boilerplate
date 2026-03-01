@@ -49,8 +49,8 @@
   &::after {
     content: '';
     position: absolute;
-    width: $loading-spinner-size;
-    height: $loading-spinner-size;
+    width: $size-inline;
+    height: $size-inline;
     border: $loading-spinner-border-width solid currentColor;
     border-right-color: transparent;
     border-radius: $radius-full;

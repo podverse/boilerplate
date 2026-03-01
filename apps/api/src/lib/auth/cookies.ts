@@ -34,7 +34,13 @@ export function setSessionCookies(
 /**
  * Clear session and refresh cookies (e.g. on logout or invalid refresh).
  */
-export function clearSessionCookies(res: Response, options: Pick<CookieOptions, 'sessionCookieName' | 'refreshCookieName' | 'cookieSecure' | 'cookieSameSite'>): void {
+export function clearSessionCookies(
+  res: Response,
+  options: Pick<
+    CookieOptions,
+    'sessionCookieName' | 'refreshCookieName' | 'cookieSecure' | 'cookieSameSite'
+  >
+): void {
   const sameSite = options.cookieSameSite;
   const secure = options.cookieSecure;
   const clearOpts = `Path=/; Max-Age=0; HttpOnly; SameSite=${sameSite}${secure ? '; Secure' : ''}`;

@@ -1,3 +1,5 @@
+import type { BearerToken } from './types/request-types.js';
+
 /**
  * Shared request helper. All API request modules use this for consistent
  * behavior (base URL, auth header, JSON, error shape).
@@ -8,13 +10,13 @@ export type ApiResponse<T = unknown> =
   | { ok: true; status: number; data?: T }
   | { ok: false; status: number; error: ApiError };
 
-export type RequestOptions = RequestInit & { token?: string | null };
+export type RequestOptions = RequestInit & { token?: BearerToken };
 
-export async function request(
+export async function request<T = unknown>(
   baseUrl: string,
   path: string,
   options: RequestOptions = {}
-): Promise<ApiResponse> {
+): Promise<ApiResponse<T>> {
   const { token, ...init } = options;
   const trimmedBase = baseUrl.replace(/\/$/, '');
   const pathPart = path.startsWith('/') ? path : `/${path}`;
@@ -55,5 +57,6 @@ export async function request(
     return { ok: false, status: res.status, error: { status: res.status, message } };
   }
 
-  return { ok: true, status: res.status, data };
+  // JSON parse returns unknown; caller supplies type via request<T>() for typed data
+  return { ok: true, status: res.status, data: data as T };
 }

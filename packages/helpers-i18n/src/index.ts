@@ -3,11 +3,7 @@
  * Backend modules (load, t, resolveLocale, password-messages, email-messages) live under backend/ and use Node/disk.
  */
 
-export {
-  ALL_AVAILABLE_LOCALES,
-  DEFAULT_LOCALE,
-  type Locale,
-} from '@boilerplate/helpers';
+export { ALL_AVAILABLE_LOCALES, DEFAULT_LOCALE, type Locale } from '@boilerplate/helpers';
 export {
   getVerificationEmailContent,
   getPasswordResetEmailContent,
@@ -17,3 +13,4 @@ export {
   resolveLocale,
   t,
 } from './backend/index.js';
+export { formatDateTimeReadable, type FormatDateTimeOptions } from './format-date.js';

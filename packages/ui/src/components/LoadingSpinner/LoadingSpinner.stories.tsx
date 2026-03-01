@@ -1,6 +1,8 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { LoadingSpinner } from './LoadingSpinner';
 
+import styles from './LoadingSpinner.stories.module.scss';
+
 const meta: Meta<typeof LoadingSpinner> = {
   component: LoadingSpinner,
   tags: ['autodocs'],
@@ -24,7 +26,7 @@ export const Primary: Story = {
 
 export const Sizes: Story = {
   render: () => (
-    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+    <div className={styles.sizesRow}>
       <LoadingSpinner size="sm" />
       <LoadingSpinner size="md" />
       <LoadingSpinner size="lg" />

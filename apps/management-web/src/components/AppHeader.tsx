@@ -8,9 +8,10 @@ import { useAuth } from '../context/AuthContext';
 import { ROUTES } from '../lib/routes';
 
 function getTitleIcon(): string | undefined {
-  const icon = typeof process.env.NEXT_PUBLIC_APP_TITLE_ICON === 'string'
-    ? process.env.NEXT_PUBLIC_APP_TITLE_ICON.trim()
-    : '';
+  const icon =
+    typeof process.env.NEXT_PUBLIC_APP_TITLE_ICON === 'string'
+      ? process.env.NEXT_PUBLIC_APP_TITLE_ICON.trim()
+      : '';
   return icon !== '' ? icon : undefined;
 }
 

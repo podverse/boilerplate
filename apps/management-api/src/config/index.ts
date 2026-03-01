@@ -1,8 +1,4 @@
-import {
-  normalizeVersionPath,
-  parseCookieSameSite,
-  parseCorsOrigins,
-} from '@boilerplate/helpers';
+import { normalizeVersionPath, parseCookieSameSite, parseCorsOrigins } from '@boilerplate/helpers';
 
 const getEnv = (key: string): string => {
   const value = process.env[key];
@@ -27,5 +23,8 @@ export const config = {
   refreshCookieName: getEnv('MANAGEMENT_REFRESH_COOKIE_NAME'),
   corsOrigins: parseCorsOrigins(getEnvOptional('MANAGEMENT_CORS_ORIGINS')),
   cookieSecure: process.env.NODE_ENV === 'production',
-  cookieSameSite: parseCookieSameSite(getEnv('MANAGEMENT_COOKIE_SAME_SITE'), 'MANAGEMENT_COOKIE_SAME_SITE'),
+  cookieSameSite: parseCookieSameSite(
+    getEnv('MANAGEMENT_COOKIE_SAME_SITE'),
+    'MANAGEMENT_COOKIE_SAME_SITE'
+  ),
 };

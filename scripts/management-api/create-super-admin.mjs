@@ -124,21 +124,28 @@ async function main() {
       return;
     }
 
-    await client.query(
-      `INSERT INTO management_user (id, is_super_admin, created_by)
-       VALUES ($1, true, NULL)`,
-      [id]
-    );
-    await client.query(
-      `INSERT INTO management_user_credentials (management_user_id, email, password_hash)
-       VALUES ($1, $2, $3)`,
-      [id, email, passwordHash]
-    );
-    await client.query(
-      `INSERT INTO management_user_bio (management_user_id, display_name)
-       VALUES ($1, NULL)`,
-      [id]
-    );
+    await client.query('BEGIN');
+    try {
+      await client.query(
+        `INSERT INTO management_user (id, is_super_admin, created_by)
+         VALUES ($1, true, NULL)`,
+        [id]
+      );
+      await client.query(
+        `INSERT INTO management_user_credentials (management_user_id, email, password_hash)
+         VALUES ($1, $2, $3)`,
+        [id, email, passwordHash]
+      );
+      await client.query(
+        `INSERT INTO management_user_bio (management_user_id, display_name)
+         VALUES ($1, 'Super Admin')`,
+        [id]
+      );
+      await client.query('COMMIT');
+    } catch (txErr) {
+      await client.query('ROLLBACK');
+      throw txErr;
+    }
 
     console.log('');
     console.log('Super admin created.');

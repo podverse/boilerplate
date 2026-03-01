@@ -140,6 +140,14 @@
     "loadingSpinner": {
       "ariaLabel": "Loading"
     },
+    "modal": {
+      "ariaClose": "Close"
+    },
+    "tableFilterBar": {
+      "placeholder": "Filter…",
+      "filterColumnsLabel": "Search in columns",
+      "funnelButtonLabel": "Choose columns to search"
+    },
     "tabs": {
       "navAriaLabel": "Section navigation"
     },
@@ -153,6 +161,25 @@
       "defaultPasswordLabel": "Password",
       "passwordMinLength": "Password must be at least {count} characters",
       "passwordMaxLength": "Password must be no more than {count} characters"
+    },
+    "pagination": {
+      "previous": "Previous",
+      "next": "Next",
+      "goToPage": "Go to page",
+      "ariaPagination": "Pagination",
+      "ariaPreviousPage": "Previous page",
+      "ariaNextPage": "Next page",
+      "pagesRangeOf": "Pages 1 to {max} of 500+",
+      "goToPageModal": {
+        "title": "Go to page",
+        "pageLabel": "Page",
+        "submitLabel": "Go",
+        "closeLabel": "Close",
+        "pagesRange": "Pages 1 to {totalPages}",
+        "pagesRangeSingle": "Pages 1 to 1",
+        "pageBetween": "Enter a page between 1 and {totalPages}",
+        "placeholder": "1–{max}"
+      }
     }
   }
 }

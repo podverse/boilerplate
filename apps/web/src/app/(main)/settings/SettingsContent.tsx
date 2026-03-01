@@ -3,7 +3,15 @@
 import { useRouter } from 'next/navigation';
 import { useLocale, useTranslations } from 'next-intl';
 import { ALL_AVAILABLE_LOCALES, type Locale } from '@boilerplate/helpers';
-import { Card, Container, PageHeader, Stack, Select, ThemeSelector, setSettingsCookie } from '@boilerplate/ui';
+import {
+  Card,
+  Container,
+  PageHeader,
+  Stack,
+  Select,
+  ThemeSelector,
+  setSettingsCookie,
+} from '@boilerplate/ui';
 
 export type SettingsContentProps = {
   settingsCookieName: string;

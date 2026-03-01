@@ -1,4 +1,4 @@
--- Combined migrations generated Fri Feb 27 22:05:49 CST 2026
+-- Combined migrations generated Sat Feb 28 21:08:24 CST 2026
 -- DO NOT EDIT - regenerate with scripts/database/combine-migrations.sh
 
 -- Including: 0000_management_helpers.sql
@@ -31,10 +31,10 @@ CREATE TABLE IF NOT EXISTS management_user_credentials (
     password_hash varchar_password NOT NULL
 );
 
--- Bio: display name (1:1 with management_user)
+-- Bio: display name (1:1 with management_user); unique so admins are distinguishable without ID
 CREATE TABLE IF NOT EXISTS management_user_bio (
     management_user_id UUID PRIMARY KEY REFERENCES management_user(id) ON DELETE CASCADE,
-    display_name varchar_short NULL
+    display_name varchar_short NOT NULL UNIQUE
 );
 
 
@@ -87,5 +87,79 @@ CREATE TABLE management_refresh_token (
 CREATE UNIQUE INDEX idx_management_refresh_token_hash ON management_refresh_token(token_hash);
 CREATE INDEX idx_management_refresh_token_expires_at ON management_refresh_token(expires_at);
 CREATE INDEX idx_management_refresh_token_user_id ON management_refresh_token(management_user_id);
+
+
+-- Including: 0005_management_user_cred_bio_integrity.sql
+-- 0005: Enforce that every management_user has exactly one credentials and one bio row
+-- (created in the same transaction), and that cred/bio rows cannot be deleted directly.
+
+-- Prevent direct DELETE on management_user_credentials; must delete management_user (CASCADE).
+CREATE OR REPLACE FUNCTION reject_direct_delete_management_user_credentials()
+RETURNS TRIGGER AS $$
+BEGIN
+  RAISE EXCEPTION 'Cannot delete management_user_credentials directly; delete management_user to remove the user (CASCADE will remove credentials and bio).'
+    USING ERRCODE = 'restrict_violation';
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER prevent_direct_delete_management_user_credentials
+  BEFORE DELETE ON management_user_credentials
+  FOR EACH ROW EXECUTE PROCEDURE reject_direct_delete_management_user_credentials();
+
+-- Prevent direct DELETE on management_user_bio; must delete management_user (CASCADE).
+CREATE OR REPLACE FUNCTION reject_direct_delete_management_user_bio()
+RETURNS TRIGGER AS $$
+BEGIN
+  RAISE EXCEPTION 'Cannot delete management_user_bio directly; delete management_user to remove the user (CASCADE will remove credentials and bio).'
+    USING ERRCODE = 'restrict_violation';
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER prevent_direct_delete_management_user_bio
+  BEFORE DELETE ON management_user_bio
+  FOR EACH ROW EXECUTE PROCEDURE reject_direct_delete_management_user_bio();
+
+-- Every management_user must have exactly one management_user_credentials and one management_user_bio.
+-- Check is deferred to commit so user + cred + bio can be inserted in one transaction.
+CREATE OR REPLACE FUNCTION check_management_user_has_cred_and_bio()
+RETURNS TRIGGER AS $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM management_user_credentials c WHERE c.management_user_id = NEW.id)
+     OR NOT EXISTS (SELECT 1 FROM management_user_bio b WHERE b.management_user_id = NEW.id) THEN
+    RAISE EXCEPTION 'Every management_user must have exactly one management_user_credentials and one management_user_bio row; create all three in the same transaction.'
+      USING ERRCODE = 'check_violation';
+  END IF;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE CONSTRAINT TRIGGER ensure_management_user_has_cred_and_bio
+  AFTER INSERT OR UPDATE ON management_user
+  DEFERRABLE INITIALLY DEFERRED
+  FOR EACH ROW
+  EXECUTE PROCEDURE check_management_user_has_cred_and_bio();
+
+
+-- Including: 0006_fts_indexes.sql
+-- 0006: Full-text search (FTS) GIN indexes for management list search (admins, events).
+-- Used by management-api list admins and list events when search query param is present.
+-- Config 'simple' for prefix matching (no stemming); queries use to_tsquery('simple', built_prefix_query).
+
+-- Admins: search over email (credentials) and display_name (bio)
+CREATE INDEX IF NOT EXISTS idx_management_user_credentials_fts_email
+  ON management_user_credentials USING GIN (to_tsvector('simple', email));
+
+CREATE INDEX IF NOT EXISTS idx_management_user_bio_fts_display_name
+  ON management_user_bio USING GIN (to_tsvector('simple', display_name));
+
+-- Events: search over action, actor_type, target_type, target_id, details
+CREATE INDEX IF NOT EXISTS idx_management_event_fts
+  ON management_event USING GIN (
+    to_tsvector(
+      'simple',
+      action || ' ' || coalesce(actor_type, '') || ' ' || coalesce(target_type, '')
+        || ' ' || coalesce(target_id, '') || ' ' || coalesce(details, '')
+    )
+  );
 
 

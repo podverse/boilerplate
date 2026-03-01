@@ -1,8 +1,4 @@
-import {
-  normalizeVersionPath,
-  parseCookieSameSite,
-  parseCorsOrigins,
-} from '@boilerplate/helpers';
+import { normalizeVersionPath, parseCookieSameSite, parseCorsOrigins } from '@boilerplate/helpers';
 
 const getEnv = (key: string): string => {
   const value = process.env[key];

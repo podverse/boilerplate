@@ -9,11 +9,7 @@ export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // Skip proxy for static files, API routes, and _next internal routes
-  if (
-    pathname.startsWith('/_next') ||
-    pathname.startsWith('/api') ||
-    pathname.includes('.')
-  ) {
+  if (pathname.startsWith('/_next') || pathname.startsWith('/api') || pathname.includes('.')) {
     return NextResponse.next();
   }
 
