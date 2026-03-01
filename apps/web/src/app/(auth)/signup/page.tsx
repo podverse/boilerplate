@@ -2,7 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import { SignupForm, useAuthValidation } from '@boilerplate/ui';
 import { webAuth } from '@boilerplate/helpers-requests';
 import { useAuth } from '../../../context/AuthContext';
@@ -10,6 +10,7 @@ import { getApiBaseUrl } from '../../../lib/api-client';
 import { ROUTES } from '../../../lib/routes';
 
 export default function SignupPage() {
+  const locale = useLocale();
   const tErrors = useTranslations('errors');
   const tUi = useTranslations('ui');
   const { validateEmail, validatePassword } = useAuthValidation();
@@ -41,11 +42,15 @@ export default function SignupPage() {
 
     setLoading(true);
     const baseUrl = getApiBaseUrl();
-    const res = await webAuth.signup(baseUrl, {
-      email,
-      password,
-      displayName: displayName.trim() || undefined,
-    });
+    const res = await webAuth.signup(
+      baseUrl,
+      {
+        email,
+        password,
+        displayName: displayName.trim() || undefined,
+      },
+      { locale }
+    );
     setLoading(false);
 
     if (

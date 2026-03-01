@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import { Suspense, useState } from 'react';
 import { Container, LoadingSpinner, ResetPasswordForm, useAuthValidation } from '@boilerplate/ui';
 import { webAuth } from '@boilerplate/helpers-requests';
@@ -9,6 +9,7 @@ import { getApiBaseUrl } from '../../../lib/api-client';
 import { ROUTES } from '../../../lib/routes';
 
 function ResetPasswordContent() {
+  const locale = useLocale();
   const tErrors = useTranslations('errors');
   const tUi = useTranslations('ui');
   const { validatePassword } = useAuthValidation();
@@ -40,10 +41,14 @@ function ResetPasswordContent() {
 
     setLoading(true);
     const baseUrl = getApiBaseUrl();
-    const res = await webAuth.resetPassword(baseUrl, {
-      token: token.trim(),
-      newPassword: password,
-    });
+    const res = await webAuth.resetPassword(
+      baseUrl,
+      {
+        token: token.trim(),
+        newPassword: password,
+      },
+      { locale }
+    );
     setLoading(false);
 
     if (res.ok) {

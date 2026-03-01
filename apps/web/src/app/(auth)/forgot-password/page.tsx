@@ -1,13 +1,14 @@
 'use client';
 
 import { useState } from 'react';
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import { ForgotPasswordForm, useAuthValidation } from '@boilerplate/ui';
 import { webAuth } from '@boilerplate/helpers-requests';
 import { getApiBaseUrl } from '../../../lib/api-client';
 import { ROUTES } from '../../../lib/routes';
 
 export default function ForgotPasswordPage() {
+  const locale = useLocale();
   const tErrors = useTranslations('errors');
   const { validateEmail } = useAuthValidation();
   const [email, setEmail] = useState('');
@@ -25,7 +26,7 @@ export default function ForgotPasswordPage() {
 
     setLoading(true);
     const baseUrl = getApiBaseUrl();
-    const res = await webAuth.forgotPassword(baseUrl, email);
+    const res = await webAuth.forgotPassword(baseUrl, email, { locale });
     setLoading(false);
 
     if (res.ok) {

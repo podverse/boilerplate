@@ -1,31 +1,6 @@
 -- 0005: Enforce that every management_user has exactly one credentials and one bio row
--- (created in the same transaction), and that cred/bio rows cannot be deleted directly.
-
--- Prevent direct DELETE on management_user_credentials; must delete management_user (CASCADE).
-CREATE OR REPLACE FUNCTION reject_direct_delete_management_user_credentials()
-RETURNS TRIGGER AS $$
-BEGIN
-  RAISE EXCEPTION 'Cannot delete management_user_credentials directly; delete management_user to remove the user (CASCADE will remove credentials and bio).'
-    USING ERRCODE = 'restrict_violation';
-END;
-$$ LANGUAGE plpgsql;
-
-CREATE TRIGGER prevent_direct_delete_management_user_credentials
-  BEFORE DELETE ON management_user_credentials
-  FOR EACH ROW EXECUTE PROCEDURE reject_direct_delete_management_user_credentials();
-
--- Prevent direct DELETE on management_user_bio; must delete management_user (CASCADE).
-CREATE OR REPLACE FUNCTION reject_direct_delete_management_user_bio()
-RETURNS TRIGGER AS $$
-BEGIN
-  RAISE EXCEPTION 'Cannot delete management_user_bio directly; delete management_user to remove the user (CASCADE will remove credentials and bio).'
-    USING ERRCODE = 'restrict_violation';
-END;
-$$ LANGUAGE plpgsql;
-
-CREATE TRIGGER prevent_direct_delete_management_user_bio
-  BEFORE DELETE ON management_user_bio
-  FOR EACH ROW EXECUTE PROCEDURE reject_direct_delete_management_user_bio();
+-- (created in the same transaction). Deletion is only via management_user; ON DELETE CASCADE
+-- on credentials/bio FKs handles child rows (no triggers that would block CASCADE).
 
 -- Every management_user must have exactly one management_user_credentials and one management_user_bio.
 -- Check is deferred to commit so user + cred + bio can be inserted in one transaction.

@@ -31,27 +31,36 @@ export async function logout(baseUrl: string): AuthResponse {
 
 export async function signup(
   baseUrl: string,
-  body: { email: string; password: string; displayName?: string }
+  body: { email: string; password: string; displayName?: string },
+  options?: { locale?: string }
 ): AuthResponse {
   return request(baseUrl, '/auth/signup', {
     method: 'POST',
     body: JSON.stringify(body),
+    locale: options?.locale,
   });
 }
 
-export async function forgotPassword(baseUrl: string, email: string): AuthResponse {
+export async function forgotPassword(
+  baseUrl: string,
+  email: string,
+  options?: { locale?: string }
+): AuthResponse {
   return request(baseUrl, '/auth/forgot-password', {
     method: 'POST',
     body: JSON.stringify({ email }),
+    locale: options?.locale,
   });
 }
 
 export async function resetPassword(
   baseUrl: string,
-  body: { token: string; newPassword: string }
+  body: { token: string; newPassword: string },
+  options?: { locale?: string }
 ): AuthResponse {
   return request(baseUrl, '/auth/reset-password', {
     method: 'POST',
     body: JSON.stringify(body),
+    locale: options?.locale,
   });
 }

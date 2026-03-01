@@ -1,0 +1,271 @@
+/**
+ * API integration tests: locale behavior (mailer-enabled, mocked send).
+ * Asserts Accept-Language / DEFAULT_LOCALE → email locale and password validation messages.
+ * Flow tests live in auth-mailer.test.ts.
+ */
+process.env.MAILER_ENABLED = 'true';
+process.env.SMTP_HOST = 'localhost';
+process.env.SMTP_PORT = '25';
+process.env.MAIL_FROM = 'test@test.com';
+process.env.APP_BASE_URL = 'http://localhost:3999';
+
+import { vi } from 'vitest';
+
+const { captured } = vi.hoisted(() => ({
+  captured: {
+    verifyEmail: '',
+    verifyLocale: '' as string,
+    passwordReset: '',
+    passwordResetLocale: '' as string,
+    emailChange: '',
+    emailChangeLocale: '' as string,
+  },
+}));
+
+vi.mock('../lib/mailer/send.js', () => ({
+  isMailerEnabled: () => true,
+  sendVerificationEmail: async (_to: string, token: string, locale?: string) => {
+    captured.verifyEmail = token;
+    captured.verifyLocale = locale ?? '';
+  },
+  sendPasswordResetEmail: async (_to: string, token: string, locale?: string) => {
+    captured.passwordReset = token;
+    captured.passwordResetLocale = locale ?? '';
+  },
+  sendEmailChangeVerificationEmail: async (_to: string, token: string, locale?: string) => {
+    captured.emailChange = token;
+    captured.emailChangeLocale = locale ?? '';
+  },
+}));
+
+import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import request from 'supertest';
+
+import { UserService, appDataSource } from '@boilerplate/orm';
+import { createApp } from '../app.js';
+import { config } from '../config/index.js';
+import { hashPassword } from '../lib/auth/hash.js';
+
+const API = config.apiVersionPath;
+
+describe('locale (mailer-enabled)', () => {
+  let app: ReturnType<typeof createApp>;
+  const signupPassword = 'signup-pass-1';
+  let forgotPasswordUserEmail: string;
+
+  beforeAll(async () => {
+    await appDataSource.initialize();
+    app = createApp();
+    forgotPasswordUserEmail = `locale-fp-${Date.now()}@example.com`;
+    const hashed = await hashPassword(signupPassword);
+    await UserService.create({
+      email: forgotPasswordUserEmail,
+      password: hashed,
+      displayName: 'Locale FP User',
+    });
+  });
+
+  afterAll(async () => {
+    if (appDataSource.isInitialized) {
+      await appDataSource.destroy();
+    }
+  });
+
+  describe('signup – verification email locale', () => {
+    it('sends verification email with locale es when Accept-Language is es', async () => {
+      const email = `signup-es-${Date.now()}@example.com`;
+      captured.verifyLocale = '';
+      await request(app)
+        .post(`${API}/auth/signup`)
+        .set('Accept-Language', 'es')
+        .send({ email, password: signupPassword, displayName: 'Es User' })
+        .expect(201);
+      expect(captured.verifyEmail).not.toBe('');
+      expect(captured.verifyLocale).toBe('es');
+    });
+
+    it('sends verification email with default locale when Accept-Language is missing', async () => {
+      const prevDefault = process.env.DEFAULT_LOCALE;
+      process.env.DEFAULT_LOCALE = 'en-US';
+      const email = `signup-default-${Date.now()}@example.com`;
+      captured.verifyLocale = '';
+      try {
+        await request(app)
+          .post(`${API}/auth/signup`)
+          .send({ email, password: signupPassword, displayName: 'Default User' })
+          .expect(201);
+        expect(captured.verifyEmail).not.toBe('');
+        expect(captured.verifyLocale).toBe('en-US');
+      } finally {
+        if (prevDefault !== undefined) process.env.DEFAULT_LOCALE = prevDefault;
+        else delete process.env.DEFAULT_LOCALE;
+      }
+    });
+
+    it('sends verification email with locale en-US when Accept-Language is en-US', async () => {
+      const email = `signup-en-us-${Date.now()}@example.com`;
+      captured.verifyLocale = '';
+      await request(app)
+        .post(`${API}/auth/signup`)
+        .set('Accept-Language', 'en-US')
+        .send({ email, password: signupPassword, displayName: 'En-US User' })
+        .expect(201);
+      expect(captured.verifyEmail).not.toBe('');
+      expect(captured.verifyLocale).toBe('en-US');
+    });
+
+    it('sends verification email with locale en-US when Accept-Language is en (base)', async () => {
+      const email = `signup-en-${Date.now()}@example.com`;
+      captured.verifyLocale = '';
+      await request(app)
+        .post(`${API}/auth/signup`)
+        .set('Accept-Language', 'en')
+        .send({ email, password: signupPassword, displayName: 'En User' })
+        .expect(201);
+      expect(captured.verifyEmail).not.toBe('');
+      expect(captured.verifyLocale).toBe('en-US');
+    });
+
+    it('sends verification email with locale en-US when Accept-Language is en-GB', async () => {
+      const email = `signup-en-gb-${Date.now()}@example.com`;
+      captured.verifyLocale = '';
+      await request(app)
+        .post(`${API}/auth/signup`)
+        .set('Accept-Language', 'en-GB')
+        .send({ email, password: signupPassword, displayName: 'En-GB User' })
+        .expect(201);
+      expect(captured.verifyEmail).not.toBe('');
+      expect(captured.verifyLocale).toBe('en-US');
+    });
+
+    it('sends verification email with locale es when Accept-Language is missing and DEFAULT_LOCALE is es', async () => {
+      const prevDefault = process.env.DEFAULT_LOCALE;
+      process.env.DEFAULT_LOCALE = 'es';
+      const email = `signup-default-es-${Date.now()}@example.com`;
+      captured.verifyLocale = '';
+      try {
+        await request(app)
+          .post(`${API}/auth/signup`)
+          .send({ email, password: signupPassword, displayName: 'Default Es User' })
+          .expect(201);
+        expect(captured.verifyEmail).not.toBe('');
+        expect(captured.verifyLocale).toBe('es');
+      } finally {
+        if (prevDefault !== undefined) process.env.DEFAULT_LOCALE = prevDefault;
+        else delete process.env.DEFAULT_LOCALE;
+      }
+    });
+
+    it('sends verification email with default locale when Accept-Language is unsupported (fr)', async () => {
+      const prevDefault = process.env.DEFAULT_LOCALE;
+      process.env.DEFAULT_LOCALE = 'en-US';
+      const email = `signup-fr-${Date.now()}@example.com`;
+      captured.verifyLocale = '';
+      try {
+        await request(app)
+          .post(`${API}/auth/signup`)
+          .set('Accept-Language', 'fr')
+          .send({ email, password: signupPassword, displayName: 'Fr User' })
+          .expect(201);
+        expect(captured.verifyEmail).not.toBe('');
+        expect(captured.verifyLocale).toBe('en-US');
+      } finally {
+        if (prevDefault !== undefined) process.env.DEFAULT_LOCALE = prevDefault;
+        else delete process.env.DEFAULT_LOCALE;
+      }
+    });
+  });
+
+  describe('signup – password validation locale', () => {
+    it('returns 400 with Spanish password validation message when password too short and Accept-Language is es', async () => {
+      const res = await request(app)
+        .post(`${API}/auth/signup`)
+        .set('Accept-Language', 'es')
+        .send({
+          email: `weak-es-${Date.now()}@example.com`,
+          password: 'short',
+          displayName: 'Weak',
+        })
+        .expect(400);
+      expect(res.body.message).toBe(
+        'La contraseña debe tener al menos 8 caracteres'
+      );
+    });
+
+    it('returns 400 with default-locale password validation message when password too short and no Accept-Language', async () => {
+      const prevDefault = process.env.DEFAULT_LOCALE;
+      process.env.DEFAULT_LOCALE = 'en-US';
+      try {
+        const res = await request(app)
+          .post(`${API}/auth/signup`)
+          .send({
+            email: `weak-default-${Date.now()}@example.com`,
+            password: 'short',
+            displayName: 'Weak',
+          })
+          .expect(400);
+        expect(res.body.message).toBe('Password must be at least 8 characters');
+      } finally {
+        if (prevDefault !== undefined) process.env.DEFAULT_LOCALE = prevDefault;
+        else delete process.env.DEFAULT_LOCALE;
+      }
+    });
+  });
+
+  describe('forgot-password – reset email locale', () => {
+    it('sends reset email with locale es when Accept-Language is es', async () => {
+      captured.passwordReset = '';
+      captured.passwordResetLocale = '';
+      await request(app)
+        .post(`${API}/auth/forgot-password`)
+        .set('Accept-Language', 'es')
+        .send({ email: forgotPasswordUserEmail })
+        .expect(200);
+      expect(captured.passwordReset).not.toBe('');
+      expect(captured.passwordResetLocale).toBe('es');
+    });
+
+    it('sends reset email with DEFAULT_LOCALE when Accept-Language is missing', async () => {
+      const prevDefault = process.env.DEFAULT_LOCALE;
+      process.env.DEFAULT_LOCALE = 'es';
+      captured.passwordReset = '';
+      captured.passwordResetLocale = '';
+      try {
+        await request(app)
+          .post(`${API}/auth/forgot-password`)
+          .send({ email: forgotPasswordUserEmail })
+          .expect(200);
+        expect(captured.passwordReset).not.toBe('');
+        expect(captured.passwordResetLocale).toBe('es');
+      } finally {
+        if (prevDefault !== undefined) process.env.DEFAULT_LOCALE = prevDefault;
+        else delete process.env.DEFAULT_LOCALE;
+      }
+    });
+  });
+
+  describe('request-email-change – verification email locale', () => {
+    it('sends verification email with locale es when Accept-Language is es', async () => {
+      const agent = request.agent(app);
+      const emailForLocaleTest = `email-change-locale-${Date.now()}@example.com`;
+      await agent
+        .post(`${API}/auth/signup`)
+        .send({
+          email: emailForLocaleTest,
+          password: signupPassword,
+          displayName: 'Locale Test',
+        })
+        .expect(201);
+      const newEmail = `locale-es-${Date.now()}@example.com`;
+      captured.emailChange = '';
+      captured.emailChangeLocale = '';
+      await agent
+        .post(`${API}/auth/request-email-change`)
+        .set('Accept-Language', 'es')
+        .send({ newEmail })
+        .expect(200, { message: 'Verification email sent' });
+      expect(captured.emailChange).not.toBe('');
+      expect(captured.emailChangeLocale).toBe('es');
+    });
+  });
+});

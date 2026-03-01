@@ -1,6 +1,7 @@
 /**
- * API integration tests: mailer-enabled mode (mocked send).
+ * API integration tests: mailer-enabled mode (mocked send) – flows only.
  * Verification flows use captured tokens from the mailer mock; no real SMTP.
+ * Locale behavior (email locale, password validation locale) is in auth-locale.test.ts.
  * Shared auth endpoints in auth.test.ts; no-mailer flows in auth-no-mailer.test.ts.
  */
 process.env.MAILER_ENABLED = 'true';
@@ -14,21 +15,27 @@ import { vi } from 'vitest';
 const { captured } = vi.hoisted(() => ({
   captured: {
     verifyEmail: '',
+    verifyLocale: '' as string,
     passwordReset: '',
+    passwordResetLocale: '' as string,
     emailChange: '',
+    emailChangeLocale: '' as string,
   },
 }));
 
 vi.mock('../lib/mailer/send.js', () => ({
   isMailerEnabled: () => true,
-  sendVerificationEmail: async (_to: string, token: string) => {
+  sendVerificationEmail: async (_to: string, token: string, locale?: string) => {
     captured.verifyEmail = token;
+    captured.verifyLocale = locale ?? '';
   },
-  sendPasswordResetEmail: async (_to: string, token: string) => {
+  sendPasswordResetEmail: async (_to: string, token: string, locale?: string) => {
     captured.passwordReset = token;
+    captured.passwordResetLocale = locale ?? '';
   },
-  sendEmailChangeVerificationEmail: async (_to: string, token: string) => {
+  sendEmailChangeVerificationEmail: async (_to: string, token: string, locale?: string) => {
     captured.emailChange = token;
+    captured.emailChangeLocale = locale ?? '';
   },
 }));
 
@@ -60,6 +67,7 @@ describe('mailer-enabled (mocked)', () => {
   describe('POST /auth/signup', () => {
     it('returns 201 with user and Set-Cookie (no token in body); captures verify token', async () => {
       captured.verifyEmail = '';
+      captured.verifyLocale = '';
       const res = await request(app)
         .post(`${API}/auth/signup`)
         .send({ email: signupEmail, password: signupPassword, displayName: 'Signup User' })
@@ -157,7 +165,7 @@ describe('mailer-enabled (mocked)', () => {
       const agent = request.agent(app);
       await agent
         .post(`${API}/auth/signup`)
-        .send({ email: oneOffEmail, password: 'pass1' })
+        .send({ email: oneOffEmail, password: signupPassword })
         .expect(201);
       const res = await agent.post(`${API}/auth/request-email-change`).send({}).expect(400);
       expect(res.body.message).toBeDefined();

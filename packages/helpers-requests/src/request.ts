@@ -10,20 +10,27 @@ export type ApiResponse<T = unknown> =
   | { ok: true; status: number; data?: T }
   | { ok: false; status: number; error: ApiError };
 
-export type RequestOptions = RequestInit & { token?: BearerToken };
+export type RequestOptions = RequestInit & {
+  token?: BearerToken;
+  /** When set, sent as Accept-Language so the API can localize responses (e.g. emails, password validation). */
+  locale?: string;
+};
 
 export async function request<T = unknown>(
   baseUrl: string,
   path: string,
   options: RequestOptions = {}
 ): Promise<ApiResponse<T>> {
-  const { token, ...init } = options;
+  const { token, locale, ...init } = options;
   const trimmedBase = baseUrl.replace(/\/$/, '');
   const pathPart = path.startsWith('/') ? path : `/${path}`;
   const url = path.startsWith('http') ? path : `${trimmedBase}${pathPart}`;
   const headers = new Headers(init.headers);
   if (token !== undefined && token !== null && token !== '') {
     headers.set('Authorization', `Bearer ${token}`);
+  }
+  if (locale !== undefined && locale !== null && locale !== '') {
+    headers.set('Accept-Language', locale);
   }
   if (init.body !== undefined && typeof init.body === 'string' && !headers.has('Content-Type')) {
     headers.set('Content-Type', 'application/json');

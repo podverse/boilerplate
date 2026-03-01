@@ -1,4 +1,4 @@
--- Combined migrations generated Sun Mar  1 00:25:56 CST 2026
+-- Combined migrations generated Sun Mar  1 12:39:41 CST 2026
 -- DO NOT EDIT - regenerate with scripts/database/combine-migrations.sh
 
 -- Including: 0000_management_helpers.sql
@@ -91,33 +91,8 @@ CREATE INDEX idx_management_refresh_token_user_id ON management_refresh_token(ma
 
 -- Including: 0005_management_user_cred_bio_integrity.sql
 -- 0005: Enforce that every management_user has exactly one credentials and one bio row
--- (created in the same transaction), and that cred/bio rows cannot be deleted directly.
-
--- Prevent direct DELETE on management_user_credentials; must delete management_user (CASCADE).
-CREATE OR REPLACE FUNCTION reject_direct_delete_management_user_credentials()
-RETURNS TRIGGER AS $$
-BEGIN
-  RAISE EXCEPTION 'Cannot delete management_user_credentials directly; delete management_user to remove the user (CASCADE will remove credentials and bio).'
-    USING ERRCODE = 'restrict_violation';
-END;
-$$ LANGUAGE plpgsql;
-
-CREATE TRIGGER prevent_direct_delete_management_user_credentials
-  BEFORE DELETE ON management_user_credentials
-  FOR EACH ROW EXECUTE PROCEDURE reject_direct_delete_management_user_credentials();
-
--- Prevent direct DELETE on management_user_bio; must delete management_user (CASCADE).
-CREATE OR REPLACE FUNCTION reject_direct_delete_management_user_bio()
-RETURNS TRIGGER AS $$
-BEGIN
-  RAISE EXCEPTION 'Cannot delete management_user_bio directly; delete management_user to remove the user (CASCADE will remove credentials and bio).'
-    USING ERRCODE = 'restrict_violation';
-END;
-$$ LANGUAGE plpgsql;
-
-CREATE TRIGGER prevent_direct_delete_management_user_bio
-  BEFORE DELETE ON management_user_bio
-  FOR EACH ROW EXECUTE PROCEDURE reject_direct_delete_management_user_bio();
+-- (created in the same transaction). Deletion is only via management_user; ON DELETE CASCADE
+-- on credentials/bio FKs handles child rows (no triggers that would block CASCADE).
 
 -- Every management_user must have exactly one management_user_credentials and one management_user_bio.
 -- Check is deferred to commit so user + cred + bio can be inserted in one transaction.
@@ -138,4 +113,5 @@ CREATE CONSTRAINT TRIGGER ensure_management_user_has_cred_and_bio
   DEFERRABLE INITIALLY DEFERRED
   FOR EACH ROW
   EXECUTE PROCEDURE check_management_user_has_cred_and_bio();
--- Including: 0006_fts_indexes.sql
+
+

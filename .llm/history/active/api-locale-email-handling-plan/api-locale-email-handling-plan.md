@@ -30,3 +30,21 @@ able to support locales
 - `.llm/plans/active/api-locale-email-handling/00-EXECUTION-ORDER.md`
 - `.llm/plans/active/api-locale-email-handling/00-SUMMARY.md`
 - `.llm/plans/active/api-locale-email-handling/01-api-locale-email-handling.md`
+
+---
+
+### Session 2 - 2025-03-01
+
+#### Prompt (Developer)
+
+implement the plan
+
+#### Key Decisions
+
+- Implemented full locale handling test matrix (plan section 3) in `auth-mailer.test.ts`: signup locale (en-US, en, en-GB, DEFAULT_LOCALE=es, unsupported fr), forgot-password locale (es, no header), request-email-change locale (es), password validation 400 (weak password + es, weak password + no header).
+- Request-email-change locale test uses a fresh signup in the test so it does not depend on email changed by a prior test.
+- Optional resolveLocale unit tests (plan F) not added to keep helpers-i18n free of vitest.
+
+#### Files Created/Modified
+
+- `apps/api/src/test/auth-mailer.test.ts`

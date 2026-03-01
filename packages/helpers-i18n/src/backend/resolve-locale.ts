@@ -8,14 +8,16 @@
 import { ALL_AVAILABLE_LOCALES, DEFAULT_LOCALE, type Locale } from '@boilerplate/helpers';
 
 /**
- * Parse Accept-Language and return the first matching supported locale, or DEFAULT_LOCALE.
+ * Parse Accept-Language and return the first matching supported locale, or app default from env.
  * Supports env DEFAULT_LOCALE and SUPPORTED_LOCALES (same semantics as web apps).
+ * Only uses getDefaultLocale() when header is empty or no header value matches a supported locale.
  */
 export function resolveLocale(acceptLanguageHeader: string | undefined): string {
   const supported = getSupportedLocales();
-  if (supported.length === 0) return DEFAULT_LOCALE;
+  if (supported.length === 0) return getDefaultLocale();
   if (acceptLanguageHeader === undefined || acceptLanguageHeader.trim() === '') {
-    return supported.includes(DEFAULT_LOCALE) ? DEFAULT_LOCALE : (supported[0] ?? DEFAULT_LOCALE);
+    const defaultLocale = getDefaultLocale();
+    return supported.includes(defaultLocale) ? defaultLocale : (supported[0] ?? defaultLocale);
   }
   const preferred = acceptLanguageHeader
     .split(',')
@@ -24,11 +26,14 @@ export function resolveLocale(acceptLanguageHeader: string | undefined): string 
   for (const lang of preferred) {
     if (supported.includes(lang)) return lang;
     const base = lang.split('-')[0];
-    // English (any variant) always maps to en-US; never return bare "en".
-    if (base === 'en') return DEFAULT_LOCALE;
-    if (base && supported.includes(base as Locale)) return base;
+    // Any base (en, es, fr, …) maps to a supported locale that matches: exact base or base-*.
+    if (base) {
+      const match = supported.find((s) => s === base || s.startsWith(`${base}-`));
+      if (match !== undefined) return match;
+    }
   }
-  return supported.includes(DEFAULT_LOCALE) ? DEFAULT_LOCALE : (supported[0] ?? DEFAULT_LOCALE);
+  const defaultLocale = getDefaultLocale();
+  return supported.includes(defaultLocale) ? defaultLocale : (supported[0] ?? defaultLocale);
 }
 
 function getDefaultLocale(): string {
