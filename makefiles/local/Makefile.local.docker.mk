@@ -27,10 +27,11 @@ local_infra_up: local_network_create
 	$(MAKE) local_db_init_management
 	$(MAKE) local_create_super_admin
 
-# Create super admin in management DB (interactive: prompts for email, prints generated password once).
+# Create super admin in management DB. When testSuperAdmin=1 (e.g. make local_reset_env_infra testSuperAdmin=1),
+# creates superadmin@example.com with password Test!1Aa (local-only). Otherwise interactive: prompts for email, prints generated password once.
 # Requires Postgres and management DB (e.g. after local_infra_up). Uses apps/management-api/.env.
 local_create_super_admin:
-	node scripts/management-api/create-super-admin.mjs
+	$(if $(testSuperAdmin),LOCAL_SUPERADMIN_PASSWORD='Test!1Aa',) node scripts/management-api/create-super-admin.mjs
 
 # Full stack in Docker (Path B: API, web, sidecar, Postgres, Valkey). Does not run env_setup.
 local_all_up: local_network_create

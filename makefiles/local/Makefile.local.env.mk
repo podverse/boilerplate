@@ -32,10 +32,11 @@ local_env_remove: local_clean
 	@bash scripts/remove-local-env.sh
 
 # Full reset: remove env and containers, recreate env from templates, then bring up Postgres, Valkey, and management DB.
+# Pass testSuperAdmin=1 to create superadmin@example.com with password Test!1Aa (local-only): make local_reset_env_infra testSuperAdmin=1
 local_reset_env_infra:
 	$(MAKE) local_env_remove
 	$(MAKE) env_setup
-	$(MAKE) local_infra_up
+	$(MAKE) local_infra_up testSuperAdmin=$(testSuperAdmin)
 
 # Create management database in local Postgres (boilerplate_local_postgres). Run after local_infra_up.
 # Idempotent: drops and recreates boilerplate_management, applies schema, grants read/read_write.

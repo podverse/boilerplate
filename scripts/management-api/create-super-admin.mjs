@@ -7,6 +7,9 @@
  *
  * Loads .env from apps/management-api (MANAGEMENT_DB_*). If stdin is not a TTY,
  * uses default email (superadmin@example.com) and still creates user if none exists.
+ *
+ * Local-only: when LOCAL_SUPERADMIN_PASSWORD is set (e.g. by Make), creates
+ * superadmin@example.com with that password (insecure; local dev only).
  */
 import { createInterface } from 'readline';
 import { randomBytes } from 'crypto';
@@ -90,8 +93,15 @@ async function main() {
     process.exit(1);
   }
 
-  const email = await promptEmail();
-  const plainPassword = generatePassword();
+  const localPassword = process.env.LOCAL_SUPERADMIN_PASSWORD;
+  const email =
+    typeof localPassword === 'string' && localPassword.length > 0
+      ? DEFAULT_EMAIL
+      : await promptEmail();
+  const plainPassword =
+    typeof localPassword === 'string' && localPassword.length > 0
+      ? localPassword
+      : generatePassword();
 
   const bcrypt = (await import('bcrypt')).default;
   const passwordHash = await bcrypt.hash(plainPassword, 10);
@@ -150,8 +160,12 @@ async function main() {
     console.log('');
     console.log('Super admin created.');
     console.log('Email:', email);
-    console.log('Password (save this; it will not be shown again):');
-    console.log('  ' + plainPassword);
+    if (localPassword) {
+      console.log('Password: Test!1Aa (local-only insecure; change in production.)');
+    } else {
+      console.log('Password (save this; it will not be shown again):');
+      console.log('  ' + plainPassword);
+    }
     console.log('');
     console.log('You can change this password later in the management app settings.');
     console.log('');

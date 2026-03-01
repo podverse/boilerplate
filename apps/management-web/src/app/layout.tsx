@@ -10,6 +10,7 @@ import {
   ThemeWrapper,
 } from '@boilerplate/ui';
 import { AuthWrapper } from '../components/AuthWrapper';
+import { getServerUser } from '../lib/server-auth';
 
 import '../styles/globals.scss';
 
@@ -28,13 +29,14 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const initialTheme = getThemeFromSettingsCookieValue(
     cookieStore.get(SETTINGS_COOKIE_NAME)?.value
   );
+  const initialUser = await getServerUser();
 
   return (
     <html lang={locale}>
       <body>
         <NextIntlClientProvider locale={locale} messages={messages}>
           <ThemeWrapper initialTheme={initialTheme} settingsCookieName={SETTINGS_COOKIE_NAME}>
-            <AuthWrapper>
+            <AuthWrapper initialUser={initialUser}>
               <NavigationProvider>
                 <AppView>{children}</AppView>
               </NavigationProvider>

@@ -6,6 +6,7 @@ import '@fortawesome/fontawesome-free/css/all.min.css';
 import { getRuntimeConfig } from '../config/runtime-config-store';
 import RuntimeConfigScript from '../components/Head/RuntimeConfigScript';
 import { AuthWrapper } from '../components/AuthWrapper';
+import { getServerUser } from '../lib/server-auth';
 import {
   AppView,
   getThemeFromSettingsCookieValue,
@@ -31,6 +32,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const initialTheme = getThemeFromSettingsCookieValue(
     cookieStore.get(SETTINGS_COOKIE_NAME)?.value
   );
+  const initialUser = await getServerUser();
   return (
     <html lang={locale}>
       <head>
@@ -39,7 +41,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       <body>
         <NextIntlClientProvider locale={locale} messages={messages}>
           <ThemeWrapper initialTheme={initialTheme} settingsCookieName={SETTINGS_COOKIE_NAME}>
-            <AuthWrapper>
+            <AuthWrapper initialUser={initialUser}>
               <NavigationProvider>
                 <AppView>{children}</AppView>
               </NavigationProvider>

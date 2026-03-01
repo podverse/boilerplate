@@ -11,9 +11,9 @@
 #   local_down                 - Stop all local Docker services (keeps volumes)
 #   local_down_volumes         - Stop services and remove volumes (clean DB/Valkey data)
 #   local_clean               - Run local_down then local_down_volumes (full teardown)
-#   env_setup                 - Copy env templates to infra/config/local and apps (idempotent)
-#   local_env_remove          - Run local_clean (tear down containers and volumes), then remove .env files (prompts for Y); run env_setup to recreate
-#   local_reset_env_infra     - Run local_env_remove, env_setup, then local_infra_up (full env + infra reset)
+#   env_setup                  - Copy env templates to infra/config/local and apps (idempotent)
+#   local_env_remove           - Run local_clean (tear down containers and volumes), then remove .env files (prompts for Y); run env_setup to recreate
+#   local_reset_env_infra      - Run local_env_remove, env_setup, then local_infra_up. Use testSuperAdmin=1 for superadmin@example.com / Test!1Aa
 #   local_db_init_management  - Create boilerplate_management DB in local Postgres (also run by local_infra_up)
 #   local_create_super_admin - Interactive: prompt for super admin email, create user, print password once (run by local_infra_up)
 #   local_infra_up            - Start Postgres, Valkey, and management DB, then create super admin (for API + Management API on host)
