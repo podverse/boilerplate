@@ -1,5 +1,4 @@
 import { redirect } from 'next/navigation';
-import { cookies } from 'next/headers';
 import { getLocale, getTranslations } from 'next-intl/server';
 import { DEFAULT_PAGE_LIMIT } from '@boilerplate/helpers';
 import { request } from '@boilerplate/helpers-requests';
@@ -11,6 +10,7 @@ import { EventsTableWithFilter } from '../../../components/EventsTableWithFilter
 import { getServerUser } from '../../../lib/server-auth';
 import { getManagementApiBaseUrl } from '../../../config/env';
 import { ROUTES } from '../../../lib/routes';
+import { getCookieHeader } from '../../../lib/server-request';
 
 type EventItem = {
   id: string;
@@ -38,12 +38,7 @@ async function fetchEvents(
   sort: string,
   search?: string
 ): Promise<{ data: EventsResponse | null; error: string | null }> {
-  const cookieStore = await cookies();
-  const cookieHeader = cookieStore
-    .getAll()
-    .map((c) => `${c.name}=${c.value}`)
-    .join('; ');
-
+  const cookieHeader = await getCookieHeader();
   const baseUrl = getManagementApiBaseUrl();
   const params = new URLSearchParams();
   if (page > 1) params.set('page', String(page));

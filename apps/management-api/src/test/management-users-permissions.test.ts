@@ -6,7 +6,7 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import request from 'supertest';
 
-import { appDataSource } from '@boilerplate/orm';
+import { appDataSourceRead, appDataSourceReadWrite } from '@boilerplate/orm';
 import { managementDataSource } from '@boilerplate/management-orm';
 import { createApp } from '../app.js';
 import { config } from '../config/index.js';
@@ -21,7 +21,8 @@ describe('management-api users permissions', () => {
   let superAdminAgent: ReturnType<typeof request.agent>;
 
   beforeAll(async () => {
-    await appDataSource.initialize();
+    await appDataSourceRead.initialize();
+    await appDataSourceReadWrite.initialize();
     await managementDataSource.initialize();
     await createSuperAdminForTest(superAdminEmail, superAdminPassword);
     app = createApp();
@@ -33,11 +34,14 @@ describe('management-api users permissions', () => {
   });
 
   afterAll(async () => {
-    if (appDataSource.isInitialized) {
-      await appDataSource.destroy();
-    }
     if (managementDataSource.isInitialized) {
       await managementDataSource.destroy();
+    }
+    if (appDataSourceReadWrite.isInitialized) {
+      await appDataSourceReadWrite.destroy();
+    }
+    if (appDataSourceRead.isInitialized) {
+      await appDataSourceRead.destroy();
     }
   });
 

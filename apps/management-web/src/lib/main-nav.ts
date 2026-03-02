@@ -3,11 +3,10 @@
  * Tabs are shown only when the user has read access (or no permission is required).
  */
 
+import { CRUD_BITS, bitmaskToFlags } from '@boilerplate/helpers';
+
 import { ROUTES } from './routes';
 import type { ManagementUserPermissions } from '../types/management-api';
-
-/** CRUD bitmask: create=1, read=2, update=4, delete=8. */
-const CRUD_READ = 2;
 
 /** Permission keys that hold a CRUD bitmask. Used to gate tab visibility by read access. */
 export type CrudPermissionKey = keyof Pick<ManagementUserPermissions, 'adminsCrud' | 'usersCrud'>;
@@ -37,7 +36,29 @@ export function hasReadPermission(
   key: CrudPermissionKey
 ): boolean {
   const mask = permissions?.[key] ?? 0;
-  return (mask & CRUD_READ) !== 0;
+  return (mask & CRUD_BITS.read) !== 0;
+}
+
+export type CrudFlags = {
+  create: boolean;
+  read: boolean;
+  update: boolean;
+  delete: boolean;
+};
+
+/**
+ * Returns CRUD flags for the given permission key. Super-admin gets all true.
+ * Callers should pass isSuperAdmin from the server user.
+ */
+export function getCrudFlags(
+  isSuperAdmin: boolean,
+  permissions: ManagementUserPermissions | null | undefined,
+  key: CrudPermissionKey
+): CrudFlags {
+  if (isSuperAdmin) {
+    return { create: true, read: true, update: true, delete: true };
+  }
+  return bitmaskToFlags(permissions?.[key] ?? 0);
 }
 
 export type VisibleNavItem = {

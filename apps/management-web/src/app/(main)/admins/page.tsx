@@ -1,15 +1,16 @@
 import { redirect } from 'next/navigation';
-import { cookies } from 'next/headers';
 import { getTranslations } from 'next-intl/server';
 import { DEFAULT_PAGE_LIMIT } from '@boilerplate/helpers';
 import { request } from '@boilerplate/helpers-requests';
-import { Card, Container, Stack, Text } from '@boilerplate/ui';
+import { Stack } from '@boilerplate/ui';
 
 import { AdminsTableWithFilter } from '../../../components/AdminsTableWithFilter';
+import { ResourcePageCard } from '../../../components/ResourcePageCard';
 import { getServerUser } from '../../../lib/server-auth';
 import { getManagementApiBaseUrl } from '../../../config/env';
-import { hasReadPermission } from '../../../lib/main-nav';
+import { getCrudFlags, hasReadPermission } from '../../../lib/main-nav';
 import { ROUTES } from '../../../lib/routes';
+import { getCookieHeader, parseFilterColumns } from '../../../lib/server-request';
 import type { ManagementUser } from '../../../types/management-api';
 
 type AdminsResponse = {
@@ -25,12 +26,7 @@ async function fetchAdmins(
   limit: number,
   search?: string
 ): Promise<{ data: AdminsResponse | null; error: string | null }> {
-  const cookieStore = await cookies();
-  const cookieHeader = cookieStore
-    .getAll()
-    .map((c) => `${c.name}=${c.value}`)
-    .join('; ');
-
+  const cookieHeader = await getCookieHeader();
   const baseUrl = getManagementApiBaseUrl();
   const params = new URLSearchParams();
   if (page > 1) params.set('page', String(page));
@@ -90,17 +86,8 @@ export default async function AdminsPage({ searchParams }: PageProps) {
   const resolved = searchParams !== undefined ? await searchParams : {};
   const page = Math.max(1, Number(resolved.page) || 1);
   const limit = DEFAULT_PAGE_LIMIT;
-  const filterColumnsRaw = resolved.filterColumns ?? '';
   const adminColumnIds = ['email', 'displayName'];
-  const initialFilterColumns =
-    filterColumnsRaw.trim() === ''
-      ? adminColumnIds
-      : filterColumnsRaw
-          .split(',')
-          .map((s) => s.trim())
-          .filter((id) => adminColumnIds.includes(id));
-  const effectiveFilterColumns =
-    initialFilterColumns.length > 0 ? initialFilterColumns : adminColumnIds;
+  const effectiveFilterColumns = parseFilterColumns(resolved, adminColumnIds);
   const search = resolved.search ?? '';
 
   const tCommon = await getTranslations('common');
@@ -110,11 +97,7 @@ export default async function AdminsPage({ searchParams }: PageProps) {
   const totalPages = data?.totalPages ?? 1;
   const currentPage = data?.page ?? 1;
 
-  const isSuperAdmin = user.isSuperAdmin === true;
-  const adminsCrud = user.permissions?.adminsCrud ?? 0;
-  const canCreateAdmin = isSuperAdmin || (adminsCrud & 1) !== 0;
-  const canUpdateAdmin = isSuperAdmin || (adminsCrud & 4) !== 0;
-  const canDeleteAdmin = isSuperAdmin || (adminsCrud & 8) !== 0;
+  const crud = getCrudFlags(user.isSuperAdmin === true, user.permissions, 'adminsCrud');
   const apiBaseUrl = getManagementApiBaseUrl();
 
   const tableRows = admins.map((a) => ({
@@ -132,21 +115,17 @@ export default async function AdminsPage({ searchParams }: PageProps) {
 
   const currentQueryParams: Record<string, string> = {};
   if (page > 1) currentQueryParams.page = String(page);
-  if (filterColumnsRaw.trim() !== '') currentQueryParams.filterColumns = filterColumnsRaw;
+  if ((resolved.filterColumns ?? '').trim() !== '') currentQueryParams.filterColumns = resolved.filterColumns ?? '';
   if (search !== '') currentQueryParams.search = search;
 
   return (
-    <Container>
-      <Stack>
-        <Card title={tCommon('admins')}>
-          {error !== null && (
-            <Text variant="error" role="alert">
-              {error}
-            </Text>
-          )}
-          {error === null && (
-            <Stack>
-              <AdminsTableWithFilter
+    <ResourcePageCard
+      title={tCommon('admins')}
+      error={error ?? undefined}
+    >
+      {error === null && (
+        <Stack>
+          <AdminsTableWithFilter
                 tableRows={tableRows}
                 emptyMessage={admins.length === 0 ? tCommon('noAdmins') : undefined}
                 columns={adminColumns}
@@ -159,16 +138,14 @@ export default async function AdminsPage({ searchParams }: PageProps) {
                 limit={limit}
                 defaultLimit={DEFAULT_PAGE_LIMIT}
                 maxGoToPage={500}
-                canUpdateAdmin={canUpdateAdmin}
-                canDeleteAdmin={canDeleteAdmin}
+                canUpdateAdmin={crud.update}
+                canDeleteAdmin={crud.delete}
                 adminApiBaseUrl={apiBaseUrl}
                 currentUserId={user.id}
-                addAdminHref={canCreateAdmin ? ROUTES.ADMINS_NEW : undefined}
+                addAdminHref={crud.create ? ROUTES.ADMINS_NEW : undefined}
               />
             </Stack>
-          )}
-        </Card>
-      </Stack>
-    </Container>
+      )}
+    </ResourcePageCard>
   );
 }

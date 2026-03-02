@@ -9,6 +9,8 @@ const testEnv = {
   DB_HOST: 'localhost',
   DB_PORT: '5532',
   DB_NAME: 'boilerplate_test',
+  DB_READ_USERNAME: 'read',
+  DB_READ_PASSWORD: 'test',
   DB_READ_WRITE_USERNAME: 'read_write',
   DB_READ_WRITE_PASSWORD: 'test',
 };

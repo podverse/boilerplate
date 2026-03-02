@@ -21,8 +21,9 @@ const run = async (): Promise<void> => {
   const { validateStartupRequirements } = await import('./lib/startup/validation.js');
   validateStartupRequirements();
 
-  const { appDataSource } = await import('@boilerplate/orm');
-  await appDataSource.initialize();
+  const { appDataSourceRead, appDataSourceReadWrite } = await import('@boilerplate/orm');
+  await appDataSourceRead.initialize();
+  await appDataSourceReadWrite.initialize();
 
   const { managementDataSource } = await import('@boilerplate/management-orm');
   await managementDataSource.initialize();
@@ -33,12 +34,32 @@ const run = async (): Promise<void> => {
     console.warn(`${config.appName} listening on port ${config.port}`);
   });
 
-  process.on('SIGINT', () => {
-    server.close(() => process.exit(0));
-  });
-  process.on('SIGTERM', () => {
-    server.close(() => process.exit(0));
-  });
+  let shuttingDown = false;
+  const onSignal = (): void => {
+    if (shuttingDown) return;
+    shuttingDown = true;
+    server.close(() => {
+      void (async (): Promise<void> => {
+        try {
+          if (managementDataSource.isInitialized) {
+            await managementDataSource.destroy();
+          }
+          if (appDataSourceReadWrite.isInitialized) {
+            await appDataSourceReadWrite.destroy();
+          }
+          if (appDataSourceRead.isInitialized) {
+            await appDataSourceRead.destroy();
+          }
+          process.exit(0);
+        } catch (err) {
+          console.error(err);
+          process.exit(1);
+        }
+      })();
+    });
+  };
+  process.on('SIGINT', onSignal);
+  process.on('SIGTERM', onSignal);
 };
 
 run().catch((err) => {

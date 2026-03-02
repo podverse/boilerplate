@@ -1,23 +1,17 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { useTranslations } from 'next-intl';
-import Link from 'next/link';
-import { SEARCH_DEBOUNCE_MS } from '@boilerplate/helpers';
 import { managementWebAdmins } from '@boilerplate/helpers-requests';
-import { Button, Pagination, Table, TableFilterBar, Text } from '@boilerplate/ui';
 import type { TableFilterBarColumn } from '@boilerplate/ui';
 
-import { adminEditRoute, ROUTES } from '../lib/routes';
 import { useAuth } from '../context/AuthContext';
-import { ConfirmDeleteAdminModal } from './admins/ConfirmDeleteAdminModal';
-import styles from './AdminsTableWithFilter.module.scss';
+import { adminEditRoute } from '../lib/routes';
+import {
+  ResourceTableWithFilter,
+  type FilterableTableRow,
+  type ResourceTableWithFilterPagination,
+} from './ResourceTableWithFilter';
 
-export type FilterableTableRow = {
-  id: string;
-  cells: Record<string, string>;
-};
+export type { FilterableTableRow };
 
 export type AdminsTableWithFilterProps = {
   tableRows: FilterableTableRow[];
@@ -32,31 +26,12 @@ export type AdminsTableWithFilterProps = {
   limit: number;
   defaultLimit: number;
   maxGoToPage?: number;
-  /** When true, the Edit action is rendered per row. */
   canUpdateAdmin: boolean;
-  /** When true, the Delete action is rendered per row. */
   canDeleteAdmin: boolean;
   adminApiBaseUrl: string;
-  /** When provided, renders an "Add Admin" link below the filter bar (left-aligned). */
   addAdminHref?: string;
-  /** The ID of the currently logged-in user. Used to detect self-deletion and trigger logout. */
   currentUserId?: string;
 };
-
-function filterRows(
-  rows: FilterableTableRow[],
-  search: string,
-  selectedColumnIds: string[]
-): FilterableTableRow[] {
-  const q = search.trim().toLowerCase();
-  if (q === '') return rows;
-  return rows.filter((row) =>
-    selectedColumnIds.some((colId) => {
-      const cell = row.cells[colId];
-      return typeof cell === 'string' && cell.toLowerCase().includes(q);
-    })
-  );
-}
 
 export function AdminsTableWithFilter({
   tableRows,
@@ -77,203 +52,43 @@ export function AdminsTableWithFilter({
   addAdminHref,
   currentUserId,
 }: AdminsTableWithFilterProps) {
-  const router = useRouter();
   const { logout } = useAuth();
-  const tFilterBar = useTranslations('ui.tableFilterBar');
-  const tPagination = useTranslations('ui.pagination');
-  const tGoToModal = useTranslations('ui.pagination.goToPageModal');
-  const tCommon = useTranslations('common');
-  const tErrors = useTranslations('errors');
 
-  const filterPlaceholder = tFilterBar('placeholder');
-  const filterColumnsLabel = tFilterBar('filterColumnsLabel');
-  const funnelButtonLabel = tFilterBar('funnelButtonLabel');
-
-  const paginationLabels = useMemo(
-    () => ({
-      previous: tPagination('previous'),
-      next: tPagination('next'),
-      goToPage: tPagination('goToPage'),
-      goToPageModal: {
-        title: tGoToModal('title'),
-        pageLabel: tGoToModal('pageLabel'),
-        submitLabel: tGoToModal('submitLabel'),
-        closeLabel: tGoToModal('closeLabel'),
-      },
-    }),
-    [tPagination, tGoToModal]
-  );
-
-  const allColumnIds = useMemo(() => columns.map((c) => c.id), [columns]);
-  const [filter, setFilter] = useState(initialSearch);
-  const lastInitialSearchRef = useRef(initialSearch);
-  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const [selectedColumnIds, setSelectedColumnIds] = useState<string[]>(() =>
-    initialFilterColumns.length > 0 ? initialFilterColumns : allColumnIds
-  );
-
-  const [deleteTarget, setDeleteTarget] = useState<{ id: string; displayName: string } | null>(
-    null
-  );
-  const [deleteLoading, setDeleteLoading] = useState(false);
-  const [deleteError, setDeleteError] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (initialSearch !== lastInitialSearchRef.current) {
-      lastInitialSearchRef.current = initialSearch;
-      setFilter(initialSearch);
-    }
-  }, [initialSearch]);
-
-  const queryParamsKey = JSON.stringify(currentQueryParams);
-  useEffect(() => {
-    if (debounceRef.current !== null) clearTimeout(debounceRef.current);
-    if (filter === initialSearch) return;
-    debounceRef.current = setTimeout(() => {
-      debounceRef.current = null;
-      const params = new URLSearchParams(currentQueryParams);
-      params.set('search', filter.trim());
-      params.set('page', '1');
-      router.push(`${basePath}?${params.toString()}`);
-    }, SEARCH_DEBOUNCE_MS);
-    return () => {
-      if (debounceRef.current !== null) clearTimeout(debounceRef.current);
-    };
-  }, [filter, initialSearch, basePath, queryParamsKey, router]);
-
-  const rowsToShow =
-    initialSearch.trim() !== '' ? tableRows : filterRows(tableRows, filter, selectedColumnIds);
-
-  const handleFilterColumnsChange = useCallback(
-    (ids: string[]) => {
-      setSelectedColumnIds(ids);
-      const params = new URLSearchParams(currentQueryParams);
-      params.set('filterColumns', ids.join(','));
-      router.push(`${basePath}?${params.toString()}`);
-    },
-    [basePath, currentQueryParams, router]
-  );
-
-  const handleDeleteConfirm = useCallback(async () => {
-    if (deleteTarget === null) return;
-    setDeleteLoading(true);
-    setDeleteError(null);
-    const res = await managementWebAdmins.deleteAdmin(adminApiBaseUrl, deleteTarget.id);
-    setDeleteLoading(false);
-    if (res.ok) {
-      setDeleteTarget(null);
-      if (currentUserId !== undefined && deleteTarget.id === currentUserId) {
-        await logout();
-        router.push(ROUTES.LOGIN);
-      } else {
-        router.refresh();
-      }
-    } else {
-      setDeleteError(res.error.message ?? tErrors('deleteFailed'));
-    }
-  }, [deleteTarget, adminApiBaseUrl, router, tCommon, currentUserId, logout]);
-
-  const showActions = canUpdateAdmin || canDeleteAdmin;
+  const pagination: ResourceTableWithFilterPagination = {
+    currentPage,
+    totalPages,
+    limit,
+    defaultLimit,
+    maxGoToPage,
+  };
 
   return (
-    <>
-      <div className={styles.filterRow}>
-        <TableFilterBar
-          searchValue={filter}
-          onSearchChange={setFilter}
-          columns={columns}
-          selectedColumnIds={selectedColumnIds}
-          onSelectedColumnIdsChange={handleFilterColumnsChange}
-          placeholder={filterPlaceholder}
-          filterColumnsLabel={filterColumnsLabel}
-          funnelButtonLabel={funnelButtonLabel}
-        />
-      </div>
-      {addAdminHref !== undefined && (
-        <div className={styles.addAdminRow}>
-          <Link href={addAdminHref} className={styles.addAdminLink}>
-            {tCommon('addAdmin')}
-          </Link>
-        </div>
-      )}
-      {deleteError !== null && (
-        <Text variant="error" role="alert" className={styles.deleteError}>
-          {deleteError}
-        </Text>
-      )}
-      {emptyMessage !== undefined && emptyMessage !== '' && (
-        <p className={styles.emptyMessage}>{emptyMessage}</p>
-      )}
-      <Table.ScrollContainer>
-        <Table>
-          <Table.Head>
-            <Table.Row>
-              {columns.map((col) => (
-                <Table.HeaderCell key={col.id}>{col.label}</Table.HeaderCell>
-              ))}
-              {showActions && <Table.HeaderCell>{tCommon('adminsTable.actions')}</Table.HeaderCell>}
-            </Table.Row>
-          </Table.Head>
-          <Table.Body>
-            {rowsToShow.map((row) => (
-              <Table.Row key={row.id}>
-                {columns.map((col) => (
-                  <Table.Cell key={col.id}>{row.cells[col.id] ?? '—'}</Table.Cell>
-                ))}
-                {showActions && (
-                  <Table.Cell>
-                    <div className={styles.actionsCell}>
-                      {canUpdateAdmin && (
-                        <Link href={adminEditRoute(row.id)} className={styles.editLink}>
-                          {tCommon('adminsTable.edit')}
-                        </Link>
-                      )}
-                      {canDeleteAdmin && (
-                        <Button
-                          variant="secondary"
-                          onClick={() =>
-                            setDeleteTarget({
-                              id: row.id,
-                              displayName: row.cells['displayName'] ?? '',
-                            })
-                          }
-                        >
-                          {tCommon('adminsTable.delete')}
-                        </Button>
-                      )}
-                    </div>
-                  </Table.Cell>
-                )}
-              </Table.Row>
-            ))}
-          </Table.Body>
-        </Table>
-      </Table.ScrollContainer>
-      {totalPages > 1 && (
-        <Pagination
-          currentPage={currentPage}
-          totalPages={totalPages}
-          basePath={basePath}
-          limit={limit}
-          defaultLimit={defaultLimit}
-          queryParams={Object.keys(currentQueryParams).length > 0 ? currentQueryParams : undefined}
-          maxGoToPage={maxGoToPage}
-          labels={paginationLabels}
-        />
-      )}
-      <ConfirmDeleteAdminModal
-        open={deleteTarget !== null}
-        displayName={deleteTarget?.displayName ?? ''}
-        onConfirm={() => {
-          void handleDeleteConfirm();
-        }}
-        onCancel={() => {
-          if (!deleteLoading) {
-            setDeleteTarget(null);
-            setDeleteError(null);
-          }
-        }}
-      />
-    </>
+    <ResourceTableWithFilter
+      tableRows={tableRows}
+      emptyMessage={emptyMessage}
+      columns={columns}
+      initialFilterColumns={initialFilterColumns}
+      initialSearch={initialSearch}
+      basePath={basePath}
+      currentQueryParams={currentQueryParams}
+      editRoute={adminEditRoute}
+      onDelete={(baseUrl, id) => managementWebAdmins.deleteAdmin(baseUrl, id)}
+      addHref={addAdminHref}
+      addLabelKey="addAdmin"
+      actionsLabelKey="adminsTable.actions"
+      editLabelKey="adminsTable.edit"
+      deleteLabelKey="adminsTable.delete"
+      canUpdate={canUpdateAdmin}
+      canDelete={canDeleteAdmin}
+      apiBaseUrl={adminApiBaseUrl}
+      confirmDeleteTranslationKeyPrefix="common.confirmDeleteAdmin"
+      getDisplayName={(row) => row.cells['displayName'] ?? ''}
+      pagination={pagination}
+      currentUserId={currentUserId}
+      onSelfDelete={async () => {
+        logout();
+      }}
+      searchSyncParams={{ page: '1' }}
+    />
   );
 }

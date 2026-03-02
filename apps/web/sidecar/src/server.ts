@@ -49,3 +49,9 @@ const server = http.createServer((req: http.IncomingMessage, res: http.ServerRes
 server.listen(port, '0.0.0.0', () => {
   console.log(`Boilerplate runtime-config sidecar listening on port ${port}.`);
 });
+
+const onSignal = (): void => {
+  server.close(() => process.exit(0));
+};
+process.on('SIGINT', onSignal);
+process.on('SIGTERM', onSignal);

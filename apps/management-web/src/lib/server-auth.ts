@@ -1,11 +1,10 @@
 import 'server-only';
 
-import { cookies } from 'next/headers';
-
 import { request } from '@boilerplate/helpers-requests';
 
 import { getManagementApiBaseUrl } from '../config/env';
 import type { ManagementUserPermissions } from '../types/management-api';
+import { getCookieHeader } from './server-request';
 
 export type ServerUser = {
   id: string;
@@ -25,11 +24,7 @@ function getServerApiBaseUrl(): string {
  * Returns null if not authenticated.
  */
 export async function getServerUser(): Promise<ServerUser | null> {
-  const cookieStore = await cookies();
-  const cookieHeader = cookieStore
-    .getAll()
-    .map((c) => `${c.name}=${c.value}`)
-    .join('; ');
+  const cookieHeader = await getCookieHeader();
 
   if (cookieHeader === '') {
     return null;

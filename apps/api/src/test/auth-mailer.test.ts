@@ -42,7 +42,7 @@ vi.mock('../lib/mailer/send.js', () => ({
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import request from 'supertest';
 
-import { appDataSource } from '@boilerplate/orm';
+import { appDataSourceRead, appDataSourceReadWrite } from '@boilerplate/orm';
 import { createApp } from '../app.js';
 import { config } from '../config/index.js';
 
@@ -54,13 +54,17 @@ describe('mailer-enabled (mocked)', () => {
   const signupPassword = 'signup-pass-1';
 
   beforeAll(async () => {
-    await appDataSource.initialize();
+    await appDataSourceRead.initialize();
+    await appDataSourceReadWrite.initialize();
     app = createApp();
   });
 
   afterAll(async () => {
-    if (appDataSource.isInitialized) {
-      await appDataSource.destroy();
+    if (appDataSourceReadWrite.isInitialized) {
+      await appDataSourceReadWrite.destroy();
+    }
+    if (appDataSourceRead.isInitialized) {
+      await appDataSourceRead.destroy();
     }
   });
 

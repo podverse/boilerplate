@@ -3,35 +3,46 @@
 import { useTranslations } from 'next-intl';
 import { Button, Modal } from '@boilerplate/ui';
 
-import styles from './ConfirmDeleteUserModal.module.scss';
+import styles from './ConfirmDeleteModal.module.scss';
 
-export type ConfirmDeleteUserModalProps = {
+export type ConfirmDeleteModalProps = {
   open: boolean;
   displayName: string;
+  /** e.g. 'common.confirmDeleteAdmin' or 'common.confirmDeleteUser'. Must provide message, fallbackName, cancel, delete. */
+  translationKeyPrefix: string;
   onConfirm: () => void;
   onCancel: () => void;
+  /** When true, disables actions and indicates confirm in progress. */
+  confirmLoading?: boolean;
 };
 
-export function ConfirmDeleteUserModal({
+export function ConfirmDeleteModal({
   open,
   displayName,
+  translationKeyPrefix,
   onConfirm,
   onCancel,
-}: ConfirmDeleteUserModalProps) {
-  const t = useTranslations('common.confirmDeleteUser');
+  confirmLoading = false,
+}: ConfirmDeleteModalProps) {
+  const t = useTranslations(translationKeyPrefix);
 
   if (!open) {
     return null;
   }
 
   return (
-    <Modal withBackdrop backdropOpaque onClose={onCancel}>
+    <Modal withBackdrop backdropOpaque onClose={confirmLoading ? undefined : onCancel}>
       <div className={styles.body}>
         <p className={styles.message}>
           {t('message', { name: displayName !== '' ? displayName : t('fallbackName') })}
         </p>
         <div className={styles.actions}>
-          <Button type="button" variant="secondary" onClick={onCancel}>
+          <Button
+            type="button"
+            variant="secondary"
+            onClick={onCancel}
+            disabled={confirmLoading}
+          >
             {t('cancel')}
           </Button>
           <Button
@@ -39,6 +50,7 @@ export function ConfirmDeleteUserModal({
             variant="primary"
             className={styles.deleteButton}
             onClick={onConfirm}
+            disabled={confirmLoading}
           >
             {t('delete')}
           </Button>

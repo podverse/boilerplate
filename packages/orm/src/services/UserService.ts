@@ -1,5 +1,5 @@
 import type { UserWithRelations } from '../types/UserWithRelations.js';
-import { appDataSource } from '../data-source.js';
+import { appDataSourceRead, appDataSourceReadWrite } from '../data-source.js';
 import { User } from '../entities/User.js';
 import { UserCredentials } from '../entities/UserCredentials.js';
 import { UserBio } from '../entities/UserBio.js';
@@ -8,7 +8,7 @@ const USER_RELATIONS = ['credentials', 'bio'] as const;
 
 export class UserService {
   static async findById(id: string): Promise<UserWithRelations | null> {
-    const repo = appDataSource.getRepository(User);
+    const repo = appDataSourceRead.getRepository(User);
     return repo.findOne({
       where: { id },
       relations: [...USER_RELATIONS],
@@ -16,7 +16,7 @@ export class UserService {
   }
 
   static async findByEmail(email: string): Promise<UserWithRelations | null> {
-    const credRepo = appDataSource.getRepository(UserCredentials);
+    const credRepo = appDataSourceRead.getRepository(UserCredentials);
     const cred = await credRepo.findOne({ where: { email } });
     if (cred === null) return null;
     return this.findById(cred.userId) as Promise<UserWithRelations | null>;
@@ -34,7 +34,7 @@ export class UserService {
     displayName?: string | null;
     profileVisibility?: boolean;
   }): Promise<UserWithRelations> {
-    const qr = appDataSource.createQueryRunner();
+    const qr = appDataSourceReadWrite.createQueryRunner();
     await qr.connect();
     await qr.startTransaction();
     try {
@@ -61,8 +61,11 @@ export class UserService {
       await bioRepo.save(bio);
 
       await qr.commitTransaction();
-      const withRelations = await this.findById(savedUser.id);
-      if (withRelations !== null) return withRelations;
+      const withRelations = await userRepo.findOne({
+        where: { id: savedUser.id },
+        relations: [...USER_RELATIONS],
+      });
+      if (withRelations !== null) return withRelations as UserWithRelations;
       throw new Error('User created but failed to load with relations');
     } catch (e) {
       await qr.rollbackTransaction();
@@ -73,17 +76,17 @@ export class UserService {
   }
 
   static async updatePassword(userId: string, hashedPassword: string): Promise<void> {
-    const repo = appDataSource.getRepository(UserCredentials);
+    const repo = appDataSourceReadWrite.getRepository(UserCredentials);
     await repo.update({ userId }, { passwordHash: hashedPassword });
   }
 
   static async setEmailVerifiedAt(userId: string): Promise<void> {
-    const repo = appDataSource.getRepository(User);
+    const repo = appDataSourceReadWrite.getRepository(User);
     await repo.update(userId, { emailVerifiedAt: new Date() });
   }
 
   static async updateEmail(userId: string, newEmail: string): Promise<void> {
-    const repo = appDataSource.getRepository(UserCredentials);
+    const repo = appDataSourceReadWrite.getRepository(UserCredentials);
     await repo.update({ userId }, { email: newEmail });
   }
 }

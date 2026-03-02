@@ -1,14 +1,15 @@
 import { redirect } from 'next/navigation';
-import { cookies } from 'next/headers';
 import { getTranslations } from 'next-intl/server';
 import { request } from '@boilerplate/helpers-requests';
-import { Card, Container, Stack, Text } from '@boilerplate/ui';
+import { Stack } from '@boilerplate/ui';
 
+import { ResourcePageCard } from '../../../components/ResourcePageCard';
 import { UsersTableWithFilter } from '../../../components/UsersTableWithFilter';
 import { getServerUser } from '../../../lib/server-auth';
 import { getManagementApiBaseUrl } from '../../../config/env';
-import { hasReadPermission } from '../../../lib/main-nav';
+import { getCrudFlags, hasReadPermission } from '../../../lib/main-nav';
 import { ROUTES } from '../../../lib/routes';
+import { getCookieHeader, parseFilterColumns } from '../../../lib/server-request';
 import type { MainAppUser } from '../../../types/management-api';
 
 type UsersResponse = {
@@ -16,12 +17,7 @@ type UsersResponse = {
 };
 
 async function fetchUsers(): Promise<{ data: UsersResponse | null; error: string | null }> {
-  const cookieStore = await cookies();
-  const cookieHeader = cookieStore
-    .getAll()
-    .map((c) => `${c.name}=${c.value}`)
-    .join('; ');
-
+  const cookieHeader = await getCookieHeader();
   const baseUrl = getManagementApiBaseUrl();
   try {
     const res = await request(baseUrl, '/users', {
@@ -64,28 +60,15 @@ export default async function UsersPage({ searchParams }: PageProps) {
   }
 
   const resolved = searchParams !== undefined ? await searchParams : {};
-  const filterColumnsRaw = resolved.filterColumns ?? '';
   const userColumnIds = ['email', 'displayName', 'profileVisibility'];
-  const initialFilterColumns =
-    filterColumnsRaw.trim() === ''
-      ? userColumnIds
-      : filterColumnsRaw
-          .split(',')
-          .map((s) => s.trim())
-          .filter((id) => userColumnIds.includes(id));
-  const effectiveFilterColumns =
-    initialFilterColumns.length > 0 ? initialFilterColumns : userColumnIds;
+  const effectiveFilterColumns = parseFilterColumns(resolved, userColumnIds);
   const search = resolved.search ?? '';
 
   const tCommon = await getTranslations('common');
   const { data, error } = await fetchUsers();
 
   const users = data?.users ?? [];
-
-  const usersCrud = user.permissions?.usersCrud ?? 0;
-  const canCreateUser = user.isSuperAdmin === true || (usersCrud & 1) !== 0;
-  const canUpdateUser = user.isSuperAdmin === true || (usersCrud & 4) !== 0;
-  const canDeleteUser = user.isSuperAdmin === true || (usersCrud & 8) !== 0;
+  const crud = getCrudFlags(user.isSuperAdmin === true, user.permissions, 'usersCrud');
   const apiBaseUrl = getManagementApiBaseUrl();
 
   const tableRows = users.map((u) => ({
@@ -106,21 +89,17 @@ export default async function UsersPage({ searchParams }: PageProps) {
   ];
 
   const currentQueryParams: Record<string, string> = {};
-  if (filterColumnsRaw.trim() !== '') currentQueryParams.filterColumns = filterColumnsRaw;
+  if ((resolved.filterColumns ?? '').trim() !== '') currentQueryParams.filterColumns = resolved.filterColumns ?? '';
   if (search !== '') currentQueryParams.search = search;
 
   return (
-    <Container>
-      <Stack>
-        <Card title={tCommon('users')}>
-          {error !== null && (
-            <Text variant="error" role="alert">
-              {tCommon('failedToLoadUsers')}
-            </Text>
-          )}
-          {error === null && (
-            <Stack>
-              <UsersTableWithFilter
+    <ResourcePageCard
+      title={tCommon('users')}
+      error={error !== null ? tCommon('failedToLoadUsers') : undefined}
+    >
+      {error === null && (
+        <Stack>
+          <UsersTableWithFilter
                 tableRows={tableRows}
                 emptyMessage={users.length === 0 ? tCommon('noUsers') : undefined}
                 columns={userColumns}
@@ -128,15 +107,13 @@ export default async function UsersPage({ searchParams }: PageProps) {
                 initialSearch={search}
                 basePath={ROUTES.USERS}
                 currentQueryParams={currentQueryParams}
-                canUpdateUser={canUpdateUser}
-                canDeleteUser={canDeleteUser}
+                canUpdateUser={crud.update}
+                canDeleteUser={crud.delete}
                 userApiBaseUrl={apiBaseUrl}
-                addUserHref={canCreateUser ? ROUTES.USERS_NEW : undefined}
+                addUserHref={crud.create ? ROUTES.USERS_NEW : undefined}
               />
             </Stack>
-          )}
-        </Card>
-      </Stack>
-    </Container>
+      )}
+    </ResourcePageCard>
   );
 }

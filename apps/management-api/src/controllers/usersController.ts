@@ -3,7 +3,13 @@ import type { UserWithRelations } from '@boilerplate/orm';
 import { validatePassword } from '@boilerplate/helpers';
 import { getPasswordValidationMessages, resolveLocale } from '@boilerplate/helpers-i18n';
 import { EVENT_ACTIONS, EVENT_TARGET_TYPES } from '@boilerplate/management-orm';
-import { UserService, appDataSource, User, UserBio } from '@boilerplate/orm';
+import {
+  UserService,
+  appDataSourceRead,
+  appDataSourceReadWrite,
+  User,
+  UserBio,
+} from '@boilerplate/orm';
 import type { CreateUserBody, UpdateUserBody, ChangeUserPasswordBody } from '../schemas/users.js';
 import { hashPassword } from '../lib/auth/hash.js';
 import { recordEvent } from '../lib/recordEvent.js';
@@ -27,7 +33,7 @@ function userToJson(user: UserWithRelations): {
 }
 
 export async function listUsers(_req: Request, res: Response): Promise<void> {
-  const repo = appDataSource.getRepository(User);
+  const repo = appDataSourceRead.getRepository(User);
   const users = await repo.find({
     relations: ['credentials', 'bio'],
     order: { createdAt: 'ASC' },
@@ -100,8 +106,8 @@ export async function updateUser(req: Request, res: Response): Promise<void> {
     await UserService.updateEmail(id, body.email);
   }
   if (body.displayName !== undefined || body.profileVisibility !== undefined) {
-    const userRepo = appDataSource.getRepository(User);
-    const bioRepo = appDataSource.getRepository(UserBio);
+    const userRepo = appDataSourceReadWrite.getRepository(User);
+    const bioRepo = appDataSourceReadWrite.getRepository(UserBio);
     if (body.displayName !== undefined) {
       await bioRepo.update({ userId: id }, { displayName: body.displayName });
     }
@@ -131,7 +137,7 @@ export async function deleteUser(req: Request, res: Response): Promise<void> {
     res.status(404).json({ message: 'User not found' });
     return;
   }
-  const userRepo = appDataSource.getRepository(User);
+  const userRepo = appDataSourceReadWrite.getRepository(User);
   await userRepo.delete(id);
   await recordEvent({
     actor,

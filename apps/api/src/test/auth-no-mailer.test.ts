@@ -6,7 +6,7 @@
 import { afterAll, beforeAll, describe, it } from 'vitest';
 import request from 'supertest';
 
-import { UserService, appDataSource } from '@boilerplate/orm';
+import { UserService, appDataSourceRead, appDataSourceReadWrite } from '@boilerplate/orm';
 import { createApp } from '../app.js';
 import { config } from '../config/index.js';
 import { hashPassword } from '../lib/auth/hash.js';
@@ -20,7 +20,8 @@ describe('no-mailer (admin-only)', () => {
   const testUserPassword = 'test-password-1';
 
   beforeAll(async () => {
-    await appDataSource.initialize();
+    await appDataSourceRead.initialize();
+    await appDataSourceReadWrite.initialize();
     app = createApp();
     const hashed = await hashPassword(testUserPassword);
     await UserService.create({
@@ -36,8 +37,11 @@ describe('no-mailer (admin-only)', () => {
   });
 
   afterAll(async () => {
-    if (appDataSource.isInitialized) {
-      await appDataSource.destroy();
+    if (appDataSourceReadWrite.isInitialized) {
+      await appDataSourceReadWrite.destroy();
+    }
+    if (appDataSourceRead.isInitialized) {
+      await appDataSourceRead.destroy();
     }
   });
 

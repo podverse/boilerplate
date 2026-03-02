@@ -1,14 +1,14 @@
 import { notFound, redirect } from 'next/navigation';
-import { cookies } from 'next/headers';
 import { getTranslations } from 'next-intl/server';
 import { request } from '@boilerplate/helpers-requests';
-import { Card, Container, Stack } from '@boilerplate/ui';
-
 import { AdminForm } from '../../../../../components/admins/AdminForm';
+import { ResourcePageCard } from '../../../../../components/ResourcePageCard';
 import type { AdminFormInitialValues } from '../../../../../components/admins/AdminForm';
 import { getServerUser } from '../../../../../lib/server-auth';
 import { getManagementApiBaseUrl } from '../../../../../config/env';
+import { getCrudFlags } from '../../../../../lib/main-nav';
 import { ROUTES } from '../../../../../lib/routes';
+import { getCookieHeader } from '../../../../../lib/server-request';
 import type { ManagementUser } from '../../../../../types/management-api';
 
 type EditAdminPageProps = {
@@ -16,12 +16,7 @@ type EditAdminPageProps = {
 };
 
 async function fetchAdmin(id: string): Promise<{ admin: ManagementUser } | null> {
-  const cookieStore = await cookies();
-  const cookieHeader = cookieStore
-    .getAll()
-    .map((c) => `${c.name}=${c.value}`)
-    .join('; ');
-
+  const cookieHeader = await getCookieHeader();
   const baseUrl = getManagementApiBaseUrl();
   try {
     const res = await request(baseUrl, `/admins/${id}`, {
@@ -44,9 +39,8 @@ export default async function EditAdminPage({ params }: EditAdminPageProps) {
     redirect(ROUTES.LOGIN);
   }
 
-  const adminsCrud = user.permissions?.adminsCrud ?? 0;
-  const canUpdateAdmin = user.isSuperAdmin === true || (adminsCrud & 4) !== 0;
-  if (!canUpdateAdmin) {
+  const crud = getCrudFlags(user.isSuperAdmin === true, user.permissions, 'adminsCrud');
+  if (!crud.update) {
     redirect(ROUTES.ADMINS);
   }
 
@@ -63,25 +57,22 @@ export default async function EditAdminPage({ params }: EditAdminPageProps) {
     permissions: admin.permissions ?? null,
   };
 
-  const canEditPermissions =
-    user.isSuperAdmin === true || (adminsCrud & 5) !== 0; // create=1 | update=4
+  const canEditPermissions = crud.create || crud.update;
 
   const tCommon = await getTranslations('common');
 
   return (
-    <Container>
-      <Stack>
-        <Card title={tCommon('editAdminTitle', { name: admin.displayName ?? admin.email })}>
-          <AdminForm
-            mode="edit"
-            adminId={id}
-            initialValues={initialValues}
-            isSuperAdmin={user.isSuperAdmin}
-            canEditPermissions={canEditPermissions}
-            targetIsSuperAdmin={admin.isSuperAdmin}
-          />
-        </Card>
-      </Stack>
-    </Container>
+    <ResourcePageCard
+      title={tCommon('editAdminTitle', { name: admin.displayName ?? admin.email })}
+    >
+      <AdminForm
+        mode="edit"
+        adminId={id}
+        initialValues={initialValues}
+        isSuperAdmin={user.isSuperAdmin}
+        canEditPermissions={canEditPermissions}
+        targetIsSuperAdmin={admin.isSuperAdmin}
+      />
+    </ResourcePageCard>
   );
 }

@@ -41,7 +41,7 @@ vi.mock('../lib/mailer/send.js', () => ({
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import request from 'supertest';
 
-import { UserService, appDataSource } from '@boilerplate/orm';
+import { UserService, appDataSourceRead, appDataSourceReadWrite } from '@boilerplate/orm';
 import { createApp } from '../app.js';
 import { config } from '../config/index.js';
 import { hashPassword } from '../lib/auth/hash.js';
@@ -54,7 +54,8 @@ describe('locale (mailer-enabled)', () => {
   let forgotPasswordUserEmail: string;
 
   beforeAll(async () => {
-    await appDataSource.initialize();
+    await appDataSourceRead.initialize();
+    await appDataSourceReadWrite.initialize();
     app = createApp();
     forgotPasswordUserEmail = `locale-fp-${Date.now()}@example.com`;
     const hashed = await hashPassword(signupPassword);
@@ -66,8 +67,11 @@ describe('locale (mailer-enabled)', () => {
   });
 
   afterAll(async () => {
-    if (appDataSource.isInitialized) {
-      await appDataSource.destroy();
+    if (appDataSourceReadWrite.isInitialized) {
+      await appDataSourceReadWrite.destroy();
+    }
+    if (appDataSourceRead.isInitialized) {
+      await appDataSourceRead.destroy();
     }
   });
 

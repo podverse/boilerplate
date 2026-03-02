@@ -1,14 +1,14 @@
 import { notFound, redirect } from 'next/navigation';
-import { cookies } from 'next/headers';
 import { getTranslations } from 'next-intl/server';
 import { request } from '@boilerplate/helpers-requests';
-import { Card, Container, Stack } from '@boilerplate/ui';
-
+import { ResourcePageCard } from '../../../../../components/ResourcePageCard';
 import { UserForm } from '../../../../../components/users/UserForm';
 import type { UserFormInitialValues } from '../../../../../components/users/UserForm';
 import { getServerUser } from '../../../../../lib/server-auth';
 import { getManagementApiBaseUrl } from '../../../../../config/env';
+import { getCrudFlags } from '../../../../../lib/main-nav';
 import { ROUTES } from '../../../../../lib/routes';
+import { getCookieHeader } from '../../../../../lib/server-request';
 import type { MainAppUser } from '../../../../../types/management-api';
 
 type EditUserPageProps = {
@@ -16,12 +16,7 @@ type EditUserPageProps = {
 };
 
 async function fetchUser(id: string): Promise<{ user: MainAppUser } | null> {
-  const cookieStore = await cookies();
-  const cookieHeader = cookieStore
-    .getAll()
-    .map((c) => `${c.name}=${c.value}`)
-    .join('; ');
-
+  const cookieHeader = await getCookieHeader();
   const baseUrl = getManagementApiBaseUrl();
   try {
     const res = await request(baseUrl, `/users/${id}`, {
@@ -44,9 +39,8 @@ export default async function EditUserPage({ params }: EditUserPageProps) {
     redirect(ROUTES.LOGIN);
   }
 
-  const canUpdateUser =
-    user.isSuperAdmin === true || ((user.permissions?.usersCrud ?? 0) & 4) !== 0;
-  if (!canUpdateUser) {
+  const crud = getCrudFlags(user.isSuperAdmin === true, user.permissions, 'usersCrud');
+  if (!crud.update) {
     redirect(ROUTES.USERS);
   }
 
@@ -66,16 +60,12 @@ export default async function EditUserPage({ params }: EditUserPageProps) {
   const tCommon = await getTranslations('common');
 
   return (
-    <Container>
-      <Stack>
-        <Card
-          title={tCommon('editUserTitle', {
-            name: mainUser.displayName ?? mainUser.email,
-          })}
-        >
-          <UserForm mode="edit" userId={id} initialValues={initialValues} />
-        </Card>
-      </Stack>
-    </Container>
+    <ResourcePageCard
+      title={tCommon('editUserTitle', {
+        name: mainUser.displayName ?? mainUser.email,
+      })}
+    >
+      <UserForm mode="edit" userId={id} initialValues={initialValues} />
+    </ResourcePageCard>
   );
 }
