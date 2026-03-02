@@ -3,6 +3,11 @@
  * (e.g. OpenAPI schema in apps/management-api).
  */
 
+import type { PublicMainAppUser } from '@boilerplate/helpers-requests';
+
+/** Re-export main-app user (GET /users, GET /users/:id). */
+export type MainAppUser = PublicMainAppUser;
+
 /** Event visibility for admin permissions: own, all_admins, or all. */
 export type EventVisibility = 'own' | 'all_admins' | 'all';
 

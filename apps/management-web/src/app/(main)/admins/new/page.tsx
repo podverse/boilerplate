@@ -13,9 +13,14 @@ export default async function NewAdminPage() {
     redirect(ROUTES.LOGIN);
   }
 
-  if (!user.isSuperAdmin) {
+  const adminsCrud = user.permissions?.adminsCrud ?? 0;
+  const canCreateAdmin = user.isSuperAdmin === true || (adminsCrud & 1) !== 0;
+  if (!canCreateAdmin) {
     redirect(ROUTES.ADMINS);
   }
+
+  const canEditPermissions =
+    user.isSuperAdmin === true || (adminsCrud & 5) !== 0; // create=1 | update=4
 
   const tCommon = await getTranslations('common');
 
@@ -23,7 +28,11 @@ export default async function NewAdminPage() {
     <Container>
       <Stack>
         <Card title={tCommon('addAdminTitle')}>
-          <AdminForm mode="create" isSuperAdmin={user.isSuperAdmin} />
+          <AdminForm
+            mode="create"
+            isSuperAdmin={user.isSuperAdmin}
+            canEditPermissions={canEditPermissions}
+          />
         </Card>
       </Stack>
     </Container>

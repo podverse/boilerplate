@@ -16,11 +16,13 @@ function userToJson(user: UserWithRelations): {
   id: string;
   email: string;
   displayName: string | null;
+  profileVisibility: boolean;
 } {
   return {
     id: user.id,
     email: user.credentials.email,
     displayName: user.bio?.displayName ?? null,
+    profileVisibility: user.profileVisibility,
   };
 }
 
@@ -70,6 +72,7 @@ export async function createUser(req: Request, res: Response): Promise<void> {
     displayName: body.displayName ?? null,
     profileVisibility: body.profileVisibility,
   });
+  await UserService.setEmailVerifiedAt(user.id);
   await recordEvent({
     actor,
     action: EVENT_ACTIONS.user.created,

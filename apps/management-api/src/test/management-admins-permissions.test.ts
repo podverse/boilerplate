@@ -104,8 +104,8 @@ describe('management-api admins permissions', () => {
       await readOnlyAgent.delete(`${API}/admins/${readOnlyAdminId}`).expect(403);
     });
 
-    it('PATCH /admins/:id permission update returns 403 (only super admin can change permissions)', async () => {
-      // Admin with update permission tries to update another admin's permissions — super admin only
+    it('PATCH /admins/:id permission update succeeds when actor has update permission', async () => {
+      // Admin with update permission can update another admin's permissions (non–super-admin target)
       const updateAgent = request.agent(app);
       const updateEmail = `update-perm-${ts}@example.com`;
       const createRes = await superAdminAgent
@@ -124,11 +124,11 @@ describe('management-api admins permissions', () => {
         .post(`${API}/auth/login`)
         .send({ email: updateEmail, password: 'update-password-1' })
         .expect(200);
-      // Trying to update permissions via PATCH — should fail with 403
-      await updateAgent
+      const patchRes = await updateAgent
         .patch(`${API}/admins/${readOnlyAdminId}`)
         .send({ adminsCrud: 15 })
-        .expect(403, { message: 'Only super admin can update permissions' });
+        .expect(200);
+      expect(patchRes.body.admin.permissions?.adminsCrud).toBe(15);
       // Cleanup
       await superAdminAgent.delete(`${API}/admins/${updateAdminId}`).expect(204);
     });

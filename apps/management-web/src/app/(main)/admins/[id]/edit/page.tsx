@@ -44,7 +44,9 @@ export default async function EditAdminPage({ params }: EditAdminPageProps) {
     redirect(ROUTES.LOGIN);
   }
 
-  if (!user.isSuperAdmin) {
+  const adminsCrud = user.permissions?.adminsCrud ?? 0;
+  const canUpdateAdmin = user.isSuperAdmin === true || (adminsCrud & 4) !== 0;
+  if (!canUpdateAdmin) {
     redirect(ROUTES.ADMINS);
   }
 
@@ -61,6 +63,9 @@ export default async function EditAdminPage({ params }: EditAdminPageProps) {
     permissions: admin.permissions ?? null,
   };
 
+  const canEditPermissions =
+    user.isSuperAdmin === true || (adminsCrud & 5) !== 0; // create=1 | update=4
+
   const tCommon = await getTranslations('common');
 
   return (
@@ -72,6 +77,8 @@ export default async function EditAdminPage({ params }: EditAdminPageProps) {
             adminId={id}
             initialValues={initialValues}
             isSuperAdmin={user.isSuperAdmin}
+            canEditPermissions={canEditPermissions}
+            targetIsSuperAdmin={admin.isSuperAdmin}
           />
         </Card>
       </Stack>

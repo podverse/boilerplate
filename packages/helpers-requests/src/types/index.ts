@@ -18,6 +18,8 @@ export type {
 export type {
   ChangeUserPasswordBody,
   CreateUserBody,
+  ListUsersData,
+  PublicMainAppUser,
   UpdateUserBody,
 } from './management-user-types.js';
 export type { ListEventsData, PublicManagementEvent } from './management-event-types.js';

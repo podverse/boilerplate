@@ -127,6 +127,50 @@
       "cancel": "Cancel",
       "delete": "Delete"
     },
+    "users": "Users",
+    "loadingUsers": "Loading users…",
+    "noUsers": "No users found.",
+    "failedToLoadUsers": "Failed to load users",
+    "usersTable": {
+      "email": "Email",
+      "displayName": "Display name",
+      "profileVisibility": "Profile visibility",
+      "visibilityYes": "Yes",
+      "visibilityNo": "No",
+      "actions": "Actions",
+      "edit": "Edit",
+      "delete": "Delete"
+    },
+    "addUser": "Add User",
+    "addUserTitle": "Add User",
+    "editUserTitle": "Edit User: {name}",
+    "userForm": {
+      "email": "Email",
+      "displayNameOptional": "Display name (optional)",
+      "password": "Password",
+      "newPassword": "New password",
+      "profileVisibility": "Profile visibility",
+      "changePassword": "Change password",
+      "changePasswordButton": "Change password",
+      "emailRequired": "Email is required",
+      "emailInvalid": "Enter a valid email address",
+      "passwordRequired": "Password is required",
+      "passwordMinLength": "Password must be at least {count} characters",
+      "passwordMaxLength": "Password must be no more than {count} characters",
+      "passwordInsecure": "Password must include a mix of letters, numbers, and symbols",
+      "createUser": "Create User",
+      "saveChanges": "Save Changes",
+      "cancel": "Cancel",
+      "createFailed": "Failed to create user",
+      "updateFailed": "Failed to update user",
+      "changePasswordFailed": "Failed to change password"
+    },
+    "confirmDeleteUser": {
+      "message": "Are you sure you want to delete {name}? This cannot be undone.",
+      "fallbackName": "this user",
+      "cancel": "Cancel",
+      "delete": "Delete"
+    },
     "pagination": {
       "previous": "Previous",
       "next": "Next",
@@ -164,7 +208,7 @@
     "loginFailed": "Login failed",
     "failedToLoadAdmins": "Failed to load admins",
     "failedToLoadEvents": "Failed to load events",
-    "deleteFailed": "Failed to delete admin"
+    "deleteFailed": "Delete failed"
   },
   "ui": {
     "auth": {

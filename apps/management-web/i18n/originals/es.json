@@ -127,6 +127,50 @@
       "cancel": "Cancelar",
       "delete": "Eliminar"
     },
+    "users": "Usuarios",
+    "loadingUsers": "Cargando usuarios…",
+    "noUsers": "No se encontraron usuarios.",
+    "failedToLoadUsers": "Error al cargar usuarios",
+    "usersTable": {
+      "email": "Correo electrónico",
+      "displayName": "Nombre para mostrar",
+      "profileVisibility": "Visibilidad del perfil",
+      "visibilityYes": "Sí",
+      "visibilityNo": "No",
+      "actions": "Acciones",
+      "edit": "Editar",
+      "delete": "Eliminar"
+    },
+    "addUser": "Añadir usuario",
+    "addUserTitle": "Añadir usuario",
+    "editUserTitle": "Editar usuario: {name}",
+    "userForm": {
+      "email": "Correo electrónico",
+      "displayNameOptional": "Nombre para mostrar (opcional)",
+      "password": "Contraseña",
+      "newPassword": "Nueva contraseña",
+      "profileVisibility": "Visibilidad del perfil",
+      "changePassword": "Cambiar contraseña",
+      "changePasswordButton": "Cambiar contraseña",
+      "emailRequired": "El correo electrónico es obligatorio",
+      "emailInvalid": "Introduce una dirección de correo válida",
+      "passwordRequired": "La contraseña es obligatoria",
+      "passwordMinLength": "La contraseña debe tener al menos {count} caracteres",
+      "passwordMaxLength": "La contraseña no puede tener más de {count} caracteres",
+      "passwordInsecure": "La contraseña debe incluir una combinación de letras, números y símbolos",
+      "createUser": "Crear usuario",
+      "saveChanges": "Guardar cambios",
+      "cancel": "Cancelar",
+      "createFailed": "Error al crear usuario",
+      "updateFailed": "Error al actualizar usuario",
+      "changePasswordFailed": "Error al cambiar la contraseña"
+    },
+    "confirmDeleteUser": {
+      "message": "¿Estás seguro de que quieres eliminar a {name}? Esta acción no se puede deshacer.",
+      "fallbackName": "este usuario",
+      "cancel": "Cancelar",
+      "delete": "Eliminar"
+    },
     "pagination": {
       "previous": "Anterior",
       "next": "Siguiente",
@@ -164,7 +208,7 @@
     "loginFailed": "Error al iniciar sesión",
     "failedToLoadAdmins": "Error al cargar administradores",
     "failedToLoadEvents": "Error al cargar eventos",
-    "deleteFailed": "Error al eliminar administrador"
+    "deleteFailed": "Error al eliminar"
   },
   "ui": {
     "auth": {

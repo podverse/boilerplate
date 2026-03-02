@@ -7,7 +7,9 @@ export type {
   CreateUserBody,
   EventVisibility,
   ListAdminsData,
+  ListUsersData,
   PublicManagementUser,
+  PublicMainAppUser,
   ForgotPasswordBody,
   ListEventsData,
   LoginBody,
@@ -26,3 +28,4 @@ export * as webAuth from './web/auth.js';
 export * as managementWebAuth from './management-web/auth.js';
 export * as managementWebAdmins from './management-web/admins.js';
 export * as managementWebEvents from './management-web/events.js';
+export * as managementWebUsers from './management-web/users.js';

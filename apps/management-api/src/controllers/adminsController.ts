@@ -113,8 +113,11 @@ export async function updateAdmin(req: Request, res: Response): Promise<void> {
     'eventVisibility',
   ] as const;
   const hasPermissionUpdate = permissionKeys.some((k) => body[k] !== undefined);
-  if (hasPermissionUpdate && !actor.isSuperAdmin) {
-    res.status(403).json({ message: 'Only super admin can update permissions' });
+  const actorAdminsCrud = actor.permissions?.adminsCrud ?? 0;
+  const canChangePermissions =
+    actor.isSuperAdmin || (actorAdminsCrud & 5) !== 0; // create=1 | update=4
+  if (hasPermissionUpdate && !canChangePermissions) {
+    res.status(403).json({ message: 'Create or update permission required to change admin permissions' });
     return;
   }
   const updates: Parameters<typeof ManagementUserService.updateAdmin>[1] = {};

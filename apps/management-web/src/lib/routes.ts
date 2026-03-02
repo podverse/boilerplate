@@ -9,10 +9,16 @@ export const ROUTES = {
   ADMINS: '/admins',
   ADMINS_NEW: '/admins/new',
   EVENTS: '/events',
+  USERS: '/users',
+  USERS_NEW: '/users/new',
 } as const;
 
 export function adminEditRoute(id: string): string {
   return `/admins/${id}/edit`;
+}
+
+export function userEditRoute(id: string): string {
+  return `/users/${id}/edit`;
 }
 
 /** Paths where unauthenticated users are allowed; 401 on these should not trigger redirect. */

@@ -1,3 +1,16 @@
+/** Main-app user as returned by GET /users and GET /users/:id (safe, no credentials). */
+export interface PublicMainAppUser {
+  id: string;
+  email: string;
+  displayName: string | null;
+  profileVisibility: boolean;
+}
+
+/** Response shape for GET /users. */
+export interface ListUsersData {
+  users: PublicMainAppUser[];
+}
+
 /** Validated body for POST /users. Required fields guaranteed by createUserSchema. */
 export interface CreateUserBody {
   email: string;

@@ -42,7 +42,12 @@ export type AdminFormProps = {
   mode: 'create' | 'edit';
   adminId?: string;
   initialValues?: AdminFormInitialValues;
+  /** Current user is super admin (full access). */
   isSuperAdmin: boolean;
+  /** Current user can edit CRUD permissions (has create or update for admins). When false, permissions section is hidden. */
+  canEditPermissions: boolean;
+  /** When editing, the admin being edited is the super admin. No one can change super admin's permissions; section is hidden. */
+  targetIsSuperAdmin?: boolean;
 };
 
 /** Read is required whenever any write bit is on. */
@@ -69,7 +74,14 @@ function totalBits(a: CrudFlags, b: CrudFlags): number {
     (Object.values(b) as boolean[]).filter(Boolean).length;
 }
 
-export function AdminForm({ mode, adminId, initialValues, isSuperAdmin }: AdminFormProps) {
+export function AdminForm({
+  mode,
+  adminId,
+  initialValues,
+  isSuperAdmin,
+  canEditPermissions,
+  targetIsSuperAdmin = false,
+}: AdminFormProps) {
   const router = useRouter();
   const t = useTranslations('common.adminForm');
   const apiBaseUrl = getManagementApiBaseUrl();
@@ -205,7 +217,9 @@ export function AdminForm({ mode, adminId, initialValues, isSuperAdmin }: AdminF
         if (password !== '') {
           body.password = password;
         }
-        if (isSuperAdmin) {
+        const maySetPermissions =
+          canEditPermissions && (mode !== 'edit' || !targetIsSuperAdmin);
+        if (maySetPermissions) {
           body.adminsCrud = flagsToBitmask(adminsCrudFlags);
           body.usersCrud = flagsToBitmask(usersCrudFlags);
           body.eventVisibility = eventVisibility;
@@ -260,7 +274,7 @@ export function AdminForm({ mode, adminId, initialValues, isSuperAdmin }: AdminF
           <PasswordStrengthMeter password={password} />
         )}
 
-        {isSuperAdmin && (
+        {canEditPermissions && (mode === 'create' || !targetIsSuperAdmin) && (
           <FormSection title={t('permissions')}>
             <CrudCheckboxes
               label={t('adminsCrud')}
