@@ -174,10 +174,15 @@ describe('management-api', () => {
       await request(app).get(`${API}/events`).expect(401);
     });
 
-    it('returns 200 with events array when authenticated', async () => {
+    it('returns 200 with events array and pagination fields when authenticated', async () => {
       const res = await superAdminAgent.get(`${API}/events`).expect(200);
-      expect(res.body).toHaveProperty('events');
       expect(Array.isArray(res.body.events)).toBe(true);
+      expect(typeof res.body.total).toBe('number');
+      expect(typeof res.body.page).toBe('number');
+      expect(typeof res.body.limit).toBe('number');
+      expect(typeof res.body.totalPages).toBe('number');
+      expect(res.body.page).toBe(1);
+      expect(res.body.totalPages).toBeGreaterThanOrEqual(1);
     });
   });
 
@@ -432,6 +437,78 @@ describe('management-api', () => {
       await request(app)
         .delete(`${API}/users/00000000-0000-0000-0000-000000000000`)
         .expect(401);
+    });
+  });
+
+  describe('actorDisplayName behavior', () => {
+    const actorEmail = `actor-dn-${Date.now()}@example.com`;
+    const actorPassword = 'actor-dn-password-1';
+    let actorId: string;
+    let actorAgent: ReturnType<typeof request.agent>;
+
+    beforeAll(async () => {
+      const res = await superAdminAgent
+        .post(`${API}/admins`)
+        .send({
+          email: actorEmail,
+          password: actorPassword,
+          displayName: 'ActorOriginalName',
+          adminsCrud: 0,
+          usersCrud: 0,
+          eventVisibility: 'own',
+        })
+        .expect(201);
+      actorId = res.body.admin.id;
+      actorAgent = request.agent(app);
+      await actorAgent
+        .post(`${API}/auth/login`)
+        .send({ email: actorEmail, password: actorPassword })
+        .expect(200);
+    });
+
+    afterAll(async () => {
+      await superAdminAgent.delete(`${API}/admins/${actorId}`).catch(() => undefined);
+    });
+
+    it('actorDisplayName is stored on events at creation time', async () => {
+      await actorAgent
+        .post(`${API}/admins/change-password`)
+        .send({ currentPassword: actorPassword, newPassword: 'actor-dn-password-2' })
+        .expect(204);
+
+      const res = await superAdminAgent.get(`${API}/events`).expect(200);
+      const actorEvent = res.body.events.find(
+        (e: { actorId: string; actorDisplayName: string | null }) => e.actorId === actorId
+      );
+      expect(actorEvent).toBeDefined();
+      expect(actorEvent.actorDisplayName).toBe('ActorOriginalName');
+    });
+
+    it('actorDisplayName is updated in past events when admin displayName changes', async () => {
+      await superAdminAgent
+        .patch(`${API}/admins/${actorId}`)
+        .send({ displayName: 'ActorUpdatedName' })
+        .expect(200);
+
+      const res = await superAdminAgent.get(`${API}/events`).expect(200);
+      const actorEvents = res.body.events.filter(
+        (e: { actorId: string }) => e.actorId === actorId
+      );
+      expect(actorEvents.length).toBeGreaterThan(0);
+      for (const e of actorEvents) {
+        expect(e.actorDisplayName).toBe('ActorUpdatedName');
+      }
+    });
+
+    it('events survive admin deletion (non-cascading)', async () => {
+      await superAdminAgent.delete(`${API}/admins/${actorId}`).expect(204);
+      actorId = '';
+
+      const res = await superAdminAgent.get(`${API}/events`).expect(200);
+      const survivingEvent = res.body.events.find(
+        (e: { actorDisplayName: string | null }) => e.actorDisplayName === 'ActorUpdatedName'
+      );
+      expect(survivingEvent).toBeDefined();
     });
   });
 });

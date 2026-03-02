@@ -8,6 +8,7 @@ import type { ActorType } from '../entities/ManagementEvent.js';
 type RecordEventParams = {
   actorId: string;
   actorType: ActorType;
+  actorDisplayName?: string | null;
   action: string;
   targetType?: string | null;
   targetId?: string | null;
@@ -34,12 +35,23 @@ export class ManagementEventService {
       id: uuidv4(),
       actorId: params.actorId,
       actorType: params.actorType,
+      actorDisplayName: params.actorDisplayName ?? null,
       action: params.action,
       targetType: params.targetType ?? null,
       targetId: params.targetId ?? null,
       details: params.details ?? null,
     });
     return repo.save(event);
+  }
+
+  static async updateActorDisplayName(actorId: string, displayName: string): Promise<void> {
+    await managementDataSource
+      .getRepository(ManagementEvent)
+      .createQueryBuilder()
+      .update()
+      .set({ actorDisplayName: displayName })
+      .where('actor_id = :actorId', { actorId })
+      .execute();
   }
 
   /**

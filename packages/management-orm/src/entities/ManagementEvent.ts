@@ -13,6 +13,9 @@ export class ManagementEvent {
   @Column({ name: 'actor_type', type: 'text' })
   actorType!: ActorType;
 
+  @Column({ name: 'actor_display_name', type: 'text', nullable: true })
+  actorDisplayName!: string | null;
+
   @Column({ type: 'text' })
   action!: string;
 

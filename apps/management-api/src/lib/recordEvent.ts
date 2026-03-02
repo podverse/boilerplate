@@ -14,6 +14,7 @@ export async function recordEvent(params: RecordEventParams): Promise<void> {
   await ManagementEventService.record({
     actorId: params.actor.id,
     actorType,
+    actorDisplayName: params.actor.bio?.displayName ?? null,
     action: params.action,
     targetType: params.targetType ?? null,
     targetId: params.targetId ?? null,

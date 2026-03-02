@@ -16,6 +16,7 @@ type EventItem = {
   id: string;
   actorId: string;
   actorType: string;
+  actorDisplayName?: string | null;
   action: string;
   targetType: string | null;
   targetId: string | null;
@@ -100,7 +101,7 @@ export default async function EventsPage({ searchParams }: PageProps) {
   const limit = DEFAULT_PAGE_LIMIT;
   const sort = resolved.sort === 'oldest' ? 'oldest' : 'recent';
   const filterColumnsRaw = resolved.filterColumns ?? '';
-  const eventColumnIds = ['timestamp', 'actorType', 'action', 'target', 'details'];
+  const eventColumnIds = ['timestamp', 'actor', 'action', 'target', 'details'];
   const initialFilterColumns =
     filterColumnsRaw.trim() === ''
       ? eventColumnIds
@@ -120,23 +121,29 @@ export default async function EventsPage({ searchParams }: PageProps) {
   const totalPages = data?.totalPages ?? 1;
   const currentPage = data?.page ?? 1;
 
-  const tableRows = events.map((e) => ({
-    id: e.id,
-    cells: {
-      timestamp: formatDateTimeReadable(locale, e.timestamp),
-      actorType: e.actorType,
-      action: e.action,
-      target:
-        [e.targetType, e.targetId]
-          .filter((x) => x !== null && x !== undefined && x !== '')
-          .join(' — ') || '—',
-      details: e.details !== null && e.details !== '' ? e.details : '—',
-    },
-  }));
+  const tableRows = events.map((e) => {
+    const actorName =
+      e.actorDisplayName !== undefined && e.actorDisplayName !== null && e.actorDisplayName !== ''
+        ? `${e.actorDisplayName} (${e.actorType})`
+        : `${e.actorId} (${e.actorType})`;
+    return {
+      id: e.id,
+      cells: {
+        timestamp: formatDateTimeReadable(locale, e.timestamp),
+        actor: actorName,
+        action: e.action,
+        target:
+          [e.targetType, e.targetId]
+            .filter((x) => x !== null && x !== undefined && x !== '')
+            .join(' — ') || '—',
+        details: e.details !== null && e.details !== '' ? e.details : '—',
+      },
+    };
+  });
 
   const eventColumns = [
     { id: 'timestamp', label: tCommon('eventsTable.timestamp') },
-    { id: 'actorType', label: tCommon('eventsTable.actorType') },
+    { id: 'actor', label: tCommon('eventsTable.actor') },
     { id: 'action', label: tCommon('eventsTable.action') },
     { id: 'target', label: tCommon('eventsTable.target') },
     { id: 'details', label: tCommon('eventsTable.details') },

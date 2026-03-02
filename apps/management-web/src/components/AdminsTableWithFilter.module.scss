@@ -1,0 +1,41 @@
+@use '@boilerplate/ui/styles/variables' as *;
+
+.filterRow {
+  margin-bottom: $space-4;
+}
+
+.emptyMessage {
+  margin-bottom: $space-4;
+}
+
+.actionsCell {
+  display: flex;
+  gap: $space-2;
+  align-items: center;
+}
+
+.editLink {
+  display: inline-flex;
+  align-items: center;
+  padding: $space-1 $space-3;
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  border: $border-width solid var(--color-border);
+  border-radius: $radius-sm;
+  text-decoration: none;
+  font-size: $font-size-sm;
+  transition: background-color $transition-fast;
+
+  &:hover {
+    background-color: var(--color-border);
+  }
+}
+
+.deleteButton {
+  font-size: $font-size-sm;
+  padding: $space-1 $space-3;
+}
+
+.deleteError {
+  margin-bottom: $space-2;
+}

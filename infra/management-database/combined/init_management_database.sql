@@ -1,4 +1,4 @@
--- Combined migrations generated Sun Mar  1 15:55:56 CST 2026
+-- Combined migrations generated Sun Mar  1 21:26:51 CST 2026
 -- DO NOT EDIT - regenerate with scripts/database/combine-migrations.sh
 
 -- Including: 0000_management_helpers.sql
@@ -57,10 +57,12 @@ CREATE TABLE IF NOT EXISTS admin_permissions (
 -- 0003 migration: management_event – audit log for super admin and admin actions
 
 -- Audit log: every action by super admin or admin
+-- actor_display_name is stored at event time so it survives admin deletion or display name changes.
 CREATE TABLE IF NOT EXISTS management_event (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     actor_id TEXT NOT NULL,
     actor_type TEXT NOT NULL CHECK(actor_type IN ('super_admin', 'admin')),
+    actor_display_name TEXT,
     action TEXT NOT NULL,
     target_type TEXT,
     target_id TEXT,

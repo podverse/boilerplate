@@ -6,6 +6,7 @@ export interface PublicManagementEvent {
   id: string;
   actorId: string;
   actorType: string;
+  actorDisplayName?: string | null;
   action: string;
   targetType: string | null;
   targetId: string | null;

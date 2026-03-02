@@ -3,6 +3,12 @@ export {
   AUTH_MESSAGE_LOGIN_FAILED,
 } from './auth/auth-messages.js';
 export {
+  bitmaskToFlags,
+  CRUD_BITS,
+  flagsToBitmask,
+} from './crud/crud-bitmask.js';
+export type { CrudBit } from './crud/crud-bitmask.js';
+export {
   DEFAULT_PAGE_LIMIT,
   DEFAULT_PAGE_LIMIT_OPTIONS,
   MAX_PAGE_SIZE,

@@ -61,6 +61,7 @@
     "eventsTable": {
       "timestamp": "",
       "actorType": "",
+      "actor": "",
       "action": "",
       "target": "",
       "details": ""
@@ -82,7 +83,43 @@
     },
     "adminsTable": {
       "email": "",
-      "displayName": ""
+      "displayName": "",
+      "actions": "",
+      "edit": "",
+      "delete": ""
+    },
+    "addAdmin": "",
+    "addAdminTitle": "",
+    "editAdminTitle": "",
+    "adminForm": {
+      "displayName": "",
+      "email": "",
+      "password": "",
+      "passwordEditHint": "",
+      "permissions": "",
+      "adminsCrud": "",
+      "usersCrud": "",
+      "canChangePasswords": "",
+      "canAssignPermissions": "",
+      "eventVisibility": "",
+      "eventVisibilityOwn": "",
+      "eventVisibilityAllAdmins": "",
+      "eventVisibilityAll": "",
+      "crudCreate": "",
+      "crudRead": "",
+      "crudUpdate": "",
+      "crudDelete": "",
+      "createAdmin": "",
+      "saveChanges": "",
+      "cancel": "",
+      "createFailed": "",
+      "updateFailed": ""
+    },
+    "confirmDeleteAdmin": {
+      "message": "",
+      "fallbackName": "",
+      "cancel": "",
+      "delete": ""
     },
     "pagination": {
       "previous": "",
@@ -120,7 +157,8 @@
     "resetTokenRequired": "",
     "loginFailed": "",
     "failedToLoadAdmins": "",
-    "failedToLoadEvents": ""
+    "failedToLoadEvents": "",
+    "deleteFailed": ""
   },
   "ui": {
     "auth": {

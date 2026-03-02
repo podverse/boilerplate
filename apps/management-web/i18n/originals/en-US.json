@@ -61,6 +61,7 @@
     "eventsTable": {
       "timestamp": "Timestamp",
       "actorType": "Actor type",
+      "actor": "Actor",
       "action": "Action",
       "target": "Target",
       "details": "Details"
@@ -82,7 +83,43 @@
     },
     "adminsTable": {
       "email": "Email",
-      "displayName": "Display name"
+      "displayName": "Display name",
+      "actions": "Actions",
+      "edit": "Edit",
+      "delete": "Delete"
+    },
+    "addAdmin": "Add Admin",
+    "addAdminTitle": "Add Admin",
+    "editAdminTitle": "Edit Admin: {name}",
+    "adminForm": {
+      "displayName": "Display name",
+      "email": "Email",
+      "password": "Password",
+      "passwordEditHint": "Password (leave blank to keep current)",
+      "permissions": "Permissions",
+      "adminsCrud": "Admins CRUD",
+      "usersCrud": "Users CRUD",
+      "canChangePasswords": "Can change passwords",
+      "canAssignPermissions": "Can assign permissions",
+      "eventVisibility": "Event visibility",
+      "eventVisibilityOwn": "Own events only",
+      "eventVisibilityAllAdmins": "All admin events",
+      "eventVisibilityAll": "All events (including super admin)",
+      "crudCreate": "Create",
+      "crudRead": "Read",
+      "crudUpdate": "Update",
+      "crudDelete": "Delete",
+      "createAdmin": "Create Admin",
+      "saveChanges": "Save Changes",
+      "cancel": "Cancel",
+      "createFailed": "Failed to create admin",
+      "updateFailed": "Failed to update admin"
+    },
+    "confirmDeleteAdmin": {
+      "message": "Are you sure you want to delete {name}? This cannot be undone.",
+      "fallbackName": "this admin",
+      "cancel": "Cancel",
+      "delete": "Delete"
     },
     "pagination": {
       "previous": "Previous",
@@ -120,7 +157,8 @@
     "resetTokenRequired": "Reset token is required",
     "loginFailed": "Login failed",
     "failedToLoadAdmins": "Failed to load admins",
-    "failedToLoadEvents": "Failed to load events"
+    "failedToLoadEvents": "Failed to load events",
+    "deleteFailed": "Failed to delete admin"
   },
   "ui": {
     "auth": {

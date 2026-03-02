@@ -69,6 +69,7 @@ export const openApiDocument = {
           id: { type: 'string', format: 'uuid' },
           actorId: { type: 'string' },
           actorType: { type: 'string', enum: ['super_admin', 'admin'] },
+          actorDisplayName: { type: 'string', nullable: true },
           action: { type: 'string' },
           targetType: { type: 'string', nullable: true },
           targetId: { type: 'string', nullable: true },
@@ -269,6 +270,26 @@ export const openApiDocument = {
         description: 'List all admins (non–super-admin). Requires admins read permission.',
         operationId: 'listAdmins',
         security: [{ bearerAuth: [] }],
+        parameters: [
+          {
+            name: 'page',
+            in: 'query',
+            schema: { type: 'integer', default: 1 },
+            description: 'Page number (1-based)',
+          },
+          {
+            name: 'limit',
+            in: 'query',
+            schema: { type: 'integer', default: 100 },
+            description: 'Max records per page (capped at server max)',
+          },
+          {
+            name: 'search',
+            in: 'query',
+            schema: { type: 'string' },
+            description: 'Filter by display name or email (case-insensitive substring)',
+          },
+        ],
         responses: {
           '200': {
             description: 'OK',
@@ -280,6 +301,14 @@ export const openApiDocument = {
                     admins: {
                       type: 'array',
                       items: { $ref: '#/components/schemas/ManagementUser' },
+                    },
+                    total: { type: 'integer', description: 'Total matching records (capped)' },
+                    page: { type: 'integer' },
+                    limit: { type: 'integer' },
+                    totalPages: { type: 'integer' },
+                    truncatedTotal: {
+                      type: 'boolean',
+                      description: 'Present and true when actual total exceeds the cap',
                     },
                   },
                 },
@@ -739,16 +768,29 @@ export const openApiDocument = {
         security: [{ bearerAuth: [] }],
         parameters: [
           {
+            name: 'page',
+            in: 'query',
+            schema: { type: 'integer', default: 1 },
+            description: 'Page number (1-based)',
+          },
+          {
             name: 'limit',
             in: 'query',
             schema: { type: 'integer', default: 100 },
-            description: 'Max events to return (standard page size cap)',
+            description: 'Max events per page (capped at server max)',
           },
           {
-            name: 'offset',
+            name: 'sort',
             in: 'query',
-            schema: { type: 'integer', default: 0 },
-            description: 'Offset for pagination',
+            schema: { type: 'string', enum: ['recent', 'oldest'], default: 'recent' },
+            description: 'Sort order: newest first (recent) or oldest first (oldest)',
+          },
+          {
+            name: 'search',
+            in: 'query',
+            schema: { type: 'string' },
+            description:
+              'Filter by action, actor_type, target_type, target_id, or details (case-insensitive substring)',
           },
         ],
         responses: {
@@ -760,6 +802,14 @@ export const openApiDocument = {
                   type: 'object',
                   properties: {
                     events: { type: 'array', items: { $ref: '#/components/schemas/Event' } },
+                    total: { type: 'integer', description: 'Total matching events (capped)' },
+                    page: { type: 'integer' },
+                    limit: { type: 'integer' },
+                    totalPages: { type: 'integer' },
+                    truncatedTotal: {
+                      type: 'boolean',
+                      description: 'Present and true when actual total exceeds the cap',
+                    },
                   },
                 },
               },

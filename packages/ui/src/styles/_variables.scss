@@ -44,6 +44,7 @@ $focus-outline-offset: 2px;
 
 // Interaction
 $opacity-disabled: 0.6;
+$opacity-hover: 0.9;
 $transition-fast: 0.15s;
 
 // Generic sizes (square touch targets, controls, inline elements)
@@ -67,6 +68,7 @@ $center-in-viewport-content-max-width: 24rem;
 
 // Form / modal form (min width for small forms e.g. go-to-page modal)
 $form-min-width: 18rem;
+$dialog-min-width: 20rem;
 
 // Dropdown / popover panels
 $dropdown-panel-min-width: 10rem;

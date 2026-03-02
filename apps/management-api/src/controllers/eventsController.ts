@@ -10,6 +10,7 @@ function eventToJson(e: {
   id: string;
   actorId: string;
   actorType: string;
+  actorDisplayName: string | null;
   action: string;
   targetType: string | null;
   targetId: string | null;
@@ -20,6 +21,7 @@ function eventToJson(e: {
     id: e.id,
     actorId: e.actorId,
     actorType: e.actorType,
+    actorDisplayName: e.actorDisplayName,
     action: e.action,
     targetType: e.targetType,
     targetId: e.targetId,

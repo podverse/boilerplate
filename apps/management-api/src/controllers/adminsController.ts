@@ -3,6 +3,7 @@ import { DEFAULT_PAGE_LIMIT, MAX_PAGE_SIZE, MAX_TOTAL_CAP } from '@boilerplate/h
 import {
   EVENT_ACTIONS,
   EVENT_TARGET_TYPES,
+  ManagementEventService,
   ManagementUserService,
 } from '@boilerplate/management-orm';
 import type { ChangePasswordBody, CreateAdminBody, UpdateAdminBody } from '../schemas/admins.js';
@@ -138,6 +139,14 @@ export async function updateAdmin(req: Request, res: Response): Promise<void> {
 
   const updated = await ManagementUserService.updateAdmin(id, updates);
   if (updated !== null) {
+    if (body.displayName !== undefined) {
+      try {
+        await ManagementEventService.updateActorDisplayName(id, body.displayName.trim());
+      } catch (err) {
+        // Non-critical: admin is already saved; log but do not roll back.
+        console.error('Failed to update actor_display_name in events', err);
+      }
+    }
     await recordEvent({
       actor,
       action: EVENT_ACTIONS.admin.updated,

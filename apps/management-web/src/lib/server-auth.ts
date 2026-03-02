@@ -10,6 +10,7 @@ export type ServerUser = {
   id: string;
   email: string;
   displayName: string | null;
+  isSuperAdmin: boolean;
 };
 
 function getServerApiBaseUrl(): string {
@@ -44,7 +45,7 @@ export async function getServerUser(): Promise<ServerUser | null> {
       return null;
     }
 
-    const data = res.data as { user?: ServerUser };
+    const data = res.data as { user?: { id: string; email: string; displayName?: string; isSuperAdmin?: boolean } };
     if (data.user === undefined) {
       return null;
     }
@@ -53,6 +54,7 @@ export async function getServerUser(): Promise<ServerUser | null> {
       id: data.user.id,
       email: data.user.email,
       displayName: data.user.displayName ?? null,
+      isSuperAdmin: data.user.isSuperAdmin === true,
     };
   } catch {
     return null;

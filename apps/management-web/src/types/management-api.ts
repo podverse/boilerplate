@@ -21,6 +21,22 @@ export type ManagementUser = {
   email: string;
   /** Required and unique for admins. */
   displayName: string;
+  isSuperAdmin?: boolean;
+  createdAt?: string;
+  createdBy?: string | null;
   /** Omitted for super admin; present for admins. */
   permissions?: ManagementUserPermissions | null;
+};
+
+/** Event returned from GET /events. */
+export type ManagementEvent = {
+  id: string;
+  actorId: string;
+  actorType: string;
+  actorDisplayName?: string | null;
+  action: string;
+  targetType: string | null;
+  targetId: string | null;
+  timestamp: string;
+  details: string | null;
 };

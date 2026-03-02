@@ -61,6 +61,7 @@
     "eventsTable": {
       "timestamp": "Fecha y hora",
       "actorType": "Tipo de actor",
+      "actor": "Actor",
       "action": "Acción",
       "target": "Objetivo",
       "details": "Detalles"
@@ -82,7 +83,43 @@
     },
     "adminsTable": {
       "email": "Correo electrónico",
-      "displayName": "Nombre para mostrar"
+      "displayName": "Nombre para mostrar",
+      "actions": "Acciones",
+      "edit": "Editar",
+      "delete": "Eliminar"
+    },
+    "addAdmin": "Añadir administrador",
+    "addAdminTitle": "Añadir administrador",
+    "editAdminTitle": "Editar administrador: {name}",
+    "adminForm": {
+      "displayName": "Nombre para mostrar",
+      "email": "Correo electrónico",
+      "password": "Contraseña",
+      "passwordEditHint": "Contraseña (déjala en blanco para mantener la actual)",
+      "permissions": "Permisos",
+      "adminsCrud": "CRUD de administradores",
+      "usersCrud": "CRUD de usuarios",
+      "canChangePasswords": "Puede cambiar contraseñas",
+      "canAssignPermissions": "Puede asignar permisos",
+      "eventVisibility": "Visibilidad de eventos",
+      "eventVisibilityOwn": "Solo mis eventos",
+      "eventVisibilityAllAdmins": "Todos los eventos de administradores",
+      "eventVisibilityAll": "Todos los eventos (incluido super administrador)",
+      "crudCreate": "Crear",
+      "crudRead": "Leer",
+      "crudUpdate": "Actualizar",
+      "crudDelete": "Eliminar",
+      "createAdmin": "Crear administrador",
+      "saveChanges": "Guardar cambios",
+      "cancel": "Cancelar",
+      "createFailed": "Error al crear administrador",
+      "updateFailed": "Error al actualizar administrador"
+    },
+    "confirmDeleteAdmin": {
+      "message": "¿Estás seguro de que quieres eliminar a {name}? Esta acción no se puede deshacer.",
+      "fallbackName": "este administrador",
+      "cancel": "Cancelar",
+      "delete": "Eliminar"
     },
     "pagination": {
       "previous": "Anterior",
@@ -120,7 +157,8 @@
     "resetTokenRequired": "Se requiere el token de restablecimiento",
     "loginFailed": "Error al iniciar sesión",
     "failedToLoadAdmins": "Error al cargar administradores",
-    "failedToLoadEvents": "Error al cargar eventos"
+    "failedToLoadEvents": "Error al cargar eventos",
+    "deleteFailed": "Error al eliminar administrador"
   },
   "ui": {
     "auth": {
