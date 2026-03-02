@@ -9,7 +9,11 @@ function isTheme(value: string): value is Theme {
   return THEMES.includes(value as Theme);
 }
 
-export function ThemeSelector() {
+export type ThemeSelectorProps = {
+  label?: string;
+};
+
+export function ThemeSelector({ label }: ThemeSelectorProps) {
   const t = useTranslations('ui.themeSelector');
   const { theme, setTheme } = useTheme();
   const options = THEMES.map((value) => ({ value, label: t(value) }));
@@ -20,7 +24,8 @@ export function ThemeSelector() {
       onChange={(value) => {
         if (isTheme(value)) setTheme(value);
       }}
-      aria-label={t('groupAriaLabel')}
+      label={label}
+      aria-label={label ?? t('groupAriaLabel')}
     />
   );
 }

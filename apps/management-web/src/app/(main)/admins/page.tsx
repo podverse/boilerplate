@@ -155,6 +155,7 @@ export default async function AdminsPage({ searchParams }: PageProps) {
                 canUpdateAdmin={canUpdateAdmin}
                 canDeleteAdmin={canDeleteAdmin}
                 adminApiBaseUrl={apiBaseUrl}
+                currentUserId={user.id}
                 addAdminHref={canCreateAdmin ? ROUTES.ADMINS_NEW : undefined}
               />
             </Stack>

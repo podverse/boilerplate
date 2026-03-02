@@ -3,7 +3,15 @@
 import { useRouter } from 'next/navigation';
 import { useLocale, useTranslations } from 'next-intl';
 import { ALL_AVAILABLE_LOCALES, type Locale } from '@boilerplate/helpers';
-import { Card, Container, Stack, Select, ThemeSelector, setSettingsCookie } from '@boilerplate/ui';
+import {
+  Card,
+  Container,
+  FormContainer,
+  Stack,
+  Select,
+  ThemeSelector,
+  setSettingsCookie,
+} from '@boilerplate/ui';
 
 export type SettingsContentProps = {
   settingsCookieName: string;
@@ -22,22 +30,20 @@ export function SettingsContent({ settingsCookieName }: SettingsContentProps) {
     <Container>
       <Stack>
         <Card title={t('title')}>
-          <Stack>
-            <Card title={t('theme')}>
-              <ThemeSelector />
-            </Card>
-            <Card title={t('languages.language')}>
+          <FormContainer onSubmit={(e) => e.preventDefault()}>
+            <Stack>
+              <ThemeSelector label={t('theme')} />
               <Select
+                label={t('languages.language')}
                 options={localeOptions}
                 value={locale}
                 onChange={(value) => {
                   setSettingsCookie(settingsCookieName, { locale: value });
                   router.refresh();
                 }}
-                aria-label={t('languages.language')}
               />
-            </Card>
-          </Stack>
+            </Stack>
+          </FormContainer>
         </Card>
       </Stack>
     </Container>

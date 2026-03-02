@@ -9,7 +9,8 @@ import { managementWebAdmins } from '@boilerplate/helpers-requests';
 import { Button, Pagination, Table, TableFilterBar, Text } from '@boilerplate/ui';
 import type { TableFilterBarColumn } from '@boilerplate/ui';
 
-import { adminEditRoute } from '../lib/routes';
+import { adminEditRoute, ROUTES } from '../lib/routes';
+import { useAuth } from '../context/AuthContext';
 import { ConfirmDeleteAdminModal } from './admins/ConfirmDeleteAdminModal';
 import styles from './AdminsTableWithFilter.module.scss';
 
@@ -38,6 +39,8 @@ export type AdminsTableWithFilterProps = {
   adminApiBaseUrl: string;
   /** When provided, renders an "Add Admin" link below the filter bar (left-aligned). */
   addAdminHref?: string;
+  /** The ID of the currently logged-in user. Used to detect self-deletion and trigger logout. */
+  currentUserId?: string;
 };
 
 function filterRows(
@@ -72,8 +75,10 @@ export function AdminsTableWithFilter({
   canDeleteAdmin,
   adminApiBaseUrl,
   addAdminHref,
+  currentUserId,
 }: AdminsTableWithFilterProps) {
   const router = useRouter();
+  const { logout } = useAuth();
   const tFilterBar = useTranslations('ui.tableFilterBar');
   const tPagination = useTranslations('ui.pagination');
   const tGoToModal = useTranslations('ui.pagination.goToPageModal');
@@ -157,11 +162,16 @@ export function AdminsTableWithFilter({
     setDeleteLoading(false);
     if (res.ok) {
       setDeleteTarget(null);
-      router.refresh();
+      if (currentUserId !== undefined && deleteTarget.id === currentUserId) {
+        await logout();
+        router.push(ROUTES.LOGIN);
+      } else {
+        router.refresh();
+      }
     } else {
       setDeleteError(res.error.message ?? tErrors('deleteFailed'));
     }
-  }, [deleteTarget, adminApiBaseUrl, router, tCommon]);
+  }, [deleteTarget, adminApiBaseUrl, router, tCommon, currentUserId, logout]);
 
   const showActions = canUpdateAdmin || canDeleteAdmin;
 
