@@ -1,0 +1,14 @@
+@use '../../../styles/variables' as *;
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: $space-4;
+}
+
+.rowWrap {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: $space-2;
+}

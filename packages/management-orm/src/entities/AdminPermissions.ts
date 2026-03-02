@@ -24,12 +24,6 @@ export class AdminPermissions {
   @Column({ name: 'users_crud', type: 'integer', default: 0 })
   usersCrud!: number;
 
-  @Column({ name: 'can_change_passwords', type: 'boolean', default: false })
-  canChangePasswords!: boolean;
-
-  @Column({ name: 'can_assign_permissions', type: 'boolean', default: false })
-  canAssignPermissions!: boolean;
-
   @Column({ name: 'event_visibility', type: 'text', default: 'own' })
   eventVisibility!: EventVisibility;
 

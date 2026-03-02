@@ -150,7 +150,8 @@ describe('auth (shared)', () => {
         c.startsWith(config.sessionCookieName + '=')
       );
       expect(sessionCookie).toBeDefined();
-      const token = sessionCookie!.split(';')[0].split('=').slice(1).join('=');
+      if (sessionCookie === undefined) return;
+      const token = sessionCookie.split(';')[0].split('=').slice(1).join('=');
       const res = await request(app)
         .get(`${API}/auth/me`)
         .set('Authorization', `Bearer ${token}`)

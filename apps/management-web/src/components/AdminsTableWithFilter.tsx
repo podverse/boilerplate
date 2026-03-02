@@ -9,6 +9,7 @@ import { managementWebAdmins } from '@boilerplate/helpers-requests';
 import { Button, Pagination, Table, TableFilterBar, Text } from '@boilerplate/ui';
 import type { TableFilterBarColumn } from '@boilerplate/ui';
 
+import { adminEditRoute } from '../lib/routes';
 import { ConfirmDeleteAdminModal } from './admins/ConfirmDeleteAdminModal';
 import styles from './AdminsTableWithFilter.module.scss';
 
@@ -32,7 +33,8 @@ export type AdminsTableWithFilterProps = {
   maxGoToPage?: number;
   isSuperAdmin: boolean;
   adminApiBaseUrl: string;
-  adminEditRoute: (id: string) => string;
+  /** When provided, renders an "Add Admin" link below the filter bar (left-aligned). */
+  addAdminHref?: string;
 };
 
 function filterRows(
@@ -65,7 +67,7 @@ export function AdminsTableWithFilter({
   maxGoToPage,
   isSuperAdmin,
   adminApiBaseUrl,
-  adminEditRoute,
+  addAdminHref,
 }: AdminsTableWithFilterProps) {
   const router = useRouter();
   const tFilterBar = useTranslations('ui.tableFilterBar');
@@ -173,6 +175,13 @@ export function AdminsTableWithFilter({
           funnelButtonLabel={funnelButtonLabel}
         />
       </div>
+      {addAdminHref !== undefined && (
+        <div className={styles.addAdminRow}>
+          <Link href={addAdminHref} className={styles.addAdminLink}>
+            {tCommon('addAdmin')}
+          </Link>
+        </div>
+      )}
       {deleteError !== null && (
         <Text variant="error" role="alert" className={styles.deleteError}>
           {deleteError}

@@ -1,0 +1,13 @@
+@use '../../../styles/variables' as *;
+
+.root {
+  margin-bottom: $space-6;
+}
+
+.title {
+  margin: 0;
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  color: var(--color-text);
+  line-height: $line-height-base;
+}

@@ -99,8 +99,6 @@
       "permissions": "Permissions",
       "adminsCrud": "Admins CRUD",
       "usersCrud": "Users CRUD",
-      "canChangePasswords": "Can change passwords",
-      "canAssignPermissions": "Can assign permissions",
       "eventVisibility": "Event visibility",
       "eventVisibilityOwn": "Own events only",
       "eventVisibilityAllAdmins": "All admin events",

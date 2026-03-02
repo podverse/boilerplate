@@ -99,8 +99,6 @@
       "permissions": "Permisos",
       "adminsCrud": "CRUD de administradores",
       "usersCrud": "CRUD de usuarios",
-      "canChangePasswords": "Puede cambiar contraseñas",
-      "canAssignPermissions": "Puede asignar permisos",
       "eventVisibility": "Visibilidad de eventos",
       "eventVisibilityOwn": "Solo mis eventos",
       "eventVisibilityAllAdmins": "Todos los eventos de administradores",

@@ -15,8 +15,6 @@ export interface PublicManagementUser {
   permissions?: {
     adminsCrud: number;
     usersCrud: number;
-    canChangePasswords: boolean;
-    canAssignPermissions: boolean;
     eventVisibility: EventVisibility;
   } | null;
 }
@@ -38,8 +36,6 @@ export interface CreateAdminBody {
   displayName: string;
   adminsCrud: number;
   usersCrud: number;
-  canChangePasswords: boolean;
-  canAssignPermissions: boolean;
   eventVisibility: EventVisibility;
 }
 
@@ -50,7 +46,5 @@ export interface UpdateAdminBody {
   password?: string;
   adminsCrud?: number;
   usersCrud?: number;
-  canChangePasswords?: boolean;
-  canAssignPermissions?: boolean;
   eventVisibility?: EventVisibility;
 }

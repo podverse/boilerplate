@@ -14,8 +14,6 @@ export type CreateAdminData = {
   createdBy: string;
   adminsCrud: number;
   usersCrud: number;
-  canChangePasswords: boolean;
-  canAssignPermissions: boolean;
   eventVisibility: EventVisibility;
 };
 
@@ -25,8 +23,6 @@ export type UpdateAdminData = {
   passwordHash?: string;
   adminsCrud?: number;
   usersCrud?: number;
-  canChangePasswords?: boolean;
-  canAssignPermissions?: boolean;
   eventVisibility?: EventVisibility;
 };
 
@@ -151,8 +147,6 @@ export class ManagementUserService {
         adminId: id,
         adminsCrud: data.adminsCrud,
         usersCrud: data.usersCrud,
-        canChangePasswords: data.canChangePasswords,
-        canAssignPermissions: data.canAssignPermissions,
         eventVisibility: data.eventVisibility,
       });
       await permRepo.save(perm);
@@ -198,16 +192,10 @@ export class ManagementUserService {
         const updates: {
           adminsCrud?: number;
           usersCrud?: number;
-          canChangePasswords?: boolean;
-          canAssignPermissions?: boolean;
           eventVisibility?: EventVisibility;
         } = {};
         if (data.adminsCrud !== undefined) updates.adminsCrud = data.adminsCrud;
         if (data.usersCrud !== undefined) updates.usersCrud = data.usersCrud;
-        if (data.canChangePasswords !== undefined)
-          updates.canChangePasswords = data.canChangePasswords;
-        if (data.canAssignPermissions !== undefined)
-          updates.canAssignPermissions = data.canAssignPermissions;
         if (data.eventVisibility !== undefined) updates.eventVisibility = data.eventVisibility;
         if (Object.keys(updates).length > 0) {
           await permRepo.update({ adminId: id }, updates);

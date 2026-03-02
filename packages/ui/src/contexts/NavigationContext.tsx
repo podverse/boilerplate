@@ -3,7 +3,7 @@
 import { createContext, useCallback, useContext, useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
 
-import { NavigationLoadingOverlay } from '../components/Modal/NavigationLoadingOverlay';
+import { NavigationLoadingOverlay } from '../components/modal/Modal/NavigationLoadingOverlay';
 
 type NavigationContextValue = {
   setNavigating: (value: boolean) => void;

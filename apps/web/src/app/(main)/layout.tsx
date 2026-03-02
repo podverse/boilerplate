@@ -1,3 +1,5 @@
+import { Main } from '@boilerplate/ui';
+
 import { getRuntimeConfig } from '../../config/runtime-config-store';
 import { AppHeader } from '../../components/AppHeader';
 
@@ -7,7 +9,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
   return (
     <>
       <AppHeader appName={appName} />
-      <main className="layout-main">{children}</main>
+      <Main>{children}</Main>
     </>
   );
 }

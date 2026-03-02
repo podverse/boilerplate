@@ -7,7 +7,7 @@ export const openApiDocument = {
     title: 'Boilerplate Management API',
     version: '0.1.2',
     description:
-      'Management API for super admin and admins. JWT from POST /auth/login. Use **Authorize** to set the Bearer token. Permissions (admins_crud, users_crud bitmasks, can_change_passwords, can_assign_permissions, event_visibility) apply to admins; super admin has full access.',
+      'Management API for super admin and admins. JWT from POST /auth/login. Use **Authorize** to set the Bearer token. Permissions (admins_crud, users_crud bitmasks, event_visibility) apply to admins; super admin has full access. Capabilities such as changing passwords or assigning permissions are implied by the relevant CRUD bits.',
   },
   servers: [{ url: '/v1', description: 'API v1' }],
   components: {
@@ -47,8 +47,6 @@ export const openApiDocument = {
                 maximum: 15,
                 description: 'CRUD bitmask for main-app users',
               },
-              canChangePasswords: { type: 'boolean' },
-              canAssignPermissions: { type: 'boolean' },
               eventVisibility: { type: 'string', enum: ['own', 'all_admins', 'all'] },
             },
           },
@@ -101,8 +99,6 @@ export const openApiDocument = {
           displayName: { type: 'string', maxLength: 50, minLength: 1 },
           adminsCrud: { type: 'integer', minimum: 0, maximum: 15, default: 0 },
           usersCrud: { type: 'integer', minimum: 0, maximum: 15, default: 0 },
-          canChangePasswords: { type: 'boolean', default: false },
-          canAssignPermissions: { type: 'boolean', default: false },
           eventVisibility: { type: 'string', enum: ['own', 'all_admins', 'all'], default: 'own' },
         },
       },
@@ -114,8 +110,6 @@ export const openApiDocument = {
           password: { type: 'string', minLength: 8 },
           adminsCrud: { type: 'integer', minimum: 0, maximum: 15 },
           usersCrud: { type: 'integer', minimum: 0, maximum: 15 },
-          canChangePasswords: { type: 'boolean' },
-          canAssignPermissions: { type: 'boolean' },
           eventVisibility: { type: 'string', enum: ['own', 'all_admins', 'all'] },
         },
       },
@@ -718,7 +712,7 @@ export const openApiDocument = {
       post: {
         summary: 'Change main-app user password',
         description:
-          'Set new password for a main-app user. Requires can_change_passwords or super admin.',
+          'Set new password for a main-app user. Requires users_crud update permission or super admin.',
         operationId: 'changeUserPassword',
         security: [{ bearerAuth: [] }],
         parameters: [

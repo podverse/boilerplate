@@ -99,8 +99,6 @@
       "permissions": "",
       "adminsCrud": "",
       "usersCrud": "",
-      "canChangePasswords": "",
-      "canAssignPermissions": "",
       "eventVisibility": "",
       "eventVisibilityOwn": "",
       "eventVisibilityAllAdmins": "",

@@ -13,12 +13,12 @@ import type {
 } from '@boilerplate/helpers-requests';
 import {
   Button,
-  CheckboxField,
   CrudCheckboxes,
   FormActions,
   FormSection,
   Input,
   Select,
+  Stack,
   Text,
 } from '@boilerplate/ui';
 
@@ -31,8 +31,6 @@ export type AdminFormInitialValues = {
   permissions: {
     adminsCrud: number;
     usersCrud: number;
-    canChangePasswords: boolean;
-    canAssignPermissions: boolean;
     eventVisibility: EventVisibility;
   } | null;
 };
@@ -67,12 +65,6 @@ export function AdminForm({ mode, adminId, initialValues, isSuperAdmin }: AdminF
   const [usersCrudFlags, setUsersCrudFlags] = useState<Record<CrudBit, boolean>>(
     bitmaskToFlags(defaultPerms?.usersCrud ?? 0)
   );
-  const [canChangePasswords, setCanChangePasswords] = useState(
-    defaultPerms?.canChangePasswords ?? false
-  );
-  const [canAssignPermissions, setCanAssignPermissions] = useState(
-    defaultPerms?.canAssignPermissions ?? false
-  );
   const [eventVisibility, setEventVisibility] = useState<EventVisibility>(
     defaultPerms?.eventVisibility ?? 'own'
   );
@@ -99,8 +91,6 @@ export function AdminForm({ mode, adminId, initialValues, isSuperAdmin }: AdminF
           password,
           adminsCrud: flagsToBitmask(adminsCrudFlags),
           usersCrud: flagsToBitmask(usersCrudFlags),
-          canChangePasswords,
-          canAssignPermissions,
           eventVisibility,
         };
         const res = await managementWebAdmins.createAdmin(apiBaseUrl, body);
@@ -125,8 +115,6 @@ export function AdminForm({ mode, adminId, initialValues, isSuperAdmin }: AdminF
         if (isSuperAdmin) {
           body.adminsCrud = flagsToBitmask(adminsCrudFlags);
           body.usersCrud = flagsToBitmask(usersCrudFlags);
-          body.canChangePasswords = canChangePasswords;
-          body.canAssignPermissions = canAssignPermissions;
           body.eventVisibility = eventVisibility;
         }
         const res = await managementWebAdmins.updateAdmin(apiBaseUrl, adminId, body);
@@ -147,84 +135,75 @@ export function AdminForm({ mode, adminId, initialValues, isSuperAdmin }: AdminF
       onSubmit={(e) => {
         void handleSubmit(e);
       }}
-      className="stack"
     >
-      <Input
-        label={t('displayName')}
-        value={displayName}
-        onChange={setDisplayName}
-        required
-        autoComplete="off"
-      />
-      <Input
-        label={t('email')}
-        type="email"
-        value={email}
-        onChange={setEmail}
-        required
-        autoComplete="off"
-      />
-      <Input
-        label={mode === 'create' ? t('password') : t('passwordEditHint')}
-        type="password"
-        value={password}
-        onChange={setPassword}
-        required={mode === 'create'}
-        autoComplete="new-password"
-      />
+      <Stack>
+        <Input
+          label={t('displayName')}
+          value={displayName}
+          onChange={setDisplayName}
+          required
+          autoComplete="off"
+        />
+        <Input
+          label={t('email')}
+          type="email"
+          value={email}
+          onChange={setEmail}
+          required
+          autoComplete="off"
+        />
+        <Input
+          label={mode === 'create' ? t('password') : t('passwordEditHint')}
+          type="password"
+          value={password}
+          onChange={setPassword}
+          required={mode === 'create'}
+          autoComplete="new-password"
+        />
 
-      {isSuperAdmin && (
-        <FormSection title={t('permissions')}>
-          <CrudCheckboxes
-            label={t('adminsCrud')}
-            labels={crudLabels}
-            flags={adminsCrudFlags}
-            onChange={setAdminsCrudFlags}
-          />
-          <CrudCheckboxes
-            label={t('usersCrud')}
-            labels={crudLabels}
-            flags={usersCrudFlags}
-            onChange={setUsersCrudFlags}
-          />
-          <CheckboxField
-            label={t('canChangePasswords')}
-            checked={canChangePasswords}
-            onChange={setCanChangePasswords}
-          />
-          <CheckboxField
-            label={t('canAssignPermissions')}
-            checked={canAssignPermissions}
-            onChange={setCanAssignPermissions}
-          />
-          <Select
-            label={t('eventVisibility')}
-            value={eventVisibility}
-            onChange={(v) => setEventVisibility(v as EventVisibility)}
-            options={eventVisibilityOptions}
-          />
-        </FormSection>
-      )}
+        {isSuperAdmin && (
+          <FormSection title={t('permissions')}>
+            <CrudCheckboxes
+              label={t('adminsCrud')}
+              labels={crudLabels}
+              flags={adminsCrudFlags}
+              onChange={setAdminsCrudFlags}
+            />
+            <CrudCheckboxes
+              label={t('usersCrud')}
+              labels={crudLabels}
+              flags={usersCrudFlags}
+              onChange={setUsersCrudFlags}
+            />
+            <Select
+              label={t('eventVisibility')}
+              value={eventVisibility}
+              onChange={(v) => setEventVisibility(v as EventVisibility)}
+              options={eventVisibilityOptions}
+            />
+          </FormSection>
+        )}
 
-      {submitError !== null && (
-        <Text variant="error" role="alert">
-          {submitError}
-        </Text>
-      )}
+        {submitError !== null && (
+          <Text variant="error" role="alert">
+            {submitError}
+          </Text>
+        )}
 
-      <FormActions>
-        <Button type="submit" variant="primary" loading={loading}>
-          {mode === 'create' ? t('createAdmin') : t('saveChanges')}
-        </Button>
-        <Button
-          type="button"
-          variant="secondary"
-          onClick={() => router.push(ROUTES.ADMINS)}
-          disabled={loading}
-        >
-          {t('cancel')}
-        </Button>
-      </FormActions>
+        <FormActions>
+          <Button type="submit" variant="primary" loading={loading}>
+            {mode === 'create' ? t('createAdmin') : t('saveChanges')}
+          </Button>
+          <Button
+            type="button"
+            variant="secondary"
+            onClick={() => router.push(ROUTES.ADMINS)}
+            disabled={loading}
+          >
+            {t('cancel')}
+          </Button>
+        </FormActions>
+      </Stack>
     </form>
   );
 }

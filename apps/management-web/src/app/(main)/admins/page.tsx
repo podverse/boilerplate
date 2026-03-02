@@ -1,4 +1,3 @@
-import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { cookies } from 'next/headers';
 import { getTranslations } from 'next-intl/server';
@@ -9,9 +8,8 @@ import { Card, Container, Stack, Text } from '@boilerplate/ui';
 import { AdminsTableWithFilter } from '../../../components/AdminsTableWithFilter';
 import { getServerUser } from '../../../lib/server-auth';
 import { getManagementApiBaseUrl } from '../../../config/env';
-import { adminEditRoute, ROUTES } from '../../../lib/routes';
+import { ROUTES } from '../../../lib/routes';
 import type { ManagementUser } from '../../../types/management-api';
-import styles from './admins.module.scss';
 
 type AdminsResponse = {
   admins: ManagementUser[];
@@ -130,13 +128,6 @@ export default async function AdminsPage({ searchParams }: PageProps) {
     <Container>
       <Stack>
         <Card title={tCommon('admins')}>
-          {isSuperAdmin && (
-            <div className={styles.addAdminActions}>
-              <Link href={ROUTES.ADMINS_NEW} className={styles.addAdminLink}>
-                {tCommon('addAdmin')}
-              </Link>
-            </div>
-          )}
           {error !== null && (
             <Text variant="error" role="alert">
               {error}
@@ -159,7 +150,7 @@ export default async function AdminsPage({ searchParams }: PageProps) {
                 maxGoToPage={500}
                 isSuperAdmin={isSuperAdmin}
                 adminApiBaseUrl={apiBaseUrl}
-                adminEditRoute={adminEditRoute}
+                addAdminHref={isSuperAdmin ? ROUTES.ADMINS_NEW : undefined}
               />
             </Stack>
           )}

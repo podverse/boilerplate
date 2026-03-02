@@ -74,8 +74,8 @@ $dialog-min-width: 20rem;
 $dropdown-panel-min-width: 10rem;
 $dropdown-panel-min-width-lg: 14rem;
 
-// Select
-$select-max-width: 20rem;
+// Input (text, email, password, etc.)
+$input-max-width: 28rem;
 
 // TableWithFilter (filter row wrap breakpoint)
 $table-filter-bar-flex-basis: 12rem;
@@ -90,6 +90,11 @@ $shadow-modal: 0 4px 12px rgb(0 0 0 / 0.15);
 $loading-spinner-border-width: 2px;
 
 // Breakpoints (plan 17 responsive layout)
+// Min-width thresholds: use for "at-least-X" (mobile-first) rules.
 $breakpoint-sm: 768px;
 $breakpoint-md: 1024px;
 $breakpoint-lg: 1280px;
+// Max-width thresholds: use for "below-X" rules instead of computing inline.
+$breakpoint-sm-max-width: 767px;
+$breakpoint-md-max-width: 1023px;
+$breakpoint-lg-max-width: 1279px;

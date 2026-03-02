@@ -1,0 +1,35 @@
+@use '../../../styles/variables' as *;
+
+.container {
+  border: $border-width solid var(--color-border);
+  border-radius: $radius-sm;
+  padding: $space-3;
+  width: 100%;
+  max-width: $input-max-width;
+
+  @media (max-width: $breakpoint-sm-max-width) {
+    max-width: none;
+  }
+}
+
+.headerLabel {
+  display: flex;
+  align-items: center;
+  gap: $space-2;
+  cursor: pointer;
+  font-weight: $font-weight-medium;
+  margin-bottom: $space-3;
+}
+
+.checkboxGroup {
+  display: flex;
+  gap: $space-4;
+  flex-wrap: wrap;
+}
+
+.checkboxLabel {
+  display: flex;
+  align-items: center;
+  gap: $space-2;
+  cursor: pointer;
+}

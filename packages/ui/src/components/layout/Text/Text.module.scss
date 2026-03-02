@@ -1,0 +1,15 @@
+@use '../../../styles/variables' as *;
+
+.muted {
+  font-size: $font-size-sm;
+  color: var(--color-text-muted);
+}
+
+.error {
+  font-size: $font-size-sm;
+  color: var(--color-error);
+}
+
+.sm {
+  font-size: $font-size-sm;
+}

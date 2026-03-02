@@ -1,0 +1,67 @@
+@use '../../../styles/variables' as *;
+@use '../../../styles/mixins' as *;
+
+.header {
+  flex-shrink: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: $space-4;
+  padding: $space-4;
+
+  @include at-least-sm {
+    padding-left: $space-6;
+    padding-right: $space-6;
+  }
+
+  & > * {
+    min-width: 0;
+  }
+}
+
+.titleLinkWrapper {
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: none;
+  }
+
+  .header &:hover {
+    text-decoration: none;
+  }
+}
+
+.titleLink {
+  text-decoration: none;
+  color: inherit;
+}
+
+.title {
+  margin: 0;
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+}
+
+.actions {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: $space-4;
+  min-width: 0;
+}
+
+.userLabel {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  display: none;
+
+  @include at-least-sm {
+    display: inline-block;
+  }
+}
+
+.loginLink {
+  font-size: $font-size-sm;
+}

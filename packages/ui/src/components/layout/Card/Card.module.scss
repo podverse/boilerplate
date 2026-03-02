@@ -1,0 +1,24 @@
+@use '../../../styles/variables' as *;
+
+.root {
+  min-width: 0; // allow shrinking inside flex so content doesn't overflow
+  padding: $space-4 $space-4;
+  background-color: var(--color-bg);
+  border-radius: $radius-md;
+}
+
+.title {
+  margin: 0 0 $space-4;
+  font-size: $font-size-lead;
+  font-weight: $font-weight-semibold;
+  color: var(--color-text);
+}
+
+// Reset first/last paragraph margins inside card content
+.root > p:first-of-type {
+  margin-top: 0;
+}
+
+.root > p:last-of-type {
+  margin-bottom: 0;
+}

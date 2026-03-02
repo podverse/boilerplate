@@ -19,6 +19,19 @@ textarea {
   appearance: none;
 }
 
+// Restore native checkbox appearance so it remains visible and interactive after the
+// appearance: none reset above. accent-color applies the theme's primary color to the
+// checked indicator without losing the native OS rendering.
+input[type='checkbox'] {
+  -webkit-appearance: auto;
+  appearance: auto;
+  width: 1rem;
+  height: 1rem;
+  cursor: pointer;
+  flex-shrink: 0;
+  accent-color: var(--color-primary);
+}
+
 // Restore number input spinners if desired; remove to keep fully custom
 input[type='number']::-webkit-inner-spin-button,
 input[type='number']::-webkit-outer-spin-button {

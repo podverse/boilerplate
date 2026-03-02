@@ -17,8 +17,6 @@ export interface PublicManagementUser {
   permissions?: {
     adminsCrud: number;
     usersCrud: number;
-    canChangePasswords: boolean;
-    canAssignPermissions: boolean;
     eventVisibility: EventVisibility;
   } | null;
 }
@@ -37,8 +35,6 @@ export function managementUserToJson(user: ManagementUser): PublicManagementUser
         ? {
             adminsCrud: perm.adminsCrud,
             usersCrud: perm.usersCrud,
-            canChangePasswords: perm.canChangePasswords,
-            canAssignPermissions: perm.canAssignPermissions,
             eventVisibility: perm.eventVisibility,
           }
         : null,

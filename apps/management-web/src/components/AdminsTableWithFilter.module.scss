@@ -1,7 +1,28 @@
 @use '@boilerplate/ui/styles/variables' as *;
 
 .filterRow {
+  margin-bottom: $space-3;
+}
+
+.addAdminRow {
   margin-bottom: $space-4;
+}
+
+.addAdminLink {
+  display: inline-flex;
+  align-items: center;
+  padding: $space-2 $space-4;
+  background-color: var(--color-primary);
+  color: $color-on-primary;
+  border-radius: $radius-sm;
+  text-decoration: none;
+  font-size: $font-size-base;
+  line-height: $line-height-base;
+  transition: background-color $transition-fast;
+
+  &:hover {
+    background-color: var(--color-primary-hover);
+  }
 }
 
 .emptyMessage {

@@ -1,0 +1,18 @@
+@use '../../../styles/variables' as *;
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: $space-5;
+  width: 100%;
+  max-width: $input-max-width;
+
+  @media (max-width: $breakpoint-sm-max-width) {
+    max-width: none;
+  }
+}
+
+.title {
+  font-weight: $font-weight-medium;
+  margin: 0;
+}

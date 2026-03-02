@@ -165,3 +165,63 @@ anticipate that there will be many pages that these permissions need to be set f
 
 #### Files Deleted
 - `apps/management-web/src/components/admins/AdminForm.module.scss`
+
+---
+
+### Session 6 - 2026-03-01
+
+#### Prompt (Developer)
+the permissions component needs the same max width rules as inputs. also, when i click the crud buttons, nothing happens. seems to be missing something.
+
+#### Key Decisions
+- Root cause of invisible checkboxes: `_reset.scss` applies `appearance: none` to all `input` elements (including `type="checkbox"`), stripping the native visual entirely. Fix: add a targeted exception in the reset for `input[type='checkbox']` restoring `appearance: auto`, `width`/`height: 1rem`, and `accent-color: var(--color-primary)` for theme-aware checked color.
+- Max-width applied to both `FormSection.module.scss` (.section) and `CrudCheckboxes.module.scss` (.fieldset) using `$input-max-width` with the same `$breakpoint-sm` responsive rule as the Input component.
+
+#### Files Modified
+- `packages/ui/src/styles/_reset.scss` — restore native checkbox appearance
+- `packages/ui/src/components/form/CrudCheckboxes/CrudCheckboxes.module.scss` — max-width + breakpoint
+- `packages/ui/src/components/form/FormSection/FormSection.module.scss` — max-width + breakpoint
+
+---
+
+### Session 7 - 2026-03-01
+
+#### Prompt (Developer)
+Instead of using the pattern where the border meets the middle of the header text for the permissions Put that header label inside the border and put a checkbox next to the label so that if you press it it checks all or unchecks all below it And if there are partial selections, then the checkbox should indicate a partial selected state rather than a Full check or uncheck
+
+#### Key Decisions
+- Replaced `<fieldset>` + `<legend>` with a `<div>` so the label renders fully inside the border (no fieldset notch effect)
+- Select-all checkbox added to header row; uses `useRef` + `useEffect` to set `indeterminate` imperatively (not a React-controlled attribute)
+- Indeterminate = some but not all bits checked; allChecked = all 4 bits true; clicking indeterminate/unchecked selects all, clicking checked deselects all
+- CSS module updated: renamed `.fieldset` → `.container`, removed `.legend`, added `.headerLabel` with `margin-bottom` to separate header from checkboxes
+
+#### Files Modified
+- `packages/ui/src/components/form/CrudCheckboxes/CrudCheckboxes.tsx`
+- `packages/ui/src/components/form/CrudCheckboxes/CrudCheckboxes.module.scss`
+
+---
+
+### Session 8 - 2026-03-01
+
+#### Prompt (Developer)
+Can change passwords and can assign permissions do not need to be their own permissions. They can be implied within the create or update permissions
+
+#### Key Decisions
+- `canChangePasswords` and `canAssignPermissions` removed entirely from the data model; these capabilities are implied by CRUD bits on the relevant resource (e.g. update on users → can change passwords; update on admins → can assign permissions)
+- Removed from DB schema (0002 migration + combined SQL), ORM entity, ORM service types and usage, API controller, Joi schemas, serializer, helpers-requests types, AdminForm UI, i18n keys, and OpenAPI spec
+- The openapi.ts description updated to reflect the simplified permissions model
+
+#### Files Modified
+- `infra/management-database/migrations/0002_admin_permissions.sql`
+- `infra/management-database/combined/init_management_database.sql`
+- `packages/management-orm/src/entities/AdminPermissions.ts`
+- `packages/management-orm/src/services/ManagementUserService.ts`
+- `apps/management-api/src/controllers/adminsController.ts`
+- `apps/management-api/src/schemas/admins.ts`
+- `apps/management-api/src/lib/managementUserToJson.ts`
+- `packages/helpers-requests/src/types/management-admin-types.ts`
+- `apps/management-web/src/components/admins/AdminForm.tsx`
+- `apps/management-web/i18n/originals/en-US.json`
+- `apps/management-web/i18n/originals/es.json`
+- `apps/management-web/i18n/overrides/es.json`
+- `apps/management-api/src/openapi.ts`

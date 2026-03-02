@@ -74,8 +74,6 @@ export async function createAdmin(req: Request, res: Response): Promise<void> {
     createdBy: actor.id,
     adminsCrud: body.adminsCrud,
     usersCrud: body.usersCrud,
-    canChangePasswords: body.canChangePasswords,
-    canAssignPermissions: body.canAssignPermissions,
     eventVisibility: body.eventVisibility,
   });
   await recordEvent({
@@ -112,8 +110,6 @@ export async function updateAdmin(req: Request, res: Response): Promise<void> {
   const permissionKeys = [
     'adminsCrud',
     'usersCrud',
-    'canChangePasswords',
-    'canAssignPermissions',
     'eventVisibility',
   ] as const;
   const hasPermissionUpdate = permissionKeys.some((k) => body[k] !== undefined);
@@ -127,9 +123,6 @@ export async function updateAdmin(req: Request, res: Response): Promise<void> {
   if (body.password !== undefined) updates.passwordHash = await hashPassword(body.password);
   if (body.adminsCrud !== undefined) updates.adminsCrud = body.adminsCrud;
   if (body.usersCrud !== undefined) updates.usersCrud = body.usersCrud;
-  if (body.canChangePasswords !== undefined) updates.canChangePasswords = body.canChangePasswords;
-  if (body.canAssignPermissions !== undefined)
-    updates.canAssignPermissions = body.canAssignPermissions;
   if (body.eventVisibility !== undefined) updates.eventVisibility = body.eventVisibility;
 
   if (Object.keys(updates).length === 0) {
