@@ -12,3 +12,4 @@ out
 *.md
 TODOS
 .llm
+scripts/git-hooks
