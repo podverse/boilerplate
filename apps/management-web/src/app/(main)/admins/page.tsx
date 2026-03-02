@@ -8,6 +8,7 @@ import { Card, Container, Stack, Text } from '@boilerplate/ui';
 import { AdminsTableWithFilter } from '../../../components/AdminsTableWithFilter';
 import { getServerUser } from '../../../lib/server-auth';
 import { getManagementApiBaseUrl } from '../../../config/env';
+import { hasReadPermission } from '../../../lib/main-nav';
 import { ROUTES } from '../../../lib/routes';
 import type { ManagementUser } from '../../../types/management-api';
 
@@ -78,6 +79,12 @@ export default async function AdminsPage({ searchParams }: PageProps) {
 
   if (user === null) {
     redirect(ROUTES.LOGIN);
+  }
+
+  const canReadAdmins =
+    user.isSuperAdmin === true || hasReadPermission(user.permissions, 'adminsCrud');
+  if (!canReadAdmins) {
+    redirect(ROUTES.DASHBOARD);
   }
 
   const resolved = searchParams !== undefined ? await searchParams : {};
