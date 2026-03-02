@@ -33,7 +33,10 @@ export type ResourceTableWithFilterProps = {
   basePath: string;
   currentQueryParams: Record<string, string>;
   editRoute: (id: string) => string;
-  onDelete: (baseUrl: string, id: string) => Promise<{
+  onDelete: (
+    baseUrl: string,
+    id: string
+  ) => Promise<{
     ok: boolean;
     error?: { message?: string };
   }>;
@@ -172,9 +175,7 @@ export function ResourceTableWithFilter({
               {columns.map((col) => (
                 <Table.HeaderCell key={col.id}>{col.label}</Table.HeaderCell>
               ))}
-              {showActions && (
-                <Table.HeaderCell>{tCommon(actionsLabelKey)}</Table.HeaderCell>
-              )}
+              {showActions && <Table.HeaderCell>{tCommon(actionsLabelKey)}</Table.HeaderCell>}
             </Table.Row>
           </Table.Head>
           <Table.Body>
@@ -212,22 +213,18 @@ export function ResourceTableWithFilter({
           </Table.Body>
         </Table>
       </Table.ScrollContainer>
-      {pagination !== undefined &&
-        paginationLabels !== undefined &&
-        pagination.totalPages > 1 && (
-          <Pagination
-            currentPage={pagination.currentPage}
-            totalPages={pagination.totalPages}
-            basePath={basePath}
-            limit={pagination.limit}
-            defaultLimit={pagination.defaultLimit}
-            queryParams={
-              Object.keys(currentQueryParams).length > 0 ? currentQueryParams : undefined
-            }
-            maxGoToPage={pagination.maxGoToPage}
-            labels={paginationLabels}
-          />
-        )}
+      {pagination !== undefined && paginationLabels !== undefined && pagination.totalPages > 1 && (
+        <Pagination
+          currentPage={pagination.currentPage}
+          totalPages={pagination.totalPages}
+          basePath={basePath}
+          limit={pagination.limit}
+          defaultLimit={pagination.defaultLimit}
+          queryParams={Object.keys(currentQueryParams).length > 0 ? currentQueryParams : undefined}
+          maxGoToPage={pagination.maxGoToPage}
+          labels={paginationLabels}
+        />
+      )}
       <ConfirmDeleteModal
         open={deleteTarget !== null}
         displayName={deleteTarget?.displayName ?? ''}

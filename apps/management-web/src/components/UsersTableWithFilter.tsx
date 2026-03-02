@@ -4,10 +4,7 @@ import { managementWebUsers } from '@boilerplate/helpers-requests';
 import type { TableFilterBarColumn } from '@boilerplate/ui';
 
 import { userEditRoute } from '../lib/routes';
-import {
-  ResourceTableWithFilter,
-  type FilterableTableRow,
-} from './ResourceTableWithFilter';
+import { ResourceTableWithFilter, type FilterableTableRow } from './ResourceTableWithFilter';
 
 export type { FilterableTableRow };
 
@@ -58,9 +55,7 @@ export function UsersTableWithFilter({
       canDelete={canDeleteUser}
       apiBaseUrl={userApiBaseUrl}
       confirmDeleteTranslationKeyPrefix="common.confirmDeleteUser"
-      getDisplayName={(row) =>
-        row.cells['displayName'] ?? row.cells['email'] ?? ''
-      }
+      getDisplayName={(row) => row.cells['displayName'] ?? row.cells['email'] ?? ''}
     />
   );
 }

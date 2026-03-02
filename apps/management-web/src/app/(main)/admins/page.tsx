@@ -115,36 +115,34 @@ export default async function AdminsPage({ searchParams }: PageProps) {
 
   const currentQueryParams: Record<string, string> = {};
   if (page > 1) currentQueryParams.page = String(page);
-  if ((resolved.filterColumns ?? '').trim() !== '') currentQueryParams.filterColumns = resolved.filterColumns ?? '';
+  if ((resolved.filterColumns ?? '').trim() !== '')
+    currentQueryParams.filterColumns = resolved.filterColumns ?? '';
   if (search !== '') currentQueryParams.search = search;
 
   return (
-    <ResourcePageCard
-      title={tCommon('admins')}
-      error={error ?? undefined}
-    >
+    <ResourcePageCard title={tCommon('admins')} error={error ?? undefined}>
       {error === null && (
         <Stack>
           <AdminsTableWithFilter
-                tableRows={tableRows}
-                emptyMessage={admins.length === 0 ? tCommon('noAdmins') : undefined}
-                columns={adminColumns}
-                initialFilterColumns={effectiveFilterColumns}
-                initialSearch={search}
-                basePath={ROUTES.ADMINS}
-                currentQueryParams={currentQueryParams}
-                currentPage={currentPage}
-                totalPages={totalPages}
-                limit={limit}
-                defaultLimit={DEFAULT_PAGE_LIMIT}
-                maxGoToPage={500}
-                canUpdateAdmin={crud.update}
-                canDeleteAdmin={crud.delete}
-                adminApiBaseUrl={apiBaseUrl}
-                currentUserId={user.id}
-                addAdminHref={crud.create ? ROUTES.ADMINS_NEW : undefined}
-              />
-            </Stack>
+            tableRows={tableRows}
+            emptyMessage={admins.length === 0 ? tCommon('noAdmins') : undefined}
+            columns={adminColumns}
+            initialFilterColumns={effectiveFilterColumns}
+            initialSearch={search}
+            basePath={ROUTES.ADMINS}
+            currentQueryParams={currentQueryParams}
+            currentPage={currentPage}
+            totalPages={totalPages}
+            limit={limit}
+            defaultLimit={DEFAULT_PAGE_LIMIT}
+            maxGoToPage={500}
+            canUpdateAdmin={crud.update}
+            canDeleteAdmin={crud.delete}
+            adminApiBaseUrl={apiBaseUrl}
+            currentUserId={user.id}
+            addAdminHref={crud.create ? ROUTES.ADMINS_NEW : undefined}
+          />
+        </Stack>
       )}
     </ResourcePageCard>
   );

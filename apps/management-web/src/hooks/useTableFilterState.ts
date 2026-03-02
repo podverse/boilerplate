@@ -75,7 +75,15 @@ export function useTableFilterState({
     return () => {
       if (debounceRef.current !== null) clearTimeout(debounceRef.current);
     };
-  }, [filter, initialSearch, basePath, queryParamsKey, router, currentQueryParams, searchSyncParams]);
+  }, [
+    filter,
+    initialSearch,
+    basePath,
+    queryParamsKey,
+    router,
+    currentQueryParams,
+    searchSyncParams,
+  ]);
 
   const handleFilterColumnsChange = useCallback(
     (ids: string[]) => {

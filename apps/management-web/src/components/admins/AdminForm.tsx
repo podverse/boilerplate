@@ -70,8 +70,10 @@ function isValidEmail(value: string): boolean {
 
 /** Total number of bits set across two CRUD bitmasks. */
 function totalBits(a: CrudFlags, b: CrudFlags): number {
-  return (Object.values(a) as boolean[]).filter(Boolean).length +
-    (Object.values(b) as boolean[]).filter(Boolean).length;
+  return (
+    (Object.values(a) as boolean[]).filter(Boolean).length +
+    (Object.values(b) as boolean[]).filter(Boolean).length
+  );
 }
 
 export function AdminForm({
@@ -110,9 +112,7 @@ export function AdminForm({
   const [adminsCrudFlags, setAdminsCrudFlags] = useState<CrudFlags>(
     bitmaskToFlags(defaultAdminsCrud)
   );
-  const [usersCrudFlags, setUsersCrudFlags] = useState<CrudFlags>(
-    bitmaskToFlags(defaultUsersCrud)
-  );
+  const [usersCrudFlags, setUsersCrudFlags] = useState<CrudFlags>(bitmaskToFlags(defaultUsersCrud));
   const [eventVisibility, setEventVisibility] = useState<EventVisibility>(
     defaultPerms?.eventVisibility ?? 'all_admins'
   );
@@ -131,14 +131,13 @@ export function AdminForm({
   const displayNameError =
     displayNameTouched && displayName.trim() === '' ? t('displayNameRequired') : null;
 
-  const emailError =
-    emailTouched
-      ? email.trim() === ''
-        ? t('emailRequired')
-        : !isValidEmail(email.trim())
-          ? t('emailInvalid')
-          : null
-      : null;
+  const emailError = emailTouched
+    ? email.trim() === ''
+      ? t('emailRequired')
+      : !isValidEmail(email.trim())
+        ? t('emailInvalid')
+        : null
+    : null;
 
   const passwordValidation =
     mode === 'create' || password !== ''
@@ -150,7 +149,11 @@ export function AdminForm({
         })
       : { valid: true as const };
 
-  const passwordError = passwordTouched ? (passwordValidation.valid ? null : passwordValidation.message) : null;
+  const passwordError = passwordTouched
+    ? passwordValidation.valid
+      ? null
+      : passwordValidation.message
+    : null;
 
   const permissionsError =
     isSuperAdmin && permissionsTouched && totalBits(adminsCrudFlags, usersCrudFlags) === 0
@@ -217,8 +220,7 @@ export function AdminForm({
         if (password !== '') {
           body.password = password;
         }
-        const maySetPermissions =
-          canEditPermissions && (mode !== 'edit' || !targetIsSuperAdmin);
+        const maySetPermissions = canEditPermissions && (mode !== 'edit' || !targetIsSuperAdmin);
         if (maySetPermissions) {
           body.adminsCrud = flagsToBitmask(adminsCrudFlags);
           body.usersCrud = flagsToBitmask(usersCrudFlags);
@@ -270,9 +272,7 @@ export function AdminForm({
           error={passwordError}
           autoComplete="new-password"
         />
-        {(mode === 'create' || password !== '') && (
-          <PasswordStrengthMeter password={password} />
-        )}
+        {(mode === 'create' || password !== '') && <PasswordStrengthMeter password={password} />}
 
         {canEditPermissions && (mode === 'create' || !targetIsSuperAdmin) && (
           <FormSection title={t('permissions')}>

@@ -89,7 +89,8 @@ export default async function UsersPage({ searchParams }: PageProps) {
   ];
 
   const currentQueryParams: Record<string, string> = {};
-  if ((resolved.filterColumns ?? '').trim() !== '') currentQueryParams.filterColumns = resolved.filterColumns ?? '';
+  if ((resolved.filterColumns ?? '').trim() !== '')
+    currentQueryParams.filterColumns = resolved.filterColumns ?? '';
   if (search !== '') currentQueryParams.search = search;
 
   return (
@@ -100,19 +101,19 @@ export default async function UsersPage({ searchParams }: PageProps) {
       {error === null && (
         <Stack>
           <UsersTableWithFilter
-                tableRows={tableRows}
-                emptyMessage={users.length === 0 ? tCommon('noUsers') : undefined}
-                columns={userColumns}
-                initialFilterColumns={effectiveFilterColumns}
-                initialSearch={search}
-                basePath={ROUTES.USERS}
-                currentQueryParams={currentQueryParams}
-                canUpdateUser={crud.update}
-                canDeleteUser={crud.delete}
-                userApiBaseUrl={apiBaseUrl}
-                addUserHref={crud.create ? ROUTES.USERS_NEW : undefined}
-              />
-            </Stack>
+            tableRows={tableRows}
+            emptyMessage={users.length === 0 ? tCommon('noUsers') : undefined}
+            columns={userColumns}
+            initialFilterColumns={effectiveFilterColumns}
+            initialSearch={search}
+            basePath={ROUTES.USERS}
+            currentQueryParams={currentQueryParams}
+            canUpdateUser={crud.update}
+            canDeleteUser={crud.delete}
+            userApiBaseUrl={apiBaseUrl}
+            addUserHref={crud.create ? ROUTES.USERS_NEW : undefined}
+          />
+        </Stack>
       )}
     </ResourcePageCard>
   );

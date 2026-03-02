@@ -17,11 +17,7 @@ export function FormContainer({
   constrainWidth = true,
   className,
 }: FormContainerProps) {
-  const cls = [
-    styles.form,
-    !constrainWidth && styles.unconstrained,
-    className,
-  ]
+  const cls = [styles.form, !constrainWidth && styles.unconstrained, className]
     .filter(Boolean)
     .join(' ');
 

@@ -62,7 +62,9 @@ export function PasswordStrengthMeter({ password }: PasswordStrengthMeterProps) 
           })}
         </div>
         {meta !== null && (
-          <span className={[styles.label, meta.colorClass].filter(Boolean).join(' ')}>{t(meta.labelKey)}</span>
+          <span className={[styles.label, meta.colorClass].filter(Boolean).join(' ')}>
+            {t(meta.labelKey)}
+          </span>
         )}
       </div>
     </div>

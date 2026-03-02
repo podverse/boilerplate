@@ -1,8 +1,4 @@
-export {
-  appDataSource,
-  appDataSourceRead,
-  appDataSourceReadWrite,
-} from './data-source.js';
+export { appDataSource, appDataSourceRead, appDataSourceReadWrite } from './data-source.js';
 export { User } from './entities/User.js';
 export { UserCredentials } from './entities/UserCredentials.js';
 export { UserBio } from './entities/UserBio.js';

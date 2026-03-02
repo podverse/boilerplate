@@ -7,11 +7,7 @@ export type ResourcePageCardProps = {
   children: React.ReactNode;
 };
 
-export function ResourcePageCard({
-  title,
-  error,
-  children,
-}: ResourcePageCardProps) {
+export function ResourcePageCard({ title, error, children }: ResourcePageCardProps) {
   return (
     <Container>
       <Stack>

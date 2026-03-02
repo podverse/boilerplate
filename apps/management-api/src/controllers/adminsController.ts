@@ -107,17 +107,14 @@ export async function updateAdmin(req: Request, res: Response): Promise<void> {
       return;
     }
   }
-  const permissionKeys = [
-    'adminsCrud',
-    'usersCrud',
-    'eventVisibility',
-  ] as const;
+  const permissionKeys = ['adminsCrud', 'usersCrud', 'eventVisibility'] as const;
   const hasPermissionUpdate = permissionKeys.some((k) => body[k] !== undefined);
   const actorAdminsCrud = actor.permissions?.adminsCrud ?? 0;
-  const canChangePermissions =
-    actor.isSuperAdmin || (actorAdminsCrud & 5) !== 0; // create=1 | update=4
+  const canChangePermissions = actor.isSuperAdmin || (actorAdminsCrud & 5) !== 0; // create=1 | update=4
   if (hasPermissionUpdate && !canChangePermissions) {
-    res.status(403).json({ message: 'Create or update permission required to change admin permissions' });
+    res
+      .status(403)
+      .json({ message: 'Create or update permission required to change admin permissions' });
     return;
   }
   const updates: Parameters<typeof ManagementUserService.updateAdmin>[1] = {};

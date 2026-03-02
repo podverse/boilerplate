@@ -62,9 +62,7 @@ export default async function EditAdminPage({ params }: EditAdminPageProps) {
   const tCommon = await getTranslations('common');
 
   return (
-    <ResourcePageCard
-      title={tCommon('editAdminTitle', { name: admin.displayName ?? admin.email })}
-    >
+    <ResourcePageCard title={tCommon('editAdminTitle', { name: admin.displayName ?? admin.email })}>
       <AdminForm
         mode="edit"
         adminId={id}

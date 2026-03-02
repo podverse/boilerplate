@@ -37,12 +37,7 @@ export function ConfirmDeleteModal({
           {t('message', { name: displayName !== '' ? displayName : t('fallbackName') })}
         </p>
         <div className={styles.actions}>
-          <Button
-            type="button"
-            variant="secondary"
-            onClick={onCancel}
-            disabled={confirmLoading}
-          >
+          <Button type="button" variant="secondary" onClick={onCancel} disabled={confirmLoading}>
             {t('cancel')}
           </Button>
           <Button
