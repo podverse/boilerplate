@@ -99,7 +99,7 @@ export const openApiDocument = {
           displayName: { type: 'string', maxLength: 50, minLength: 1 },
           adminsCrud: { type: 'integer', minimum: 0, maximum: 15, default: 0 },
           usersCrud: { type: 'integer', minimum: 0, maximum: 15, default: 0 },
-          eventVisibility: { type: 'string', enum: ['own', 'all_admins', 'all'], default: 'own' },
+          eventVisibility: { type: 'string', enum: ['own', 'all_admins', 'all'], default: 'all_admins' },
         },
       },
       UpdateAdminBody: {

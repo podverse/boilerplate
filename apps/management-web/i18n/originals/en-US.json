@@ -111,7 +111,15 @@
       "saveChanges": "Save Changes",
       "cancel": "Cancel",
       "createFailed": "Failed to create admin",
-      "updateFailed": "Failed to update admin"
+      "updateFailed": "Failed to update admin",
+      "displayNameRequired": "Display name is required",
+      "emailRequired": "Email is required",
+      "emailInvalid": "Enter a valid email address",
+      "passwordRequired": "Password is required",
+      "passwordMinLength": "Password must be at least {count} characters",
+      "passwordMaxLength": "Password must be no more than {count} characters",
+      "passwordInsecure": "Password must include a mix of letters, numbers, and symbols",
+      "permissionsRequired": "Admin must have at least one permission"
     },
     "confirmDeleteAdmin": {
       "message": "Are you sure you want to delete {name}? This cannot be undone.",
@@ -216,7 +224,13 @@
       "dracula": "Dracula"
     },
     "passwordStrength": {
-      "hint": "Use at least {minLength} characters and include a mix of letters, numbers, and symbols"
+      "requireLength": "At least {count} characters",
+      "requireMix": "Mix of letters, numbers, and symbols",
+      "tooShort": "Too short",
+      "weak": "Weak",
+      "fair": "Fair",
+      "good": "Good",
+      "strong": "Strong"
     },
     "loadingSpinner": {
       "ariaLabel": "Loading"

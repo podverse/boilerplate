@@ -10,8 +10,6 @@ export type EventVisibility = 'own' | 'all_admins' | 'all';
 export type ManagementUserPermissions = {
   adminsCrud: number;
   usersCrud: number;
-  canChangePasswords: boolean;
-  canAssignPermissions: boolean;
   eventVisibility: EventVisibility;
 };
 

@@ -135,7 +135,13 @@
       "dracula": ""
     },
     "passwordStrength": {
-      "hint": ""
+      "requireLength": "",
+      "requireMix": "",
+      "tooShort": "",
+      "weak": "",
+      "fair": "",
+      "good": "",
+      "strong": ""
     },
     "loadingSpinner": {
       "ariaLabel": ""

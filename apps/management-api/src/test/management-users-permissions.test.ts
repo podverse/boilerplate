@@ -59,7 +59,7 @@ describe('management-api users permissions', () => {
           displayName: `Users Read Admin ${ts}`,
           adminsCrud: 0,
           usersCrud: 2, // read only (CrudMask: create=1, read=2, update=4, delete=8)
-          eventVisibility: 'own',
+          eventVisibility: 'all_admins',
         })
         .expect(201);
       readOnlyAdminId = adminRes.body.admin.id;
@@ -113,7 +113,7 @@ describe('management-api users permissions', () => {
       await readOnlyAgent.delete(`${API}/users/${targetUserId}`).expect(403);
     });
 
-    it('POST /users/:id/change-password returns 403 (no canChangePasswords)', async () => {
+    it('POST /users/:id/change-password returns 403 (no users update permission)', async () => {
       await readOnlyAgent
         .post(`${API}/users/${targetUserId}/change-password`)
         .send({ newPassword: 'new-password-1' })
@@ -142,7 +142,7 @@ describe('management-api users permissions', () => {
           displayName: `Users No Perm Admin ${ts2}`,
           adminsCrud: 0,
           usersCrud: 0,
-          eventVisibility: 'own',
+          eventVisibility: 'all_admins',
         })
         .expect(201);
       noPermAdminId = res.body.admin.id;
@@ -167,7 +167,7 @@ describe('management-api users permissions', () => {
     });
   });
 
-  describe('admin with canChangePasswords permission', () => {
+  describe('admin with users update permission (implies change-password)', () => {
     const ts3 = Date.now() + 2;
     const changePassEmail = `users-changepw-admin-${ts3}@example.com`;
     const changePassPassword = 'changepw-admin-password-1';
@@ -183,9 +183,8 @@ describe('management-api users permissions', () => {
           password: changePassPassword,
           displayName: `Change PW Admin ${ts3}`,
           adminsCrud: 0,
-          usersCrud: 2, // read (so they can look up user; CrudMask read=2)
-          canChangePasswords: true,
-          eventVisibility: 'own',
+          usersCrud: 6, // read=2 + update=4 (update implies change-password)
+          eventVisibility: 'all_admins',
         })
         .expect(201);
       changePassAdminId = adminRes.body.admin.id;
@@ -206,7 +205,7 @@ describe('management-api users permissions', () => {
       targetUserId = userRes.body.user.id;
     });
 
-    it('POST /users/:id/change-password returns 204 (has canChangePasswords)', async () => {
+    it('POST /users/:id/change-password returns 204 (has users update permission)', async () => {
       await changePassAgent
         .post(`${API}/users/${targetUserId}/change-password`)
         .send({ newPassword: 'new-valid-password-1' })

@@ -234,7 +234,7 @@ describe('management-api', () => {
           displayName: 'Test Admin',
           adminsCrud: 0,
           usersCrud: 15,
-          eventVisibility: 'own',
+          eventVisibility: 'all_admins',
         })
         .expect(201);
       expect(res.body.admin).toHaveProperty('id');
@@ -288,7 +288,7 @@ describe('management-api', () => {
           displayName: `Dup Admin ${ts}`,
           adminsCrud: 0,
           usersCrud: 0,
-          eventVisibility: 'own',
+          eventVisibility: 'all_admins',
         })
         .expect(409, { message: 'Email already in use' });
     });
@@ -450,7 +450,7 @@ describe('management-api', () => {
           displayName: 'ActorOriginalName',
           adminsCrud: 0,
           usersCrud: 0,
-          eventVisibility: 'own',
+          eventVisibility: 'all_admins',
         })
         .expect(201);
       actorId = res.body.admin.id;

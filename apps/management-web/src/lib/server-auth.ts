@@ -5,12 +5,14 @@ import { cookies } from 'next/headers';
 import { request } from '@boilerplate/helpers-requests';
 
 import { getManagementApiBaseUrl } from '../config/env';
+import type { ManagementUserPermissions } from '../types/management-api';
 
 export type ServerUser = {
   id: string;
   email: string;
   displayName: string | null;
   isSuperAdmin: boolean;
+  permissions?: ManagementUserPermissions | null;
 };
 
 function getServerApiBaseUrl(): string {
@@ -46,7 +48,13 @@ export async function getServerUser(): Promise<ServerUser | null> {
     }
 
     const data = res.data as {
-      user?: { id: string; email: string; displayName?: string; isSuperAdmin?: boolean };
+      user?: {
+        id: string;
+        email: string;
+        displayName?: string;
+        isSuperAdmin?: boolean;
+        permissions?: ManagementUserPermissions | null;
+      };
     };
     if (data.user === undefined) {
       return null;
@@ -57,6 +65,7 @@ export async function getServerUser(): Promise<ServerUser | null> {
       email: data.user.email,
       displayName: data.user.displayName ?? null,
       isSuperAdmin: data.user.isSuperAdmin === true,
+      permissions: data.user.permissions,
     };
   } catch {
     return null;

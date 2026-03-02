@@ -135,7 +135,13 @@
       "dracula": "Dracula"
     },
     "passwordStrength": {
-      "hint": "Usa al menos {minLength} caracteres e incluye letras, números y símbolos"
+      "requireLength": "Al menos {count} caracteres",
+      "requireMix": "Mezcla de letras, números y símbolos",
+      "tooShort": "Demasiado corta",
+      "weak": "Débil",
+      "fair": "Regular",
+      "good": "Buena",
+      "strong": "Fuerte"
     },
     "loadingSpinner": {
       "ariaLabel": "Cargando"

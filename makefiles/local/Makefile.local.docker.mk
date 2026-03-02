@@ -1,7 +1,7 @@
 # --- Local Docker: network and compose services (infra/docker/local). ---
 
 .PHONY: local_network_create local_infra_up local_all_up local_postgres_wait local_create_super_admin
-.PHONY: local_postgres_up local_valkey_up local_sidecar_up local_api_up local_web_up
+.PHONY: local_postgres_up local_valkey_up local_pgadmin_up local_sidecar_up local_api_up local_web_up
 .PHONY: local_management_api_up local_management_web_up
 .PHONY: local_postgres_down local_valkey_down local_sidecar_down local_api_down local_web_down
 .PHONY: local_management_api_down local_management_web_down
@@ -19,10 +19,11 @@ local_postgres_wait:
 	done; \
 	echo "Error: Timeout waiting for Postgres (and read user). Is Postgres running? Run: make local_infra_up"; exit 1
 
-# Postgres + Valkey + management DB (so API and Management API on host both have DBs).
+# Postgres + Valkey + pgAdmin + management DB (so API and Management API on host both have DBs).
 # Then prompts for super admin email and creates the super admin user (password generated and printed once).
+# pgAdmin is available at http://localhost:4050 — no login required; both databases pre-connected.
 local_infra_up: local_network_create
-	docker compose -f $(COMPOSE_LOCAL) --project-directory . up -d postgres valkey
+	docker compose -f $(COMPOSE_LOCAL) --project-directory . up -d postgres valkey boilerplate_local_pgadmin
 	$(MAKE) local_postgres_wait
 	$(MAKE) local_db_init_management
 	$(MAKE) local_create_super_admin
@@ -42,6 +43,9 @@ local_postgres_up: local_network_create
 
 local_valkey_up: local_network_create
 	docker compose -f $(COMPOSE_LOCAL) --project-directory . up -d valkey
+
+local_pgadmin_up: local_network_create local_postgres_up
+	docker compose -f $(COMPOSE_LOCAL) --project-directory . up -d boilerplate_local_pgadmin
 
 local_sidecar_up: local_network_create
 	docker compose -f $(COMPOSE_LOCAL) --project-directory . up -d boilerplate_local_web_sidecar

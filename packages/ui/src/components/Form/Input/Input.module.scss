@@ -17,7 +17,6 @@
 
 .input {
   width: 100%;
-  max-width: $input-max-width;
   min-width: 0;
   box-sizing: border-box;
   padding: $space-3 $space-3;
@@ -40,10 +39,6 @@
   }
 
   @include disabled-state;
-
-  @media (max-width: $breakpoint-sm-max-width) {
-    max-width: none;
-  }
 }
 
 .inputError {

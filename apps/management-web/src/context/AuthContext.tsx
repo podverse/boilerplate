@@ -30,6 +30,13 @@ export type AuthContextValue = {
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
+/**
+ * How often (ms) to proactively refresh the access token while the user is logged in.
+ * Must be less than JWT_ACCESS_EXPIRY_SECONDS on the management API (default: 15 min = 900s).
+ * 10 minutes gives a comfortable buffer before the 15-minute JWT expires.
+ */
+const SESSION_REFRESH_INTERVAL_MS = 10 * 60 * 1000;
+
 function parseUserFromMe(data: unknown): AuthUser | null {
   if (data === undefined || typeof data !== 'object' || data === null) return null;
   if (!('user' in data) || typeof (data as { user: unknown }).user !== 'object') return null;
@@ -105,12 +112,43 @@ export function AuthProvider({ children, initialUser }: AuthProviderProps) {
     }
   }, []);
 
-  // Only hydrate if no initial user was provided
+  // Hydrate if no initial user was provided, or if SSR could not authenticate
+  // (initialUser === null means the JWT was expired/missing at SSR time — client
+  // should attempt refresh before giving up).
   useEffect(() => {
-    if (initialUser === undefined) {
+    if (initialUser === undefined || initialUser === null) {
       void hydrate();
     }
   }, [hydrate, initialUser]);
+
+  // Proactively refresh the access token before it expires while the user is
+  // logged in. Fires every SESSION_REFRESH_INTERVAL_MS (10 min) as long as
+  // `user` is non-null, restarting the interval whenever the user changes.
+  useEffect(() => {
+    if (user === null) return;
+
+    const interval = setInterval(async () => {
+      const baseUrl = getApiBaseUrl();
+      const refreshRes = await managementWebAuth.refresh(baseUrl);
+      if (refreshRes.ok && refreshRes.data !== undefined) {
+        const u = parseUserFromLoginOrRefresh(refreshRes.data);
+        if (u !== null) {
+          setUser(u);
+          return;
+        }
+      }
+      // Refresh failed — session is no longer valid.
+      setUser(null);
+      try {
+        await managementWebAuth.logout(baseUrl);
+      } catch {
+        // ignore; redirect anyway
+      }
+      window.location.href = ROUTES.LOGIN;
+    }, SESSION_REFRESH_INTERVAL_MS);
+
+    return () => clearInterval(interval);
+  }, [user]);
 
   const login = useCallback(
     async (

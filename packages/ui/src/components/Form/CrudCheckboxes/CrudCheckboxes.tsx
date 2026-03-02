@@ -16,6 +16,13 @@ export type CrudCheckboxesProps = {
   /** Current checked state for each bit. */
   flags: CrudFlags;
   onChange: (flags: CrudFlags) => void;
+  /**
+   * Bits that are forced-on and cannot be toggled by the user.
+   * Forced bits are rendered checked and disabled.
+   */
+  disabledBits?: Partial<Record<CrudBit, boolean>>;
+  /** Optional error message displayed below the checkbox group. */
+  error?: string | null;
 };
 
 const BITS: CrudBit[] = ['create', 'read', 'update', 'delete'];
@@ -26,7 +33,14 @@ const BITS: CrudBit[] = ['create', 'read', 'update', 'delete'];
  * an indeterminate state. Labels are provided by the consumer so this
  * component stays translation-agnostic.
  */
-export function CrudCheckboxes({ label, labels, flags, onChange }: CrudCheckboxesProps) {
+export function CrudCheckboxes({
+  label,
+  labels,
+  flags,
+  onChange,
+  disabledBits,
+  error,
+}: CrudCheckboxesProps) {
   const checkedCount = BITS.filter((bit) => flags[bit]).length;
   const allChecked = checkedCount === BITS.length;
   const isIndeterminate = checkedCount > 0 && checkedCount < BITS.length;
@@ -44,8 +58,10 @@ export function CrudCheckboxes({ label, labels, flags, onChange }: CrudCheckboxe
     onChange(next);
   };
 
+  const hasError = Boolean(error);
+
   return (
-    <div className={styles.container}>
+    <div className={`${styles.container}${hasError ? ` ${styles.containerError}` : ''}`}>
       <label className={styles.headerLabel}>
         {label}
         <input
@@ -56,17 +72,29 @@ export function CrudCheckboxes({ label, labels, flags, onChange }: CrudCheckboxe
         />
       </label>
       <div className={styles.checkboxGroup}>
-        {BITS.map((bit) => (
-          <label key={bit} className={styles.checkboxLabel}>
-            <input
-              type="checkbox"
-              checked={flags[bit]}
-              onChange={(e) => onChange({ ...flags, [bit]: e.target.checked })}
-            />
-            {labels[bit]}
-          </label>
-        ))}
+        {BITS.map((bit) => {
+          const isDisabled = disabledBits?.[bit] === true;
+          return (
+            <label
+              key={bit}
+              className={`${styles.checkboxLabel}${isDisabled ? ` ${styles.checkboxLabelDisabled}` : ''}`}
+            >
+              <input
+                type="checkbox"
+                checked={flags[bit]}
+                disabled={isDisabled}
+                onChange={(e) => onChange({ ...flags, [bit]: e.target.checked })}
+              />
+              {labels[bit]}
+            </label>
+          );
+        })}
       </div>
+      {hasError && (
+        <span className={styles.error} role="alert">
+          {error}
+        </span>
+      )}
     </div>
   );
 }

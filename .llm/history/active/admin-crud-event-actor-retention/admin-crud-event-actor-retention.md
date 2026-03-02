@@ -225,3 +225,183 @@ Can change passwords and can assign permissions do not need to be their own perm
 - `apps/management-web/i18n/originals/es.json`
 - `apps/management-web/i18n/overrides/es.json`
 - `apps/management-api/src/openapi.ts`
+
+### Session 10 - 2026-03-01
+
+#### Prompt (Developer)
+
+On the Add Admin page, if you blur out of the display name without setting it, a error message should appear below it that's says it is required. If you blur out of the email input without setting a valid email address, it should say it's required in an error message. If you blur out of the password and it is not secure enough, it should say it's not secure enough. If you try to add an admin but it has zero permissions then it is useless and an error message should say the admin needs at least one Permission. If you give a field the create permission, then it must have the read permission and the UI should display that read is selected, but also disable it so the user cannot Disable it unless they disable create. If the user selects the update permission, thenread must be selected. And it should be disabled. All permissions should be selected enabled by default. Delete requires the read permission.
+
+#### Key Decisions
+
+- Blur-triggered validation for displayName, email, password; submit also touches all fields
+- `withReadEnforced`: if create/update/delete is on, read is forced true
+- `computeDisabledBits`: returns `{ read: true }` when any write bit is set; passed as `disabledBits` to `CrudCheckboxes`
+- New admins (create mode) default to bitmask 15 (all permissions on) instead of 0
+- `permissionsError` shown on first `CrudCheckboxes` only; fires if super admin and total bits = 0
+- All validation messages added as i18n keys in `common.adminForm`
+- `CrudCheckboxes` extended with `disabledBits` and `error` props; disabled labels get `opacity-disabled`
+
+#### Files Modified
+
+- `packages/ui/src/components/form/CrudCheckboxes/CrudCheckboxes.tsx`
+- `packages/ui/src/components/form/CrudCheckboxes/CrudCheckboxes.module.scss`
+- `apps/management-web/src/components/admins/AdminForm.tsx`
+- `apps/management-web/i18n/originals/en-US.json`
+- `apps/management-web/i18n/originals/es.json`
+- `apps/management-web/i18n/overrides/es.json`
+
+### Session 9 - 2026-03-01
+
+#### Prompt (Developer)
+
+default visibility should be all admins
+
+#### Key Decisions
+
+- Changed `eventVisibility` default from `'own'` to `'all_admins'` everywhere
+
+#### Files Modified
+
+- `packages/management-orm/src/entities/AdminPermissions.ts`
+- `apps/management-api/src/schemas/admins.ts`
+- `apps/management-api/src/openapi.ts`
+- `apps/management-api/src/controllers/eventsController.ts`
+- `apps/management-web/src/components/admins/AdminForm.tsx`
+- `infra/management-database/migrations/0002_admin_permissions.sql`
+- `infra/management-database/combined/init_management_database.sql`
+- `apps/management-api/src/test/management-api.test.ts`
+- `apps/management-api/src/test/management-admins-permissions.test.ts`
+- `apps/management-api/src/test/management-users-permissions.test.ts`
+
+### Session 11 - 2026-03-01
+
+#### Prompt (Developer)
+
+debug [TS error: Property 'canChangePasswords' does not exist on type 'AdminPermissions' in usersController.ts]
+
+#### Key Decisions
+
+- `canChangePasswords` check replaced with `(perm.usersCrud & 4) === 0` (update bit implies change-password)
+- Test updated: removed `canChangePasswords: true`, changed `usersCrud: 2` → `usersCrud: 6` (read+update)
+- Removed `canChangePasswords`/`canAssignPermissions` from `ManagementUserPermissions` local type in management-web
+
+#### Files Modified
+
+- `apps/management-api/src/controllers/usersController.ts`
+- `apps/management-api/src/test/management-users-permissions.test.ts`
+- `apps/management-web/src/types/management-api.ts`
+
+### Session 12 - 2026-03-01
+
+#### Prompt (Developer)
+
+Wherever a set password input appears. The password validation meter should appear below it so the user knows if they have set a password that is strong enough or not
+
+#### Key Decisions
+
+- Only `AdminForm.tsx` in management-web sets a password (login uses existing UI auth forms which already include the meter)
+- Meter shown always in create mode; in edit mode only when password field is non-empty
+- `PasswordStrengthMeter` already exported from `@boilerplate/ui` — just needed importing
+
+#### Files Modified
+
+- `apps/management-web/src/components/admins/AdminForm.tsx`
+
+### Session 13 - 2026-03-01
+
+#### Prompt (Developer)
+
+Instead of setting an input max width on individual components, the form itself should have a Max width
+
+#### Key Decisions
+
+- Removed `max-width: $input-max-width` (and responsive `max-width: none`) from Input, Select, FormSection, CrudCheckboxes — they now fill their container via `width: 100%`
+- Auth forms are already constrained at the page/Card level; no changes needed there
+- `TableFilterBar` left unchanged — it's a table control, not a form field
+- New `AdminForm.module.scss` created with `.form { max-width: $input-max-width }` applied to the `<form>` element
+
+#### Files Modified
+
+- `packages/ui/src/components/form/Input/Input.module.scss`
+- `packages/ui/src/components/form/Select/Select.module.scss`
+- `packages/ui/src/components/form/FormSection/FormSection.module.scss`
+- `packages/ui/src/components/form/CrudCheckboxes/CrudCheckboxes.module.scss`
+- `apps/management-web/src/components/admins/AdminForm.tsx`
+
+#### Files Created
+
+- `apps/management-web/src/components/admins/AdminForm.module.scss`
+
+### Session 14 - 2026-03-01
+
+#### Prompt (Developer)
+
+The max width should not only be on the admin form, but the higher order form component. If there isn't already a higher order form component there should be, also allow disabling Max with using a prop although I don't think there is anywhere that prop needs to be used right now.
+
+#### Key Decisions
+
+- The existing `Form` component (Card + title + Stack) is opinionated auth-form pattern; a new `FormContainer` is the right primitive
+- `FormContainer` renders a plain `<form>` with `max-width: $input-max-width` by default; `constrainWidth={false}` removes the cap
+- `AdminForm.tsx` now uses `FormContainer` instead of bare `<form>` + local module
+- `AdminForm.module.scss` deleted
+
+#### Files Created
+
+- `packages/ui/src/components/form/FormContainer/FormContainer.tsx`
+- `packages/ui/src/components/form/FormContainer/FormContainer.module.scss`
+- `packages/ui/src/components/form/FormContainer/index.ts`
+
+#### Files Modified
+
+- `packages/ui/src/index.ts`
+- `apps/management-web/src/components/admins/AdminForm.tsx`
+
+#### Files Deleted
+
+- `apps/management-web/src/components/admins/AdminForm.module.scss`
+
+### Session 15 - 2026-03-01
+
+#### Prompt (Developer)
+
+The password requirements should be briefly listed above. the password strength meter and the password strength meter should say in text what each level represents like poor or fair Or whatever naming convention is most common for password rating strength
+
+#### Key Decisions
+
+- Requirements list (2 items: min length + character mix) always shown above the bar
+- Strength label appears to the right of the bar: "Too short" / "Weak" / "Fair" / "Good" / "Strong" (per zxcvbn/NIST common convention)
+- Strength 0 + has input shows 1 red segment so the bar is never empty while typing
+- Color variables added to `_variables.scss` (static, not theme-aware — red/orange/amber/green universal)
+- `showHint` prop removed; requirements list replaces the old hint text
+
+#### Files Modified
+
+- `packages/ui/src/styles/_variables.scss`
+- `packages/ui/src/components/form/PasswordStrengthMeter/PasswordStrengthMeter.tsx`
+- `packages/ui/src/components/form/PasswordStrengthMeter/PasswordStrengthMeter.module.scss`
+- `apps/web/i18n/originals/en-US.json`
+- `apps/web/i18n/originals/es.json`
+- `apps/web/i18n/overrides/es.json`
+- `apps/management-web/i18n/originals/en-US.json`
+- `apps/management-web/i18n/originals/es.json`
+- `apps/management-web/i18n/overrides/es.json`
+
+### Session 16 - 2026-03-01
+
+#### Prompt (Developer)
+
+I just created a user admin in the management and logged in with that new admin. And I gave it full CRUD permissions, but I don't see an add admin button and I don't see edit or delete next to admins on the admins screen. And they should
+
+#### Key Decisions
+
+- `showActions = isSuperAdmin` was wrong — it must also respect CRUD bitmask permissions
+- Replaced `isSuperAdmin` prop with `canUpdateAdmin` + `canDeleteAdmin` in `AdminsTableWithFilter`
+- Edit and Delete buttons are now independently gated by their respective permission bits
+- `addAdminHref` is now passed whenever `canCreateAdmin` is true (bit 1 of `adminsCrud`), not just for super admins
+- Bitmask values: create=1, read=2, update=4, delete=8
+
+#### Files Modified
+
+- `apps/management-web/src/app/(main)/admins/page.tsx`
+- `apps/management-web/src/components/AdminsTableWithFilter.tsx`

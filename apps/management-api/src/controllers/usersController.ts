@@ -148,7 +148,7 @@ export async function changeUserPassword(req: Request, res: Response): Promise<v
   }
   if (!actor.isSuperAdmin) {
     const perm = actor.permissions;
-    if (perm === undefined || perm === null || !perm.canChangePasswords) {
+    if (perm === undefined || perm === null || (perm.usersCrud & 4) === 0) {
       res.status(403).json({ message: 'Insufficient permissions to change user password' });
       return;
     }

@@ -21,7 +21,7 @@ export const createAdminSchema = Joi.object({
   displayName: Joi.string().max(SHORT_TEXT_MAX_LENGTH).min(1).required(),
   adminsCrud: crudSchema.default(0),
   usersCrud: crudSchema.default(0),
-  eventVisibility: eventVisibilitySchema.default('own'),
+  eventVisibility: eventVisibilitySchema.default('all_admins'),
 });
 
 export const updateAdminSchema = Joi.object({

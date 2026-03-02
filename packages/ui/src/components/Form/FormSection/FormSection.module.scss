@@ -5,11 +5,6 @@
   flex-direction: column;
   gap: $space-5;
   width: 100%;
-  max-width: $input-max-width;
-
-  @media (max-width: $breakpoint-sm-max-width) {
-    max-width: none;
-  }
 }
 
 .title {

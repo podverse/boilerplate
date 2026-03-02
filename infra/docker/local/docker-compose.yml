@@ -185,3 +185,37 @@ services:
       options:
         max-file: "1"
         max-size: 50m
+
+  # Postgres web UI. Visit http://localhost:4050 — no login required; both databases pre-connected.
+  boilerplate_local_pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: boilerplate_local_pgadmin
+    env_file:
+      - infra/config/local/db.env
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@local.dev
+      PGADMIN_DEFAULT_PASSWORD: admin
+      PGADMIN_CONFIG_SERVER_MODE: 'False'
+      PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED: 'False'
+      PGPASSFILE: /tmp/pgpass
+    entrypoint:
+      - /bin/sh
+      - -c
+      - >-
+        echo "postgres:5432:*:postgres:$$POSTGRES_PASSWORD" > /tmp/pgpass &&
+        chmod 0600 /tmp/pgpass &&
+        /entrypoint.sh
+    volumes:
+      - ./infra/docker/local/pgadmin/servers.json:/pgadmin4/servers.json:ro
+    ports:
+      - 127.0.0.1:4050:80
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - boilerplate_local_network
+    logging:
+      driver: "json-file"
+      options:
+        max-file: "1"
+        max-size: 50m

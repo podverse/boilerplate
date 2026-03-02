@@ -24,7 +24,7 @@ export class AdminPermissions {
   @Column({ name: 'users_crud', type: 'integer', default: 0 })
   usersCrud!: number;
 
-  @Column({ name: 'event_visibility', type: 'text', default: 'own' })
+  @Column({ name: 'event_visibility', type: 'text', default: 'all_admins' })
   eventVisibility!: EventVisibility;
 
   @OneToOne('ManagementUser', 'permissions', { onDelete: 'CASCADE' })

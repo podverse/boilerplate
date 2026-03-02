@@ -10,6 +10,8 @@ export type {
   FormProps,
   SubmitErrorProps,
 } from './components/form/Form';
+export { FormContainer } from './components/form/FormContainer';
+export type { FormContainerProps } from './components/form/FormContainer';
 export {
   ForgotPasswordForm,
   LoginForm,

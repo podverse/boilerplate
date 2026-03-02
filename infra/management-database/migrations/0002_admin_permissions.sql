@@ -8,5 +8,5 @@ CREATE TABLE IF NOT EXISTS admin_permissions (
     admin_id UUID PRIMARY KEY REFERENCES management_user(id) ON DELETE CASCADE,
     admins_crud INTEGER NOT NULL DEFAULT 0 CHECK (admins_crud >= 0 AND admins_crud <= 15),
     users_crud INTEGER NOT NULL DEFAULT 0 CHECK (users_crud >= 0 AND users_crud <= 15),
-    event_visibility TEXT NOT NULL DEFAULT 'own' CHECK(event_visibility IN ('own', 'all_admins', 'all'))
+    event_visibility TEXT NOT NULL DEFAULT 'all_admins' CHECK(event_visibility IN ('own', 'all_admins', 'all'))
 );

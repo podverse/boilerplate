@@ -5,11 +5,6 @@
   border-radius: $radius-sm;
   padding: $space-3;
   width: 100%;
-  max-width: $input-max-width;
-
-  @media (max-width: $breakpoint-sm-max-width) {
-    max-width: none;
-  }
 }
 
 .headerLabel {
@@ -32,4 +27,20 @@
   align-items: center;
   gap: $space-2;
   cursor: pointer;
+}
+
+.checkboxLabelDisabled {
+  cursor: default;
+  opacity: $opacity-disabled;
+}
+
+.containerError {
+  border-color: var(--color-error);
+}
+
+.error {
+  display: block;
+  margin-top: $space-2;
+  font-size: $font-size-sm;
+  color: var(--color-error);
 }

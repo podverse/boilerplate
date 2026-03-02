@@ -111,7 +111,15 @@
       "saveChanges": "",
       "cancel": "",
       "createFailed": "",
-      "updateFailed": ""
+      "updateFailed": "",
+      "displayNameRequired": "",
+      "emailRequired": "",
+      "emailInvalid": "",
+      "passwordRequired": "",
+      "passwordMinLength": "",
+      "passwordMaxLength": "",
+      "passwordInsecure": "",
+      "permissionsRequired": ""
     },
     "confirmDeleteAdmin": {
       "message": "",
@@ -216,7 +224,13 @@
       "dracula": ""
     },
     "passwordStrength": {
-      "hint": ""
+      "requireLength": "",
+      "requireMix": "",
+      "tooShort": "",
+      "weak": "",
+      "fair": "",
+      "good": "",
+      "strong": ""
     },
     "loadingSpinner": {
       "ariaLabel": ""

@@ -103,7 +103,11 @@ export default async function AdminsPage({ searchParams }: PageProps) {
   const totalPages = data?.totalPages ?? 1;
   const currentPage = data?.page ?? 1;
 
-  const isSuperAdmin = user.isSuperAdmin;
+  const isSuperAdmin = user.isSuperAdmin === true;
+  const adminsCrud = user.permissions?.adminsCrud ?? 0;
+  const canCreateAdmin = isSuperAdmin || (adminsCrud & 1) !== 0;
+  const canUpdateAdmin = isSuperAdmin || (adminsCrud & 4) !== 0;
+  const canDeleteAdmin = isSuperAdmin || (adminsCrud & 8) !== 0;
   const apiBaseUrl = getManagementApiBaseUrl();
 
   const tableRows = admins.map((a) => ({
@@ -148,9 +152,10 @@ export default async function AdminsPage({ searchParams }: PageProps) {
                 limit={limit}
                 defaultLimit={DEFAULT_PAGE_LIMIT}
                 maxGoToPage={500}
-                isSuperAdmin={isSuperAdmin}
+                canUpdateAdmin={canUpdateAdmin}
+                canDeleteAdmin={canDeleteAdmin}
                 adminApiBaseUrl={apiBaseUrl}
-                addAdminHref={isSuperAdmin ? ROUTES.ADMINS_NEW : undefined}
+                addAdminHref={canCreateAdmin ? ROUTES.ADMINS_NEW : undefined}
               />
             </Stack>
           )}

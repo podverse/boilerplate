@@ -111,7 +111,15 @@
       "saveChanges": "Guardar cambios",
       "cancel": "Cancelar",
       "createFailed": "Error al crear administrador",
-      "updateFailed": "Error al actualizar administrador"
+      "updateFailed": "Error al actualizar administrador",
+      "displayNameRequired": "El nombre para mostrar es obligatorio",
+      "emailRequired": "El correo electrónico es obligatorio",
+      "emailInvalid": "Introduce una dirección de correo válida",
+      "passwordRequired": "La contraseña es obligatoria",
+      "passwordMinLength": "La contraseña debe tener al menos {count} caracteres",
+      "passwordMaxLength": "La contraseña no puede tener más de {count} caracteres",
+      "passwordInsecure": "La contraseña debe incluir una combinación de letras, números y símbolos",
+      "permissionsRequired": "El administrador debe tener al menos un permiso"
     },
     "confirmDeleteAdmin": {
       "message": "¿Estás seguro de que quieres eliminar a {name}? Esta acción no se puede deshacer.",
@@ -216,7 +224,13 @@
       "dracula": "Dracula"
     },
     "passwordStrength": {
-      "hint": "Usa al menos {minLength} caracteres e incluye letras, números y símbolos"
+      "requireLength": "Al menos {count} caracteres",
+      "requireMix": "Mezcla de letras, números y símbolos",
+      "tooShort": "Demasiado corta",
+      "weak": "Débil",
+      "fair": "Regular",
+      "good": "Buena",
+      "strong": "Fuerte"
     },
     "loadingSpinner": {
       "ariaLabel": "Cargando"

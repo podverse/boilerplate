@@ -135,7 +135,13 @@
       "dracula": "Dracula"
     },
     "passwordStrength": {
-      "hint": "Use at least {minLength} characters and include a mix of letters, numbers, and symbols"
+      "requireLength": "At least {count} characters",
+      "requireMix": "Mix of letters, numbers, and symbols",
+      "tooShort": "Too short",
+      "weak": "Weak",
+      "fair": "Fair",
+      "good": "Good",
+      "strong": "Strong"
     },
     "loadingSpinner": {
       "ariaLabel": "Loading"

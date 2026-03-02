@@ -31,7 +31,10 @@ export type AdminsTableWithFilterProps = {
   limit: number;
   defaultLimit: number;
   maxGoToPage?: number;
-  isSuperAdmin: boolean;
+  /** When true, the Edit action is rendered per row. */
+  canUpdateAdmin: boolean;
+  /** When true, the Delete action is rendered per row. */
+  canDeleteAdmin: boolean;
   adminApiBaseUrl: string;
   /** When provided, renders an "Add Admin" link below the filter bar (left-aligned). */
   addAdminHref?: string;
@@ -65,7 +68,8 @@ export function AdminsTableWithFilter({
   limit,
   defaultLimit,
   maxGoToPage,
-  isSuperAdmin,
+  canUpdateAdmin,
+  canDeleteAdmin,
   adminApiBaseUrl,
   addAdminHref,
 }: AdminsTableWithFilterProps) {
@@ -159,7 +163,7 @@ export function AdminsTableWithFilter({
     }
   }, [deleteTarget, adminApiBaseUrl, router, tCommon]);
 
-  const showActions = isSuperAdmin;
+  const showActions = canUpdateAdmin || canDeleteAdmin;
 
   return (
     <>
@@ -209,21 +213,24 @@ export function AdminsTableWithFilter({
                 {showActions && (
                   <Table.Cell>
                     <div className={styles.actionsCell}>
-                      <Link href={adminEditRoute(row.id)} className={styles.editLink}>
-                        {tCommon('adminsTable.edit')}
-                      </Link>
-                      <Button
-                        variant="secondary"
-                        className={styles.deleteButton}
-                        onClick={() =>
-                          setDeleteTarget({
-                            id: row.id,
-                            displayName: row.cells['displayName'] ?? '',
-                          })
-                        }
-                      >
-                        {tCommon('adminsTable.delete')}
-                      </Button>
+                      {canUpdateAdmin && (
+                        <Link href={adminEditRoute(row.id)} className={styles.editLink}>
+                          {tCommon('adminsTable.edit')}
+                        </Link>
+                      )}
+                      {canDeleteAdmin && (
+                        <Button
+                          variant="secondary"
+                          onClick={() =>
+                            setDeleteTarget({
+                              id: row.id,
+                              displayName: row.cells['displayName'] ?? '',
+                            })
+                          }
+                        >
+                          {tCommon('adminsTable.delete')}
+                        </Button>
+                      )}
                     </div>
                   </Table.Cell>
                 )}

@@ -57,7 +57,7 @@ describe('management-api admins permissions', () => {
           displayName: `Read Only Admin ${ts}`,
           adminsCrud: 2, // read only (CrudMask: create=1, read=2, update=4, delete=8)
           usersCrud: 0,
-          eventVisibility: 'own',
+          eventVisibility: 'all_admins',
         })
         .expect(201);
       readOnlyAdminId = res.body.admin.id;
@@ -88,7 +88,7 @@ describe('management-api admins permissions', () => {
           displayName: `New By Readonly ${ts}`,
           adminsCrud: 0,
           usersCrud: 0,
-          eventVisibility: 'own',
+          eventVisibility: 'all_admins',
         })
         .expect(403);
     });
@@ -116,7 +116,7 @@ describe('management-api admins permissions', () => {
           displayName: `Update Perm Admin ${ts}`,
           adminsCrud: 4, // update only
           usersCrud: 0,
-          eventVisibility: 'own',
+          eventVisibility: 'all_admins',
         })
         .expect(201);
       const updateAdminId = createRes.body.admin.id;
@@ -155,7 +155,7 @@ describe('management-api admins permissions', () => {
           displayName: `No Perm Admin ${ts2}`,
           adminsCrud: 0,
           usersCrud: 0,
-          eventVisibility: 'own',
+          eventVisibility: 'all_admins',
         })
         .expect(201);
       noPermAdminId = res.body.admin.id;
@@ -203,7 +203,7 @@ describe('management-api admins permissions', () => {
           displayName: `Unique DN Admin ${ts3}`,
           adminsCrud: 0,
           usersCrud: 0,
-          eventVisibility: 'own',
+          eventVisibility: 'all_admins',
         })
         .expect(201);
       adminIdA = res.body.admin.id;
@@ -218,7 +218,7 @@ describe('management-api admins permissions', () => {
           displayName: `Unique DN Admin ${ts3}`,
           adminsCrud: 0,
           usersCrud: 0,
-          eventVisibility: 'own',
+          eventVisibility: 'all_admins',
         })
         .expect(409, { message: 'Display name already in use' });
     });
