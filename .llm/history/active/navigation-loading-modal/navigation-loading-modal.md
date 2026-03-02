@@ -24,3 +24,22 @@ Whenever a link is pressed in web or management web that will navigate to anothe
 - apps/web/layout.tsx: NavigationProvider wrap.
 - apps/management-web/layout.tsx: NavigationProvider wrap.
 - packages/ui: LoadingSpinner.stories.tsx (xl in options and Sizes story).
+
+## Session 2 - 2026-03-02
+
+### Prompt (Developer)
+
+When light mode is on the modal is not even readable. I think there is some sort of style missing
+because I pressed the delete button. button on the admin management panel and it looks terrible.
+Some kind of style is missing
+
+### Key Decisions
+
+- `.contentInner` in `Modal.module.scss` had no background, border-radius, or shadow, making the
+  dialog box transparent over the backdrop in all themes.
+- Added `background-color: var(--color-bg)`, `border-radius: $radius-md`, and
+  `box-shadow: $shadow-modal` to `.contentInner` so the dialog renders as a proper card.
+
+### Files Created/Modified
+
+- packages/ui/src/components/modal/Modal/Modal.module.scss

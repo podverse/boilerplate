@@ -30,6 +30,9 @@
 
 .contentInner {
   position: relative;
+  background-color: var(--color-bg);
+  border-radius: $radius-md;
+  box-shadow: $shadow-modal;
 }
 
 .closeButton {
