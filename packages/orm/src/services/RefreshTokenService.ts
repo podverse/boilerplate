@@ -21,7 +21,7 @@ export class RefreshTokenService {
     const repo = appDataSourceReadWrite.getRepository(RefreshToken);
     const token = await repo.findOne({
       where: { tokenHash },
-      relations: ['user'],
+      relations: ['user', 'user.credentials'],
     });
     if (token === null) return null;
     if (token.expiresAt < new Date()) {

@@ -21,6 +21,8 @@ const testEnv: Record<string, string> = {
   DB_HOST: process.env.DB_HOST ?? 'localhost',
   DB_PORT: process.env.DB_PORT ?? '5532',
   DB_NAME: process.env.DB_NAME ?? 'boilerplate_test',
+  DB_READ_USERNAME: process.env.DB_READ_USERNAME ?? 'read',
+  DB_READ_PASSWORD: process.env.DB_READ_PASSWORD ?? 'test',
   DB_READ_WRITE_USERNAME: process.env.DB_READ_WRITE_USERNAME ?? 'read_write',
   DB_READ_WRITE_PASSWORD: process.env.DB_READ_WRITE_PASSWORD ?? 'test',
 };
