@@ -2,11 +2,7 @@ export {
   AUTH_MESSAGE_INVALID_CREDENTIALS,
   AUTH_MESSAGE_LOGIN_FAILED,
 } from './auth/auth-messages.js';
-export {
-  bitmaskToFlags,
-  CRUD_BITS,
-  flagsToBitmask,
-} from './crud/crud-bitmask.js';
+export { bitmaskToFlags, CRUD_BITS, flagsToBitmask } from './crud/crud-bitmask.js';
 export type { CrudBit } from './crud/crud-bitmask.js';
 export {
   DEFAULT_PAGE_LIMIT,

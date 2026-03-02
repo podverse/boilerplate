@@ -15,9 +15,7 @@ type EditAdminPageProps = {
   params: Promise<{ id: string }>;
 };
 
-async function fetchAdmin(
-  id: string
-): Promise<{ admin: ManagementUser } | null> {
+async function fetchAdmin(id: string): Promise<{ admin: ManagementUser } | null> {
   const cookieStore = await cookies();
   const cookieHeader = cookieStore
     .getAll()

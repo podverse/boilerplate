@@ -41,7 +41,9 @@ export function LoginForm({
   const t = useTranslations('ui.auth.login');
   const linkItems = [
     signupHref !== undefined ? { href: signupHref, children: t('signUp') } : null,
-    forgotPasswordHref !== undefined ? { href: forgotPasswordHref, children: t('forgotPassword') } : null,
+    forgotPasswordHref !== undefined
+      ? { href: forgotPasswordHref, children: t('forgotPassword') }
+      : null,
   ].filter((item): item is { href: string; children: string } => item !== null);
   return (
     <Form title={t('title')} submitError={submitError} onSubmit={onSubmit}>
@@ -69,10 +71,7 @@ export function LoginForm({
         {t('submit')}
       </Button>
       {linkItems.length > 0 && (
-        <FormLinks
-          {...(LinkComponent !== undefined && { LinkComponent })}
-          items={linkItems}
-        />
+        <FormLinks {...(LinkComponent !== undefined && { LinkComponent })} items={linkItems} />
       )}
     </Form>
   );

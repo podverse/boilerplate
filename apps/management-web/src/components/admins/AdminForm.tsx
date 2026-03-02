@@ -6,8 +6,21 @@ import { useTranslations } from 'next-intl';
 import { bitmaskToFlags, flagsToBitmask } from '@boilerplate/helpers';
 import type { CrudBit } from '@boilerplate/helpers';
 import { managementWebAdmins } from '@boilerplate/helpers-requests';
-import type { CreateAdminBody, EventVisibility, UpdateAdminBody } from '@boilerplate/helpers-requests';
-import { Button, CheckboxField, CrudCheckboxes, FormActions, FormSection, Input, Select, Text } from '@boilerplate/ui';
+import type {
+  CreateAdminBody,
+  EventVisibility,
+  UpdateAdminBody,
+} from '@boilerplate/helpers-requests';
+import {
+  Button,
+  CheckboxField,
+  CrudCheckboxes,
+  FormActions,
+  FormSection,
+  Input,
+  Select,
+  Text,
+} from '@boilerplate/ui';
 
 import { getManagementApiBaseUrl } from '../../config/env';
 import { ROUTES } from '../../lib/routes';
@@ -54,8 +67,12 @@ export function AdminForm({ mode, adminId, initialValues, isSuperAdmin }: AdminF
   const [usersCrudFlags, setUsersCrudFlags] = useState<Record<CrudBit, boolean>>(
     bitmaskToFlags(defaultPerms?.usersCrud ?? 0)
   );
-  const [canChangePasswords, setCanChangePasswords] = useState(defaultPerms?.canChangePasswords ?? false);
-  const [canAssignPermissions, setCanAssignPermissions] = useState(defaultPerms?.canAssignPermissions ?? false);
+  const [canChangePasswords, setCanChangePasswords] = useState(
+    defaultPerms?.canChangePasswords ?? false
+  );
+  const [canAssignPermissions, setCanAssignPermissions] = useState(
+    defaultPerms?.canAssignPermissions ?? false
+  );
   const [eventVisibility, setEventVisibility] = useState<EventVisibility>(
     defaultPerms?.eventVisibility ?? 'own'
   );

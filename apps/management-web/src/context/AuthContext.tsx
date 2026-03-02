@@ -20,7 +20,9 @@ export type AuthContextValue = {
   login: (
     email: string,
     password: string
-  ) => Promise<{ ok: true } | { ok: false; message: string; rateLimit?: { retryAfterSeconds: number } }>;
+  ) => Promise<
+    { ok: true } | { ok: false; message: string; rateLimit?: { retryAfterSeconds: number } }
+  >;
   logout: () => void;
   setSession: (user: AuthUser) => void;
   hydrate: () => Promise<void>;
@@ -114,7 +116,9 @@ export function AuthProvider({ children, initialUser }: AuthProviderProps) {
     async (
       email: string,
       password: string
-    ): Promise<{ ok: true } | { ok: false; message: string; rateLimit?: { retryAfterSeconds: number } }> => {
+    ): Promise<
+      { ok: true } | { ok: false; message: string; rateLimit?: { retryAfterSeconds: number } }
+    > => {
       const baseUrl = getApiBaseUrl();
       const res = await managementWebAuth.login(baseUrl, email, password);
       if (!res.ok) {

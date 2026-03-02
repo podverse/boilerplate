@@ -1,24 +1,12 @@
 'use client';
 
-import {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import Link from 'next/link';
 import { SEARCH_DEBOUNCE_MS } from '@boilerplate/helpers';
 import { managementWebAdmins } from '@boilerplate/helpers-requests';
-import {
-  Button,
-  Pagination,
-  Table,
-  TableFilterBar,
-  Text,
-} from '@boilerplate/ui';
+import { Button, Pagination, Table, TableFilterBar, Text } from '@boilerplate/ui';
 import type { TableFilterBarColumn } from '@boilerplate/ui';
 
 import { ConfirmDeleteAdminModal } from './admins/ConfirmDeleteAdminModal';
@@ -113,7 +101,9 @@ export function AdminsTableWithFilter({
     initialFilterColumns.length > 0 ? initialFilterColumns : allColumnIds
   );
 
-  const [deleteTarget, setDeleteTarget] = useState<{ id: string; displayName: string } | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; displayName: string } | null>(
+    null
+  );
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
 
@@ -198,9 +188,7 @@ export function AdminsTableWithFilter({
               {columns.map((col) => (
                 <Table.HeaderCell key={col.id}>{col.label}</Table.HeaderCell>
               ))}
-              {showActions && (
-                <Table.HeaderCell>{tCommon('adminsTable.actions')}</Table.HeaderCell>
-              )}
+              {showActions && <Table.HeaderCell>{tCommon('adminsTable.actions')}</Table.HeaderCell>}
             </Table.Row>
           </Table.Head>
           <Table.Body>

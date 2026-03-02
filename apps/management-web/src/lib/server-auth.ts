@@ -45,7 +45,9 @@ export async function getServerUser(): Promise<ServerUser | null> {
       return null;
     }
 
-    const data = res.data as { user?: { id: string; email: string; displayName?: string; isSuperAdmin?: boolean } };
+    const data = res.data as {
+      user?: { id: string; email: string; displayName?: string; isSuperAdmin?: boolean };
+    };
     if (data.user === undefined) {
       return null;
     }

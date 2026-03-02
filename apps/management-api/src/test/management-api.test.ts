@@ -338,10 +338,7 @@ describe('management-api', () => {
     });
 
     it('POST /users returns 401 without auth', async () => {
-      await request(app)
-        .post(`${API}/users`)
-        .send({ email: 'x@x.com', password: 'p' })
-        .expect(401);
+      await request(app).post(`${API}/users`).send({ email: 'x@x.com', password: 'p' }).expect(401);
     });
 
     it('GET /users returns 200 with users array', async () => {
@@ -434,9 +431,7 @@ describe('management-api', () => {
     });
 
     it('DELETE /users/:id returns 401 without auth', async () => {
-      await request(app)
-        .delete(`${API}/users/00000000-0000-0000-0000-000000000000`)
-        .expect(401);
+      await request(app).delete(`${API}/users/00000000-0000-0000-0000-000000000000`).expect(401);
     });
   });
 
@@ -491,9 +486,7 @@ describe('management-api', () => {
         .expect(200);
 
       const res = await superAdminAgent.get(`${API}/events`).expect(200);
-      const actorEvents = res.body.events.filter(
-        (e: { actorId: string }) => e.actorId === actorId
-      );
+      const actorEvents = res.body.events.filter((e: { actorId: string }) => e.actorId === actorId);
       expect(actorEvents.length).toBeGreaterThan(0);
       for (const e of actorEvents) {
         expect(e.actorDisplayName).toBe('ActorUpdatedName');

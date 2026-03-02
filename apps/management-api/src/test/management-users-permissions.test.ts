@@ -159,9 +159,7 @@ describe('management-api users permissions', () => {
     });
 
     it('GET /users/:id returns 403 (no read permission)', async () => {
-      await noPermAgent
-        .get(`${API}/users/00000000-0000-0000-0000-000000000000`)
-        .expect(403);
+      await noPermAgent.get(`${API}/users/00000000-0000-0000-0000-000000000000`).expect(403);
     });
 
     afterAll(async () => {
@@ -228,5 +226,4 @@ describe('management-api users permissions', () => {
       await superAdminAgent.delete(`${API}/admins/${changePassAdminId}`).expect(204);
     });
   });
-
 });

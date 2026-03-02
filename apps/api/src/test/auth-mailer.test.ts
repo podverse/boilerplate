@@ -79,10 +79,7 @@ describe('mailer-enabled (mocked)', () => {
     });
 
     it('returns 400 when email missing', async () => {
-      await request(app)
-        .post(`${API}/auth/signup`)
-        .send({ password: signupPassword })
-        .expect(400);
+      await request(app).post(`${API}/auth/signup`).send({ password: signupPassword }).expect(400);
     });
 
     it('returns 400 when password missing', async () => {

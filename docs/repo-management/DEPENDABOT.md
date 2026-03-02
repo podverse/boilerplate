@@ -68,12 +68,12 @@ The PR labeler may also add `ci` when paths under `.github/` change.
 
 ## Labels
 
-| Label          | Applied to        | Applied by |
-| -------------- | ----------------- | ---------- |
+| Label          | Applied to         | Applied by |
+| -------------- | ------------------ | ---------- |
 | `dependencies` | All Dependabot PRs | Dependabot |
 | `docker`       | Docker image PRs   | Dependabot |
 | `ci`           | Actions updates    | PR Labeler |
-| `infra`        | Docker (infra/*)   | PR Labeler |
+| `infra`        | Docker (infra/\*)  | PR Labeler |
 
 See [GITHUB-LABELS.md](GITHUB-LABELS.md) for the full label reference.
 
