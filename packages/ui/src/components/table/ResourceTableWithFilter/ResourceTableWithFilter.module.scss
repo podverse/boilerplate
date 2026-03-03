@@ -1,16 +1,28 @@
 @use '../../../styles/variables' as *;
+@use '../../../styles/mixins' as *;
 
-.filterRow {
-  margin-bottom: $space-3;
+.filterAddRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  column-gap: $space-3;
+  row-gap: $space-6;
+  margin-bottom: $space-4;
+
+  @include at-least-sm {
+    justify-content: space-between;
+  }
 }
 
-.addRow {
-  margin-bottom: $space-4;
+.filterRow {
+  flex: 1 1 auto;
+  min-width: 0;
 }
 
 .addLink {
   display: inline-flex;
   align-items: center;
+  flex-shrink: 0;
   padding: $space-2 $space-4;
   background-color: var(--color-primary);
   color: $color-on-primary;
@@ -23,10 +35,18 @@
   &:hover {
     background-color: var(--color-primary-hover);
   }
+
+  @media (max-width: 767px) {
+    width: 100%;
+    justify-content: center;
+  }
 }
 
-.emptyMessage {
-  margin-bottom: $space-4;
+.emptyCell {
+  text-align: center;
+  color: var(--color-text-muted);
+  padding: $space-6 $space-4;
+  white-space: normal;
 }
 
 .actionsCell {

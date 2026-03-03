@@ -1,6 +1,5 @@
 import { redirect, notFound } from 'next/navigation';
-import { getTranslations } from 'next-intl/server';
-import { Card, Container, Stack } from '@boilerplate/ui';
+import { Container, Stack } from '@boilerplate/ui';
 
 import { fetchBucket } from '../../../../../../lib/buckets';
 import { getServerUser } from '../../../../../../lib/server-auth';
@@ -19,17 +18,14 @@ export default async function NewTopicPage({ params }: { params: Promise<{ id: s
     notFound();
   }
 
-  const t = await getTranslations('buckets');
   return (
     <Container>
       <Stack>
-        <Card title={t('createTopic')}>
-          <TopicForm
-            parentBucketId={bucketId}
-            successHref={bucketDetailRoute(bucketId)}
-            cancelHref={bucketDetailRoute(bucketId)}
-          />
-        </Card>
+        <TopicForm
+          parentBucketId={bucketId}
+          successHref={bucketDetailRoute(bucketId)}
+          cancelHref={bucketDetailRoute(bucketId)}
+        />
       </Stack>
     </Container>
   );

@@ -196,6 +196,7 @@
   },
   "profile": {
     "title": "Profile",
+    "profileInformation": "Info",
     "displayName": "Display name",
     "displayNamePlaceholder": "Your name",
     "email": "Email",

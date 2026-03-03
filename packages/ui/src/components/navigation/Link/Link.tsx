@@ -20,7 +20,7 @@ function isInternalHref(href: string): boolean {
 /**
  * Link component that wraps Next.js Link for client-side navigation.
  * When used inside NavigationProvider, shows a full-screen loading overlay on click for internal links.
- * Use as the default LinkComponent for FormLinks, AppHeader, and other UI components.
+ * Use as the default LinkComponent for FormLinks, NavBar, and other UI components.
  * Applies shared link styles (primary color, hover underline).
  */
 export function Link({ href, children, className = '', onClick, role, ...rest }: LinkProps) {

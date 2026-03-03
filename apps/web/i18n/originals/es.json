@@ -105,6 +105,7 @@
   },
   "profile": {
     "title": "Perfil",
+    "profileInformation": "Información del perfil",
     "displayName": "Nombre para mostrar",
     "displayNamePlaceholder": "Tu nombre",
     "email": "Correo electrónico",

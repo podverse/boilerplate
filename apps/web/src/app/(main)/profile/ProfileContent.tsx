@@ -4,13 +4,11 @@ import { useState, useCallback } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
 import { webAuth } from '@boilerplate/helpers-requests';
 import {
-  Card,
   CheckboxField,
-  Container,
+  ContentPageLayout,
   Divider,
   FormContainer,
-  FormPage,
-  Stack,
+  SectionWithHeading,
   Input,
   Button,
   Text,
@@ -162,127 +160,114 @@ export function ProfileContent({ initialUser }: ProfileContentProps) {
   );
 
   return (
-    <Container>
-      <FormPage>
-        <Stack>
-          <Card title={t('title')}>
-            <FormContainer onSubmit={handleUpdateProfile}>
-              <Stack>
-                <Input
-                  label={t('displayName')}
-                  type="text"
-                  value={displayName}
-                  onChange={(value) => setDisplayName(value)}
-                  placeholder={t('displayNamePlaceholder')}
-                  disabled={profileSaving}
-                  autoComplete="name"
-                />
-                <Input
-                  label={t('email')}
-                  type="email"
-                  value={u.email}
-                  onChange={() => {}}
-                  disabled
-                  autoComplete="email"
-                />
-                <CheckboxField
-                  label={t('profileVisibility')}
-                  checked={profileVisibility}
-                  onChange={setProfileVisibility}
-                  disabled={profileSaving}
-                />
-                {profileMessage !== null && (
-                  <Text
-                    size="sm"
-                    variant={profileMessage === t('profileUpdated') ? 'success' : 'error'}
-                  >
-                    {profileMessage}
-                  </Text>
-                )}
-                <Button type="submit" disabled={profileSaving} loading={profileSaving}>
-                  {t('updateProfile')}
-                </Button>
-              </Stack>
-            </FormContainer>
-          </Card>
+    <ContentPageLayout title={t('title')} type="form">
+      <SectionWithHeading title={t('profileInformation')}>
+        <FormContainer onSubmit={handleUpdateProfile}>
+          <Input
+            label={t('displayName')}
+            type="text"
+            value={displayName}
+            onChange={(value) => setDisplayName(value)}
+            placeholder={t('displayNamePlaceholder')}
+            disabled={profileSaving}
+            autoComplete="name"
+          />
+          <Input
+            label={t('email')}
+            type="email"
+            value={u.email}
+            onChange={() => {}}
+            disabled
+            autoComplete="email"
+          />
+          <CheckboxField
+            label={t('profileVisibility')}
+            checked={profileVisibility}
+            onChange={setProfileVisibility}
+            disabled={profileSaving}
+          />
+          {profileMessage !== null && (
+            <Text size="sm" variant={profileMessage === t('profileUpdated') ? 'success' : 'error'}>
+              {profileMessage}
+            </Text>
+          )}
+          <Button type="submit" disabled={profileSaving} loading={profileSaving}>
+            {t('updateProfile')}
+          </Button>
+        </FormContainer>
+      </SectionWithHeading>
 
-          <Divider />
+      <Divider />
 
-          <Card title={t('changePassword')}>
-            <FormContainer onSubmit={handleChangePassword}>
-              <Stack>
-                <Input
-                  label={t('currentPassword')}
-                  type="password"
-                  value={currentPassword}
-                  onChange={(value) => setCurrentPassword(value)}
-                  placeholder={t('placeholderPassword')}
-                  disabled={passwordSaving}
-                  autoComplete="current-password"
-                />
-                <Input
-                  label={t('newPassword')}
-                  type="password"
-                  value={newPassword}
-                  onChange={(value) => setNewPassword(value)}
-                  placeholder={t('placeholderPassword')}
-                  disabled={passwordSaving}
-                  autoComplete="new-password"
-                />
-                <Input
-                  label={t('confirmNewPassword')}
-                  type="password"
-                  value={confirmNewPassword}
-                  onChange={(value) => setConfirmNewPassword(value)}
-                  placeholder={t('placeholderPassword')}
-                  disabled={passwordSaving}
-                  autoComplete="new-password"
-                />
-                {passwordMessage !== null && (
-                  <Text
-                    size="sm"
-                    variant={passwordMessage === t('passwordChanged') ? 'success' : 'error'}
-                  >
-                    {passwordMessage}
-                  </Text>
-                )}
-                <Button type="submit" disabled={passwordSaving} loading={passwordSaving}>
-                  {t('changePasswordSubmit')}
-                </Button>
-              </Stack>
-            </FormContainer>
-          </Card>
+      <SectionWithHeading title={t('changePassword')}>
+        <FormContainer onSubmit={handleChangePassword}>
+          <Input
+            label={t('currentPassword')}
+            type="password"
+            value={currentPassword}
+            onChange={(value) => setCurrentPassword(value)}
+            placeholder={t('placeholderPassword')}
+            disabled={passwordSaving}
+            autoComplete="current-password"
+          />
+          <Input
+            label={t('newPassword')}
+            type="password"
+            value={newPassword}
+            onChange={(value) => setNewPassword(value)}
+            placeholder={t('placeholderPassword')}
+            disabled={passwordSaving}
+            autoComplete="new-password"
+          />
+          <Input
+            label={t('confirmNewPassword')}
+            type="password"
+            value={confirmNewPassword}
+            onChange={(value) => setConfirmNewPassword(value)}
+            placeholder={t('placeholderPassword')}
+            disabled={passwordSaving}
+            autoComplete="new-password"
+          />
+          {passwordMessage !== null && (
+            <Text
+              size="sm"
+              variant={passwordMessage === t('passwordChanged') ? 'success' : 'error'}
+            >
+              {passwordMessage}
+            </Text>
+          )}
+          <Button type="submit" disabled={passwordSaving} loading={passwordSaving}>
+            {t('changePasswordSubmit')}
+          </Button>
+        </FormContainer>
+      </SectionWithHeading>
 
-          <Divider />
+      <Divider />
 
-          <Card title={t('requestEmailChange')}>
-            <FormContainer onSubmit={handleRequestEmailChange}>
-              <Stack>
-                <Input
-                  label={t('newEmail')}
-                  type="email"
-                  value={newEmail}
-                  onChange={(value) => setNewEmail(value)}
-                  placeholder="new@example.com"
-                  disabled={emailChangeSaving}
-                  autoComplete="email"
-                />
-                {emailChangeMessage !== null && (
-                  <Text
-                    size="sm"
-                    variant={emailChangeMessage === t('emailChangeRequested') ? 'success' : 'error'}
-                  >
-                    {emailChangeMessage}
-                  </Text>
-                )}
-                <Button type="submit" disabled={emailChangeSaving} loading={emailChangeSaving}>
-                  {t('requestEmailChangeSubmit')}
-                </Button>
-              </Stack>
-            </FormContainer>
-          </Card>
-        </Stack>
-      </FormPage>
-    </Container>
+      <SectionWithHeading title={t('requestEmailChange')}>
+        <FormContainer onSubmit={handleRequestEmailChange}>
+          <Input
+            label={t('newEmail')}
+            type="email"
+            value={newEmail}
+            onChange={(value) => setNewEmail(value)}
+            placeholder="new@example.com"
+            disabled={emailChangeSaving}
+            autoComplete="email"
+          />
+          {emailChangeMessage !== null && (
+            <Text
+              size="sm"
+              variant={emailChangeMessage === t('emailChangeRequested') ? 'success' : 'error'}
+            >
+              {emailChangeMessage}
+            </Text>
+          )}
+          <Button type="submit" disabled={emailChangeSaving} loading={emailChangeSaving}>
+            {t('requestEmailChangeSubmit')}
+          </Button>
+        </FormContainer>
+      </SectionWithHeading>
+    </ContentPageLayout>
   );
 }

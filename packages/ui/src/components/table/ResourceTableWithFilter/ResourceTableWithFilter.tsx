@@ -176,34 +176,33 @@ export function ResourceTableWithFilter({
         })
       : canView || canUpdate || canDelete;
 
+  const emptyColSpan = columns.length + (showActions ? 1 : 0);
+
   return (
     <>
-      <div className={styles.filterRow}>
-        <TableFilterBar
-          searchValue={filter}
-          onSearchChange={setFilter}
-          columns={columns}
-          selectedColumnIds={selectedColumnIds}
-          onSelectedColumnIdsChange={handleFilterColumnsChange}
-          placeholder={filterPlaceholder}
-          filterColumnsLabel={filterColumnsLabel}
-          funnelButtonLabel={funnelButtonLabel}
-        />
-      </div>
-      {addHref !== undefined && (
-        <div className={styles.addRow}>
+      <div className={styles.filterAddRow}>
+        <div className={styles.filterRow}>
+          <TableFilterBar
+            searchValue={filter}
+            onSearchChange={setFilter}
+            columns={columns}
+            selectedColumnIds={selectedColumnIds}
+            onSelectedColumnIdsChange={handleFilterColumnsChange}
+            placeholder={filterPlaceholder}
+            filterColumnsLabel={filterColumnsLabel}
+            funnelButtonLabel={funnelButtonLabel}
+          />
+        </div>
+        {addHref !== undefined && (
           <Link href={addHref} className={styles.addLink}>
             {tCommon(addLabelKey)}
           </Link>
-        </div>
-      )}
+        )}
+      </div>
       {deleteError !== null && (
         <Text variant="error" role="alert" className={styles.deleteError}>
           {deleteError}
         </Text>
-      )}
-      {emptyMessage !== undefined && emptyMessage !== '' && (
-        <p className={styles.emptyMessage}>{emptyMessage}</p>
       )}
       <Table.ScrollContainer>
         <Table>
@@ -216,6 +215,13 @@ export function ResourceTableWithFilter({
             </Table.Row>
           </Table.Head>
           <Table.Body>
+            {rowsToShow.length === 0 && emptyMessage !== undefined && emptyMessage !== '' ? (
+              <Table.Row>
+                <Table.Cell colSpan={emptyColSpan} className={styles.emptyCell}>
+                  {emptyMessage}
+                </Table.Cell>
+              </Table.Row>
+            ) : null}
             {rowsToShow.map((row) => {
               const rowActions = getActions(row);
               return (

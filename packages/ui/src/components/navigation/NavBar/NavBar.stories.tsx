@@ -1,8 +1,8 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { AppHeader } from './AppHeader';
+import { NavBar } from './NavBar';
 
-const meta: Meta<typeof AppHeader> = {
-  component: AppHeader,
+const meta: Meta<typeof NavBar> = {
+  component: NavBar,
   tags: ['autodocs'],
   argTypes: {
     title: { control: 'text' },
@@ -12,7 +12,7 @@ const meta: Meta<typeof AppHeader> = {
 
 export default meta;
 
-type Story = StoryObj<typeof AppHeader>;
+type Story = StoryObj<typeof NavBar>;
 
 export const WithUser: Story = {
   args: {

@@ -30,11 +30,7 @@ export type {
 } from './types/index.js';
 export { request, type ApiError, type ApiResponse, type RequestOptions } from './request.js';
 export { getRateLimitRetrySeconds } from './rateLimitClient.js';
-export {
-  createSessionRefreshLoop,
-  hydrateSession,
-  SESSION_REFRESH_INTERVAL_MS,
-} from './session-lifecycle.js';
+export { createSessionRefreshLoop, hydrateSession } from './session-lifecycle.js';
 export type {
   CreateSessionRefreshLoopOptions,
   HydrateSessionOptions,

@@ -1,7 +1,7 @@
 import { redirect, notFound } from 'next/navigation';
 import Link from 'next/link';
 import { getTranslations } from 'next-intl/server';
-import { Button, Card, Container, Stack } from '@boilerplate/ui';
+import { Button, Container, Stack } from '@boilerplate/ui';
 
 import { fetchBucket, fetchMessages } from '../../../../../lib/buckets';
 import { getServerUser } from '../../../../../lib/server-auth';
@@ -22,14 +22,15 @@ export default async function BucketMessagesPage({ params }: { params: Promise<{
   return (
     <Container>
       <Stack>
-        <Card title={t('messages')}>
+        <Stack>
+          <h2>{t('messages')}</h2>
           <div style={{ marginBottom: '1rem' }}>
             <Link href={bucketDetailRoute(id)}>
               <Button variant="secondary">← {bucket.name}</Button>
             </Link>
           </div>
           <MessagesList bucketId={id} initialMessages={messages} />
-        </Card>
+        </Stack>
       </Stack>
     </Container>
   );

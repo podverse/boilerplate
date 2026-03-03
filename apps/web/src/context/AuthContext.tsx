@@ -13,6 +13,23 @@ import {
 import { getApiBaseUrl } from '../lib/api-client';
 import { isPublicPath, ROUTES } from '../lib/routes';
 
+function getRequiredSessionRefreshIntervalMs(): number {
+  const raw =
+    typeof process !== 'undefined'
+      ? process.env.NEXT_PUBLIC_SESSION_REFRESH_INTERVAL_MS
+      : undefined;
+  if (raw === undefined || raw === '') {
+    throw new Error(
+      'NEXT_PUBLIC_SESSION_REFRESH_INTERVAL_MS is required. Set it to a positive number (ms) less than JWT_ACCESS_EXPIRY_SECONDS * 1000 (e.g. 600000 for 10 minutes).'
+    );
+  }
+  const ms = Number.parseInt(raw, 10);
+  if (!Number.isFinite(ms) || ms <= 0) {
+    throw new Error('NEXT_PUBLIC_SESSION_REFRESH_INTERVAL_MS must be a positive number (ms).');
+  }
+  return ms;
+}
+
 export type AuthUser = {
   id: string;
   email: string;
@@ -123,6 +140,7 @@ export function AuthProvider({ children, initialUser }: AuthProviderProps) {
   // Proactively refresh the session before the access token expires (shared helper).
   // On failure, await logout (with timeout) before redirect so cookies are cleared.
   const LOGOUT_REDIRECT_TIMEOUT_MS = 5000;
+  const refreshIntervalMs = getRequiredSessionRefreshIntervalMs();
   useEffect(() => {
     if (user === null) return;
     const stop = createSessionRefreshLoop({
@@ -130,16 +148,14 @@ export function AuthProvider({ children, initialUser }: AuthProviderProps) {
       authApi: webAuth,
       parseUser: parseUserFromLoginOrRefresh,
       onSuccess: setUser,
+      refreshIntervalMs,
       onFailure: () => {
         setUser(null);
         void (async () => {
           const timeout = new Promise<void>((resolve) =>
             setTimeout(resolve, LOGOUT_REDIRECT_TIMEOUT_MS)
           );
-          await Promise.race([
-            webAuth.logout(getApiBaseUrl()).catch(() => {}),
-            timeout,
-          ]);
+          await Promise.race([webAuth.logout(getApiBaseUrl()).catch(() => {}), timeout]);
           window.location.href = ROUTES.LOGIN;
         })();
       },

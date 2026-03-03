@@ -1,7 +1,7 @@
 import { redirect, notFound } from 'next/navigation';
 import Link from 'next/link';
 import { getTranslations } from 'next-intl/server';
-import { Button, Card, Container, Stack, Text } from '@boilerplate/ui';
+import { Button, Container, SectionWithHeading, Stack, Text } from '@boilerplate/ui';
 
 import { fetchBucket, fetchTopics } from '../../../../lib/buckets';
 import { getServerUser } from '../../../../lib/server-auth';
@@ -31,7 +31,8 @@ export default async function BucketDetailPage({ params }: { params: Promise<{ i
   return (
     <Container>
       <Stack>
-        <Card title={bucket.name}>
+        <Stack>
+          <h2>{bucket.name}</h2>
           <div style={{ marginBottom: '1rem' }}>
             <Text variant="muted">
               {t('isPublic')}: {bucket.isPublic ? t('publicYes') : t('publicNo')}
@@ -54,48 +55,50 @@ export default async function BucketDetailPage({ params }: { params: Promise<{ i
               </Link>
             )}
           </div>
-        </Card>
+        </Stack>
 
         {bucket.parentBucketId === null && (
-          <Card title={t('topics')}>
-            {topics.length === 0 ? (
-              <Text variant="muted">No topics yet.</Text>
-            ) : (
-              <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
-                {topics.map((topic) => (
-                  <li
-                    key={topic.id}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      padding: '0.5rem 0',
-                      borderBottom: '1px solid var(--pv-color-border, #eee)',
-                    }}
-                  >
-                    <Link
-                      href={bucketDetailRoute(topic.shortId)}
-                      style={{ fontWeight: 500, textDecoration: 'none' }}
+          <SectionWithHeading title={t('topics')}>
+            <Stack>
+              {topics.length === 0 ? (
+                <Text variant="muted">No topics yet.</Text>
+              ) : (
+                <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+                  {topics.map((topic) => (
+                    <li
+                      key={topic.id}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        padding: '0.5rem 0',
+                        borderBottom: '1px solid var(--pv-color-border, #eee)',
+                      }}
                     >
-                      {topic.name}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            )}
-            <div style={{ marginTop: '1rem' }}>
-              <Link href={`/buckets/${id}/topics/new`}>
-                <Button variant="primary">{t('createTopic')}</Button>
-              </Link>
-            </div>
-          </Card>
+                      <Link
+                        href={bucketDetailRoute(topic.shortId)}
+                        style={{ fontWeight: 500, textDecoration: 'none' }}
+                      >
+                        {topic.name}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              )}
+              <div style={{ marginTop: '1rem' }}>
+                <Link href={`/buckets/${id}/topics/new`}>
+                  <Button variant="primary">{t('createTopic')}</Button>
+                </Link>
+              </div>
+            </Stack>
+          </SectionWithHeading>
         )}
 
-        <Card title={t('admins')}>
+        <SectionWithHeading title={t('admins')}>
           <Link href={`/buckets/${id}/admins`}>
             <Button variant="secondary">Manage bucket admins</Button>
           </Link>
-        </Card>
+        </SectionWithHeading>
       </Stack>
     </Container>
   );

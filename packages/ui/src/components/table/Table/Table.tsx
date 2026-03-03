@@ -1,4 +1,4 @@
-import type { HTMLAttributes, ThHTMLAttributes } from 'react';
+import type { HTMLAttributes, TdHTMLAttributes, ThHTMLAttributes } from 'react';
 
 import styles from './Table.module.scss';
 
@@ -42,7 +42,7 @@ function TableHeaderCell({ className = '', scope = 'col', ...props }: TableHeade
   return <th className={`${styles.headerCell} ${className}`.trim()} scope={scope} {...props} />;
 }
 
-export type TableCellProps = HTMLAttributes<HTMLTableCellElement>;
+export type TableCellProps = TdHTMLAttributes<HTMLTableDataCellElement>;
 
 function TableCell({ className = '', ...props }: TableCellProps) {
   return <td className={`${styles.cell} ${className}`.trim()} {...props} />;

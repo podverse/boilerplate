@@ -3,14 +3,14 @@
 import { useTranslations } from 'next-intl';
 import { Dropdown } from '../Dropdown';
 import { Link } from '../Link';
-import styles from './AppHeader.module.scss';
+import styles from './NavBar.module.scss';
 
-export type AppHeaderUser = {
+export type NavBarUser = {
   displayName: string | null;
   email: string;
 };
 
-export type AppHeaderLinkComponentProps = {
+export type NavBarLinkComponentProps = {
   href: string;
   children: React.ReactNode;
   className?: string;
@@ -18,17 +18,17 @@ export type AppHeaderLinkComponentProps = {
   role?: string;
 };
 
-export type AppHeaderProps = {
+export type NavBarProps = {
   title: React.ReactNode;
   homeHref: string;
-  user: AppHeaderUser | null;
+  user: NavBarUser | null;
   onLogout: () => void;
   navItems: { href: string; label: string }[];
   loginHref?: string;
-  LinkComponent?: React.ComponentType<AppHeaderLinkComponentProps>;
+  LinkComponent?: React.ComponentType<NavBarLinkComponentProps>;
 };
 
-export function AppHeader({
+export function NavBar({
   title,
   homeHref,
   user,
@@ -36,7 +36,7 @@ export function AppHeader({
   navItems,
   loginHref,
   LinkComponent = Link,
-}: AppHeaderProps) {
+}: NavBarProps) {
   const t = useTranslations('ui.header');
   const items = [
     ...navItems.map((item) => ({ type: 'link' as const, href: item.href, label: item.label })),
@@ -44,11 +44,9 @@ export function AppHeader({
   ];
 
   return (
-    <header className={styles.header}>
-      <LinkComponent href={homeHref} className={styles.titleLinkWrapper}>
-        <span className={styles.titleLink}>
-          <span className={styles.title}>{title}</span>
-        </span>
+    <header className={styles.navBar}>
+      <LinkComponent href={homeHref} className={styles.brandWrapper}>
+        <span className={styles.brand}>{title}</span>
       </LinkComponent>
       <div className={styles.actions}>
         {user !== null ? (

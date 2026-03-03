@@ -1,0 +1,86 @@
+@use '../../../styles/variables' as *;
+@use '../../../styles/mixins' as *;
+
+.navBar {
+  flex-shrink: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: $space-4;
+  padding: $space-2 $content-padding-inline;
+  background-color: var(--color-navbar-bg, #{$color-navbar-bg});
+  color: var(--color-text, #{$color-text});
+  border-bottom: $border-width solid var(--color-border, #{$color-border});
+  height: $navbar-height;
+
+  & > * {
+    min-width: 0;
+  }
+
+  @media (min-width: $breakpoint-sm) {
+    padding-left: $content-padding-inline-sm;
+    padding-right: $content-padding-inline-sm;
+  }
+
+  @media (min-width: $breakpoint-md) {
+    padding-left: $content-padding-inline-md;
+    padding-right: $content-padding-inline-md;
+  }
+}
+
+.brandWrapper {
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+  color: var(--color-text, #{$color-text});
+  cursor: pointer;
+
+  &:hover,
+  .navBar &:hover {
+    text-decoration: none;
+    color: var(--color-text, #{$color-text});
+    opacity: $opacity-hover;
+  }
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+  color: inherit;
+  margin: 0;
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  line-height: 1;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: $space-4;
+  min-width: 0;
+}
+
+.userLabel {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  display: none;
+
+  @include at-least-sm {
+    display: inline-block;
+  }
+}
+
+.chevron {
+  margin-left: $space-1;
+  font-size: $font-size-xs;
+  opacity: $opacity-muted;
+}
+
+.loginLink {
+  font-size: $font-size-sm;
+  color: var(--color-text, #{$color-text});
+}

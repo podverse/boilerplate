@@ -1,0 +1,12 @@
+@use '../../../styles/variables' as *;
+
+/**
+ * When type="form", content is constrained to form width ($input-max-width)
+ * so it aligns with FormContainer. Use for pages with multiple form sections.
+ */
+.form {
+  width: 100%;
+  max-width: $input-max-width;
+  min-width: 0;
+  box-sizing: border-box;
+}

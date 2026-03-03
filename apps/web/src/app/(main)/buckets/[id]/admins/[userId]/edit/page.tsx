@@ -1,7 +1,6 @@
 import { redirect, notFound } from 'next/navigation';
-import { getTranslations } from 'next-intl/server';
 import { request } from '@boilerplate/helpers-requests';
-import { Card, Container, Stack } from '@boilerplate/ui';
+import { Container, Stack } from '@boilerplate/ui';
 
 import { getServerUser } from '../../../../../../../lib/server-auth';
 import { getCookieHeader, getServerApiBaseUrl } from '../../../../../../../lib/server-request';
@@ -58,20 +57,17 @@ export default async function EditBucketAdminPage({
   const admin = admins.find((a) => a.user?.shortId === userId || a.userId === userId);
   if (admin === undefined) notFound();
 
-  const t = await getTranslations('buckets');
   return (
     <Container>
       <Stack>
-        <Card title={`${t('edit')} admin`}>
-          <EditBucketAdminForm
-            bucketId={bucketId}
-            userId={userId}
-            initialBucketCrud={admin.bucketCrud}
-            initialMessageCrud={admin.messageCrud}
-            successHref={`/buckets/${bucketId}/admins`}
-            cancelHref={`/buckets/${bucketId}/admins`}
-          />
-        </Card>
+        <EditBucketAdminForm
+          bucketId={bucketId}
+          userId={userId}
+          initialBucketCrud={admin.bucketCrud}
+          initialMessageCrud={admin.messageCrud}
+          successHref={`/buckets/${bucketId}/admins`}
+          cancelHref={`/buckets/${bucketId}/admins`}
+        />
       </Stack>
     </Container>
   );

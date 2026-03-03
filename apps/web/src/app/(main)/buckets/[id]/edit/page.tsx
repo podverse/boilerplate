@@ -1,6 +1,5 @@
 import { redirect, notFound } from 'next/navigation';
-import { getTranslations } from 'next-intl/server';
-import { Card, Container, Stack } from '@boilerplate/ui';
+import { Container, Stack } from '@boilerplate/ui';
 
 import { fetchBucket } from '../../../../../lib/buckets';
 import { getServerUser } from '../../../../../lib/server-auth';
@@ -20,7 +19,6 @@ export default async function BucketEditPage({ params }: { params: Promise<{ id:
     notFound();
   }
 
-  const t = await getTranslations('buckets');
   const forForm: BucketForForm = {
     id: bucket.id,
     name: bucket.name,
@@ -30,14 +28,12 @@ export default async function BucketEditPage({ params }: { params: Promise<{ id:
   return (
     <Container>
       <Stack>
-        <Card title={t('editTitle')}>
-          <BucketForm
-            mode="edit"
-            bucket={forForm}
-            successHref={bucketDetailRoute(id)}
-            cancelHref={bucketDetailRoute(id)}
-          />
-        </Card>
+        <BucketForm
+          mode="edit"
+          bucket={forForm}
+          successHref={bucketDetailRoute(id)}
+          cancelHref={bucketDetailRoute(id)}
+        />
       </Stack>
     </Container>
   );

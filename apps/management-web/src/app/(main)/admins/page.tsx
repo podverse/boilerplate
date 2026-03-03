@@ -2,10 +2,9 @@ import { redirect } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
 import { DEFAULT_PAGE_LIMIT } from '@boilerplate/helpers';
 import { request } from '@boilerplate/helpers-requests';
-import { Stack } from '@boilerplate/ui';
+import { FilterTablePageLayout, Stack } from '@boilerplate/ui';
 
 import { AdminsTableWithFilter } from '../../../components/AdminsTableWithFilter';
-import { ResourcePageCard } from '../../../components/ResourcePageCard';
 import { getServerUser } from '../../../lib/server-auth';
 import { getManagementApiBaseUrl } from '../../../config/env';
 import { getCrudFlags, hasReadPermission } from '../../../lib/main-nav';
@@ -121,7 +120,11 @@ export default async function AdminsPage({ searchParams }: PageProps) {
   if (search !== '') currentQueryParams.search = search;
 
   return (
-    <ResourcePageCard title={tCommon('admins')} error={error ?? undefined}>
+    <FilterTablePageLayout
+      title={tCommon('admins')}
+      error={error !== null ? error : undefined}
+      errorVariant="error"
+    >
       {error === null && (
         <Stack>
           <AdminsTableWithFilter
@@ -146,6 +149,6 @@ export default async function AdminsPage({ searchParams }: PageProps) {
           />
         </Stack>
       )}
-    </ResourcePageCard>
+    </FilterTablePageLayout>
   );
 }

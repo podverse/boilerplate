@@ -2,13 +2,13 @@
 
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
-import { AppHeader as UIAppHeader, AppTypeTitle } from '@boilerplate/ui';
+import { AppTypeTitle, NavBar as UINavBar } from '@boilerplate/ui';
 
 import { useAuth } from '../context/AuthContext';
 import { getRuntimeConfig } from '../config/runtime-config-store';
 import { ROUTES } from '../lib/routes';
 
-export function AppHeader({ appName }: { appName: string }) {
+export function NavBar({ appName }: { appName: string }) {
   const t = useTranslations('common');
   const { user, logout } = useAuth();
   const router = useRouter();
@@ -23,7 +23,7 @@ export function AppHeader({ appName }: { appName: string }) {
   const title = <AppTypeTitle appName={appName} titleIcon={titleIcon} />;
 
   return (
-    <UIAppHeader
+    <UINavBar
       title={title}
       homeHref={ROUTES.HOME}
       user={user}

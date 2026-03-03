@@ -2,7 +2,7 @@
 
 import { useTranslations } from 'next-intl';
 import { Button } from '../../Button';
-import { Card } from '../../../layout/Card';
+import { SectionWithHeading } from '../../../layout/SectionWithHeading';
 import { Input } from '../../Input';
 import { Text } from '../../../layout/Text';
 import { Form, FormLinks } from '../../Form';
@@ -35,13 +35,13 @@ export function ForgotPasswordForm({
   const t = useTranslations('ui.auth.forgotPassword');
   if (success) {
     return (
-      <Card title={t('successTitle')}>
+      <SectionWithHeading title={t('successTitle')}>
         <Text variant="success">{t('successMessage')}</Text>
         <FormLinks
           {...(LinkComponent !== undefined && { LinkComponent })}
           items={[{ href: loginHref, children: t('backToLogin') }]}
         />
-      </Card>
+      </SectionWithHeading>
     );
   }
 

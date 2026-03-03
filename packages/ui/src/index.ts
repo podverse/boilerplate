@@ -12,8 +12,6 @@ export type {
 } from './components/form/Form';
 export { FormContainer } from './components/form/FormContainer';
 export type { FormContainerProps } from './components/form/FormContainer';
-export { FormPage } from './components/layout/FormPage';
-export type { FormPageProps } from './components/layout/FormPage';
 export {
   ForgotPasswordForm,
   LoginForm,
@@ -26,12 +24,12 @@ export type {
   ResetPasswordFormProps,
   SignupFormProps,
 } from './components/form/AuthForms';
-export { AppHeader } from './components/navigation/AppHeader';
+export { NavBar } from './components/navigation/NavBar';
 export type {
-  AppHeaderLinkComponentProps,
-  AppHeaderProps,
-  AppHeaderUser,
-} from './components/navigation/AppHeader';
+  NavBarLinkComponentProps,
+  NavBarProps,
+  NavBarUser,
+} from './components/navigation/NavBar';
 export { AppTypeTitle } from './components/navigation/AppTypeTitle';
 export { Link } from './components/navigation/Link';
 export type { LinkProps } from './components/navigation/Link';
@@ -52,6 +50,10 @@ export { Divider } from './components/layout/Divider';
 export type { DividerProps } from './components/layout/Divider';
 export { PageHeader } from './components/layout/PageHeader';
 export type { PageHeaderProps } from './components/layout/PageHeader';
+export { FilterTablePageLayout } from './components/layout/FilterTablePageLayout';
+export type { FilterTablePageLayoutProps } from './components/layout/FilterTablePageLayout';
+export { ContentPageLayout } from './components/layout/ContentPageLayout';
+export type { ContentPageLayoutProps } from './components/layout/ContentPageLayout';
 export { Dropdown } from './components/navigation/Dropdown';
 export type { DropdownProps, DropdownItem } from './components/navigation/Dropdown';
 export { Input } from './components/form/Input';
@@ -66,6 +68,8 @@ export { Row } from './components/layout/Row';
 export type { RowProps } from './components/layout/Row';
 export { Stack } from './components/layout/Stack';
 export type { StackProps } from './components/layout/Stack';
+export { SectionWithHeading } from './components/layout/SectionWithHeading';
+export type { SectionWithHeadingProps } from './components/layout/SectionWithHeading';
 export { Text } from './components/layout/Text';
 export type { TextProps, TextSize, TextVariant } from './components/layout/Text';
 export {

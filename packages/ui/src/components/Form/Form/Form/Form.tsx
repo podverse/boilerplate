@@ -1,4 +1,4 @@
-import { Card } from '../../../layout/Card';
+import { SectionWithHeading } from '../../../layout/SectionWithHeading';
 import { Stack } from '../../../layout/Stack';
 import { SubmitError } from '../SubmitError';
 
@@ -11,13 +11,13 @@ export type FormProps = {
 
 export function Form({ title, onSubmit, submitError, children }: FormProps) {
   return (
-    <Card title={title}>
+    <SectionWithHeading title={title}>
       <form onSubmit={onSubmit}>
         <Stack>
           <SubmitError message={submitError} />
           {children}
         </Stack>
       </form>
-    </Card>
+    </SectionWithHeading>
   );
 }

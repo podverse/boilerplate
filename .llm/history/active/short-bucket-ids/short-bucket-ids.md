@@ -25,3 +25,14 @@ Implement the plan as specified, it is attached for your reference. Do NOT edit 
 - apps/api: bucketsController.ts, bucketAdminsController.ts, bucketMessagesController.ts (resolve by shortId, use bucket.id internally)
 - packages/helpers-requests: types/bucket-types.ts (shortId on Bucket, PublicBucket)
 - apps/web: buckets/page.tsx, buckets/[id]/page.tsx, buckets/[id]/admins/page.tsx (shortId in types, use shortId in route helpers)
+
+### Session 2 - 2026-03-03
+
+#### Prompt (Developer)
+404 not found when i visit http://localhost:4002/buckets/DkKipVUEqC/admins even tho i have confirmed http://localhost:4002/buckets/DkKipVUEqC loads
+
+#### Key Decisions
+- Bucket admins page was using a local `fetchBucket` that treated API response `res.data` as the bucket object; the API returns `{ bucket }`, so `res.data.id` was always undefined and the page always called `notFound()` (404). Fixed by using the shared `fetchBucket` from `lib/buckets`, which correctly reads `res.data.bucket`.
+
+#### Files Created/Modified
+- apps/web/src/app/(main)/buckets/[id]/admins/page.tsx (use fetchBucket from lib/buckets; remove duplicate Bucket type and local fetchBucket)

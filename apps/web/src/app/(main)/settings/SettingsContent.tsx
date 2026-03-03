@@ -4,10 +4,8 @@ import { useRouter } from 'next/navigation';
 import { useLocale, useTranslations } from 'next-intl';
 import { ALL_AVAILABLE_LOCALES, type Locale } from '@boilerplate/helpers';
 import {
-  Card,
-  Container,
+  ContentPageLayout,
   FormContainer,
-  Stack,
   Select,
   ThemeSelector,
   setSettingsCookie,
@@ -31,25 +29,19 @@ export function SettingsContent({ settingsCookieName }: SettingsContentProps) {
   }));
 
   return (
-    <Container>
-      <Stack>
-        <Card title={t('title')}>
-          <FormContainer onSubmit={(e) => e.preventDefault()}>
-            <Stack>
-              <ThemeSelector label={t('theme')} />
-              <Select
-                label={t('languages.language')}
-                options={localeOptions}
-                value={locale}
-                onChange={(value) => {
-                  setSettingsCookie(settingsCookieName, { locale: value });
-                  router.refresh();
-                }}
-              />
-            </Stack>
-          </FormContainer>
-        </Card>
-      </Stack>
-    </Container>
+    <ContentPageLayout title={t('title')}>
+      <FormContainer onSubmit={(e) => e.preventDefault()}>
+        <ThemeSelector label={t('theme')} />
+        <Select
+          label={t('languages.language')}
+          options={localeOptions}
+          value={locale}
+          onChange={(value) => {
+            setSettingsCookie(settingsCookieName, { locale: value });
+            router.refresh();
+          }}
+        />
+      </FormContainer>
+    </ContentPageLayout>
   );
 }

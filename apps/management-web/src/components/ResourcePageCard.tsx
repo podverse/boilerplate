@@ -1,4 +1,4 @@
-import { Card, Container, Stack, Text } from '@boilerplate/ui';
+import { Container, SectionWithHeading, Stack, Text } from '@boilerplate/ui';
 
 export type ResourcePageCardProps = {
   title: string;
@@ -11,14 +11,14 @@ export function ResourcePageCard({ title, error, children }: ResourcePageCardPro
   return (
     <Container>
       <Stack>
-        <Card title={title}>
+        <SectionWithHeading title={title}>
           {error !== undefined && error !== '' && (
             <Text variant="error" role="alert">
               {error}
             </Text>
           )}
           {children}
-        </Card>
+        </SectionWithHeading>
       </Stack>
     </Container>
   );

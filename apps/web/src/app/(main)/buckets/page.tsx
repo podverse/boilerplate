@@ -2,7 +2,7 @@ import { redirect } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
 import { request } from '@boilerplate/helpers-requests';
 import { BucketsTableWithFilter } from '../../../components/BucketsTableWithFilter';
-import { Card, Container, Stack, Text } from '@boilerplate/ui';
+import { FilterTablePageLayout } from '@boilerplate/ui';
 
 import { getServerUser } from '../../../lib/server-auth';
 import {
@@ -88,28 +88,26 @@ export default async function BucketsPage({ searchParams }: PageProps) {
   if (search !== '') currentQueryParams.search = search;
 
   return (
-    <Container>
-      <Stack>
-        <Card title={t('title')}>
-          {error !== null && <Text variant="muted">{t('failedToLoad')}</Text>}
-          {error === null && (
-            <BucketsTableWithFilter
-              tableRows={tableRows}
-              emptyMessage={buckets.length === 0 ? t('noBuckets') : undefined}
-              columns={columns}
-              initialFilterColumns={effectiveFilterColumns}
-              initialSearch={search}
-              basePath={ROUTES.BUCKETS}
-              currentQueryParams={currentQueryParams}
-              canView={true}
-              canUpdate={true}
-              canDelete={true}
-              apiBaseUrl={apiBaseUrl}
-              addBucketHref={ROUTES.BUCKETS_NEW}
-            />
-          )}
-        </Card>
-      </Stack>
-    </Container>
+    <FilterTablePageLayout
+      title={t('title')}
+      error={error !== null ? t('failedToLoad') : undefined}
+    >
+      {error === null && (
+        <BucketsTableWithFilter
+          tableRows={tableRows}
+          emptyMessage={buckets.length === 0 ? t('noBuckets') : undefined}
+          columns={columns}
+          initialFilterColumns={effectiveFilterColumns}
+          initialSearch={search}
+          basePath={ROUTES.BUCKETS}
+          currentQueryParams={currentQueryParams}
+          canView={true}
+          canUpdate={true}
+          canDelete={true}
+          apiBaseUrl={apiBaseUrl}
+          addBucketHref={ROUTES.BUCKETS_NEW}
+        />
+      )}
+    </FilterTablePageLayout>
   );
 }

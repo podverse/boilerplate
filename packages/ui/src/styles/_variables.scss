@@ -6,6 +6,7 @@ $color-text: #1a1a1a;
 $color-text-muted: #666;
 $color-bg: #fff;
 $color-border: #e0e0e0;
+$color-navbar-bg: #e8e8e8;
 $color-primary: #2563eb;
 $color-primary-hover: #1d4ed8;
 $color-on-primary: #fff;
@@ -111,3 +112,11 @@ $breakpoint-lg: 1280px;
 $breakpoint-sm-max-width: 767px;
 $breakpoint-md-max-width: 1023px;
 $breakpoint-lg-max-width: 1279px;
+
+// Content / navbar horizontal padding — shared by Container and NavBar so they align.
+$content-padding-inline: $space-4;
+$content-padding-inline-sm: $space-4;
+$content-padding-inline-md: $space-6;
+
+// Navbar height
+$navbar-height: 64px;

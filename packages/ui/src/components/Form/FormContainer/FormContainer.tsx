@@ -1,3 +1,5 @@
+import { Stack } from '../../layout/Stack';
+
 import styles from './FormContainer.module.scss';
 
 export type FormContainerProps = {
@@ -23,7 +25,7 @@ export function FormContainer({
 
   return (
     <form className={cls} onSubmit={onSubmit}>
-      {children}
+      <Stack>{children}</Stack>
     </form>
   );
 }

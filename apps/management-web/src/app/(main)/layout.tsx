@@ -1,7 +1,7 @@
 import { getTranslations } from 'next-intl/server';
 import { Main } from '@boilerplate/ui';
 
-import { AppHeader } from '../../components/AppHeader';
+import { NavBar } from '../../components/NavBar';
 import { getVisibleNavItems } from '../../lib/main-nav';
 import { ROUTES } from '../../lib/routes';
 import { getServerUser } from '../../lib/server-auth';
@@ -18,7 +18,7 @@ export default async function MainLayout({ children }: { children: React.ReactNo
 
   return (
     <>
-      <AppHeader mainNavItems={mainNavItems} />
+      <NavBar mainNavItems={mainNavItems} />
       <Main>{children}</Main>
     </>
   );

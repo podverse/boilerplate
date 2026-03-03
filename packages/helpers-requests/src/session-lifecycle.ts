@@ -22,14 +22,6 @@ export type SessionAuthApi = {
   logout(baseUrl: string): Promise<SessionAuthResponse>;
 };
 
-/**
- * How often (ms) to proactively refresh the session while the user is logged in.
- * Must be less than the API's access token expiry (e.g. JWT_ACCESS_EXPIRY_SECONDS).
- * 10 minutes gives a buffer before the access token expires.
- * Used by both web and management-web AuthContexts.
- */
-export const SESSION_REFRESH_INTERVAL_MS = 10 * 60 * 1000;
-
 export type HydrateSessionOptions<T> = {
   authApi: SessionAuthApi;
   baseUrl: string;
@@ -84,10 +76,12 @@ export type CreateSessionRefreshLoopOptions<T> = {
   parseUser: (data: unknown) => T | null;
   onSuccess: (user: T) => void;
   onFailure: () => void;
+  /** Refresh interval (ms). Required; must be less than API access token expiry (JWT_ACCESS_EXPIRY_SECONDS * 1000). */
+  refreshIntervalMs: number;
 };
 
 /**
- * Starts an interval that calls refresh every SESSION_REFRESH_INTERVAL_MS.
+ * Starts an interval that calls refresh every refreshIntervalMs.
  * On success and parsed user, calls onSuccess(user); otherwise calls onFailure()
  * (caller typically clears user, calls logout, redirects to login).
  * Returns a function that clears the interval (use as React useEffect cleanup).
@@ -95,7 +89,12 @@ export type CreateSessionRefreshLoopOptions<T> = {
 export function createSessionRefreshLoop<T>(
   options: CreateSessionRefreshLoopOptions<T>
 ): () => void {
-  const { getBaseUrl, authApi, parseUser, onSuccess, onFailure } = options;
+  const { getBaseUrl, authApi, parseUser, onSuccess, onFailure, refreshIntervalMs } = options;
+  if (refreshIntervalMs <= 0 || !Number.isFinite(refreshIntervalMs)) {
+    throw new Error(
+      'refreshIntervalMs is required and must be a positive number (ms), less than the API access token expiry in ms.'
+    );
+  }
   const interval = setInterval(async () => {
     const baseUrl = getBaseUrl();
     const refreshRes = await authApi.refresh(baseUrl);
@@ -107,6 +106,6 @@ export function createSessionRefreshLoop<T>(
       }
     }
     onFailure();
-  }, SESSION_REFRESH_INTERVAL_MS);
+  }, refreshIntervalMs);
   return () => clearInterval(interval);
 }

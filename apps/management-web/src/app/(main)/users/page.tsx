@@ -1,9 +1,8 @@
 import { redirect } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
 import { request } from '@boilerplate/helpers-requests';
-import { Stack } from '@boilerplate/ui';
+import { FilterTablePageLayout, Stack } from '@boilerplate/ui';
 
-import { ResourcePageCard } from '../../../components/ResourcePageCard';
 import { UsersTableWithFilter } from '../../../components/UsersTableWithFilter';
 import { getServerUser } from '../../../lib/server-auth';
 import { getManagementApiBaseUrl } from '../../../config/env';
@@ -94,9 +93,10 @@ export default async function UsersPage({ searchParams }: PageProps) {
   if (search !== '') currentQueryParams.search = search;
 
   return (
-    <ResourcePageCard
+    <FilterTablePageLayout
       title={tCommon('users')}
       error={error !== null ? tCommon('failedToLoadUsers') : undefined}
+      errorVariant="error"
     >
       {error === null && (
         <Stack>
@@ -116,6 +116,6 @@ export default async function UsersPage({ searchParams }: PageProps) {
           />
         </Stack>
       )}
-    </ResourcePageCard>
+    </FilterTablePageLayout>
   );
 }
