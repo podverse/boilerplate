@@ -14,7 +14,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
   ref
 ) {
   const generatedId = useId();
-  const id = idProp ?? `input-${generatedId.replace(/:/g, '')}`;
+  const id = idProp ?? `input-${generatedId}`;
   const hasError = Boolean(error);
 
   return (

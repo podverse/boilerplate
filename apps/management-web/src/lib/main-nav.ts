@@ -23,8 +23,8 @@ export type MainNavEntry = {
 export const MAIN_NAV_ENTRIES: MainNavEntry[] = [
   { href: ROUTES.DASHBOARD, labelKey: 'dashboard' },
   { href: ROUTES.ADMINS, labelKey: 'admins', readPermission: 'adminsCrud' },
-  { href: ROUTES.USERS, labelKey: 'users', readPermission: 'usersCrud' },
   { href: ROUTES.EVENTS, labelKey: 'events' },
+  { href: ROUTES.USERS, labelKey: 'users', readPermission: 'usersCrud' },
 ];
 
 /**

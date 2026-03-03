@@ -34,7 +34,7 @@ export function Select({
   ...props
 }: SelectProps) {
   const generatedId = useId();
-  const id = idProp ?? `select-${generatedId.replace(/:/g, '')}`;
+  const id = idProp ?? `select-${generatedId}`;
 
   const wrapperClassName = [
     styles.wrapper,
