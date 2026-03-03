@@ -1,5 +1,8 @@
 # Dependabot configuration – aligned with Podverse monorepo
-# Targets develop branch. Node LTS >= 24 only (even versions: 24, 26, 28...).
+# Targets develop branch.
+#
+# Node.js: we only care about LTS (even-numbered: 18, 20, 22, 24, 26...).
+# This repo uses Node >= 24; odd-numbered majors are non-LTS and are ignored.
 
 version: 2
 
@@ -18,10 +21,10 @@ updates:
       - "dependencies"
     commit-message:
       prefix: "chore(deps)"
-    # Node LTS >= 24 only: ignore pre-24 and odd (non-LTS) versions
+    # Only LTS (even) Node >= 24: ignore pre-24 and odd (non-LTS) versions
     ignore:
       - dependency-name: "@types/node"
-        versions: ["18.x", "19.x", "20.x", "21.x", "22.x", "23.x", "25.x", "27.x", "29.x"]
+        versions: ["18.x", "19.x", "20.x", "21.x", "22.x", "23.x", "25.x", "27.x", "29.x", "31.x"]
     groups:
       production-minor-patch:
         applies-to: version-updates
@@ -55,9 +58,10 @@ updates:
     labels:
       - "dependencies"
       - "docker"
+    # Only LTS (even) Node >= 24: ignore pre-24 and odd (non-LTS) versions
     ignore:
       - dependency-name: "node"
-        versions: ["18.x", "19.x", "20.x", "21.x", "22.x", "23.x", "25.x", "27.x", "29.x"]
+        versions: ["18.x", "19.x", "20.x", "21.x", "22.x", "23.x", "25.x", "27.x", "29.x", "31.x"]
 
   - package-ecosystem: "docker"
     directory: "/infra/docker/local/web"
@@ -67,9 +71,10 @@ updates:
     labels:
       - "dependencies"
       - "docker"
+    # Only LTS (even) Node >= 24: ignore pre-24 and odd (non-LTS) versions
     ignore:
       - dependency-name: "node"
-        versions: ["18.x", "19.x", "20.x", "21.x", "22.x", "23.x", "25.x", "27.x", "29.x"]
+        versions: ["18.x", "19.x", "20.x", "21.x", "22.x", "23.x", "25.x", "27.x", "29.x", "31.x"]
 
   - package-ecosystem: "docker"
     directory: "/infra/docker/local/web-sidecar"
@@ -79,9 +84,10 @@ updates:
     labels:
       - "dependencies"
       - "docker"
+    # Only LTS (even) Node >= 24: ignore pre-24 and odd (non-LTS) versions
     ignore:
       - dependency-name: "node"
-        versions: ["18.x", "19.x", "20.x", "21.x", "22.x", "23.x", "25.x", "27.x", "29.x"]
+        versions: ["18.x", "19.x", "20.x", "21.x", "22.x", "23.x", "25.x", "27.x", "29.x", "31.x"]
 
   - package-ecosystem: "docker"
     directory: "/infra/docker/local/management-api"
@@ -91,9 +97,10 @@ updates:
     labels:
       - "dependencies"
       - "docker"
+    # Only LTS (even) Node >= 24: ignore pre-24 and odd (non-LTS) versions
     ignore:
       - dependency-name: "node"
-        versions: ["18.x", "19.x", "20.x", "21.x", "22.x", "23.x", "25.x", "27.x", "29.x"]
+        versions: ["18.x", "19.x", "20.x", "21.x", "22.x", "23.x", "25.x", "27.x", "29.x", "31.x"]
 
   - package-ecosystem: "docker"
     directory: "/infra/docker/local/management-web"
@@ -103,9 +110,10 @@ updates:
     labels:
       - "dependencies"
       - "docker"
+    # Only LTS (even) Node >= 24: ignore pre-24 and odd (non-LTS) versions
     ignore:
       - dependency-name: "node"
-        versions: ["18.x", "19.x", "20.x", "21.x", "22.x", "23.x", "25.x", "27.x", "29.x"]
+        versions: ["18.x", "19.x", "20.x", "21.x", "22.x", "23.x", "25.x", "27.x", "29.x", "31.x"]
 
   # GitHub Actions
   - package-ecosystem: "github-actions"
