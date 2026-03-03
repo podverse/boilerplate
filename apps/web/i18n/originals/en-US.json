@@ -48,6 +48,7 @@
     "addBucket": "Add bucket",
     "noBuckets": "No buckets yet. Create one to get started.",
     "name": "Name",
+    "slug": "Slug",
     "isPublic": "Public",
     "publicTooltip": "Public buckets: all messages visible to everyone. Non-public: only you and bucket admins can see messages.",
     "publicYes": "Yes",
@@ -78,6 +79,19 @@
     "profile": "Profile",
     "settings": "Settings",
     "buckets": "Buckets",
+    "addBucket": "Add bucket",
+    "bucketsTable": {
+      "actions": "Actions",
+      "view": "View",
+      "edit": "Edit",
+      "delete": "Delete"
+    },
+    "confirmDeleteBucket": {
+      "message": "Are you sure you want to delete {name}? This cannot be undone.",
+      "fallbackName": "this bucket",
+      "cancel": "Cancel",
+      "delete": "Delete"
+    },
     "logout": "Logout",
     "logIn": "Log in",
     "signUp": "Sign up",
@@ -130,7 +144,8 @@
     "resetFailed": "Reset failed",
     "passwordsDoNotMatch": "Passwords do not match",
     "resetTokenRequired": "Reset token is required",
-    "loginFailed": "Login failed"
+    "loginFailed": "Login failed",
+    "deleteFailed": "Delete failed"
   },
   "ui": {
     "auth": {

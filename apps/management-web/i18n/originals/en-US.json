@@ -86,11 +86,14 @@
       "email": "Email",
       "displayName": "Display name",
       "actions": "Actions",
+      "view": "View",
       "edit": "Edit",
       "delete": "Delete"
     },
     "addAdmin": "Add Admin",
     "addAdminTitle": "Add Admin",
+    "viewAdminTitle": "View Admin: {name}",
+    "viewAdminSuperAdminNote": "This is the super admin account. Permissions cannot be changed.",
     "editAdminTitle": "Edit Admin: {name}",
     "adminForm": {
       "displayName": "Display name",
@@ -139,11 +142,13 @@
       "visibilityYes": "Yes",
       "visibilityNo": "No",
       "actions": "Actions",
+      "view": "View",
       "edit": "Edit",
       "delete": "Delete"
     },
     "addUser": "Add User",
     "addUserTitle": "Add User",
+    "viewUserTitle": "View User: {name}",
     "editUserTitle": "Edit User: {name}",
     "userForm": {
       "email": "Email",

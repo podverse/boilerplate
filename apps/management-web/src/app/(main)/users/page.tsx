@@ -108,6 +108,7 @@ export default async function UsersPage({ searchParams }: PageProps) {
             initialSearch={search}
             basePath={ROUTES.USERS}
             currentQueryParams={currentQueryParams}
+            canViewUser={crud.read}
             canUpdateUser={crud.update}
             canDeleteUser={crud.delete}
             userApiBaseUrl={apiBaseUrl}

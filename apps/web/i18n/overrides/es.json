@@ -48,6 +48,7 @@
     "addBucket": "",
     "noBuckets": "",
     "name": "",
+    "slug": "",
     "isPublic": "",
     "publicTooltip": "",
     "publicYes": "",
@@ -78,6 +79,18 @@
     "profile": "",
     "settings": "",
     "buckets": "",
+    "bucketsTable": {
+      "actions": "",
+      "view": "",
+      "edit": "",
+      "delete": ""
+    },
+    "confirmDeleteBucket": {
+      "message": "",
+      "fallbackName": "",
+      "cancel": "",
+      "delete": ""
+    },
     "logout": "",
     "logIn": "",
     "signUp": "",
@@ -130,7 +143,8 @@
     "resetFailed": "",
     "passwordsDoNotMatch": "",
     "resetTokenRequired": "",
-    "loginFailed": ""
+    "loginFailed": "",
+    "deleteFailed": ""
   },
   "ui": {
     "auth": {

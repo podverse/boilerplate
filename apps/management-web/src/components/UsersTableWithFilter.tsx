@@ -1,10 +1,10 @@
 'use client';
 
 import { managementWebUsers } from '@boilerplate/helpers-requests';
+import { ResourceTableWithFilter, type FilterableTableRow } from '@boilerplate/ui';
 import type { TableFilterBarColumn } from '@boilerplate/ui';
 
-import { userEditRoute } from '../lib/routes';
-import { ResourceTableWithFilter, type FilterableTableRow } from './ResourceTableWithFilter';
+import { userEditRoute, userViewRoute } from '../lib/routes';
 
 export type { FilterableTableRow };
 
@@ -16,6 +16,7 @@ export type UsersTableWithFilterProps = {
   initialSearch: string;
   basePath: string;
   currentQueryParams: Record<string, string>;
+  canViewUser: boolean;
   canUpdateUser: boolean;
   canDeleteUser: boolean;
   userApiBaseUrl: string;
@@ -30,6 +31,7 @@ export function UsersTableWithFilter({
   initialSearch,
   basePath,
   currentQueryParams,
+  canViewUser,
   canUpdateUser,
   canDeleteUser,
   userApiBaseUrl,
@@ -44,6 +46,9 @@ export function UsersTableWithFilter({
       initialSearch={initialSearch}
       basePath={basePath}
       currentQueryParams={currentQueryParams}
+      viewRoute={userViewRoute}
+      viewLabelKey="usersTable.view"
+      canView={canViewUser}
       editRoute={userEditRoute}
       onDelete={(baseUrl, id) => managementWebUsers.deleteUser(baseUrl, id)}
       addHref={addUserHref}

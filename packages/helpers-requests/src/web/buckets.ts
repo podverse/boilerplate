@@ -47,14 +47,10 @@ export async function reqFetchBucketMessages(
   bucketId: string,
   cookieHeader: string
 ): Promise<ApiResponse<{ messages?: BucketMessage[] }>> {
-  return request<{ messages?: BucketMessage[] }>(
-    baseUrl,
-    `/buckets/${bucketId}/messages`,
-    {
-      headers: { Cookie: cookieHeader },
-      ...SERVER_OPTIONS,
-    }
-  );
+  return request<{ messages?: BucketMessage[] }>(baseUrl, `/buckets/${bucketId}/messages`, {
+    headers: { Cookie: cookieHeader },
+    ...SERVER_OPTIONS,
+  });
 }
 
 /**
@@ -81,6 +77,25 @@ export async function reqFetchPublicBucketMessages(
     `/buckets/public/${bucketId}/messages`,
     { ...SERVER_OPTIONS }
   );
+}
+
+/**
+ * DELETE /buckets/:id (authenticated). Deletes a bucket. Use from client with credentials.
+ */
+export async function reqDeleteBucket(
+  baseUrl: string,
+  bucketId: string,
+  cookieHeader?: string
+): Promise<ApiResponse<void>> {
+  const options: { method: string; headers?: { Cookie: string }; cache?: RequestCache } = {
+    method: 'DELETE',
+    ...SERVER_OPTIONS,
+  };
+  if (cookieHeader !== undefined && cookieHeader !== '') {
+    options.headers = { Cookie: cookieHeader };
+  }
+  const res = await request<void>(baseUrl, `/buckets/${bucketId}`, options);
+  return res;
 }
 
 /**

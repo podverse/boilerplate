@@ -1,0 +1,95 @@
+import Link from 'next/link';
+import { notFound, redirect } from 'next/navigation';
+import { getTranslations } from 'next-intl/server';
+import { request } from '@boilerplate/helpers-requests';
+import { Button, Stack, Text } from '@boilerplate/ui';
+
+import { ResourcePageCard } from '../../../../components/ResourcePageCard';
+
+import { getServerUser } from '../../../../lib/server-auth';
+import { getManagementApiBaseUrl } from '../../../../config/env';
+import { getCrudFlags, hasReadPermission } from '../../../../lib/main-nav';
+import { ROUTES, userEditRoute } from '../../../../lib/routes';
+import { getCookieHeader } from '../../../../lib/server-request';
+import type { MainAppUser } from '../../../../types/management-api';
+
+type ViewUserPageProps = {
+  params: Promise<{ id: string }>;
+};
+
+async function fetchUser(id: string): Promise<{ user: MainAppUser } | null> {
+  const cookieHeader = await getCookieHeader();
+  const baseUrl = getManagementApiBaseUrl();
+  try {
+    const res = await request(baseUrl, `/users/${id}`, {
+      headers: { Cookie: cookieHeader },
+      cache: 'no-store',
+    });
+    if (!res.ok || res.data === undefined) return null;
+    const data = res.data as { user?: MainAppUser };
+    if (data.user === undefined) return null;
+    return { user: data.user };
+  } catch {
+    return null;
+  }
+}
+
+export default async function ViewUserPage({ params }: ViewUserPageProps) {
+  const user = await getServerUser();
+
+  if (user === null) {
+    redirect(ROUTES.LOGIN);
+  }
+
+  const canReadUsers =
+    user.isSuperAdmin === true || hasReadPermission(user.permissions, 'usersCrud');
+  if (!canReadUsers) {
+    redirect(ROUTES.USERS);
+  }
+
+  const { id } = await params;
+  const result = await fetchUser(id);
+  if (result === null) {
+    notFound();
+  }
+
+  const mainUser = result.user;
+  const crud = getCrudFlags(user.isSuperAdmin === true, user.permissions, 'usersCrud');
+
+  const tCommon = await getTranslations('common');
+
+  return (
+    <ResourcePageCard
+      title={tCommon('viewUserTitle', { name: mainUser.displayName ?? mainUser.email })}
+    >
+      <Stack>
+        <Text>
+          <strong>{tCommon('usersTable.email')}:</strong> {mainUser.email}
+        </Text>
+        <Text>
+          <strong>{tCommon('usersTable.displayName')}:</strong> {mainUser.displayName ?? '—'}
+        </Text>
+        <Text>
+          <strong>{tCommon('usersTable.profileVisibility')}:</strong>{' '}
+          {mainUser.profileVisibility
+            ? tCommon('usersTable.visibilityYes')
+            : tCommon('usersTable.visibilityNo')}
+        </Text>
+        <Stack>
+          {crud.update && (
+            <Link href={userEditRoute(id)}>
+              <Button type="button" variant="primary">
+                {tCommon('usersTable.edit')}
+              </Button>
+            </Link>
+          )}
+          <Link href={ROUTES.USERS}>
+            <Button type="button" variant="secondary">
+              {tCommon('adminForm.cancel')}
+            </Button>
+          </Link>
+        </Stack>
+      </Stack>
+    </ResourcePageCard>
+  );
+}

@@ -1,15 +1,16 @@
 'use client';
 
+import { useRouter } from 'next/navigation';
 import { managementWebAdmins } from '@boilerplate/helpers-requests';
-import type { TableFilterBarColumn } from '@boilerplate/ui';
-
-import { useAuth } from '../context/AuthContext';
-import { adminEditRoute } from '../lib/routes';
 import {
   ResourceTableWithFilter,
   type FilterableTableRow,
   type ResourceTableWithFilterPagination,
-} from './ResourceTableWithFilter';
+} from '@boilerplate/ui';
+import type { TableFilterBarColumn } from '@boilerplate/ui';
+
+import { useAuth } from '../context/AuthContext';
+import { adminEditRoute, adminViewRoute, ROUTES } from '../lib/routes';
 
 export type { FilterableTableRow };
 
@@ -26,6 +27,7 @@ export type AdminsTableWithFilterProps = {
   limit: number;
   defaultLimit: number;
   maxGoToPage?: number;
+  canViewAdmin: boolean;
   canUpdateAdmin: boolean;
   canDeleteAdmin: boolean;
   adminApiBaseUrl: string;
@@ -46,12 +48,14 @@ export function AdminsTableWithFilter({
   limit,
   defaultLimit,
   maxGoToPage,
+  canViewAdmin,
   canUpdateAdmin,
   canDeleteAdmin,
   adminApiBaseUrl,
   addAdminHref,
   currentUserId,
 }: AdminsTableWithFilterProps) {
+  const router = useRouter();
   const { logout } = useAuth();
 
   const pagination: ResourceTableWithFilterPagination = {
@@ -62,14 +66,21 @@ export function AdminsTableWithFilter({
     maxGoToPage,
   };
 
-  const getRowActions = (row: FilterableTableRow): { canUpdate: boolean; canDelete: boolean } => {
+  const getRowActions = (
+    row: FilterableTableRow
+  ): { canView: boolean; canUpdate: boolean; canDelete: boolean } => {
     if (row.isSuperAdmin === true) {
       return {
+        canView: canViewAdmin,
         canUpdate: currentUserId !== undefined && row.id === currentUserId,
         canDelete: false,
       };
     }
-    return { canUpdate: canUpdateAdmin, canDelete: canDeleteAdmin };
+    return {
+      canView: canViewAdmin,
+      canUpdate: canUpdateAdmin,
+      canDelete: canDeleteAdmin,
+    };
   };
 
   return (
@@ -81,6 +92,9 @@ export function AdminsTableWithFilter({
       initialSearch={initialSearch}
       basePath={basePath}
       currentQueryParams={currentQueryParams}
+      viewRoute={adminViewRoute}
+      viewLabelKey="adminsTable.view"
+      canView={canViewAdmin}
       editRoute={adminEditRoute}
       onDelete={(baseUrl, id) => managementWebAdmins.deleteAdmin(baseUrl, id)}
       addHref={addAdminHref}
@@ -98,6 +112,7 @@ export function AdminsTableWithFilter({
       currentUserId={currentUserId}
       onSelfDelete={async () => {
         logout();
+        router.push(ROUTES.LOGIN);
       }}
       searchSyncParams={{ page: '1' }}
     />

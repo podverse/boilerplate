@@ -137,6 +137,7 @@ export default async function AdminsPage({ searchParams }: PageProps) {
             limit={limit}
             defaultLimit={DEFAULT_PAGE_LIMIT}
             maxGoToPage={500}
+            canViewAdmin={crud.read}
             canUpdateAdmin={crud.update}
             canDeleteAdmin={crud.delete}
             adminApiBaseUrl={apiBaseUrl}

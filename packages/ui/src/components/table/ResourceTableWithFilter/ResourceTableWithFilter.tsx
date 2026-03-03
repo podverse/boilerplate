@@ -3,18 +3,21 @@
 import { useMemo } from 'react';
 import { useTranslations } from 'next-intl';
 import Link from 'next/link';
-import { Button, Pagination, Table, TableFilterBar, Text } from '@boilerplate/ui';
-import type { TableFilterBarColumn } from '@boilerplate/ui';
 
-import { useDeleteModal } from '../hooks/useDeleteModal';
-import { filterRows, useTableFilterState } from '../hooks/useTableFilterState';
-import { ConfirmDeleteModal } from './ConfirmDeleteModal';
+import { Button } from '../../form/Button';
+import { Text } from '../../layout/Text';
+import { Pagination } from '../../navigation/Pagination';
+import { ConfirmDeleteModal } from '../../modal/ConfirmDeleteModal/ConfirmDeleteModal';
+import { Table } from '../Table';
+import { TableFilterBar, type TableFilterBarColumn } from '../TableFilterBar';
+import { useDeleteModal } from '../../../hooks/useDeleteModal';
+import { filterRows, useTableFilterState } from '../../../hooks/useTableFilterState';
+
 import styles from './ResourceTableWithFilter.module.scss';
 
 export type FilterableTableRow = {
   id: string;
   cells: Record<string, string>;
-  /** When true, row is the super admin (admins table only). Used for per-row Edit/Delete. */
   isSuperAdmin?: boolean;
 };
 
@@ -34,6 +37,9 @@ export type ResourceTableWithFilterProps = {
   initialSearch: string;
   basePath: string;
   currentQueryParams: Record<string, string>;
+  viewRoute?: (id: string) => string;
+  viewLabelKey?: string;
+  canView?: boolean;
   editRoute: (id: string) => string;
   onDelete: (
     baseUrl: string,
@@ -49,8 +55,11 @@ export type ResourceTableWithFilterProps = {
   deleteLabelKey: string;
   canUpdate: boolean;
   canDelete: boolean;
-  /** When provided, overrides canUpdate/canDelete per row (e.g. hide Delete for super admin). */
-  getRowActions?: (row: FilterableTableRow) => { canUpdate: boolean; canDelete: boolean };
+  getRowActions?: (row: FilterableTableRow) => {
+    canView?: boolean;
+    canUpdate: boolean;
+    canDelete: boolean;
+  };
   apiBaseUrl: string;
   confirmDeleteTranslationKeyPrefix: string;
   getDisplayName: (row: FilterableTableRow) => string;
@@ -68,6 +77,9 @@ export function ResourceTableWithFilter({
   initialSearch,
   basePath,
   currentQueryParams,
+  viewRoute,
+  viewLabelKey,
+  canView = false,
   editRoute,
   onDelete,
   addHref,
@@ -142,16 +154,27 @@ export function ResourceTableWithFilter({
   const rowsToShow =
     initialSearch.trim() !== '' ? tableRows : filterRows(tableRows, filter, selectedColumnIds);
 
-  const getActions = (row: FilterableTableRow): { canUpdate: boolean; canDelete: boolean } =>
-    getRowActions !== undefined ? getRowActions(row) : { canUpdate, canDelete };
+  const getActions = (
+    row: FilterableTableRow
+  ): { canView: boolean; canUpdate: boolean; canDelete: boolean } => {
+    if (getRowActions !== undefined) {
+      const a = getRowActions(row);
+      return {
+        canView: a.canView ?? canView,
+        canUpdate: a.canUpdate,
+        canDelete: a.canDelete,
+      };
+    }
+    return { canView, canUpdate, canDelete };
+  };
 
   const showActions =
     getRowActions !== undefined
       ? rowsToShow.some((row) => {
           const a = getActions(row);
-          return a.canUpdate || a.canDelete;
+          return a.canView || a.canUpdate || a.canDelete;
         })
-      : canUpdate || canDelete;
+      : canView || canUpdate || canDelete;
 
   return (
     <>
@@ -197,12 +220,32 @@ export function ResourceTableWithFilter({
               const rowActions = getActions(row);
               return (
                 <Table.Row key={row.id}>
-                  {columns.map((col) => (
-                    <Table.Cell key={col.id}>{row.cells[col.id] ?? '—'}</Table.Cell>
-                  ))}
+                  {columns.map((col) => {
+                    const cellContent = row.cells[col.id] ?? '—';
+                    const canViewRow =
+                      rowActions.canView && viewRoute !== undefined && viewLabelKey !== undefined;
+                    return (
+                      <Table.Cell key={col.id}>
+                        {canViewRow ? (
+                          <Link href={viewRoute(row.id)} className={styles.cellLink} tabIndex={0}>
+                            {cellContent}
+                          </Link>
+                        ) : (
+                          cellContent
+                        )}
+                      </Table.Cell>
+                    );
+                  })}
                   {showActions && (
                     <Table.Cell>
                       <div className={styles.actionsCell}>
+                        {rowActions.canView &&
+                          viewRoute !== undefined &&
+                          viewLabelKey !== undefined && (
+                            <Link href={viewRoute(row.id)} className={styles.editLink}>
+                              {tCommon(viewLabelKey)}
+                            </Link>
+                          )}
                         {rowActions.canUpdate && (
                           <Link href={editRoute(row.id)} className={styles.editLink}>
                             {tCommon(editLabelKey)}

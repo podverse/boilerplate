@@ -48,6 +48,7 @@
     "addBucket": "Añadir cubo",
     "noBuckets": "Aún no hay cubos. Crea uno para empezar.",
     "name": "Nombre",
+    "slug": "Slug",
     "isPublic": "Público",
     "publicTooltip": "Cubos públicos: todos los mensajes visibles para todos. No públicos: solo tú y los administradores del cubo podéis ver los mensajes.",
     "publicYes": "Sí",
@@ -78,6 +79,19 @@
     "profile": "Perfil",
     "settings": "Ajustes",
     "buckets": "Cubos",
+    "addBucket": "Añadir cubo",
+    "bucketsTable": {
+      "actions": "Acciones",
+      "view": "Ver",
+      "edit": "Editar",
+      "delete": "Eliminar"
+    },
+    "confirmDeleteBucket": {
+      "message": "¿Seguro que quieres eliminar {name}? Esta acción no se puede deshacer.",
+      "fallbackName": "este cubo",
+      "cancel": "Cancelar",
+      "delete": "Eliminar"
+    },
     "logout": "Cerrar sesión",
     "logIn": "Iniciar sesión",
     "signUp": "Registrarse",
@@ -130,7 +144,8 @@
     "resetFailed": "Error al restablecer",
     "passwordsDoNotMatch": "Las contraseñas no coinciden",
     "resetTokenRequired": "Se requiere el token de restablecimiento",
-    "loginFailed": "Error al iniciar sesión"
+    "loginFailed": "Error al iniciar sesión",
+    "deleteFailed": "Error al eliminar"
   },
   "ui": {
     "auth": {

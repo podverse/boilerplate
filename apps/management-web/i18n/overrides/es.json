@@ -85,11 +85,14 @@
       "email": "",
       "displayName": "",
       "actions": "",
+      "view": "",
       "edit": "",
       "delete": ""
     },
     "addAdmin": "",
     "addAdminTitle": "",
+    "viewAdminTitle": "",
+    "viewAdminSuperAdminNote": "",
     "editAdminTitle": "",
     "adminForm": {
       "displayName": "",
@@ -138,11 +141,13 @@
       "visibilityYes": "",
       "visibilityNo": "",
       "actions": "",
+      "view": "",
       "edit": "",
       "delete": ""
     },
     "addUser": "",
     "addUserTitle": "",
+    "viewUserTitle": "",
     "editUserTitle": "",
     "userForm": {
       "email": "",

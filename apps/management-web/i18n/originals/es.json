@@ -85,11 +85,14 @@
       "email": "Correo electrónico",
       "displayName": "Nombre para mostrar",
       "actions": "Acciones",
+      "view": "Ver",
       "edit": "Editar",
       "delete": "Eliminar"
     },
     "addAdmin": "Añadir administrador",
     "addAdminTitle": "Añadir administrador",
+    "viewAdminTitle": "Ver administrador: {name}",
+    "viewAdminSuperAdminNote": "Esta es la cuenta super administrador. Los permisos no se pueden cambiar.",
     "editAdminTitle": "Editar administrador: {name}",
     "adminForm": {
       "displayName": "Nombre para mostrar",
@@ -138,11 +141,13 @@
       "visibilityYes": "Sí",
       "visibilityNo": "No",
       "actions": "Acciones",
+      "view": "Ver",
       "edit": "Editar",
       "delete": "Eliminar"
     },
     "addUser": "Añadir usuario",
     "addUserTitle": "Añadir usuario",
+    "viewUserTitle": "Ver usuario: {name}",
     "editUserTitle": "Editar usuario: {name}",
     "userForm": {
       "email": "Correo electrónico",

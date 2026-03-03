@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
-import { PUBLIC_PATHS, ROUTES } from './lib/routes';
+import { isPublicPath, ROUTES } from './lib/routes';
 
 const SESSION_COOKIE_NAME = 'session';
 const REFRESH_COOKIE_NAME = 'refresh';
@@ -102,7 +102,7 @@ export async function proxy(request: NextRequest) {
 
   const { response, hasRestoredSession } = await trySessionRestore(request);
   const hasSession = request.cookies.has(SESSION_COOKIE_NAME) || hasRestoredSession;
-  const isPublic = PUBLIC_PATHS.includes(pathname);
+  const isPublic = isPublicPath(pathname);
 
   // Protected route without session -> redirect to login
   if (!isPublic && !hasSession) {

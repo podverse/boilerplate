@@ -1,12 +1,16 @@
 import { redirect } from 'next/navigation';
-import Link from 'next/link';
 import { getTranslations } from 'next-intl/server';
 import { request } from '@boilerplate/helpers-requests';
-import { Button, Card, Container, Stack, Text } from '@boilerplate/ui';
+import { BucketsTableWithFilter } from '../../../components/BucketsTableWithFilter';
+import { Card, Container, Stack, Text } from '@boilerplate/ui';
 
 import { getServerUser } from '../../../lib/server-auth';
-import { getCookieHeader, getServerApiBaseUrl } from '../../../lib/server-request';
-import { ROUTES, bucketDetailRoute, bucketEditRoute } from '../../../lib/routes';
+import {
+  getCookieHeader,
+  getServerApiBaseUrl,
+  parseFilterColumns,
+} from '../../../lib/server-request';
+import { ROUTES } from '../../../lib/routes';
 
 export type Bucket = {
   id: string;
@@ -43,64 +47,66 @@ async function fetchBuckets(): Promise<{ data: BucketsResponse | null; error: st
   }
 }
 
-export default async function BucketsPage() {
+type PageProps = {
+  searchParams?: Promise<{ filterColumns?: string; search?: string }>;
+};
+
+export default async function BucketsPage({ searchParams }: PageProps) {
   const user = await getServerUser();
   if (user === null) {
     redirect(ROUTES.LOGIN);
   }
 
   const t = await getTranslations('buckets');
+  const resolved = searchParams !== undefined ? await searchParams : {};
+  const bucketColumnIds = ['name', 'slug', 'isPublic'];
+  const effectiveFilterColumns = parseFilterColumns(resolved, bucketColumnIds);
+  const search = resolved.search ?? '';
+
   const { data, error } = await fetchBuckets();
   const buckets = data?.buckets ?? [];
+  const apiBaseUrl = getServerApiBaseUrl();
+
+  const tableRows = buckets.map((b) => ({
+    id: b.shortId,
+    cells: {
+      name: b.name,
+      slug: (b.slug ?? '').trim() || '—',
+      isPublic: b.isPublic ? t('publicYes') : t('publicNo'),
+    },
+  }));
+
+  const columns = [
+    { id: 'name', label: t('name') },
+    { id: 'slug', label: t('slug') },
+    { id: 'isPublic', label: t('isPublic') },
+  ];
+
+  const currentQueryParams: Record<string, string> = {};
+  if ((resolved.filterColumns ?? '').trim() !== '')
+    currentQueryParams.filterColumns = resolved.filterColumns ?? '';
+  if (search !== '') currentQueryParams.search = search;
 
   return (
     <Container>
       <Stack>
         <Card title={t('title')}>
-          <div style={{ marginBottom: '1rem' }}>
-            <Link href={ROUTES.BUCKETS_NEW}>
-              <Button variant="primary">{t('addBucket')}</Button>
-            </Link>
-          </div>
           {error !== null && <Text variant="muted">{t('failedToLoad')}</Text>}
-          {error === null && buckets.length === 0 && <Text variant="muted">{t('noBuckets')}</Text>}
-          {error === null && buckets.length > 0 && (
-            <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
-              {buckets.map((b) => (
-                <li
-                  key={b.id}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    padding: '0.75rem 0',
-                    borderBottom: '1px solid var(--pv-color-border, #eee)',
-                  }}
-                >
-                  <div>
-                    <Link
-                      href={bucketDetailRoute(b.shortId)}
-                      style={{ fontWeight: 600, textDecoration: 'none' }}
-                    >
-                      {b.name}
-                    </Link>
-                    <Text variant="muted" style={{ marginLeft: '0.5rem' }}>
-                      {[
-                        b.slug?.trim(),
-                        `${t('isPublic')}: ${b.isPublic ? t('publicYes') : t('publicNo')}`,
-                      ]
-                        .filter(Boolean)
-                        .join(', ')}
-                    </Text>
-                  </div>
-                  <div style={{ display: 'flex', gap: '0.5rem' }}>
-                    <Link href={bucketEditRoute(b.shortId)}>
-                      <Button variant="secondary">{t('edit')}</Button>
-                    </Link>
-                  </div>
-                </li>
-              ))}
-            </ul>
+          {error === null && (
+            <BucketsTableWithFilter
+              tableRows={tableRows}
+              emptyMessage={buckets.length === 0 ? t('noBuckets') : undefined}
+              columns={columns}
+              initialFilterColumns={effectiveFilterColumns}
+              initialSearch={search}
+              basePath={ROUTES.BUCKETS}
+              currentQueryParams={currentQueryParams}
+              canView={true}
+              canUpdate={true}
+              canDelete={true}
+              apiBaseUrl={apiBaseUrl}
+              addBucketHref={ROUTES.BUCKETS_NEW}
+            />
           )}
         </Card>
       </Stack>

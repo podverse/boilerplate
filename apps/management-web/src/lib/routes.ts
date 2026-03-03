@@ -14,8 +14,16 @@ export const ROUTES = {
   USERS_NEW: '/users/new',
 } as const;
 
+export function adminViewRoute(id: string): string {
+  return `/admins/${id}`;
+}
+
 export function adminEditRoute(id: string): string {
   return `/admins/${id}/edit`;
+}
+
+export function userViewRoute(id: string): string {
+  return `/users/${id}`;
 }
 
 export function userEditRoute(id: string): string {

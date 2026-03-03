@@ -3,8 +3,6 @@
 import { useCallback, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
-import { ROUTES } from '../lib/routes';
-
 export type DeleteTarget = { id: string; displayName: string };
 
 export type UseDeleteModalOptions = {
@@ -14,6 +12,7 @@ export type UseDeleteModalOptions = {
   deleteFailedMessage: string;
   /** When set, if deleted id matches currentUserId, onSelfDelete is called instead of refresh. */
   currentUserId?: string;
+  /** When deleting self, called after success; app should redirect (e.g. to login) inside this. */
   onSelfDelete?: () => Promise<void>;
 };
 
@@ -43,7 +42,6 @@ export function useDeleteModal({
         deleteTarget.id === currentUserId
       ) {
         await onSelfDelete();
-        router.push(ROUTES.LOGIN);
       } else {
         router.refresh();
       }

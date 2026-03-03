@@ -1,4 +1,4 @@
-@use '@boilerplate/ui/styles/variables' as *;
+@use '../../../styles/variables' as *;
 
 .filterRow {
   margin-bottom: $space-3;
@@ -55,4 +55,15 @@
 
 .deleteError {
   margin-bottom: $space-2;
+}
+
+.cellLink {
+  color: inherit;
+  text-decoration: none;
+  display: block;
+  width: 100%;
+
+  &:hover {
+    text-decoration: underline;
+  }
 }

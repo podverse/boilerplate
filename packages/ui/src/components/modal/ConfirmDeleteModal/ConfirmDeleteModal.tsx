@@ -1,14 +1,16 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { Button, Modal } from '@boilerplate/ui';
+
+import { Button } from '../../form/Button';
+import { Modal } from '../Modal';
 
 import styles from './ConfirmDeleteModal.module.scss';
 
 export type ConfirmDeleteModalProps = {
   open: boolean;
   displayName: string;
-  /** e.g. 'common.confirmDeleteAdmin' or 'common.confirmDeleteUser'. Must provide message, fallbackName, cancel, delete. */
+  /** e.g. 'common.confirmDeleteBucket'. Must provide message, fallbackName, cancel, delete. */
   translationKeyPrefix: string;
   onConfirm: () => void;
   onCancel: () => void;

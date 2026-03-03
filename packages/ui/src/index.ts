@@ -93,6 +93,8 @@ export { InfoIcon } from './components/feedback/InfoIcon';
 export type { InfoIconProps } from './components/feedback/InfoIcon';
 export { Modal, NavigationLoadingOverlay, RateLimitModal } from './components/modal/Modal';
 export type { ModalProps, RateLimitModalProps } from './components/modal/Modal';
+export { ConfirmDeleteModal } from './components/modal/ConfirmDeleteModal/ConfirmDeleteModal';
+export type { ConfirmDeleteModalProps } from './components/modal/ConfirmDeleteModal/ConfirmDeleteModal';
 export { Table } from './components/table/Table';
 export type {
   TableProps,
@@ -106,7 +108,17 @@ export type {
 export { TableFilterBar } from './components/table/TableFilterBar';
 export type { TableFilterBarColumn, TableFilterBarProps } from './components/table/TableFilterBar';
 export { TableWithFilter } from './components/table/TableWithFilter';
-export type { FilterableTableRow, TableWithFilterProps } from './components/table/TableWithFilter';
+export type { TableWithFilterProps } from './components/table/TableWithFilter';
+export { ResourceTableWithFilter } from './components/table/ResourceTableWithFilter/ResourceTableWithFilter';
+export type {
+  FilterableTableRow,
+  ResourceTableWithFilterPagination,
+  ResourceTableWithFilterProps,
+} from './components/table/ResourceTableWithFilter/ResourceTableWithFilter';
+export { useDeleteModal } from './hooks/useDeleteModal';
+export type { DeleteTarget, UseDeleteModalOptions } from './hooks/useDeleteModal';
+export { filterRows, useTableFilterState } from './hooks/useTableFilterState';
+export type { UseTableFilterStateOptions } from './hooks/useTableFilterState';
 export { Pagination, GoToPageModal } from './components/navigation/Pagination';
 export type { PaginationProps, GoToPageModalProps } from './components/navigation/Pagination';
 export { NavigationProvider, useNavigationContext } from './contexts/NavigationContext';
