@@ -32,7 +32,14 @@ export function ContentPageLayout({
   type,
   children,
 }: ContentPageLayoutProps) {
-  const content = type === 'form' ? <div className={styles.form}>{children}</div> : children;
+  const content =
+    type === 'form' ? (
+      <div className={styles.form}>
+        <Stack>{children}</Stack>
+      </div>
+    ) : (
+      <Stack>{children}</Stack>
+    );
   return (
     <Container>
       <Stack>
