@@ -4,6 +4,7 @@ import { useTranslations } from 'next-intl';
 import { Button } from '../../Button';
 import { Card } from '../../../layout/Card';
 import { Input } from '../../Input';
+import { Text } from '../../../layout/Text';
 import { Form, FormLinks } from '../../Form';
 import type { FormLinkComponent } from '../../Form';
 
@@ -35,7 +36,7 @@ export function ForgotPasswordForm({
   if (success) {
     return (
       <Card title={t('successTitle')}>
-        <p>{t('successMessage')}</p>
+        <Text variant="success">{t('successMessage')}</Text>
         <FormLinks
           {...(LinkComponent !== undefined && { LinkComponent })}
           items={[{ href: loginHref, children: t('backToLogin') }]}

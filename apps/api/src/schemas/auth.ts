@@ -9,6 +9,7 @@ export type {
   RequestEmailChangeBody,
   ResetPasswordBody,
   SignupBody,
+  UpdateProfileBody,
   VerifyEmailBody,
 } from '@boilerplate/helpers-requests';
 
@@ -51,3 +52,8 @@ export const requestEmailChangeSchema = Joi.object({
 export const confirmEmailChangeSchema = Joi.object({
   token: Joi.string().min(1).required(),
 }).options({ allowUnknown: true });
+
+export const updateProfileSchema = Joi.object({
+  displayName: Joi.string().max(SHORT_TEXT_MAX_LENGTH).allow(null, ''),
+  profileVisibility: Joi.boolean().optional(),
+});

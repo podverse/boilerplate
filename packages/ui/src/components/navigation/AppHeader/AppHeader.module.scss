@@ -21,13 +21,13 @@
 
 .titleLinkWrapper {
   text-decoration: none;
+  color: inherit;
+  cursor: pointer;
 
-  &:hover {
-    text-decoration: none;
-  }
-
+  &:hover,
   .header &:hover {
     text-decoration: none;
+    color: inherit;
   }
 }
 
@@ -60,6 +60,12 @@
   @include at-least-sm {
     display: inline-block;
   }
+}
+
+.chevron {
+  margin-left: $space-1;
+  font-size: $font-size-xs;
+  opacity: $opacity-muted;
 }
 
 .loginLink {

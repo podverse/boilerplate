@@ -3,7 +3,12 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 
 import { AUTH_MESSAGE_LOGIN_FAILED } from '@boilerplate/helpers';
-import { getRateLimitRetrySeconds, managementWebAuth } from '@boilerplate/helpers-requests';
+import {
+  createSessionRefreshLoop,
+  getRateLimitRetrySeconds,
+  hydrateSession,
+  managementWebAuth,
+} from '@boilerplate/helpers-requests';
 
 import { getApiBaseUrl } from '../lib/api-client';
 import { isPublicPath, ROUTES } from '../lib/routes';
@@ -29,13 +34,6 @@ export type AuthContextValue = {
 };
 
 const AuthContext = createContext<AuthContextValue | null>(null);
-
-/**
- * How often (ms) to proactively refresh the access token while the user is logged in.
- * Must be less than JWT_ACCESS_EXPIRY_SECONDS on the management API (default: 15 min = 900s).
- * 10 minutes gives a comfortable buffer before the 15-minute JWT expires.
- */
-const SESSION_REFRESH_INTERVAL_MS = 10 * 60 * 1000;
 
 function parseUserFromMe(data: unknown): AuthUser | null {
   if (data === undefined || typeof data !== 'object' || data === null) return null;
@@ -73,37 +71,18 @@ export function AuthProvider({ children, initialUser }: AuthProviderProps) {
   const hydrate = useCallback(async () => {
     try {
       const baseUrl = getApiBaseUrl();
-      const meRes = await managementWebAuth.me(baseUrl);
-      if (meRes.ok && meRes.data !== undefined) {
-        const u = parseUserFromMe(meRes.data);
-        if (u !== null) {
-          setUser(u);
-          return;
-        }
-      }
-      const meWas401 = meRes.status === 401;
-      if (meWas401) {
-        const refreshRes = await managementWebAuth.refresh(baseUrl);
-        if (refreshRes.ok && refreshRes.data !== undefined) {
-          const u = parseUserFromLoginOrRefresh(refreshRes.data);
-          if (u !== null) {
-            setUser(u);
-            return;
-          }
-        }
-      }
-      setUser(null);
-      if (meWas401) {
-        try {
-          await managementWebAuth.logout(baseUrl);
-        } catch {
-          // ignore; redirect anyway
-        }
+      const result = await hydrateSession({
+        authApi: managementWebAuth,
+        baseUrl,
+        parseUserFromMe,
+        parseUserFromLoginOrRefresh,
+      });
+      setUser(result.user);
+      if (result.user === null && result.attemptedRefresh) {
         const pathname = typeof window !== 'undefined' ? window.location.pathname : '';
         if (!isPublicPath(pathname)) {
           window.location.href = ROUTES.LOGIN;
         }
-        return;
       }
     } catch {
       setUser(null);
@@ -121,33 +100,30 @@ export function AuthProvider({ children, initialUser }: AuthProviderProps) {
     }
   }, [hydrate, initialUser]);
 
-  // Proactively refresh the access token before it expires while the user is
-  // logged in. Fires every SESSION_REFRESH_INTERVAL_MS (10 min) as long as
-  // `user` is non-null, restarting the interval whenever the user changes.
+  // Proactively refresh the access token before it expires (shared helper).
+  const LOGOUT_REDIRECT_TIMEOUT_MS = 5000;
   useEffect(() => {
     if (user === null) return;
-
-    const interval = setInterval(async () => {
-      const baseUrl = getApiBaseUrl();
-      const refreshRes = await managementWebAuth.refresh(baseUrl);
-      if (refreshRes.ok && refreshRes.data !== undefined) {
-        const u = parseUserFromLoginOrRefresh(refreshRes.data);
-        if (u !== null) {
-          setUser(u);
-          return;
-        }
-      }
-      // Refresh failed — session is no longer valid.
-      setUser(null);
-      try {
-        await managementWebAuth.logout(baseUrl);
-      } catch {
-        // ignore; redirect anyway
-      }
-      window.location.href = ROUTES.LOGIN;
-    }, SESSION_REFRESH_INTERVAL_MS);
-
-    return () => clearInterval(interval);
+    const stop = createSessionRefreshLoop({
+      getBaseUrl: getApiBaseUrl,
+      authApi: managementWebAuth,
+      parseUser: parseUserFromLoginOrRefresh,
+      onSuccess: setUser,
+      onFailure: () => {
+        setUser(null);
+        void (async () => {
+          const timeout = new Promise<void>((resolve) =>
+            setTimeout(resolve, LOGOUT_REDIRECT_TIMEOUT_MS)
+          );
+          await Promise.race([
+            managementWebAuth.logout(getApiBaseUrl()).catch(() => {}),
+            timeout,
+          ]);
+          window.location.href = ROUTES.LOGIN;
+        })();
+      },
+    });
+    return stop;
   }, [user]);
 
   const login = useCallback(

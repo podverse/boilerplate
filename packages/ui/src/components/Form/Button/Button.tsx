@@ -26,8 +26,14 @@ export function Button({
     .join(' ');
 
   return (
-    <button type={type} className={cn} disabled={isDisabled} {...props}>
-      {children}
+    <button type={type} className={cn} disabled={isDisabled} aria-busy={loading} {...props}>
+      {loading ? (
+        <span className={styles.loadingLabel} aria-hidden>
+          {children}
+        </span>
+      ) : (
+        children
+      )}
     </button>
   );
 }

@@ -13,6 +13,7 @@ import { config, isNoMailerMode } from './config/index.js';
 import { requireAuth } from './middleware/requireAuth.js';
 import { openApiDocument } from './openapi.js';
 import { createAuthRouter } from './routes/auth.js';
+import { createBucketsRouter } from './routes/buckets.js';
 
 export function createApp(): Application {
   const app = express();
@@ -47,6 +48,7 @@ export function createApp(): Application {
     });
   });
   versionedRouter.use('/auth', createAuthRouter(authMiddleware, mountSignup));
+  versionedRouter.use('/buckets', createBucketsRouter(authMiddleware));
 
   app.use(config.apiVersionPath, versionedRouter);
 

@@ -1,0 +1,91 @@
+'use client';
+
+import { useRouter } from 'next/navigation';
+import { useState } from 'react';
+import Link from 'next/link';
+import { useTranslations } from 'next-intl';
+import { Button, Input, FormActions, CheckboxField, Text } from '@boilerplate/ui';
+import { getApiBaseUrl } from '../../../lib/api-client';
+
+type TopicFormProps = {
+  parentBucketId: string;
+  successHref: string;
+  cancelHref: string;
+};
+
+export function TopicForm({ parentBucketId, successHref, cancelHref }: TopicFormProps) {
+  const t = useTranslations('buckets');
+  const router = useRouter();
+  const [name, setName] = useState('');
+  const [isPublic, setIsPublic] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setSubmitError(null);
+    if (!name.trim()) {
+      setSubmitError(t('name') + ' is required.');
+      return;
+    }
+    setLoading(true);
+    const baseUrl = getApiBaseUrl();
+    const body = {
+      name: name.trim(),
+      isPublic,
+    };
+
+    try {
+      const res = await fetch(`${baseUrl}/v1/buckets/${parentBucketId}/buckets`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        setSubmitError(typeof data?.message === 'string' ? data.message : 'Failed to create topic');
+        return;
+      }
+      router.push(successHref);
+    } catch {
+      setSubmitError('Network error');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <form onSubmit={handleSubmit}>
+      <Input
+        label={t('name')}
+        type="text"
+        value={name}
+        onChange={setName}
+        disabled={loading}
+        required
+      />
+      <CheckboxField
+        label={t('isPublic')}
+        checked={isPublic}
+        onChange={setIsPublic}
+        disabled={loading}
+      />
+      {submitError !== null && (
+        <Text variant="error" size="sm" as="p" role="alert" style={{ marginBottom: '1rem' }}>
+          {submitError}
+        </Text>
+      )}
+      <FormActions>
+        <Button type="submit" variant="primary" loading={loading}>
+          {t('createTopic')}
+        </Button>
+        <Link href={cancelHref}>
+          <Button type="button" variant="secondary">
+            {t('cancel')}
+          </Button>
+        </Link>
+      </FormActions>
+    </form>
+  );
+}

@@ -60,6 +60,7 @@ export function AppHeader({
               <>
                 <i className="fa-solid fa-user" aria-hidden />
                 <span className={styles.userLabel}>{user.displayName ?? user.email}</span>
+                <i className={`${styles.chevron} fa-solid fa-chevron-down`} aria-hidden />
               </>
             }
           />

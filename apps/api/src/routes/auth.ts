@@ -11,6 +11,7 @@ import {
   forgotPasswordSchema,
   resetPasswordSchema,
   requestEmailChangeSchema,
+  updateProfileSchema,
 } from '../schemas/auth.js';
 
 export function createAuthRouter(
@@ -40,6 +41,15 @@ export function createAuthRouter(
   router.get('/me', requireAuthMiddleware, (req, res) => {
     authController.me(req, res);
   });
+  router.patch(
+    '/me',
+    moderateAuthRateLimiter,
+    requireAuthMiddleware,
+    validateBody(updateProfileSchema),
+    (req, res) => {
+      void authController.updateProfile(req, res);
+    }
+  );
 
   if (mountSignup) {
     router.post('/signup', strictAuthRateLimiter, validateBody(signupSchema), (req, res) => {

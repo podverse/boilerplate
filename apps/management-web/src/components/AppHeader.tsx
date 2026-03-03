@@ -36,7 +36,7 @@ export function AppHeader() {
       user={headerUser}
       onLogout={handleLogout}
       navItems={[
-        { href: ROUTES.DASHBOARD, label: t('dashboard') },
+        { href: ROUTES.PROFILE, label: t('profile') },
         { href: ROUTES.SETTINGS, label: t('settings') },
       ]}
       LinkComponent={Link}

@@ -6,6 +6,7 @@ export type {
   RequestEmailChangeBody,
   ResetPasswordBody,
   SignupBody,
+  UpdateProfileBody,
   VerifyEmailBody,
 } from './auth-types.js';
 export type {
@@ -24,3 +25,10 @@ export type {
 } from './management-user-types.js';
 export type { ListEventsData, PublicManagementEvent } from './management-event-types.js';
 export type { BearerToken, WithOptionalToken } from './request-types.js';
+export type {
+  Bucket,
+  BucketMessage,
+  PublicBucket,
+  PublicBucketMessage,
+  PublicSubmitMessageBody,
+} from './bucket-types.js';

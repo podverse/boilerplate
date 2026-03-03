@@ -12,6 +12,8 @@ export type {
 } from './components/form/Form';
 export { FormContainer } from './components/form/FormContainer';
 export type { FormContainerProps } from './components/form/FormContainer';
+export { FormPage } from './components/layout/FormPage';
+export type { FormPageProps } from './components/layout/FormPage';
 export {
   ForgotPasswordForm,
   LoginForm,
@@ -46,6 +48,8 @@ export { CenterInViewport } from './components/layout/CenterInViewport';
 export type { CenterInViewportProps } from './components/layout/CenterInViewport';
 export { Container } from './components/layout/Container';
 export type { ContainerProps } from './components/layout/Container';
+export { Divider } from './components/layout/Divider';
+export type { DividerProps } from './components/layout/Divider';
 export { PageHeader } from './components/layout/PageHeader';
 export type { PageHeaderProps } from './components/layout/PageHeader';
 export { Dropdown } from './components/navigation/Dropdown';

@@ -63,7 +63,10 @@
   text-decoration: none;
   color: var(--color-text);
 
-  &:hover {
+  &:hover,
+  &:focus {
+    color: var(--color-text);
+    text-decoration: none;
     background-color: var(--color-border);
   }
 

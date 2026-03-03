@@ -63,12 +63,18 @@ export default function SignupPage() {
       'user' in res.data
     ) {
       const data = res.data as {
-        user: { id: string; email: string; displayName: string | null };
+        user: {
+          id: string;
+          email: string;
+          displayName: string | null;
+          profileVisibility?: boolean;
+        };
       };
       setSession({
         id: data.user.id,
         email: data.user.email,
         displayName: data.user.displayName ?? null,
+        profileVisibility: data.user.profileVisibility === true,
       });
       router.push(ROUTES.DASHBOARD);
     } else if (res.ok) {

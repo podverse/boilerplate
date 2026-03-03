@@ -10,6 +10,11 @@
   color: var(--color-error);
 }
 
+.success {
+  font-size: $font-size-sm;
+  color: var(--color-success);
+}
+
 .sm {
   font-size: $font-size-sm;
 }

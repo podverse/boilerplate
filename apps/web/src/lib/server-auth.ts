@@ -1,6 +1,6 @@
 import 'server-only';
 
-import { cookies } from 'next/headers';
+import { cookies, headers } from 'next/headers';
 
 import { request } from '@boilerplate/helpers-requests';
 
@@ -10,22 +10,59 @@ export type ServerUser = {
   id: string;
   email: string;
   displayName: string | null;
+  profileVisibility: boolean;
 };
 
-const API_VERSION = '/v1';
+const AUTH_USER_HEADER = 'x-auth-user';
+
+function getApiVersionPath(): string {
+  const ver = getRuntimeConfig().env.NEXT_PUBLIC_API_VERSION_PATH?.trim();
+  return ver && ver.startsWith('/') ? ver : '/v1';
+}
 
 function getServerApiBaseUrl(): string {
   const base = getRuntimeConfig().env.NEXT_PUBLIC_API_URL ?? '';
   const trimmed = base.replace(/\/$/, '');
-  return trimmed + API_VERSION;
+  return trimmed + getApiVersionPath();
+}
+
+function parseAuthUserHeader(value: string | null): ServerUser | null {
+  if (value === null || value === '') return null;
+  try {
+    const parsed = JSON.parse(value) as {
+      id?: string;
+      email?: string;
+      displayName?: string | null;
+      profileVisibility?: boolean;
+    };
+    if (typeof parsed.id !== 'string' || typeof parsed.email !== 'string') {
+      return null;
+    }
+    return {
+      id: parsed.id,
+      email: parsed.email,
+      displayName: parsed.displayName ?? null,
+      profileVisibility: parsed.profileVisibility === true,
+    };
+  } catch {
+    return null;
+  }
 }
 
 /**
  * Get the current user from the API server-side.
- * Forwards cookies from the incoming request to the API.
+ * Prefers x-auth-user header when set by middleware (after SSR session restore).
+ * Otherwise forwards cookies from the incoming request to the API.
  * Returns null if not authenticated.
  */
 export async function getServerUser(): Promise<ServerUser | null> {
+  const headerStore = await headers();
+  const authUserHeader = headerStore.get(AUTH_USER_HEADER);
+  const fromHeader = parseAuthUserHeader(authUserHeader);
+  if (fromHeader !== null) {
+    return fromHeader;
+  }
+
   const cookieStore = await cookies();
   const cookieHeader = cookieStore
     .getAll()
@@ -57,6 +94,7 @@ export async function getServerUser(): Promise<ServerUser | null> {
       id: data.user.id,
       email: data.user.email,
       displayName: data.user.displayName ?? null,
+      profileVisibility: data.user.profileVisibility === true,
     };
   } catch {
     return null;

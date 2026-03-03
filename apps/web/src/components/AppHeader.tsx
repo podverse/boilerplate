@@ -29,7 +29,7 @@ export function AppHeader({ appName }: { appName: string }) {
       user={user}
       onLogout={handleLogout}
       navItems={[
-        { href: ROUTES.DASHBOARD, label: t('dashboard') },
+        { href: ROUTES.PROFILE, label: t('profile') },
         { href: ROUTES.SETTINGS, label: t('settings') },
       ]}
       loginHref={ROUTES.LOGIN}

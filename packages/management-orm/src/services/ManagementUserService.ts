@@ -223,4 +223,16 @@ export class ManagementUserService {
     const repo = managementDataSource.getRepository(ManagementUserCredentials);
     await repo.update({ managementUserId }, { passwordHash });
   }
+
+  /** Update the logged-in user's display name (for profile page). */
+  static async updateDisplayName(managementUserId: string, displayName: string): Promise<void> {
+    const repo = managementDataSource.getRepository(ManagementUserBio);
+    await repo.update({ managementUserId }, { displayName: displayName.trim() });
+  }
+
+  /** Update the logged-in user's email (for profile page). Direct change; no verification email. */
+  static async updateEmail(managementUserId: string, email: string): Promise<void> {
+    const repo = managementDataSource.getRepository(ManagementUserCredentials);
+    await repo.update({ managementUserId }, { email: email.trim() });
+  }
 }

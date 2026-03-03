@@ -46,6 +46,7 @@
   "common": {
     "loading": "Loading…",
     "dashboard": "Dashboard",
+    "profile": "Profile",
     "settings": "Settings",
     "logout": "Logout",
     "logIn": "Log in",
@@ -187,6 +188,24 @@
     "title": "Dashboard",
     "hello": "Hello, {name}.",
     "signedInAs": "Signed in as {email}"
+  },
+  "profile": {
+    "title": "Profile",
+    "displayName": "Display name",
+    "displayNamePlaceholder": "Your name",
+    "email": "Email",
+    "changePassword": "Change password",
+    "currentPassword": "Current password",
+    "newPassword": "New password",
+    "confirmNewPassword": "Confirm new password",
+    "updateProfile": "Update profile",
+    "changePasswordSubmit": "Change password",
+    "profileUpdated": "Profile updated",
+    "passwordChanged": "Password changed",
+    "errors": {
+      "requestFailed": "Request failed",
+      "passwordsDoNotMatch": "Passwords do not match"
+    }
   },
   "settings": {
     "title": "Settings",

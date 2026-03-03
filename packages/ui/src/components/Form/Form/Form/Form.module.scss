@@ -3,7 +3,7 @@
 .submitError {
   margin: 0;
   font-size: $font-size-sm;
-  color: $color-error;
+  color: var(--color-error);
 }
 
 .links {

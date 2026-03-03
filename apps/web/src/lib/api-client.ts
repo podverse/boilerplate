@@ -1,9 +1,12 @@
 import { getRuntimeConfig } from '../config/runtime-config-store';
 
-const API_VERSION = '/v1';
+function getApiVersionPath(): string {
+  const ver = getRuntimeConfig().env.NEXT_PUBLIC_API_VERSION_PATH?.trim();
+  return ver && ver.startsWith('/') ? ver : '/v1';
+}
 
 export function getApiBaseUrl(): string {
   const base = getRuntimeConfig().env.NEXT_PUBLIC_API_URL ?? '';
   const trimmed = base.replace(/\/$/, '');
-  return trimmed + API_VERSION;
+  return trimmed + getApiVersionPath();
 }

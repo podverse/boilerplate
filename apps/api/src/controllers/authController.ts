@@ -1,5 +1,5 @@
 import type { Request, Response } from 'express';
-import type { UserWithRelations } from '@boilerplate/orm';
+import { userToJson } from '../lib/userToJson.js';
 import { AUTH_MESSAGE_INVALID_CREDENTIALS, validatePassword } from '@boilerplate/helpers';
 import { getPasswordValidationMessages, resolveLocale } from '@boilerplate/helpers-i18n';
 import { UserService, VerificationTokenService, RefreshTokenService } from '@boilerplate/orm';
@@ -10,6 +10,7 @@ import type {
   RequestEmailChangeBody,
   ResetPasswordBody,
   SignupBody,
+  UpdateProfileBody,
   WithOptionalToken,
 } from '@boilerplate/helpers-requests';
 import { config } from '../config/index.js';
@@ -29,28 +30,6 @@ import {
   sendPasswordResetEmail,
   sendEmailChangeVerificationEmail,
 } from '../lib/mailer/send.js';
-
-/**
- * Safe shape for user in API responses. Only these fields may be returned.
- * Never include credentials (e.g. passwordHash) or verification token hashes/raw tokens.
- */
-export interface PublicUser {
-  id: string;
-  email: string;
-  displayName: string | null;
-}
-
-/**
- * Single place to serialize a user for responses. Returns only safe, non-sensitive fields.
- * Never pass req.user or user.credentials directly to res.json().
- */
-function userToJson(user: UserWithRelations): PublicUser {
-  return {
-    id: user.id,
-    email: user.credentials.email,
-    displayName: user.bio?.displayName ?? null,
-  };
-}
 
 function getCookieOptions() {
   return {
@@ -320,6 +299,25 @@ export async function confirmEmailChange(req: Request, res: Response): Promise<v
   await UserService.updateEmail(consumed.user.id, pending);
   await UserService.setEmailVerifiedAt(consumed.user.id);
   res.status(200).json({ message: 'Email updated' });
+}
+
+export async function updateProfile(req: Request, res: Response): Promise<void> {
+  const user = req.user;
+  if (user === undefined) {
+    res.status(401).json({ message: 'Authentication required' });
+    return;
+  }
+  const { displayName, profileVisibility } = req.body as UpdateProfileBody;
+  await UserService.updateDisplayName(user.id, displayName ?? null);
+  if (profileVisibility !== undefined) {
+    await UserService.updateProfileVisibility(user.id, profileVisibility);
+  }
+  const updated = await UserService.findById(user.id);
+  if (updated !== null) {
+    res.status(200).json({ user: userToJson(updated) });
+  } else {
+    res.status(500).json({ message: 'Failed to load updated profile' });
+  }
 }
 
 export function me(req: Request, res: Response): void {

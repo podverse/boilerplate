@@ -61,7 +61,6 @@
 
 .loading {
   position: relative;
-  color: transparent;
   pointer-events: none;
 
   &::after {
@@ -69,19 +68,31 @@
     position: absolute;
     width: $size-inline;
     height: $size-inline;
-    border: $loading-spinner-border-width solid currentColor;
-    border-right-color: transparent;
+    border: $loading-spinner-border-width solid transparent;
+    border-right-color: var(--color-text);
     border-radius: $radius-full;
     animation: spin $animation-spin-duration linear infinite;
   }
 }
 
-.primary.loading::after,
-.secondary.loading::after,
+.loadingLabel {
+  /* When .loading is applied, parent has .loading; this span reserves width. */
+}
+
+.loading .loadingLabel {
+  visibility: hidden;
+}
+
+.primary.loading::after {
+  border-right-color: var(--color-on-primary);
+}
+
+.secondary.loading::after {
+  border-right-color: var(--color-text);
+}
+
 .link.loading::after {
-  border-color: transparent;
-  border-right-color: currentColor;
-  color: inherit;
+  border-right-color: var(--color-primary);
 }
 
 @keyframes spin {

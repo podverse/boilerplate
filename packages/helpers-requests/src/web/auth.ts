@@ -64,3 +64,44 @@ export async function resetPassword(
     locale: options?.locale,
   });
 }
+
+/** Call POST /auth/change-password (authenticated). Uses cookies by default. */
+export async function changePassword(
+  baseUrl: string,
+  body: { currentPassword: string; newPassword: string },
+  options?: { locale?: string; token?: string | null }
+): AuthResponse {
+  return request(baseUrl, '/auth/change-password', {
+    method: 'POST',
+    body: JSON.stringify(body),
+    locale: options?.locale,
+    token: options?.token ?? undefined,
+  });
+}
+
+/** Call PATCH /auth/me to update profile (display name, profile visibility). Uses cookies by default. */
+export async function updateProfile(
+  baseUrl: string,
+  body: { displayName: string | null; profileVisibility?: boolean },
+  options?: { token?: string | null }
+): AuthResponse {
+  return request(baseUrl, '/auth/me', {
+    method: 'PATCH',
+    body: JSON.stringify(body),
+    token: options?.token ?? undefined,
+  });
+}
+
+/** Call POST /auth/request-email-change (authenticated). Sends verification email. */
+export async function requestEmailChange(
+  baseUrl: string,
+  body: { newEmail: string },
+  options?: { locale?: string; token?: string | null }
+): AuthResponse {
+  return request(baseUrl, '/auth/request-email-change', {
+    method: 'POST',
+    body: JSON.stringify(body),
+    locale: options?.locale,
+    token: options?.token ?? undefined,
+  });
+}

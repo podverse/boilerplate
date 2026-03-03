@@ -37,7 +37,9 @@ agent): `./scripts/nix/with-env <command>`.
 
 ## What gets seeded
 
-- **Main** (per row): one `user`, one `user_credentials`, one `user_bio`. Email and display name
+- **Main** (per row): one `user`, one `user_credentials`, one `user_bio`. Then 5 top-level
+  `bucket` rows (owner = user), and for each of those 50 child `bucket` rows (sub-buckets,
+  `parent_bucket_id` set). Names from faker. Email and display name
   from faker; all users share the same test password (see below).
 - **Management**: First, if no super admin exists, one is created (`superadmin@example.com`, test
   password `Test!1Aa`). This is skipped when a super admin is already present (e.g. from

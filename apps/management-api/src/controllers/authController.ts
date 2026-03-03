@@ -1,9 +1,10 @@
 import type { Request, Response } from 'express';
-import { AUTH_MESSAGE_INVALID_CREDENTIALS } from '@boilerplate/helpers';
+import { AUTH_MESSAGE_INVALID_CREDENTIALS, validatePassword } from '@boilerplate/helpers';
+import { getPasswordValidationMessages, resolveLocale } from '@boilerplate/helpers-i18n';
 import { ManagementRefreshTokenService, ManagementUserService } from '@boilerplate/management-orm';
 import { config } from '../config/index.js';
 import { setSessionCookies, clearSessionCookies } from '../lib/auth/cookies.js';
-import { comparePassword } from '../lib/auth/hash.js';
+import { comparePassword, hashPassword } from '../lib/auth/hash.js';
 import { generateToken, hashToken } from '../lib/auth/refresh-token.js';
 import { signManagementAccessToken } from '../lib/auth/jwt.js';
 import { managementUserToJson } from '../lib/managementUserToJson.js';
@@ -86,6 +87,70 @@ export async function refresh(req: Request, res: Response): Promise<void> {
 
   setSessionCookies(res, accessToken, newRefreshRaw, getCookieOptions());
   res.status(200).json({ user: managementUserToJson(user) });
+}
+
+export async function changePassword(req: Request, res: Response): Promise<void> {
+  const user = req.managementUser;
+  if (user === undefined) {
+    res.status(401).json({ message: 'Authentication required' });
+    return;
+  }
+  const { currentPassword, newPassword } = req.body as {
+    currentPassword?: string;
+    newPassword?: string;
+  };
+  if (currentPassword === undefined || newPassword === undefined) {
+    res.status(400).json({ message: 'Current password and new password required' });
+    return;
+  }
+  const locale = resolveLocale(req.get('Accept-Language'));
+  const passwordCheck = validatePassword(newPassword, getPasswordValidationMessages(locale));
+  if (!passwordCheck.valid) {
+    res.status(400).json({ message: passwordCheck.message });
+    return;
+  }
+  const ok = await comparePassword(currentPassword, user.credentials.passwordHash);
+  if (!ok) {
+    res.status(401).json({ message: 'Current password is incorrect' });
+    return;
+  }
+  const hashed = await hashPassword(newPassword);
+  await ManagementUserService.updatePassword(user.id, hashed);
+  res.status(204).send();
+}
+
+export async function updateProfile(req: Request, res: Response): Promise<void> {
+  const user = req.managementUser;
+  if (user === undefined) {
+    res.status(401).json({ message: 'Authentication required' });
+    return;
+  }
+  const { displayName, email } = req.body as { displayName?: string; email?: string };
+  if (displayName === undefined || typeof displayName !== 'string') {
+    res.status(400).json({ message: 'Display name required' });
+    return;
+  }
+  const trimmed = displayName.trim();
+  if (trimmed === '') {
+    res.status(400).json({ message: 'Display name cannot be empty' });
+    return;
+  }
+  if (email !== undefined && typeof email === 'string') {
+    const emailTrimmed = email.trim();
+    const existing = await ManagementUserService.findByEmail(emailTrimmed);
+    if (existing !== null && existing.id !== user.id) {
+      res.status(409).json({ message: 'That email is already in use' });
+      return;
+    }
+    await ManagementUserService.updateEmail(user.id, emailTrimmed);
+  }
+  await ManagementUserService.updateDisplayName(user.id, trimmed);
+  const updated = await ManagementUserService.findById(user.id);
+  if (updated !== null) {
+    res.status(200).json({ user: managementUserToJson(updated) });
+  } else {
+    res.status(500).json({ message: 'Failed to load updated profile' });
+  }
 }
 
 export function me(req: Request, res: Response): void {

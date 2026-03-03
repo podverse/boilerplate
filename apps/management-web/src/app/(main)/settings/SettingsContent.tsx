@@ -17,6 +17,10 @@ export type SettingsContentProps = {
   settingsCookieName: string;
 };
 
+/**
+ * Management-web settings content. Structure aligned with web app for consistency;
+ * kept as a separate component so web and management-web can diverge in options later.
+ */
 export function SettingsContent({ settingsCookieName }: SettingsContentProps) {
   const t = useTranslations('settings');
   const locale = useLocale();

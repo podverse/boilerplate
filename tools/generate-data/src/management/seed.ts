@@ -186,8 +186,6 @@ export async function seedManagement(rows: number): Promise<void> {
         adminId: id,
         adminsCrud: randomCrud(),
         usersCrud: randomCrud(),
-        canChangePasswords: faker.datatype.boolean(),
-        canAssignPermissions: faker.datatype.boolean(),
         eventVisibility: randomEventVisibility(),
       });
       await pRepo.save(permissions);

@@ -1,4 +1,4 @@
--- Combined migrations generated Sun Mar  1 21:26:51 CST 2026
+-- Combined migrations generated Mon Mar  2 08:25:54 CST 2026
 -- DO NOT EDIT - regenerate with scripts/database/combine-migrations.sh
 
 -- Including: 0000_management_helpers.sql
@@ -43,6 +43,8 @@ CREATE TABLE IF NOT EXISTS management_user_bio (
 
 -- Per-admin permissions (one row per admin; super admin has implicit full access).
 -- admins_crud, users_crud: 0–15 bitmask (create=1, read=2, update=4, delete=8).
+-- Capabilities such as changing passwords or assigning permissions are implied by
+-- the relevant CRUD bits (e.g. update on users implies password changes).
 CREATE TABLE IF NOT EXISTS admin_permissions (
     admin_id UUID PRIMARY KEY REFERENCES management_user(id) ON DELETE CASCADE,
     admins_crud INTEGER NOT NULL DEFAULT 0 CHECK (admins_crud >= 0 AND admins_crud <= 15),

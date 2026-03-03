@@ -26,6 +26,8 @@ function managementApiValidationResults() {
     validateRequired('DB_HOST', 'Main DB'),
     validatePositiveInteger('DB_PORT', 'Main DB'),
     validateRequired('DB_NAME', 'Main DB'),
+    validateRequired('DB_READ_USERNAME', 'Main DB'),
+    validateRequired('DB_READ_PASSWORD', 'Main DB'),
     validateRequired('DB_READ_WRITE_USERNAME', 'Main DB'),
     validateRequired('DB_READ_WRITE_PASSWORD', 'Main DB'),
   ];

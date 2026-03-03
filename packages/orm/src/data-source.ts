@@ -11,8 +11,20 @@ import { UserCredentials } from './entities/UserCredentials.js';
 import { UserBio } from './entities/UserBio.js';
 import { VerificationToken } from './entities/VerificationToken.js';
 import { RefreshToken } from './entities/RefreshToken.js';
+import { Bucket } from './entities/Bucket.js';
+import { BucketAdmin } from './entities/BucketAdmin.js';
+import { BucketMessage } from './entities/BucketMessage.js';
 
-const ENTITIES = [User, UserCredentials, UserBio, VerificationToken, RefreshToken];
+const ENTITIES = [
+  User,
+  UserCredentials,
+  UserBio,
+  VerificationToken,
+  RefreshToken,
+  Bucket,
+  BucketAdmin,
+  BucketMessage,
+];
 
 function getReadOptions(): DataSourceOptions {
   const host = process.env.DB_HOST;

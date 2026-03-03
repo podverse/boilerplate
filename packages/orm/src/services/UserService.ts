@@ -89,4 +89,14 @@ export class UserService {
     const repo = appDataSourceReadWrite.getRepository(UserCredentials);
     await repo.update({ userId }, { email: newEmail });
   }
+
+  static async updateDisplayName(userId: string, displayName: string | null): Promise<void> {
+    const repo = appDataSourceReadWrite.getRepository(UserBio);
+    await repo.update({ userId }, { displayName });
+  }
+
+  static async updateProfileVisibility(userId: string, profileVisibility: boolean): Promise<void> {
+    const repo = appDataSourceReadWrite.getRepository(User);
+    await repo.update(userId, { profileVisibility });
+  }
 }

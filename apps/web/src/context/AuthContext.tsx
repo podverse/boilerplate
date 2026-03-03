@@ -3,7 +3,12 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 
 import { AUTH_MESSAGE_LOGIN_FAILED } from '@boilerplate/helpers';
-import { getRateLimitRetrySeconds, webAuth } from '@boilerplate/helpers-requests';
+import {
+  createSessionRefreshLoop,
+  getRateLimitRetrySeconds,
+  hydrateSession,
+  webAuth,
+} from '@boilerplate/helpers-requests';
 
 import { getApiBaseUrl } from '../lib/api-client';
 import { isPublicPath, ROUTES } from '../lib/routes';
@@ -12,6 +17,7 @@ export type AuthUser = {
   id: string;
   email: string;
   displayName: string | null;
+  profileVisibility: boolean;
 };
 
 export type AuthContextValue = {
@@ -33,24 +39,44 @@ const AuthContext = createContext<AuthContextValue | null>(null);
 function parseUserFromMe(data: unknown): AuthUser | null {
   if (data === undefined || typeof data !== 'object' || data === null) return null;
   if (!('user' in data) || typeof (data as { user: unknown }).user !== 'object') return null;
-  const u = (data as { user: { id?: string; email?: string; displayName?: string | null } }).user;
+  const u = (
+    data as {
+      user: {
+        id?: string;
+        email?: string;
+        displayName?: string | null;
+        profileVisibility?: boolean;
+      };
+    }
+  ).user;
   if (typeof u.id !== 'string' || typeof u.email !== 'string') return null;
   return {
     id: u.id,
     email: u.email,
     displayName: u.displayName ?? null,
+    profileVisibility: u.profileVisibility === true,
   };
 }
 
 function parseUserFromLoginOrRefresh(data: unknown): AuthUser | null {
   if (data === undefined || typeof data !== 'object' || data === null) return null;
   if (!('user' in data) || typeof (data as { user: unknown }).user !== 'object') return null;
-  const u = (data as { user: { id?: string; email?: string; displayName?: string | null } }).user;
+  const u = (
+    data as {
+      user: {
+        id?: string;
+        email?: string;
+        displayName?: string | null;
+        profileVisibility?: boolean;
+      };
+    }
+  ).user;
   if (typeof u.id !== 'string' || typeof u.email !== 'string') return null;
   return {
     id: u.id,
     email: u.email,
     displayName: u.displayName ?? null,
+    profileVisibility: u.profileVisibility === true,
   };
 }
 
@@ -66,37 +92,18 @@ export function AuthProvider({ children, initialUser }: AuthProviderProps) {
   const hydrate = useCallback(async () => {
     try {
       const baseUrl = getApiBaseUrl();
-      const meRes = await webAuth.me(baseUrl);
-      if (meRes.ok && meRes.data !== undefined) {
-        const u = parseUserFromMe(meRes.data);
-        if (u !== null) {
-          setUser(u);
-          return;
-        }
-      }
-      const meWas401 = meRes.status === 401;
-      if (meWas401) {
-        const refreshRes = await webAuth.refresh(baseUrl);
-        if (refreshRes.ok && refreshRes.data !== undefined) {
-          const u = parseUserFromLoginOrRefresh(refreshRes.data);
-          if (u !== null) {
-            setUser(u);
-            return;
-          }
-        }
-      }
-      setUser(null);
-      if (meWas401) {
-        try {
-          await webAuth.logout(baseUrl);
-        } catch {
-          // ignore; redirect anyway
-        }
+      const result = await hydrateSession({
+        authApi: webAuth,
+        baseUrl,
+        parseUserFromMe,
+        parseUserFromLoginOrRefresh,
+      });
+      setUser(result.user);
+      if (result.user === null && result.attemptedRefresh) {
         const pathname = typeof window !== 'undefined' ? window.location.pathname : '';
         if (!isPublicPath(pathname)) {
           window.location.href = ROUTES.LOGIN;
         }
-        return;
       }
     } catch {
       setUser(null);
@@ -105,12 +112,40 @@ export function AuthProvider({ children, initialUser }: AuthProviderProps) {
     }
   }, []);
 
-  // Only hydrate if no initial user was provided
+  // Hydrate if no initial user was provided, or if SSR could not authenticate
+  // (initialUser === null means session was expired/missing at SSR — client should try refresh).
   useEffect(() => {
-    if (initialUser === undefined) {
+    if (initialUser === undefined || initialUser === null) {
       void hydrate();
     }
   }, [hydrate, initialUser]);
+
+  // Proactively refresh the session before the access token expires (shared helper).
+  // On failure, await logout (with timeout) before redirect so cookies are cleared.
+  const LOGOUT_REDIRECT_TIMEOUT_MS = 5000;
+  useEffect(() => {
+    if (user === null) return;
+    const stop = createSessionRefreshLoop({
+      getBaseUrl: getApiBaseUrl,
+      authApi: webAuth,
+      parseUser: parseUserFromLoginOrRefresh,
+      onSuccess: setUser,
+      onFailure: () => {
+        setUser(null);
+        void (async () => {
+          const timeout = new Promise<void>((resolve) =>
+            setTimeout(resolve, LOGOUT_REDIRECT_TIMEOUT_MS)
+          );
+          await Promise.race([
+            webAuth.logout(getApiBaseUrl()).catch(() => {}),
+            timeout,
+          ]);
+          window.location.href = ROUTES.LOGIN;
+        })();
+      },
+    });
+    return stop;
+  }, [user]);
 
   const login = useCallback(
     async (
@@ -134,12 +169,20 @@ export function AuthProvider({ children, initialUser }: AuthProviderProps) {
             : undefined;
         return { ok: false, message, rateLimit };
       }
-      const data = res.data as { user?: { id: string; email: string; displayName: string | null } };
+      const data = res.data as {
+        user?: {
+          id: string;
+          email: string;
+          displayName: string | null;
+          profileVisibility?: boolean;
+        };
+      };
       const u = data?.user
         ? {
             id: data.user.id,
             email: data.user.email,
             displayName: data.user.displayName ?? null,
+            profileVisibility: data.user.profileVisibility === true,
           }
         : null;
       if (u !== null) setUser(u);

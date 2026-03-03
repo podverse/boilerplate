@@ -111,9 +111,10 @@ fi
 # apps/management-api/.env: MANAGEMENT_JWT_SECRET and DB credentials (same as API for main DB); management DB uses same host/port.
 if [ -f "$MGMT_API_DOT_ENV" ]; then
   set_var_if_empty "$MGMT_API_DOT_ENV" "MANAGEMENT_JWT_SECRET" "$MANAGEMENT_JWT_SECRET"
+  set_var_if_empty "$MGMT_API_DOT_ENV" "DB_READ_PASSWORD" "$DB_READ_PASSWORD"
   set_var_if_empty "$MGMT_API_DOT_ENV" "DB_READ_WRITE_PASSWORD" "$DB_READ_WRITE_PASSWORD"
   set_var_if_empty "$MGMT_API_DOT_ENV" "MANAGEMENT_DB_PASSWORD" "$DB_READ_WRITE_PASSWORD"
-  for var_value in "DB_HOST:localhost" "DB_PORT:5433" "DB_NAME:postgres" "MANAGEMENT_DB_HOST:localhost" "MANAGEMENT_DB_PORT:5433" "MANAGEMENT_DB_NAME:boilerplate_management" "MANAGEMENT_DB_USERNAME:read_write"; do
+  for var_value in "DB_HOST:localhost" "DB_PORT:5433" "DB_NAME:postgres" "DB_READ_USERNAME:read" "DB_READ_WRITE_USERNAME:read_write" "MANAGEMENT_DB_HOST:localhost" "MANAGEMENT_DB_PORT:5433" "MANAGEMENT_DB_NAME:boilerplate_management" "MANAGEMENT_DB_USERNAME:read_write"; do
     var="${var_value%%:*}"
     value="${var_value#*:}"
     if grep -q "^${var}=" "$MGMT_API_DOT_ENV" 2>/dev/null; then

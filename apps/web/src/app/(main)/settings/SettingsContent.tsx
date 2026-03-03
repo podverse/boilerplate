@@ -4,9 +4,9 @@ import { useRouter } from 'next/navigation';
 import { useLocale, useTranslations } from 'next-intl';
 import { ALL_AVAILABLE_LOCALES, type Locale } from '@boilerplate/helpers';
 import {
+  Card,
   Container,
   FormContainer,
-  PageHeader,
   Stack,
   Select,
   ThemeSelector,
@@ -17,6 +17,10 @@ export type SettingsContentProps = {
   settingsCookieName: string;
 };
 
+/**
+ * Web app settings content. Structure aligned with management-web for consistency;
+ * kept as a separate component so web and management-web can diverge in options later.
+ */
 export function SettingsContent({ settingsCookieName }: SettingsContentProps) {
   const t = useTranslations('settings');
   const locale = useLocale();
@@ -28,21 +32,24 @@ export function SettingsContent({ settingsCookieName }: SettingsContentProps) {
 
   return (
     <Container>
-      <PageHeader title={t('title')} />
-      <FormContainer onSubmit={(e) => e.preventDefault()}>
-        <Stack>
-          <ThemeSelector label={t('theme')} />
-          <Select
-            label={t('languages.language')}
-            options={localeOptions}
-            value={locale}
-            onChange={(value) => {
-              setSettingsCookie(settingsCookieName, { locale: value });
-              router.refresh();
-            }}
-          />
-        </Stack>
-      </FormContainer>
+      <Stack>
+        <Card title={t('title')}>
+          <FormContainer onSubmit={(e) => e.preventDefault()}>
+            <Stack>
+              <ThemeSelector label={t('theme')} />
+              <Select
+                label={t('languages.language')}
+                options={localeOptions}
+                value={locale}
+                onChange={(value) => {
+                  setSettingsCookie(settingsCookieName, { locale: value });
+                  router.refresh();
+                }}
+              />
+            </Stack>
+          </FormContainer>
+        </Card>
+      </Stack>
     </Container>
   );
 }

@@ -42,3 +42,9 @@ export interface RequestEmailChangeBody {
 export interface ConfirmEmailChangeBody {
   token: string;
 }
+
+/** Validated body for PATCH /auth/me (update profile). */
+export interface UpdateProfileBody {
+  displayName: string | null;
+  profileVisibility?: boolean;
+}
