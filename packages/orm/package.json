@@ -24,7 +24,7 @@
     "uuid": "^11.1.0"
   },
   "devDependencies": {
-    "@types/node": "^24.10.12",
+    "@types/node": "^24.11.0",
     "app-root-path": "^3.1.0",
     "sql-highlight": "^6.1.0",
     "typescript": "^5.9.2"
