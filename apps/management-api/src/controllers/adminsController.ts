@@ -38,7 +38,7 @@ export async function listAdmins(req: Request, res: Response): Promise<void> {
 export async function getAdmin(req: Request, res: Response): Promise<void> {
   const id = req.params.id as string;
   const admin = await ManagementUserService.findById(id);
-  if (admin === null || admin.isSuperAdmin) {
+  if (admin === null) {
     res.status(404).json({ message: 'Admin not found' });
     return;
   }
@@ -67,6 +67,7 @@ export async function createAdmin(req: Request, res: Response): Promise<void> {
   }
 
   const passwordHash = await hashPassword(body.password);
+  // createAdmin always creates a non–super-admin; super admin cannot be created via API.
   const admin = await ManagementUserService.createAdmin({
     email: body.email,
     passwordHash,
@@ -94,7 +95,12 @@ export async function updateAdmin(req: Request, res: Response): Promise<void> {
   }
   const id = req.params.id as string;
   const admin = await ManagementUserService.findById(id);
-  if (admin === null || admin.isSuperAdmin) {
+  if (admin === null) {
+    res.status(404).json({ message: 'Admin not found' });
+    return;
+  }
+  // Only the super admin can update their own record; no other admin can update the super admin.
+  if (admin.isSuperAdmin && actor.id !== id) {
     res.status(404).json({ message: 'Admin not found' });
     return;
   }
@@ -109,6 +115,7 @@ export async function updateAdmin(req: Request, res: Response): Promise<void> {
   }
   const permissionKeys = ['adminsCrud', 'usersCrud', 'eventVisibility'] as const;
   const hasPermissionUpdate = permissionKeys.some((k) => body[k] !== undefined);
+  const isSuperAdminSelfUpdate = admin.isSuperAdmin && actor.id === id;
   const actorAdminsCrud = actor.permissions?.adminsCrud ?? 0;
   const canChangePermissions = actor.isSuperAdmin || (actorAdminsCrud & 5) !== 0; // create=1 | update=4
   if (hasPermissionUpdate && !canChangePermissions) {
@@ -117,13 +124,19 @@ export async function updateAdmin(req: Request, res: Response): Promise<void> {
       .json({ message: 'Create or update permission required to change admin permissions' });
     return;
   }
+  if (hasPermissionUpdate && isSuperAdminSelfUpdate) {
+    res.status(403).json({ message: 'Super admin permissions cannot be changed' });
+    return;
+  }
   const updates: Parameters<typeof ManagementUserService.updateAdmin>[1] = {};
   if (body.email !== undefined) updates.email = body.email;
   if (body.displayName !== undefined) updates.displayName = body.displayName.trim();
   if (body.password !== undefined) updates.passwordHash = await hashPassword(body.password);
-  if (body.adminsCrud !== undefined) updates.adminsCrud = body.adminsCrud;
-  if (body.usersCrud !== undefined) updates.usersCrud = body.usersCrud;
-  if (body.eventVisibility !== undefined) updates.eventVisibility = body.eventVisibility;
+  if (!isSuperAdminSelfUpdate) {
+    if (body.adminsCrud !== undefined) updates.adminsCrud = body.adminsCrud;
+    if (body.usersCrud !== undefined) updates.usersCrud = body.usersCrud;
+    if (body.eventVisibility !== undefined) updates.eventVisibility = body.eventVisibility;
+  }
 
   if (Object.keys(updates).length === 0) {
     res.status(200).json({ admin: managementUserToJson(admin) });
@@ -160,6 +173,7 @@ export async function deleteAdmin(req: Request, res: Response): Promise<void> {
   }
   const id = req.params.id as string;
   const admin = await ManagementUserService.findById(id);
+  // No one can delete the super admin, regardless of delete permission.
   if (admin === null || admin.isSuperAdmin) {
     res.status(404).json({ message: 'Admin not found' });
     return;

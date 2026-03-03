@@ -14,6 +14,8 @@ import styles from './ResourceTableWithFilter.module.scss';
 export type FilterableTableRow = {
   id: string;
   cells: Record<string, string>;
+  /** When true, row is the super admin (admins table only). Used for per-row Edit/Delete. */
+  isSuperAdmin?: boolean;
 };
 
 export type ResourceTableWithFilterPagination = {
@@ -47,6 +49,8 @@ export type ResourceTableWithFilterProps = {
   deleteLabelKey: string;
   canUpdate: boolean;
   canDelete: boolean;
+  /** When provided, overrides canUpdate/canDelete per row (e.g. hide Delete for super admin). */
+  getRowActions?: (row: FilterableTableRow) => { canUpdate: boolean; canDelete: boolean };
   apiBaseUrl: string;
   confirmDeleteTranslationKeyPrefix: string;
   getDisplayName: (row: FilterableTableRow) => string;
@@ -73,6 +77,7 @@ export function ResourceTableWithFilter({
   deleteLabelKey,
   canUpdate,
   canDelete,
+  getRowActions,
   apiBaseUrl,
   confirmDeleteTranslationKeyPrefix,
   getDisplayName,
@@ -137,7 +142,16 @@ export function ResourceTableWithFilter({
   const rowsToShow =
     initialSearch.trim() !== '' ? tableRows : filterRows(tableRows, filter, selectedColumnIds);
 
-  const showActions = canUpdate || canDelete;
+  const getActions = (row: FilterableTableRow): { canUpdate: boolean; canDelete: boolean } =>
+    getRowActions !== undefined ? getRowActions(row) : { canUpdate, canDelete };
+
+  const showActions =
+    getRowActions !== undefined
+      ? rowsToShow.some((row) => {
+          const a = getActions(row);
+          return a.canUpdate || a.canDelete;
+        })
+      : canUpdate || canDelete;
 
   return (
     <>
@@ -179,37 +193,40 @@ export function ResourceTableWithFilter({
             </Table.Row>
           </Table.Head>
           <Table.Body>
-            {rowsToShow.map((row) => (
-              <Table.Row key={row.id}>
-                {columns.map((col) => (
-                  <Table.Cell key={col.id}>{row.cells[col.id] ?? '—'}</Table.Cell>
-                ))}
-                {showActions && (
-                  <Table.Cell>
-                    <div className={styles.actionsCell}>
-                      {canUpdate && (
-                        <Link href={editRoute(row.id)} className={styles.editLink}>
-                          {tCommon(editLabelKey)}
-                        </Link>
-                      )}
-                      {canDelete && (
-                        <Button
-                          variant="secondary"
-                          onClick={() =>
-                            setDeleteTarget({
-                              id: row.id,
-                              displayName: getDisplayName(row),
-                            })
-                          }
-                        >
-                          {tCommon(deleteLabelKey)}
-                        </Button>
-                      )}
-                    </div>
-                  </Table.Cell>
-                )}
-              </Table.Row>
-            ))}
+            {rowsToShow.map((row) => {
+              const rowActions = getActions(row);
+              return (
+                <Table.Row key={row.id}>
+                  {columns.map((col) => (
+                    <Table.Cell key={col.id}>{row.cells[col.id] ?? '—'}</Table.Cell>
+                  ))}
+                  {showActions && (
+                    <Table.Cell>
+                      <div className={styles.actionsCell}>
+                        {rowActions.canUpdate && (
+                          <Link href={editRoute(row.id)} className={styles.editLink}>
+                            {tCommon(editLabelKey)}
+                          </Link>
+                        )}
+                        {rowActions.canDelete && (
+                          <Button
+                            variant="secondary"
+                            onClick={() =>
+                              setDeleteTarget({
+                                id: row.id,
+                                displayName: getDisplayName(row),
+                              })
+                            }
+                          >
+                            {tCommon(deleteLabelKey)}
+                          </Button>
+                        )}
+                      </div>
+                    </Table.Cell>
+                  )}
+                </Table.Row>
+              );
+            })}
           </Table.Body>
         </Table>
       </Table.ScrollContainer>

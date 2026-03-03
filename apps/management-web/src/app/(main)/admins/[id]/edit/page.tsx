@@ -39,11 +39,6 @@ export default async function EditAdminPage({ params }: EditAdminPageProps) {
     redirect(ROUTES.LOGIN);
   }
 
-  const crud = getCrudFlags(user.isSuperAdmin === true, user.permissions, 'adminsCrud');
-  if (!crud.update) {
-    redirect(ROUTES.ADMINS);
-  }
-
   const { id } = await params;
   const result = await fetchAdmin(id);
   if (result === null) {
@@ -51,6 +46,11 @@ export default async function EditAdminPage({ params }: EditAdminPageProps) {
   }
 
   const admin = result.admin;
+  const crud = getCrudFlags(user.isSuperAdmin === true, user.permissions, 'adminsCrud');
+  const canAccessEdit = crud.update || (admin.isSuperAdmin === true && user.id === id);
+  if (!canAccessEdit) {
+    redirect(ROUTES.ADMINS);
+  }
   const initialValues: AdminFormInitialValues = {
     displayName: admin.displayName ?? '',
     email: admin.email,

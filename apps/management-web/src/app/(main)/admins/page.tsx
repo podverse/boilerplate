@@ -106,6 +106,7 @@ export default async function AdminsPage({ searchParams }: PageProps) {
       email: a.email,
       displayName: a.displayName !== null && a.displayName !== '' ? a.displayName : '—',
     },
+    isSuperAdmin: a.isSuperAdmin === true,
   }));
 
   const adminColumns = [

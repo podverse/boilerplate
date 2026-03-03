@@ -69,7 +69,7 @@ export class ManagementUserService {
     });
   }
 
-  /** Paginated list of admins (non–super-admin users) and total count. Optional ILIKE search over email and display_name. */
+  /** Paginated list of all management users (super admin and admins) and total count. Optional ILIKE search over email and display_name. */
   static async listAdminsPaginated(
     limit: number,
     offset: number,
@@ -80,7 +80,6 @@ export class ManagementUserService {
     const hasSearch = searchTrim !== undefined && searchTrim !== '';
     if (!hasSearch) {
       const [admins, total] = await repo.findAndCount({
-        where: { isSuperAdmin: false },
         relations: ['credentials', 'bio', 'permissions'],
         order: { createdAt: 'ASC' },
         take: limit,
@@ -93,11 +92,9 @@ export class ManagementUserService {
       .leftJoinAndSelect('u.credentials', 'credentials')
       .leftJoinAndSelect('u.bio', 'bio')
       .leftJoinAndSelect('u.permissions', 'permissions')
-      .where('u.is_super_admin = :superAdmin', { superAdmin: false })
-      .andWhere(
-        '(credentials.email ILIKE :searchPattern OR bio.display_name ILIKE :searchPattern)',
-        { searchPattern: `%${searchTrim}%` }
-      )
+      .where('(credentials.email ILIKE :searchPattern OR bio.display_name ILIKE :searchPattern)', {
+        searchPattern: `%${searchTrim}%`,
+      })
       .orderBy('u.createdAt', 'ASC')
       .take(limit)
       .skip(offset);
@@ -125,7 +122,7 @@ export class ManagementUserService {
       const id = uuidv4();
       const user = userRepo.create({
         id,
-        isSuperAdmin: false,
+        isSuperAdmin: false, // Only seed/migration can create super admin; API cannot.
         createdBy: data.createdBy,
       });
       await userRepo.save(user);
@@ -165,7 +162,7 @@ export class ManagementUserService {
 
   static async updateAdmin(id: string, data: UpdateAdminData): Promise<ManagementUser | null> {
     const existing = await this.findById(id);
-    if (existing === null || existing.isSuperAdmin) return null;
+    if (existing === null) return null;
 
     const qr = managementDataSource.createQueryRunner();
     await qr.connect();
@@ -188,7 +185,8 @@ export class ManagementUserService {
       }
       const permRepo = qr.manager.getRepository(AdminPermissions);
       const perm = existing.permissions;
-      if (perm !== undefined && perm !== null) {
+      const allowPermissionUpdates = !existing.isSuperAdmin && perm !== undefined && perm !== null;
+      if (allowPermissionUpdates) {
         const updates: {
           adminsCrud?: number;
           usersCrud?: number;
@@ -213,7 +211,7 @@ export class ManagementUserService {
 
   static async deleteById(id: string): Promise<boolean> {
     const existing = await this.findById(id);
-    if (existing === null || existing.isSuperAdmin) return false;
+    if (existing === null || existing.isSuperAdmin) return false; // Super admin is never deletable.
     const repo = managementDataSource.getRepository(ManagementUser);
     const result = await repo.delete(id);
     return (result.affected ?? 0) > 0;

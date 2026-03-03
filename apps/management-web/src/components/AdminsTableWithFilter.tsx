@@ -62,6 +62,16 @@ export function AdminsTableWithFilter({
     maxGoToPage,
   };
 
+  const getRowActions = (row: FilterableTableRow): { canUpdate: boolean; canDelete: boolean } => {
+    if (row.isSuperAdmin === true) {
+      return {
+        canUpdate: currentUserId !== undefined && row.id === currentUserId,
+        canDelete: false,
+      };
+    }
+    return { canUpdate: canUpdateAdmin, canDelete: canDeleteAdmin };
+  };
+
   return (
     <ResourceTableWithFilter
       tableRows={tableRows}
@@ -80,6 +90,7 @@ export function AdminsTableWithFilter({
       deleteLabelKey="adminsTable.delete"
       canUpdate={canUpdateAdmin}
       canDelete={canDeleteAdmin}
+      getRowActions={getRowActions}
       apiBaseUrl={adminApiBaseUrl}
       confirmDeleteTranslationKeyPrefix="common.confirmDeleteAdmin"
       getDisplayName={(row) => row.cells['displayName'] ?? ''}
