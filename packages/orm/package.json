@@ -16,7 +16,7 @@
   "dependencies": {
     "@boilerplate/helpers": "*",
     "ansis": "^4.2.0",
-    "dedent": "^1.7.1",
+    "dedent": "^1.7.2",
     "pg": "^8.13.0",
     "reflect-metadata": "^0.2.2",
     "sha.js": "^2.4.12",
