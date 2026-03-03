@@ -5,6 +5,7 @@
 
 export type Bucket = {
   id: string;
+  shortId: string;
   ownerId: string;
   name: string;
   isPublic: boolean;
@@ -15,6 +16,7 @@ export type Bucket = {
 
 export type PublicBucket = {
   id: string;
+  shortId: string;
   name: string;
   isPublic: boolean;
 };

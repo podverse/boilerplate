@@ -15,7 +15,7 @@ type AdminRow = {
   bucketCrud: number;
   messageCrud: number;
   createdAt: string;
-  user: { id: string; email: string; displayName: string | null } | null;
+  user: { id: string; shortId: string; email: string; displayName: string | null } | null;
 };
 
 export function BucketAdminsClient({
@@ -97,7 +97,7 @@ export function BucketAdminsClient({
       credentials: 'include',
     });
     if (res.ok) {
-      setAdmins((prev) => prev.filter((a) => a.userId !== adminUserId));
+      setAdmins((prev) => prev.filter((a) => (a.user?.shortId ?? a.userId) !== adminUserId));
     }
   };
 
@@ -160,12 +160,16 @@ export function BucketAdminsClient({
                 </Text>
               </div>
               <div style={{ display: 'flex', gap: '0.5rem' }}>
-                <Link href={`/buckets/${bucketId}/admins/${a.userId}/edit`}>
+                <Link href={`/buckets/${bucketId}/admins/${a.user?.shortId ?? a.userId}/edit`}>
                   <Button type="button" variant="secondary">
                     {t('edit')}
                   </Button>
                 </Link>
-                <Button type="button" variant="secondary" onClick={() => handleDelete(a.userId)}>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  onClick={() => handleDelete(a.user?.shortId ?? a.userId)}
+                >
                   {t('delete')}
                 </Button>
               </div>

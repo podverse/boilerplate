@@ -57,6 +57,7 @@ async function trySessionRestore(
   let body: {
     user?: {
       id?: string;
+      shortId?: string;
       email?: string;
       displayName?: string | null;
       profileVisibility?: boolean;
@@ -74,6 +75,7 @@ async function trySessionRestore(
 
   const authUser = JSON.stringify({
     id: user.id,
+    shortId: typeof user.shortId === 'string' ? user.shortId : user.id,
     email: user.email,
     displayName: user.displayName ?? null,
     profileVisibility: user.profileVisibility === true,
@@ -99,8 +101,7 @@ export async function proxy(request: NextRequest) {
   }
 
   const { response, hasRestoredSession } = await trySessionRestore(request);
-  const hasSession =
-    request.cookies.has(SESSION_COOKIE_NAME) || hasRestoredSession;
+  const hasSession = request.cookies.has(SESSION_COOKIE_NAME) || hasRestoredSession;
   const isPublic = PUBLIC_PATHS.includes(pathname);
 
   // Protected route without session -> redirect to login

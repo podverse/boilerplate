@@ -19,8 +19,9 @@ export const createTopicSchema = Joi.object({
   isPublic: Joi.boolean().optional(),
 });
 
+/** User id: shortId (10–12 chars) or UUID. */
 export const createBucketAdminSchema = Joi.object({
-  userId: Joi.string().uuid().required(),
+  userId: Joi.string().min(10).max(36).required(),
   bucketCrud: crudMask.optional(),
   messageCrud: crudMask.optional(),
 });

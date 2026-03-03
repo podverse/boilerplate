@@ -6,6 +6,7 @@ import type { UserWithRelations } from '@boilerplate/orm';
  */
 export interface PublicUser {
   id: string;
+  shortId: string;
   email: string;
   displayName: string | null;
   profileVisibility: boolean;
@@ -17,6 +18,7 @@ export interface PublicUser {
 export function userToJson(user: UserWithRelations): PublicUser {
   return {
     id: user.id,
+    shortId: user.shortId,
     email: user.credentials.email,
     displayName: user.bio?.displayName ?? null,
     profileVisibility: user.profileVisibility,

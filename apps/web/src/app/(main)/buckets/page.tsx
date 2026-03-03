@@ -10,6 +10,7 @@ import { ROUTES, bucketDetailRoute, bucketEditRoute } from '../../../lib/routes'
 
 export type Bucket = {
   id: string;
+  shortId: string;
   ownerId: string;
   name: string;
   slug: string;
@@ -78,19 +79,22 @@ export default async function BucketsPage() {
                 >
                   <div>
                     <Link
-                      href={bucketDetailRoute(b.id)}
+                      href={bucketDetailRoute(b.shortId)}
                       style={{ fontWeight: 600, textDecoration: 'none' }}
                     >
                       {b.name}
                     </Link>
                     <Text variant="muted" style={{ marginLeft: '0.5rem' }}>
-                      {[b.slug?.trim(), `${t('isPublic')}: ${b.isPublic ? t('publicYes') : t('publicNo')}`]
+                      {[
+                        b.slug?.trim(),
+                        `${t('isPublic')}: ${b.isPublic ? t('publicYes') : t('publicNo')}`,
+                      ]
                         .filter(Boolean)
                         .join(', ')}
                     </Text>
                   </div>
                   <div style={{ display: 'flex', gap: '0.5rem' }}>
-                    <Link href={bucketEditRoute(b.id)}>
+                    <Link href={bucketEditRoute(b.shortId)}>
                       <Button variant="secondary">{t('edit')}</Button>
                     </Link>
                   </div>

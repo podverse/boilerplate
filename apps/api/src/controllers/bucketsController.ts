@@ -41,7 +41,7 @@ export async function getBucket(req: Request, res: Response): Promise<void> {
     return;
   }
   const id = req.params.id as string;
-  const bucket = await BucketService.findById(id);
+  const bucket = await BucketService.findByShortId(id);
   if (bucket === null) {
     res.status(404).json({ message: 'Bucket not found' });
     return;
@@ -61,7 +61,7 @@ export async function updateBucket(req: Request, res: Response): Promise<void> {
     return;
   }
   const id = req.params.id as string;
-  const bucket = await BucketService.findById(id);
+  const bucket = await BucketService.findByShortId(id);
   if (bucket === null) {
     res.status(404).json({ message: 'Bucket not found' });
     return;
@@ -72,11 +72,11 @@ export async function updateBucket(req: Request, res: Response): Promise<void> {
     return;
   }
   const body = req.body as UpdateBucketBody;
-  await BucketService.update(id, {
+  await BucketService.update(bucket.id, {
     name: body.name,
     isPublic: body.isPublic,
   });
-  const updated = await BucketService.findById(id);
+  const updated = await BucketService.findById(bucket.id);
   res.status(200).json({ bucket: updated });
 }
 
@@ -87,7 +87,7 @@ export async function deleteBucket(req: Request, res: Response): Promise<void> {
     return;
   }
   const id = req.params.id as string;
-  const bucket = await BucketService.findById(id);
+  const bucket = await BucketService.findByShortId(id);
   if (bucket === null) {
     res.status(404).json({ message: 'Bucket not found' });
     return;
@@ -97,7 +97,7 @@ export async function deleteBucket(req: Request, res: Response): Promise<void> {
     res.status(403).json({ message: 'Forbidden' });
     return;
   }
-  await BucketService.delete(id);
+  await BucketService.delete(bucket.id);
   res.status(204).send();
 }
 
@@ -108,7 +108,7 @@ export async function listTopics(req: Request, res: Response): Promise<void> {
     return;
   }
   const bucketId = req.params.bucketId as string;
-  const parent = await BucketService.findById(bucketId);
+  const parent = await BucketService.findByShortId(bucketId);
   if (parent === null) {
     res.status(404).json({ message: 'Bucket not found' });
     return;
@@ -118,7 +118,7 @@ export async function listTopics(req: Request, res: Response): Promise<void> {
     res.status(403).json({ message: 'Forbidden' });
     return;
   }
-  const topics = await BucketService.findChildren(bucketId);
+  const topics = await BucketService.findChildren(parent.id);
   res.status(200).json({ buckets: topics });
 }
 
@@ -129,7 +129,7 @@ export async function createTopic(req: Request, res: Response): Promise<void> {
     return;
   }
   const bucketId = req.params.bucketId as string;
-  const parent = await BucketService.findById(bucketId);
+  const parent = await BucketService.findByShortId(bucketId);
   if (parent === null) {
     res.status(404).json({ message: 'Bucket not found' });
     return;
@@ -150,7 +150,7 @@ export async function createTopic(req: Request, res: Response): Promise<void> {
     ownerId: user.id,
     name: body.name,
     isPublic: body.isPublic ?? false,
-    parentBucketId: bucketId,
+    parentBucketId: parent.id,
   });
   res.status(201).json({ bucket: topic });
 }

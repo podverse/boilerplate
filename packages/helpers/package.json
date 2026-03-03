@@ -13,6 +13,9 @@
     "type-check": "tsc --noEmit",
     "clean": "rm -rf dist"
   },
+  "dependencies": {
+    "nanoid": "^3.3.11"
+  },
   "devDependencies": {
     "@types/node": "^24.10.12",
     "typescript": "^5.9.2"

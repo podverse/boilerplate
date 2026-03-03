@@ -15,7 +15,7 @@ type AdminRow = {
   userId: string;
   bucketCrud: number;
   messageCrud: number;
-  user: { id: string; email: string; displayName: string | null } | null;
+  user: { id: string; shortId: string; email: string; displayName: string | null } | null;
 };
 
 async function fetchBucket(id: string): Promise<{ bucket: Bucket | null }> {
@@ -55,7 +55,7 @@ export default async function EditBucketAdminPage({
   if (bucket === null) notFound();
 
   const admins = await fetchAdmins(bucketId);
-  const admin = admins.find((a) => a.userId === userId);
+  const admin = admins.find((a) => a.user?.shortId === userId || a.userId === userId);
   if (admin === undefined) notFound();
 
   const t = await getTranslations('buckets');

@@ -1,10 +1,12 @@
 -- 0001 migration: user (singular) with join tables user_credentials, user_bio; verification_token
 
 -- Core user row (one per account)
+-- short_id: URL-safe public id (app sets on insert via nanoid).
 CREATE TABLE "user" (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     profile_visibility BOOLEAN NOT NULL DEFAULT false,
     email_verified_at TIMESTAMP NULL,
+    short_id VARCHAR(12) NOT NULL,
     created_at server_time_with_default NOT NULL,
     updated_at server_time_with_default NOT NULL
 );
@@ -13,6 +15,8 @@ CREATE TRIGGER set_updated_at_user
     BEFORE UPDATE ON "user"
     FOR EACH ROW
     EXECUTE FUNCTION set_updated_at_field();
+
+CREATE UNIQUE INDEX idx_user_short_id ON "user"(short_id);
 
 -- Credentials: email and password hash (1:1 with user)
 CREATE TABLE user_credentials (

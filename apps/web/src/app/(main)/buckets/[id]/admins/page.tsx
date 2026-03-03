@@ -11,6 +11,7 @@ import { BucketAdminsClient } from '../BucketAdminsClient';
 
 type Bucket = {
   id: string;
+  shortId: string;
   ownerId: string;
   name: string;
   slug: string;
@@ -25,7 +26,7 @@ type BucketAdminRow = {
   bucketCrud: number;
   messageCrud: number;
   createdAt: string;
-  user: { id: string; email: string; displayName: string | null } | null;
+  user: { id: string; shortId: string; email: string; displayName: string | null } | null;
 };
 
 async function fetchBucket(id: string): Promise<{ bucket: Bucket | null }> {

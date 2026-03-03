@@ -30,10 +30,12 @@ $$ LANGUAGE plpgsql;
 -- 0001 migration: user (singular) with join tables user_credentials, user_bio; verification_token
 
 -- Core user row (one per account)
+-- short_id: URL-safe public id (app sets on insert via nanoid).
 CREATE TABLE "user" (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     profile_visibility BOOLEAN NOT NULL DEFAULT false,
     email_verified_at TIMESTAMP NULL,
+    short_id VARCHAR(12) NOT NULL,
     created_at server_time_with_default NOT NULL,
     updated_at server_time_with_default NOT NULL
 );
@@ -42,6 +44,8 @@ CREATE TRIGGER set_updated_at_user
     BEFORE UPDATE ON "user"
     FOR EACH ROW
     EXECUTE FUNCTION set_updated_at_field();
+
+CREATE UNIQUE INDEX idx_user_short_id ON "user"(short_id);
 
 -- Credentials: email and password hash (1:1 with user)
 CREATE TABLE user_credentials (
@@ -89,12 +93,14 @@ CREATE INDEX idx_refresh_token_user_id ON refresh_token(user_id);
 -- 0003 migration: bucket (and topics as child buckets), bucket_admin, bucket_message
 
 -- Bucket: top-level have parent_bucket_id NULL; topics are rows with parent_bucket_id set.
+-- short_id: URL-safe public id (app sets on insert via nanoid).
 CREATE TABLE bucket (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     owner_id UUID NOT NULL REFERENCES "user"(id) ON DELETE CASCADE,
     name varchar_short NOT NULL,
     is_public BOOLEAN NOT NULL DEFAULT false,
     parent_bucket_id UUID NULL REFERENCES bucket(id) ON DELETE CASCADE,
+    short_id VARCHAR(12) NOT NULL,
     created_at server_time_with_default NOT NULL,
     updated_at server_time_with_default NOT NULL
 );
@@ -106,6 +112,7 @@ CREATE TRIGGER set_updated_at_bucket
 
 CREATE INDEX idx_bucket_owner_id ON bucket(owner_id);
 CREATE INDEX idx_bucket_parent_bucket_id ON bucket(parent_bucket_id);
+CREATE UNIQUE INDEX idx_bucket_short_id ON bucket(short_id);
 
 -- Bucket admins: CRUD bitmasks for bucket and messages (create=1, read=2, update=4, delete=8).
 CREATE TABLE bucket_admin (

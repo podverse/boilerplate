@@ -21,7 +21,7 @@ export async function listMessages(req: Request, res: Response): Promise<void> {
     return;
   }
   const bucketId = req.params.bucketId as string;
-  const bucket = await BucketService.findById(bucketId);
+  const bucket = await BucketService.findByShortId(bucketId);
   if (bucket === null) {
     res.status(404).json({ message: 'Bucket not found' });
     return;
@@ -34,12 +34,12 @@ export async function listMessages(req: Request, res: Response): Promise<void> {
   const page = Math.max(1, Number(req.query.page) || 1);
   const limit = Math.min(MAX_PAGE_SIZE, Math.max(1, Number(req.query.limit) || DEFAULT_PAGE_LIMIT));
   const offset = (page - 1) * limit;
-  const messages = await BucketMessageService.findByBucketId(bucketId, {
+  const messages = await BucketMessageService.findByBucketId(bucket.id, {
     limit,
     offset,
     publicOnly: false,
   });
-  const total = await BucketMessageService.countByBucketId(bucketId, false);
+  const total = await BucketMessageService.countByBucketId(bucket.id, false);
   const totalPages = Math.max(1, Math.ceil(total / limit));
   res.status(200).json({
     messages,
@@ -58,7 +58,7 @@ export async function getMessage(req: Request, res: Response): Promise<void> {
   }
   const bucketId = req.params.bucketId as string;
   const messageId = req.params.id as string;
-  const bucket = await BucketService.findById(bucketId);
+  const bucket = await BucketService.findByShortId(bucketId);
   if (bucket === null) {
     res.status(404).json({ message: 'Bucket not found' });
     return;
@@ -69,7 +69,7 @@ export async function getMessage(req: Request, res: Response): Promise<void> {
     return;
   }
   const message = await BucketMessageService.findById(messageId);
-  if (message === null || message.bucketId !== bucketId) {
+  if (message === null || message.bucketId !== bucket.id) {
     res.status(404).json({ message: 'Message not found' });
     return;
   }
@@ -87,7 +87,7 @@ export async function createMessage(req: Request, res: Response): Promise<void> 
     return;
   }
   const bucketId = req.params.bucketId as string;
-  const bucket = await BucketService.findById(bucketId);
+  const bucket = await BucketService.findByShortId(bucketId);
   if (bucket === null) {
     res.status(404).json({ message: 'Bucket not found' });
     return;
@@ -99,7 +99,7 @@ export async function createMessage(req: Request, res: Response): Promise<void> 
   }
   const body = req.body as CreateMessageBody;
   const message = await BucketMessageService.create({
-    bucketId,
+    bucketId: bucket.id,
     senderName: body.senderName,
     body: body.body,
     isPublic: body.isPublic ?? false,
@@ -115,14 +115,14 @@ export async function updateMessage(req: Request, res: Response): Promise<void> 
   }
   const bucketId = req.params.bucketId as string;
   const messageId = req.params.id as string;
-  const bucket = await BucketService.findById(bucketId);
+  const bucket = await BucketService.findByShortId(bucketId);
   if (bucket === null) {
     res.status(404).json({ message: 'Bucket not found' });
     return;
   }
   const bucketAdmin = await BucketAdminService.findByBucketAndUser(bucket.id, user.id);
   const message = await BucketMessageService.findById(messageId);
-  if (message === null || message.bucketId !== bucketId) {
+  if (message === null || message.bucketId !== bucket.id) {
     res.status(404).json({ message: 'Message not found' });
     return;
   }
@@ -144,14 +144,14 @@ export async function deleteMessage(req: Request, res: Response): Promise<void> 
   }
   const bucketId = req.params.bucketId as string;
   const messageId = req.params.id as string;
-  const bucket = await BucketService.findById(bucketId);
+  const bucket = await BucketService.findByShortId(bucketId);
   if (bucket === null) {
     res.status(404).json({ message: 'Bucket not found' });
     return;
   }
   const bucketAdmin = await BucketAdminService.findByBucketAndUser(bucket.id, user.id);
   const message = await BucketMessageService.findById(messageId);
-  if (message === null || message.bucketId !== bucketId) {
+  if (message === null || message.bucketId !== bucket.id) {
     res.status(404).json({ message: 'Message not found' });
     return;
   }
@@ -163,10 +163,10 @@ export async function deleteMessage(req: Request, res: Response): Promise<void> 
   res.status(204).send();
 }
 
-/** Public: get bucket metadata by id (only if bucket is public). */
+/** Public: get bucket metadata by short_id (only if bucket is public). */
 export async function getPublicBucket(req: Request, res: Response): Promise<void> {
   const id = req.params.id as string;
-  const bucket = await BucketService.findById(id);
+  const bucket = await BucketService.findByShortId(id);
   if (bucket === null || !bucket.isPublic) {
     res.status(404).json({ message: 'Bucket not found' });
     return;
@@ -174,10 +174,10 @@ export async function getPublicBucket(req: Request, res: Response): Promise<void
   res.status(200).json({ bucket });
 }
 
-/** Public: list public messages in a bucket by id (only if bucket is public). */
+/** Public: list public messages in a bucket by short_id (only if bucket is public). */
 export async function listPublicMessages(req: Request, res: Response): Promise<void> {
   const id = req.params.id as string;
-  const bucket = await BucketService.findById(id);
+  const bucket = await BucketService.findByShortId(id);
   if (bucket === null || !bucket.isPublic) {
     res.status(404).json({ message: 'Bucket not found' });
     return;
@@ -201,10 +201,10 @@ export async function listPublicMessages(req: Request, res: Response): Promise<v
   });
 }
 
-/** Public: submit a message to a bucket by id (no auth). Bucket must exist; allow submit even when bucket is not public. */
+/** Public: submit a message to a bucket by short_id (no auth). Bucket must exist; allow submit even when bucket is not public. */
 export async function publicSubmitMessage(req: Request, res: Response): Promise<void> {
   const id = req.params.id as string;
-  const bucket = await BucketService.findById(id);
+  const bucket = await BucketService.findByShortId(id);
   if (bucket === null) {
     res.status(404).json({ message: 'Bucket not found' });
     return;

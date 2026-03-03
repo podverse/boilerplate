@@ -8,6 +8,7 @@ import { getRuntimeConfig } from '../config/runtime-config-store';
 
 export type ServerUser = {
   id: string;
+  shortId: string;
   email: string;
   displayName: string | null;
   profileVisibility: boolean;
@@ -31,6 +32,7 @@ function parseAuthUserHeader(value: string | null): ServerUser | null {
   try {
     const parsed = JSON.parse(value) as {
       id?: string;
+      shortId?: string;
       email?: string;
       displayName?: string | null;
       profileVisibility?: boolean;
@@ -40,6 +42,7 @@ function parseAuthUserHeader(value: string | null): ServerUser | null {
     }
     return {
       id: parsed.id,
+      shortId: typeof parsed.shortId === 'string' ? parsed.shortId : parsed.id,
       email: parsed.email,
       displayName: parsed.displayName ?? null,
       profileVisibility: parsed.profileVisibility === true,
@@ -92,6 +95,7 @@ export async function getServerUser(): Promise<ServerUser | null> {
 
     return {
       id: data.user.id,
+      shortId: typeof data.user.shortId === 'string' ? data.user.shortId : data.user.id,
       email: data.user.email,
       displayName: data.user.displayName ?? null,
       profileVisibility: data.user.profileVisibility === true,

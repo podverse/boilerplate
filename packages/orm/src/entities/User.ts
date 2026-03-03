@@ -15,6 +15,9 @@ export class User {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
 
+  @Column({ name: 'short_id', length: 12, unique: true })
+  shortId!: string;
+
   @Column({ name: 'profile_visibility', type: 'boolean', default: false })
   profileVisibility!: boolean;
 

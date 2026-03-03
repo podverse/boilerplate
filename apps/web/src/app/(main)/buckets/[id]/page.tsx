@@ -45,7 +45,11 @@ export default async function BucketDetailPage({ params }: { params: Promise<{ i
               <Button variant="secondary">{t('messages')}</Button>
             </Link>
             {bucket.isPublic && (
-              <Link href={publicBucketRoute(bucket.id)} target="_blank" rel="noopener noreferrer">
+              <Link
+                href={publicBucketRoute(bucket.shortId)}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
                 <Button variant="secondary">Public page</Button>
               </Link>
             )}
@@ -70,7 +74,7 @@ export default async function BucketDetailPage({ params }: { params: Promise<{ i
                     }}
                   >
                     <Link
-                      href={bucketDetailRoute(topic.id)}
+                      href={bucketDetailRoute(topic.shortId)}
                       style={{ fontWeight: 500, textDecoration: 'none' }}
                     >
                       {topic.name}

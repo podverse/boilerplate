@@ -30,6 +30,9 @@ export class Bucket {
   @Column({ name: 'parent_bucket_id', type: 'uuid', nullable: true })
   parentBucketId!: string | null;
 
+  @Column({ name: 'short_id', length: 12, unique: true })
+  shortId!: string;
+
   @CreateDateColumn({ name: 'created_at' })
   createdAt!: Date;
 
