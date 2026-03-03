@@ -155,8 +155,12 @@ export function AdminForm({
       : passwordValidation.message
     : null;
 
+  const permissionsRelevant = mode === 'create' || !targetIsSuperAdmin;
   const permissionsError =
-    isSuperAdmin && permissionsTouched && totalBits(adminsCrudFlags, usersCrudFlags) === 0
+    permissionsRelevant &&
+    isSuperAdmin &&
+    permissionsTouched &&
+    totalBits(adminsCrudFlags, usersCrudFlags) === 0
       ? t('permissionsRequired')
       : null;
 
@@ -186,7 +190,13 @@ export function AdminForm({
     if (email.trim() === '' || !isValidEmail(email.trim())) return;
     if (mode === 'create' && !passwordValidation.valid) return;
     if (password !== '' && !passwordValidation.valid) return;
-    if (isSuperAdmin && totalBits(adminsCrudFlags, usersCrudFlags) === 0) return;
+    // Require at least one permission when creating, or when editing a non–super-admin (permissions are editable)
+    if (
+      isSuperAdmin &&
+      (mode === 'create' || !targetIsSuperAdmin) &&
+      totalBits(adminsCrudFlags, usersCrudFlags) === 0
+    )
+      return;
 
     setSubmitError(null);
     setLoading(true);
