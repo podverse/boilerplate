@@ -4,7 +4,15 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
-import { Button, Input, FormActions, CheckboxField, Text } from '@boilerplate/ui';
+import {
+  Button,
+  Input,
+  FormActions,
+  FormContainer,
+  CheckboxField,
+  Stack,
+  Text,
+} from '@boilerplate/ui';
 import { getApiBaseUrl } from '../../../lib/api-client';
 
 type TopicFormProps = {
@@ -36,7 +44,7 @@ export function TopicForm({ parentBucketId, successHref, cancelHref }: TopicForm
     };
 
     try {
-      const res = await fetch(`${baseUrl}/v1/buckets/${parentBucketId}/buckets`, {
+      const res = await fetch(`${baseUrl}/buckets/${parentBucketId}/buckets`, {
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
@@ -56,36 +64,38 @@ export function TopicForm({ parentBucketId, successHref, cancelHref }: TopicForm
   };
 
   return (
-    <form onSubmit={handleSubmit}>
-      <Input
-        label={t('name')}
-        type="text"
-        value={name}
-        onChange={setName}
-        disabled={loading}
-        required
-      />
-      <CheckboxField
-        label={t('isPublic')}
-        checked={isPublic}
-        onChange={setIsPublic}
-        disabled={loading}
-      />
-      {submitError !== null && (
-        <Text variant="error" size="sm" as="p" role="alert" style={{ marginBottom: '1rem' }}>
-          {submitError}
-        </Text>
-      )}
-      <FormActions>
-        <Button type="submit" variant="primary" loading={loading}>
-          {t('createTopic')}
-        </Button>
-        <Link href={cancelHref}>
-          <Button type="button" variant="secondary">
-            {t('cancel')}
+    <FormContainer onSubmit={handleSubmit}>
+      <Stack>
+        <Input
+          label={t('name')}
+          type="text"
+          value={name}
+          onChange={setName}
+          disabled={loading}
+          required
+        />
+        <CheckboxField
+          label={t('isPublic')}
+          checked={isPublic}
+          onChange={setIsPublic}
+          disabled={loading}
+        />
+        {submitError !== null && (
+          <Text variant="error" size="sm" as="p" role="alert">
+            {submitError}
+          </Text>
+        )}
+        <FormActions>
+          <Button type="submit" variant="primary" loading={loading}>
+            {t('createTopic')}
           </Button>
-        </Link>
-      </FormActions>
-    </form>
+          <Link href={cancelHref}>
+            <Button type="button" variant="secondary">
+              {t('cancel')}
+            </Button>
+          </Link>
+        </FormActions>
+      </Stack>
+    </FormContainer>
   );
 }

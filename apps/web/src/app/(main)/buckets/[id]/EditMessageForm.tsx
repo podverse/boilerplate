@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
-import { Button, CheckboxField, FormActions, Text } from '@boilerplate/ui';
+import { Button, CheckboxField, FormActions, FormContainer, Stack, Text } from '@boilerplate/ui';
 import { getApiBaseUrl } from '../../../../lib/api-client';
 
 export function EditMessageForm({
@@ -39,7 +39,7 @@ export function EditMessageForm({
     setLoading(true);
     const baseUrl = getApiBaseUrl();
     try {
-      const res = await fetch(`${baseUrl}/v1/buckets/${bucketId}/messages/${messageId}`, {
+      const res = await fetch(`${baseUrl}/buckets/${bucketId}/messages/${messageId}`, {
         method: 'PATCH',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
@@ -61,38 +61,40 @@ export function EditMessageForm({
   };
 
   return (
-    <form onSubmit={handleSubmit}>
-      <label style={{ display: 'block', marginBottom: '0.5rem' }}>
-        <span style={{ fontWeight: 500 }}>Body</span>
-        <textarea
-          value={body}
-          onChange={(e) => setBody(e.target.value)}
+    <FormContainer onSubmit={handleSubmit}>
+      <Stack>
+        <label style={{ display: 'block', marginBottom: '0.5rem' }}>
+          <span style={{ fontWeight: 500 }}>Body</span>
+          <textarea
+            value={body}
+            onChange={(e) => setBody(e.target.value)}
+            disabled={loading}
+            rows={4}
+            style={{ display: 'block', width: '100%', marginTop: '0.25rem', padding: '0.5rem' }}
+          />
+        </label>
+        <CheckboxField
+          label={t('isPublic')}
+          checked={isPublic}
+          onChange={setIsPublic}
           disabled={loading}
-          rows={4}
-          style={{ display: 'block', width: '100%', marginTop: '0.25rem', padding: '0.5rem' }}
         />
-      </label>
-      <CheckboxField
-        label={t('isPublic')}
-        checked={isPublic}
-        onChange={setIsPublic}
-        disabled={loading}
-      />
-      {submitError !== null && (
-        <Text variant="error" size="sm" as="p" role="alert" style={{ marginBottom: '1rem' }}>
-          {submitError}
-        </Text>
-      )}
-      <FormActions>
-        <Button type="submit" variant="primary" loading={loading}>
-          {t('save')}
-        </Button>
-        <Link href={cancelHref}>
-          <Button type="button" variant="secondary">
-            {t('cancel')}
+        {submitError !== null && (
+          <Text variant="error" size="sm" as="p" role="alert">
+            {submitError}
+          </Text>
+        )}
+        <FormActions>
+          <Button type="submit" variant="primary" loading={loading}>
+            {t('save')}
           </Button>
-        </Link>
-      </FormActions>
-    </form>
+          <Link href={cancelHref}>
+            <Button type="button" variant="secondary">
+              {t('cancel')}
+            </Button>
+          </Link>
+        </FormActions>
+      </Stack>
+    </FormContainer>
   );
 }

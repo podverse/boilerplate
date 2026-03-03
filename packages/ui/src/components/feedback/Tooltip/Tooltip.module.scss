@@ -1,0 +1,41 @@
+@use '../../../styles/variables' as *;
+
+.wrapper {
+  display: inline-flex;
+  align-items: center;
+  position: relative;
+}
+
+.trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: help;
+  outline: none;
+  border-radius: $radius-full;
+}
+
+.tooltip {
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%) translateY(-$space-2);
+  padding: $space-2 $space-3;
+  max-width: 16rem;
+  font-size: 0.875rem;
+  line-height: 1.35;
+  color: var(--color-bg, #{$color-bg});
+  background: var(--color-text, #{$color-text});
+  border-radius: $radius-sm;
+  white-space: normal;
+  pointer-events: none;
+  visibility: hidden;
+  opacity: 0;
+  transition: visibility 0.15s, opacity 0.15s;
+  z-index: 1000;
+
+  &[data-visible='true'] {
+    visibility: visible;
+    opacity: 1;
+  }
+}

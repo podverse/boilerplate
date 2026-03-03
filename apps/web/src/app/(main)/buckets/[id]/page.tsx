@@ -34,7 +34,7 @@ export default async function BucketDetailPage({ params }: { params: Promise<{ i
         <Card title={bucket.name}>
           <div style={{ marginBottom: '1rem' }}>
             <Text variant="muted">
-              {bucket.isPublic ? t('publicYes') : t('publicNo')}
+              {t('isPublic')}: {bucket.isPublic ? t('publicYes') : t('publicNo')}
             </Text>
           </div>
           <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginBottom: '1rem' }}>

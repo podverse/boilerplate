@@ -49,6 +49,7 @@
     "noBuckets": "No buckets yet. Create one to get started.",
     "name": "Name",
     "isPublic": "Public",
+    "publicTooltip": "Public buckets: all messages visible to everyone. Non-public: only you and bucket admins can see messages.",
     "publicYes": "Yes",
     "publicNo": "No",
     "topics": "Topics",

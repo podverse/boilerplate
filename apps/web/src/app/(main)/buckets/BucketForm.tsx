@@ -4,7 +4,18 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
-import { Button, Input, FormActions, CheckboxField, Text } from '@boilerplate/ui';
+import {
+  Button,
+  CheckboxField,
+  FormActions,
+  FormContainer,
+  InfoIcon,
+  Input,
+  Row,
+  Stack,
+  Text,
+  Tooltip,
+} from '@boilerplate/ui';
 import { getApiBaseUrl } from '../../../lib/api-client';
 
 export type BucketForForm = {
@@ -24,7 +35,7 @@ export function BucketForm({ mode, bucket, successHref, cancelHref }: BucketForm
   const t = useTranslations('buckets');
   const router = useRouter();
   const [name, setName] = useState(bucket?.name ?? '');
-  const [isPublic, setIsPublic] = useState(bucket?.isPublic ?? false);
+  const [isPublic, setIsPublic] = useState(bucket?.isPublic ?? true);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -44,7 +55,7 @@ export function BucketForm({ mode, bucket, successHref, cancelHref }: BucketForm
 
     try {
       if (mode === 'create') {
-        const res = await fetch(`${baseUrl}/v1/buckets`, {
+        const res = await fetch(`${baseUrl}/buckets`, {
           method: 'POST',
           credentials: 'include',
           headers: { 'Content-Type': 'application/json' },
@@ -58,7 +69,7 @@ export function BucketForm({ mode, bucket, successHref, cancelHref }: BucketForm
           return;
         }
       } else if (bucket !== null) {
-        const res = await fetch(`${baseUrl}/v1/buckets/${bucket.id}`, {
+        const res = await fetch(`${baseUrl}/buckets/${bucket.id}`, {
           method: 'PATCH',
           credentials: 'include',
           headers: { 'Content-Type': 'application/json' },
@@ -81,36 +92,43 @@ export function BucketForm({ mode, bucket, successHref, cancelHref }: BucketForm
   };
 
   return (
-    <form onSubmit={handleSubmit}>
-      <Input
-        label={t('name')}
-        type="text"
-        value={name}
-        onChange={setName}
-        disabled={loading}
-        required
-      />
-      <CheckboxField
-        label={t('isPublic')}
-        checked={isPublic}
-        onChange={setIsPublic}
-        disabled={loading}
-      />
-      {submitError !== null && (
-        <Text variant="error" size="sm" as="p" role="alert" style={{ marginBottom: '1rem' }}>
-          {submitError}
-        </Text>
-      )}
-      <FormActions>
-        <Button type="submit" variant="primary" loading={loading}>
-          {mode === 'create' ? t('addBucket') : t('save')}
-        </Button>
-        <Link href={cancelHref}>
-          <Button type="button" variant="secondary">
-            {t('cancel')}
+    <FormContainer onSubmit={handleSubmit}>
+      <Stack>
+        <Input
+          label={t('name')}
+          type="text"
+          value={name}
+          onChange={setName}
+          disabled={loading}
+          required
+        />
+        <Row>
+          <CheckboxField
+            label={t('isPublic')}
+            checked={isPublic}
+            onChange={setIsPublic}
+            disabled={loading}
+          />
+          <Tooltip content={t('publicTooltip')}>
+            <InfoIcon size={18} />
+          </Tooltip>
+        </Row>
+        {submitError !== null && (
+          <Text variant="error" size="sm" as="p" role="alert">
+            {submitError}
+          </Text>
+        )}
+        <FormActions>
+          <Button type="submit" variant="primary" loading={loading}>
+            {mode === 'create' ? t('addBucket') : t('save')}
           </Button>
-        </Link>
-      </FormActions>
-    </form>
+          <Link href={cancelHref}>
+            <Button type="button" variant="secondary">
+              {t('cancel')}
+            </Button>
+          </Link>
+        </FormActions>
+      </Stack>
+    </FormContainer>
   );
 }

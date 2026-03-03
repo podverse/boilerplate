@@ -1,0 +1,10 @@
+@use '../../../styles/variables' as *;
+
+.icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-muted);
+  flex-shrink: 0;
+  line-height: 1;
+}

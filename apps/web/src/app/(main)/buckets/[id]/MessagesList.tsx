@@ -28,7 +28,7 @@ export function MessagesList({
   const handleDelete = async (messageId: string) => {
     if (!confirm(t('delete') + ' this message?')) return;
     const baseUrl = getApiBaseUrl();
-    const res = await fetch(`${baseUrl}/v1/buckets/${bucketId}/messages/${messageId}`, {
+    const res = await fetch(`${baseUrl}/buckets/${bucketId}/messages/${messageId}`, {
       method: 'DELETE',
       credentials: 'include',
     });

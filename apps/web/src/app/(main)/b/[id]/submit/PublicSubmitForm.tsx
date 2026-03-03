@@ -3,7 +3,15 @@
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { Button, Input, FormActions, CheckboxField, Text } from '@boilerplate/ui';
+import {
+  Button,
+  CheckboxField,
+  FormActions,
+  FormContainer,
+  Input,
+  Stack,
+  Text,
+} from '@boilerplate/ui';
 import { webBuckets } from '@boilerplate/helpers-requests';
 import { getApiBaseUrl } from '../../../../../lib/api-client';
 
@@ -54,42 +62,44 @@ export function PublicSubmitForm({
   };
 
   return (
-    <form onSubmit={handleSubmit}>
-      <Input
-        label="Your name"
-        type="text"
-        value={senderName}
-        onChange={setSenderName}
-        disabled={loading}
-        required
-      />
-      <label style={{ display: 'block', marginBottom: '0.5rem' }}>
-        <span style={{ fontWeight: 500 }}>Message</span>
-        <textarea
-          value={body}
-          onChange={(e) => setBody(e.target.value)}
+    <FormContainer onSubmit={handleSubmit}>
+      <Stack>
+        <Input
+          label="Your name"
+          type="text"
+          value={senderName}
+          onChange={setSenderName}
           disabled={loading}
-          rows={4}
           required
-          style={{ display: 'block', width: '100%', marginTop: '0.25rem', padding: '0.5rem' }}
         />
-      </label>
-      <CheckboxField
-        label={t('isPublic')}
-        checked={isPublic}
-        onChange={setIsPublic}
-        disabled={loading}
-      />
-      {submitError !== null && (
-        <Text variant="error" size="sm" as="p" role="alert" style={{ marginBottom: '1rem' }}>
-          {submitError}
-        </Text>
-      )}
-      <FormActions>
-        <Button type="submit" variant="primary" loading={loading}>
-          Submit
-        </Button>
-      </FormActions>
-    </form>
+        <label style={{ display: 'block', marginBottom: '0.5rem' }}>
+          <span style={{ fontWeight: 500 }}>Message</span>
+          <textarea
+            value={body}
+            onChange={(e) => setBody(e.target.value)}
+            disabled={loading}
+            rows={4}
+            required
+            style={{ display: 'block', width: '100%', marginTop: '0.25rem', padding: '0.5rem' }}
+          />
+        </label>
+        <CheckboxField
+          label={t('isPublic')}
+          checked={isPublic}
+          onChange={setIsPublic}
+          disabled={loading}
+        />
+        {submitError !== null && (
+          <Text variant="error" size="sm" as="p" role="alert">
+            {submitError}
+          </Text>
+        )}
+        <FormActions>
+          <Button type="submit" variant="primary" loading={loading}>
+            Submit
+          </Button>
+        </FormActions>
+      </Stack>
+    </FormContainer>
   );
 }

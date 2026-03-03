@@ -49,6 +49,7 @@
     "noBuckets": "Aún no hay cubos. Crea uno para empezar.",
     "name": "Nombre",
     "isPublic": "Público",
+    "publicTooltip": "Cubos públicos: todos los mensajes visibles para todos. No públicos: solo tú y los administradores del cubo podéis ver los mensajes.",
     "publicYes": "Sí",
     "publicNo": "No",
     "topics": "Temas",

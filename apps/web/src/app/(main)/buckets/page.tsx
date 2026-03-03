@@ -84,8 +84,9 @@ export default async function BucketsPage() {
                       {b.name}
                     </Link>
                     <Text variant="muted" style={{ marginLeft: '0.5rem' }}>
-                      /{b.slug}
-                      {b.isPublic ? ` · ${t('publicYes')}` : ''}
+                      {[b.slug?.trim(), `${t('isPublic')}: ${b.isPublic ? t('publicYes') : t('publicNo')}`]
+                        .filter(Boolean)
+                        .join(', ')}
                     </Text>
                   </div>
                   <div style={{ display: 'flex', gap: '0.5rem' }}>

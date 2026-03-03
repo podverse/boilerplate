@@ -49,6 +49,7 @@
     "noBuckets": "",
     "name": "",
     "isPublic": "",
+    "publicTooltip": "",
     "publicYes": "",
     "publicNo": "",
     "topics": "",

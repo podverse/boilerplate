@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
-import { Button, CrudCheckboxes, FormActions, Text } from '@boilerplate/ui';
+import { Button, CrudCheckboxes, FormActions, FormContainer, Stack, Text } from '@boilerplate/ui';
 import type { CrudFlags } from '@boilerplate/ui';
 import { bitmaskToFlags, flagsToBitmask } from '@boilerplate/helpers';
 import { getApiBaseUrl } from '../../../../lib/api-client';
@@ -43,7 +43,7 @@ export function EditBucketAdminForm({
     setLoading(true);
     const baseUrl = getApiBaseUrl();
     try {
-      const res = await fetch(`${baseUrl}/v1/buckets/${bucketId}/admins/${userId}`, {
+      const res = await fetch(`${baseUrl}/buckets/${bucketId}/admins/${userId}`, {
         method: 'PATCH',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
@@ -66,34 +66,36 @@ export function EditBucketAdminForm({
   };
 
   return (
-    <form onSubmit={handleSubmit}>
-      <CrudCheckboxes
-        label="Bucket permissions"
-        labels={crudLabels}
-        flags={bucketFlags}
-        onChange={setBucketFlags}
-      />
-      <CrudCheckboxes
-        label="Message permissions"
-        labels={crudLabels}
-        flags={messageFlags}
-        onChange={setMessageFlags}
-      />
-      {submitError !== null && (
-        <Text variant="error" size="sm" as="p" role="alert" style={{ marginBottom: '1rem' }}>
-          {submitError}
-        </Text>
-      )}
-      <FormActions>
-        <Button type="submit" variant="primary" loading={loading}>
-          {t('save')}
-        </Button>
-        <Link href={cancelHref}>
-          <Button type="button" variant="secondary">
-            {t('cancel')}
+    <FormContainer onSubmit={handleSubmit}>
+      <Stack>
+        <CrudCheckboxes
+          label="Bucket permissions"
+          labels={crudLabels}
+          flags={bucketFlags}
+          onChange={setBucketFlags}
+        />
+        <CrudCheckboxes
+          label="Message permissions"
+          labels={crudLabels}
+          flags={messageFlags}
+          onChange={setMessageFlags}
+        />
+        {submitError !== null && (
+          <Text variant="error" size="sm" as="p" role="alert">
+            {submitError}
+          </Text>
+        )}
+        <FormActions>
+          <Button type="submit" variant="primary" loading={loading}>
+            {t('save')}
           </Button>
-        </Link>
-      </FormActions>
-    </form>
+          <Link href={cancelHref}>
+            <Button type="button" variant="secondary">
+              {t('cancel')}
+            </Button>
+          </Link>
+        </FormActions>
+      </Stack>
+    </FormContainer>
   );
 }

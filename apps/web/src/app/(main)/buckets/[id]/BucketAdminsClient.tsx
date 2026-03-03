@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { Button, Input, CrudCheckboxes, Text } from '@boilerplate/ui';
+import { Button, Input, CrudCheckboxes, FormContainer, Stack, Text } from '@boilerplate/ui';
 import type { CrudFlags } from '@boilerplate/ui';
 import { flagsToBitmask } from '@boilerplate/helpers';
 import { getApiBaseUrl } from '../../../../lib/api-client';
@@ -60,7 +60,7 @@ export function BucketAdminsClient({
     setLoading(true);
     const baseUrl = getApiBaseUrl();
     try {
-      const res = await fetch(`${baseUrl}/v1/buckets/${bucketId}/admins`, {
+      const res = await fetch(`${baseUrl}/buckets/${bucketId}/admins`, {
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
@@ -92,7 +92,7 @@ export function BucketAdminsClient({
   const handleDelete = async (adminUserId: string) => {
     if (!confirm(t('delete') + ' this admin?')) return;
     const baseUrl = getApiBaseUrl();
-    const res = await fetch(`${baseUrl}/v1/buckets/${bucketId}/admins/${adminUserId}`, {
+    const res = await fetch(`${baseUrl}/buckets/${bucketId}/admins/${adminUserId}`, {
       method: 'DELETE',
       credentials: 'include',
     });
@@ -103,36 +103,40 @@ export function BucketAdminsClient({
 
   return (
     <>
-      <form onSubmit={handleAdd} style={{ marginBottom: '1.5rem' }}>
-        <Input
-          label="User ID (UUID)"
-          type="text"
-          value={userId}
-          onChange={setUserId}
-          placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
-          disabled={loading}
-        />
-        <CrudCheckboxes
-          label="Bucket permissions"
-          labels={crudLabels}
-          flags={bucketFlags}
-          onChange={setBucketFlags}
-        />
-        <CrudCheckboxes
-          label="Message permissions"
-          labels={crudLabels}
-          flags={messageFlags}
-          onChange={setMessageFlags}
-        />
-        {submitError !== null && (
-          <Text variant="error" size="sm" as="p" role="alert" style={{ marginBottom: '0.5rem' }}>
-            {submitError}
-          </Text>
-        )}
-        <Button type="submit" variant="primary" loading={loading}>
-          Add admin
-        </Button>
-      </form>
+      <div style={{ marginBottom: '1.5rem' }}>
+        <FormContainer onSubmit={handleAdd}>
+          <Stack>
+            <Input
+              label="User ID (UUID)"
+              type="text"
+              value={userId}
+              onChange={setUserId}
+              placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+              disabled={loading}
+            />
+            <CrudCheckboxes
+              label="Bucket permissions"
+              labels={crudLabels}
+              flags={bucketFlags}
+              onChange={setBucketFlags}
+            />
+            <CrudCheckboxes
+              label="Message permissions"
+              labels={crudLabels}
+              flags={messageFlags}
+              onChange={setMessageFlags}
+            />
+            {submitError !== null && (
+              <Text variant="error" size="sm" as="p" role="alert">
+                {submitError}
+              </Text>
+            )}
+            <Button type="submit" variant="primary" loading={loading}>
+              Add admin
+            </Button>
+          </Stack>
+        </FormContainer>
+      </div>
 
       {admins.length === 0 ? (
         <Text variant="muted">No bucket admins yet.</Text>
