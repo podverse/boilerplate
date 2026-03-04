@@ -31,6 +31,8 @@ export type {
   NavBarUser,
 } from './components/navigation/NavBar';
 export { AppTypeTitle } from './components/navigation/AppTypeTitle';
+export { BackToButton } from './components/navigation/BackToButton';
+export type { BackToButtonProps } from './components/navigation/BackToButton';
 export { Link } from './components/navigation/Link';
 export type { LinkProps } from './components/navigation/Link';
 export type { DropdownLinkComponentProps } from './components/navigation/Dropdown';
@@ -60,6 +62,8 @@ export { Dropdown } from './components/navigation/Dropdown';
 export type { DropdownProps, DropdownItem } from './components/navigation/Dropdown';
 export { Input } from './components/form/Input';
 export type { InputProps } from './components/form/Input';
+export { Textarea } from './components/form/Textarea';
+export type { TextareaProps } from './components/form/Textarea';
 export { Select } from './components/form/Select';
 export type { SelectOption, SelectProps } from './components/form/Select';
 export { PasswordStrengthMeter } from './components/form/PasswordStrengthMeter';

@@ -14,6 +14,7 @@ export { generateShortId, SHORT_ID_LENGTH } from './shortId.js';
 export { SEARCH_DEBOUNCE_MS } from './search/constants.js';
 export { ALL_AVAILABLE_LOCALES, DEFAULT_LOCALE, type Locale } from './locale/constants.js';
 export {
+  DEFAULT_MESSAGE_BODY_MAX_LENGTH,
   EMAIL_MAX_LENGTH,
   PASSWORD_HASH_LENGTH,
   PASSWORD_MAX_LENGTH,

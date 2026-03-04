@@ -13,6 +13,7 @@ import {
   canUpdateMessage,
   canDeleteMessage,
 } from '../lib/bucket-policy.js';
+import { toPublicBucketResponse } from '../lib/bucket-response.js';
 
 export async function listMessages(req: Request, res: Response): Promise<void> {
   const user = req.user;
@@ -98,6 +99,13 @@ export async function createMessage(req: Request, res: Response): Promise<void> 
     return;
   }
   const body = req.body as CreateMessageBody;
+  const maxLen = bucket.settings?.messageBodyMaxLength ?? null;
+  if (maxLen !== null && maxLen !== undefined && body.body.length > maxLen) {
+    res.status(400).json({
+      message: `Message body must be at most ${maxLen} characters`,
+    });
+    return;
+  }
   const message = await BucketMessageService.create({
     bucketId: bucket.id,
     senderName: body.senderName,
@@ -131,6 +139,18 @@ export async function updateMessage(req: Request, res: Response): Promise<void> 
     return;
   }
   const body = req.body as UpdateMessageBody;
+  const maxLen = bucket.settings?.messageBodyMaxLength ?? null;
+  if (
+    body.body !== undefined &&
+    maxLen !== null &&
+    maxLen !== undefined &&
+    body.body.length > maxLen
+  ) {
+    res.status(400).json({
+      message: `Message body must be at most ${maxLen} characters`,
+    });
+    return;
+  }
   await BucketMessageService.update(messageId, body);
   const updated = await BucketMessageService.findById(messageId);
   res.status(200).json({ message: updated });
@@ -171,7 +191,7 @@ export async function getPublicBucket(req: Request, res: Response): Promise<void
     res.status(404).json({ message: 'Bucket not found' });
     return;
   }
-  res.status(200).json({ bucket });
+  res.status(200).json({ bucket: toPublicBucketResponse(bucket) });
 }
 
 /** Public: list public messages in a bucket by short_id (only if bucket is public). */
@@ -210,6 +230,13 @@ export async function publicSubmitMessage(req: Request, res: Response): Promise<
     return;
   }
   const body = req.body as PublicSubmitMessageBody;
+  const maxLen = bucket.settings?.messageBodyMaxLength ?? null;
+  if (maxLen !== null && maxLen !== undefined && body.body.length > maxLen) {
+    res.status(400).json({
+      message: `Message body must be at most ${maxLen} characters`,
+    });
+    return;
+  }
   const message = await BucketMessageService.create({
     bucketId: bucket.id,
     senderName: body.senderName,

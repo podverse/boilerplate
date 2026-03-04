@@ -8,7 +8,7 @@ import { getCookieHeader, getServerApiBaseUrl } from '../../../../../../../lib/s
 import { ROUTES, bucketMessagesRoute } from '../../../../../../../lib/routes';
 import { EditMessageForm } from '../../../EditMessageForm';
 
-type Bucket = { id: string; name: string };
+type Bucket = { id: string; name: string; messageBodyMaxLength?: number | null };
 type Message = {
   id: string;
   bucketId: string;
@@ -25,8 +25,9 @@ async function fetchBucket(id: string): Promise<{ bucket: Bucket | null }> {
     cache: 'no-store',
   });
   if (!res.ok || res.data === undefined) return { bucket: null };
-  const bucket = res.data as Bucket;
-  return typeof bucket?.id === 'string' ? { bucket } : { bucket: null };
+  const data = res.data as { bucket?: Bucket };
+  const bucket = data.bucket;
+  return bucket !== undefined && typeof bucket?.id === 'string' ? { bucket } : { bucket: null };
 }
 
 async function fetchMessage(bucketId: string, messageId: string): Promise<Message | null> {
@@ -66,6 +67,7 @@ export default async function EditMessagePage({
           messageId={messageId}
           initialBody={message.body}
           initialIsPublic={message.isPublic}
+          messageBodyMaxLength={bucket.messageBodyMaxLength ?? null}
           successHref={bucketMessagesRoute(bucketId)}
           cancelHref={bucketMessagesRoute(bucketId)}
         />

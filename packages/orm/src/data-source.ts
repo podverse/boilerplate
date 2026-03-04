@@ -12,6 +12,7 @@ import { UserBio } from './entities/UserBio.js';
 import { VerificationToken } from './entities/VerificationToken.js';
 import { RefreshToken } from './entities/RefreshToken.js';
 import { Bucket } from './entities/Bucket.js';
+import { BucketSettings } from './entities/BucketSettings.js';
 import { BucketAdmin } from './entities/BucketAdmin.js';
 import { BucketMessage } from './entities/BucketMessage.js';
 
@@ -22,6 +23,7 @@ const ENTITIES = [
   VerificationToken,
   RefreshToken,
   Bucket,
+  BucketSettings,
   BucketAdmin,
   BucketMessage,
 ];

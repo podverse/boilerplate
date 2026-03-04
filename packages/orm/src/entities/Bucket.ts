@@ -7,11 +7,13 @@ import {
   ManyToOne,
   JoinColumn,
   OneToMany,
+  OneToOne,
 } from 'typeorm';
 
 import { SHORT_TEXT_MAX_LENGTH } from '@boilerplate/helpers';
 
 import type { User } from './User.js';
+import type { BucketSettings } from './BucketSettings.js';
 
 @Entity('bucket')
 export class Bucket {
@@ -38,6 +40,9 @@ export class Bucket {
 
   @UpdateDateColumn({ name: 'updated_at' })
   updatedAt!: Date;
+
+  @OneToOne('BucketSettings', (bs: BucketSettings) => bs.bucket)
+  settings!: BucketSettings | null;
 
   @ManyToOne('User', { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'owner_id' })

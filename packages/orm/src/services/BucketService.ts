@@ -1,16 +1,17 @@
-import { generateShortId } from '@boilerplate/helpers';
+import { DEFAULT_MESSAGE_BODY_MAX_LENGTH, generateShortId } from '@boilerplate/helpers';
 import { appDataSourceRead, appDataSourceReadWrite } from '../data-source.js';
 import { Bucket } from '../entities/Bucket.js';
+import { BucketSettings } from '../entities/BucketSettings.js';
 
 export class BucketService {
   static async findById(id: string): Promise<Bucket | null> {
     const repo = appDataSourceRead.getRepository(Bucket);
-    return repo.findOne({ where: { id } });
+    return repo.findOne({ where: { id }, relations: ['settings'] });
   }
 
   static async findByShortId(shortId: string): Promise<Bucket | null> {
     const repo = appDataSourceRead.getRepository(Bucket);
-    return repo.findOne({ where: { shortId } });
+    return repo.findOne({ where: { shortId }, relations: ['settings'] });
   }
 
   /**
@@ -20,6 +21,7 @@ export class BucketService {
     const repo = appDataSourceRead.getRepository(Bucket);
     const qb = repo
       .createQueryBuilder('bucket')
+      .leftJoinAndSelect('bucket.settings', 'settings')
       .leftJoin('bucket_admin', 'ba', 'ba.bucket_id = bucket.id AND ba.user_id = :userId', {
         userId,
       })
@@ -55,7 +57,13 @@ export class BucketService {
         shortId: generateShortId(),
       });
       try {
-        return await repo.save(bucket);
+        const saved = await repo.save(bucket);
+        const settingsRepo = appDataSourceReadWrite.getRepository(BucketSettings);
+        await settingsRepo.insert({
+          bucketId: saved.id,
+          messageBodyMaxLength: DEFAULT_MESSAGE_BODY_MAX_LENGTH,
+        });
+        return saved;
       } catch (err) {
         const isUniqueViolation =
           err !== null &&
@@ -70,13 +78,31 @@ export class BucketService {
     throw new Error('BucketService.create: failed after retries');
   }
 
-  static async update(id: string, data: { name?: string; isPublic?: boolean }): Promise<void> {
-    const repo = appDataSourceReadWrite.getRepository(Bucket);
-    const update: Partial<Pick<Bucket, 'name' | 'isPublic'>> = {};
-    if (data.name !== undefined) update.name = data.name;
-    if (data.isPublic !== undefined) update.isPublic = data.isPublic;
-    if (Object.keys(update).length > 0) {
-      await repo.update(id, update);
+  static async update(
+    id: string,
+    data: { name?: string; isPublic?: boolean; messageBodyMaxLength?: number | null }
+  ): Promise<void> {
+    const bucketRepo = appDataSourceReadWrite.getRepository(Bucket);
+    const settingsRepo = appDataSourceReadWrite.getRepository(BucketSettings);
+    const bucketUpdate: Partial<Pick<Bucket, 'name' | 'isPublic'>> = {};
+    if (data.name !== undefined) bucketUpdate.name = data.name;
+    if (data.isPublic !== undefined) bucketUpdate.isPublic = data.isPublic;
+    if (Object.keys(bucketUpdate).length > 0) {
+      await bucketRepo.update(id, bucketUpdate);
+    }
+    if (data.messageBodyMaxLength !== undefined) {
+      const existing = await settingsRepo.findOne({ where: { bucketId: id } });
+      if (existing !== null) {
+        await settingsRepo.update(
+          { bucketId: id },
+          { messageBodyMaxLength: data.messageBodyMaxLength }
+        );
+      } else {
+        await settingsRepo.insert({
+          bucketId: id,
+          messageBodyMaxLength: data.messageBodyMaxLength,
+        });
+      }
     }
   }
 

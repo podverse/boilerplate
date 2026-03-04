@@ -1,7 +1,7 @@
 import { redirect, notFound } from 'next/navigation';
 import Link from 'next/link';
 import { getTranslations } from 'next-intl/server';
-import { Button, Container, DataDetail, SectionWithHeading, Text } from '@boilerplate/ui';
+import { Button, Container, DataDetail, Row, SectionWithHeading, Text } from '@boilerplate/ui';
 
 import { fetchAdmins, fetchBucket, fetchTopics } from '../../../../lib/buckets';
 import { getServerUser } from '../../../../lib/server-auth';
@@ -58,7 +58,7 @@ export default async function BucketDetailPage({ params }: { params: Promise<{ i
     <Container>
       <h2>{bucket.name}</h2>
       <DataDetail items={detailItems} />
-      <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginBottom: '1rem' }}>
+      <Row wrap>
         <Link href={bucketMessagesRoute(id)}>
           <Button variant="secondary">{t('messages')}</Button>
         </Link>
@@ -70,7 +70,7 @@ export default async function BucketDetailPage({ params }: { params: Promise<{ i
         <Link href={bucketSettingsRoute(id)}>
           <Button variant="secondary">{t('settings')}</Button>
         </Link>
-      </div>
+      </Row>
 
       {bucket.parentBucketId === null && (
         <SectionWithHeading title={t('topics')}>
@@ -99,11 +99,9 @@ export default async function BucketDetailPage({ params }: { params: Promise<{ i
               ))}
             </ul>
           )}
-          <div style={{ marginTop: '1rem' }}>
-            <Link href={`/buckets/${id}/topics/new`}>
-              <Button variant="primary">{t('createTopic')}</Button>
-            </Link>
-          </div>
+          <Link href={`/buckets/${id}/topics/new`}>
+            <Button variant="primary">{t('createTopic')}</Button>
+          </Link>
         </SectionWithHeading>
       )}
     </Container>

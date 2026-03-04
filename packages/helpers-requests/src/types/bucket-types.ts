@@ -10,6 +10,7 @@ export type Bucket = {
   name: string;
   isPublic: boolean;
   parentBucketId: string | null;
+  messageBodyMaxLength: number | null;
   createdAt: string;
   updatedAt: string;
 };
@@ -19,6 +20,7 @@ export type PublicBucket = {
   shortId: string;
   name: string;
   isPublic: boolean;
+  messageBodyMaxLength: number | null;
 };
 
 /** Authenticated GET /buckets/:id/messages list item. */

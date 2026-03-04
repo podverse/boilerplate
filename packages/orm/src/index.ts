@@ -5,6 +5,7 @@ export { UserBio } from './entities/UserBio.js';
 export { VerificationToken } from './entities/VerificationToken.js';
 export { RefreshToken } from './entities/RefreshToken.js';
 export { Bucket } from './entities/Bucket.js';
+export { BucketSettings } from './entities/BucketSettings.js';
 export { BucketAdmin } from './entities/BucketAdmin.js';
 export { BucketMessage } from './entities/BucketMessage.js';
 export type { UserWithRelations } from './types/UserWithRelations.js';

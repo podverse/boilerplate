@@ -8,18 +8,24 @@ import {
   CheckboxField,
   FormActions,
   FormContainer,
+  InfoIcon,
   Input,
   Stack,
   Text,
+  Textarea,
+  Tooltip,
 } from '@boilerplate/ui';
+import { DEFAULT_MESSAGE_BODY_MAX_LENGTH } from '@boilerplate/helpers';
 import { webBuckets } from '@boilerplate/helpers-requests';
 import { getApiBaseUrl } from '../../../../../lib/api-client';
 
 export function PublicSubmitForm({
   bucketId,
+  messageBodyMaxLength,
   successHref,
 }: {
   bucketId: string;
+  messageBodyMaxLength: number | null;
   successHref: string;
 }) {
   const t = useTranslations('buckets');
@@ -29,6 +35,11 @@ export function PublicSubmitForm({
   const [isPublic, setIsPublic] = useState(true);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+
+  const maxLen = messageBodyMaxLength ?? undefined;
+  const overLimit = maxLen !== undefined && maxLen !== null ? body.length > maxLen : false;
+  const canSubmit =
+    !loading && senderName.trim().length > 0 && body.trim().length > 0 && !overLimit;
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -65,38 +76,45 @@ export function PublicSubmitForm({
     <FormContainer onSubmit={handleSubmit}>
       <Stack>
         <Input
-          label="Your name"
+          label={t('yourName')}
           type="text"
           value={senderName}
           onChange={setSenderName}
           disabled={loading}
           required
         />
-        <label style={{ display: 'block', marginBottom: '0.5rem' }}>
-          <span style={{ fontWeight: 500 }}>Message</span>
-          <textarea
-            value={body}
-            onChange={(e) => setBody(e.target.value)}
-            disabled={loading}
-            rows={4}
-            required
-            style={{ display: 'block', width: '100%', marginTop: '0.25rem', padding: '0.5rem' }}
-          />
-        </label>
-        <CheckboxField
-          label={t('isPublic')}
-          checked={isPublic}
-          onChange={setIsPublic}
+        <Textarea
+          label={t('messageLabel')}
+          value={body}
+          onChange={setBody}
           disabled={loading}
+          rows={4}
+          required
+          maxLength={maxLen ?? undefined}
+          displayMaxLength={messageBodyMaxLength ?? DEFAULT_MESSAGE_BODY_MAX_LENGTH}
+          charCountLabel={(current, max) => t('charCount', { current, max })}
+          showCharCount
+          charCountLabelNoMax={(current) => t('charCountNoMax', { current })}
         />
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <CheckboxField
+            label={t('isPublic')}
+            checked={isPublic}
+            onChange={setIsPublic}
+            disabled={loading}
+          />
+          <Tooltip content={t('messagePublicTooltip')}>
+            <InfoIcon size={18} />
+          </Tooltip>
+        </div>
         {submitError !== null && (
           <Text variant="error" size="sm" as="p" role="alert">
             {submitError}
           </Text>
         )}
         <FormActions>
-          <Button type="submit" variant="primary" loading={loading}>
-            Submit
+          <Button type="submit" variant="primary" loading={loading} disabled={!canSubmit}>
+            {t('submit')}
           </Button>
         </FormActions>
       </Stack>

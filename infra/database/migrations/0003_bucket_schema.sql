@@ -22,6 +22,12 @@ CREATE INDEX idx_bucket_owner_id ON bucket(owner_id);
 CREATE INDEX idx_bucket_parent_bucket_id ON bucket(parent_bucket_id);
 CREATE UNIQUE INDEX idx_bucket_short_id ON bucket(short_id);
 
+-- Bucket settings (e.g. message body max length per bucket).
+CREATE TABLE bucket_settings (
+    bucket_id UUID PRIMARY KEY REFERENCES bucket(id) ON DELETE CASCADE,
+    message_body_max_length INTEGER NULL
+);
+
 -- Bucket admins: CRUD bitmasks for bucket and messages (create=1, read=2, update=4, delete=8).
 CREATE TABLE bucket_admin (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),

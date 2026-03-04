@@ -4,7 +4,18 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
-import { Button, CheckboxField, FormActions, FormContainer, Stack, Text } from '@boilerplate/ui';
+import {
+  Button,
+  CheckboxField,
+  FormActions,
+  FormContainer,
+  InfoIcon,
+  Stack,
+  Text,
+  Textarea,
+  Tooltip,
+} from '@boilerplate/ui';
+import { DEFAULT_MESSAGE_BODY_MAX_LENGTH } from '@boilerplate/helpers';
 import { getApiBaseUrl } from '../../../../lib/api-client';
 
 export function EditMessageForm({
@@ -12,6 +23,7 @@ export function EditMessageForm({
   messageId,
   initialBody,
   initialIsPublic,
+  messageBodyMaxLength,
   successHref,
   cancelHref,
 }: {
@@ -19,6 +31,7 @@ export function EditMessageForm({
   messageId: string;
   initialBody: string;
   initialIsPublic: boolean;
+  messageBodyMaxLength: number | null;
   successHref: string;
   cancelHref: string;
 }) {
@@ -28,6 +41,10 @@ export function EditMessageForm({
   const [isPublic, setIsPublic] = useState(initialIsPublic);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+
+  const maxLen = messageBodyMaxLength ?? undefined;
+  const overLimit = maxLen !== undefined && maxLen !== null ? body.length > maxLen : false;
+  const canSubmit = !loading && body.trim().length > 0 && !overLimit;
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -63,29 +80,36 @@ export function EditMessageForm({
   return (
     <FormContainer onSubmit={handleSubmit}>
       <Stack>
-        <label style={{ display: 'block', marginBottom: '0.5rem' }}>
-          <span style={{ fontWeight: 500 }}>Body</span>
-          <textarea
-            value={body}
-            onChange={(e) => setBody(e.target.value)}
-            disabled={loading}
-            rows={4}
-            style={{ display: 'block', width: '100%', marginTop: '0.25rem', padding: '0.5rem' }}
-          />
-        </label>
-        <CheckboxField
-          label={t('isPublic')}
-          checked={isPublic}
-          onChange={setIsPublic}
+        <Textarea
+          label={t('bodyLabel')}
+          value={body}
+          onChange={setBody}
           disabled={loading}
+          rows={4}
+          maxLength={maxLen ?? undefined}
+          displayMaxLength={messageBodyMaxLength ?? DEFAULT_MESSAGE_BODY_MAX_LENGTH}
+          charCountLabel={(current, max) => t('charCount', { current, max })}
+          showCharCount
+          charCountLabelNoMax={(current) => t('charCountNoMax', { current })}
         />
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <CheckboxField
+            label={t('isPublic')}
+            checked={isPublic}
+            onChange={setIsPublic}
+            disabled={loading}
+          />
+          <Tooltip content={t('messagePublicTooltip')}>
+            <InfoIcon size={18} />
+          </Tooltip>
+        </div>
         {submitError !== null && (
           <Text variant="error" size="sm" as="p" role="alert">
             {submitError}
           </Text>
         )}
         <FormActions>
-          <Button type="submit" variant="primary" loading={loading}>
+          <Button type="submit" variant="primary" loading={loading} disabled={!canSubmit}>
             {t('save')}
           </Button>
           <Link href={cancelHref}>

@@ -1,7 +1,13 @@
 import { redirect, notFound } from 'next/navigation';
 import Link from 'next/link';
 import { getTranslations } from 'next-intl/server';
-import { Button, ContentPageLayout, Divider, SectionWithHeading } from '@boilerplate/ui';
+import {
+  BackToButton,
+  Button,
+  ContentPageLayout,
+  Divider,
+  SectionWithHeading,
+} from '@boilerplate/ui';
 
 import { fetchAdmins, fetchBucket } from '../../../../../lib/buckets';
 import { getServerUser } from '../../../../../lib/server-auth';
@@ -28,6 +34,7 @@ export default async function BucketSettingsPage({ params }: { params: Promise<{
     id: bucket.id,
     name: bucket.name,
     isPublic: bucket.isPublic,
+    messageBodyMaxLength: bucket.messageBodyMaxLength ?? null,
   };
 
   return (
@@ -35,7 +42,7 @@ export default async function BucketSettingsPage({ params }: { params: Promise<{
       <div style={{ marginBottom: '1rem' }}>
         <Link href={bucketDetailRoute(id)}>
           <Button variant="secondary">
-            {t('backToBucket')} – {bucket.name}
+            <BackToButton>{t('backToBucket')}</BackToButton> – {bucket.name}
           </Button>
         </Link>
       </div>
