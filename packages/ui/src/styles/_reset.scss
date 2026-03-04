@@ -2,6 +2,12 @@
 // layout styles are the single source of truth. Import once in app globals
 // (e.g. after variables, before themes/layout).
 
+// Default line-height matches the text (font metrics); components can override for readability.
+html,
+body {
+  line-height: normal;
+}
+
 // Text-based elements have no default margin/padding; use Stack/layout for spacing.
 p,
 h1,

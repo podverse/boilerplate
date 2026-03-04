@@ -25,7 +25,6 @@
   max-width: min(400px, calc(100vw - 2rem));
   height: fit-content;
   font-size: 0.875rem;
-  line-height: 1.35;
   color: var(--color-bg, #{$color-bg});
   background: var(--color-text, #{$color-text});
   /* Subtle border from tooltip text color (avoids bright border when portaled outside theme). */
