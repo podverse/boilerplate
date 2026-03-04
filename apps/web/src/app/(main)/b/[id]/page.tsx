@@ -2,7 +2,7 @@ import { notFound } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
 import type { PublicBucket, PublicBucketMessage } from '@boilerplate/helpers-requests';
 import { webBuckets } from '@boilerplate/helpers-requests';
-import { ButtonLink, ContentPageLayout, SectionWithHeading, Stack } from '@boilerplate/ui';
+import { ButtonLink, ContentPageLayout, Divider, SectionWithHeading, Stack } from '@boilerplate/ui';
 
 import { BucketMessageList } from '../../../../components/BucketMessageList/BucketMessageList';
 import { getServerApiBaseUrl } from '../../../../lib/server-request';
@@ -54,6 +54,7 @@ export default async function PublicBucketPage({ params }: { params: Promise<{ i
         <ButtonLink href={publicBucketSubmitRoute(id)} variant="primary">
           Submit a message
         </ButtonLink>
+        <Divider />
         <SectionWithHeading title={t('messages')}>
           <BucketMessageList
             messages={listItems}
