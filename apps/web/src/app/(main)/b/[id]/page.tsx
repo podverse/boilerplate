@@ -2,7 +2,7 @@ import { notFound } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
 import type { PublicBucket, PublicBucketMessage } from '@boilerplate/helpers-requests';
 import { webBuckets } from '@boilerplate/helpers-requests';
-import { ButtonLink, Container, SectionWithHeading } from '@boilerplate/ui';
+import { ButtonLink, ContentPageLayout, SectionWithHeading, Stack } from '@boilerplate/ui';
 
 import { BucketMessageList } from '../../../../components/BucketMessageList/BucketMessageList';
 import { getServerApiBaseUrl } from '../../../../lib/server-request';
@@ -49,20 +49,20 @@ export default async function PublicBucketPage({ params }: { params: Promise<{ i
   }));
 
   return (
-    <Container>
-      <SectionWithHeading title={bucket.name}>
+    <ContentPageLayout title={bucket.name}>
+      <Stack>
         <ButtonLink href={publicBucketSubmitRoute(id)} variant="primary">
           Submit a message
         </ButtonLink>
-      </SectionWithHeading>
-      <SectionWithHeading title={t('messages')}>
-        <BucketMessageList
-          messages={listItems}
-          variant="public"
-          emptyMessage={t('noPublicMessagesYet')}
-          readableText
-        />
-      </SectionWithHeading>
-    </Container>
+        <SectionWithHeading title={t('messages')}>
+          <BucketMessageList
+            messages={listItems}
+            variant="public"
+            emptyMessage={t('noPublicMessagesYet')}
+            readableText
+          />
+        </SectionWithHeading>
+      </Stack>
+    </ContentPageLayout>
   );
 }
