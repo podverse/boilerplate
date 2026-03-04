@@ -5,7 +5,7 @@ import { FilterTablePageLayout, Stack } from '@boilerplate/ui';
 
 import { UsersTableWithFilter } from '../../../components/UsersTableWithFilter';
 import { getServerUser } from '../../../lib/server-auth';
-import { getManagementApiBaseUrl } from '../../../config/env';
+import { getManagementApiBaseUrl, getServerManagementApiBaseUrl } from '../../../config/env';
 import { getCrudFlags, hasReadPermission } from '../../../lib/main-nav';
 import { ROUTES } from '../../../lib/routes';
 import { getCookieHeader, parseFilterColumns } from '../../../lib/server-request';
@@ -15,11 +15,25 @@ type UsersResponse = {
   users: MainAppUser[];
 };
 
-async function fetchUsers(): Promise<{ data: UsersResponse | null; error: string | null }> {
+async function fetchUsers(
+  search?: string,
+  filterColumns?: string[]
+): Promise<{ data: UsersResponse | null; error: string | null }> {
   const cookieHeader = await getCookieHeader();
-  const baseUrl = getManagementApiBaseUrl();
+  const baseUrl = getServerManagementApiBaseUrl();
+  const params = new URLSearchParams();
+  if (search !== undefined && search.trim() !== '') params.set('search', search.trim());
+  if (
+    filterColumns !== undefined &&
+    filterColumns.length > 0 &&
+    search !== undefined &&
+    search.trim() !== ''
+  ) {
+    params.set('filterColumns', filterColumns.join(','));
+  }
+  const path = params.toString() !== '' ? `/users?${params.toString()}` : '/users';
   try {
-    const res = await request(baseUrl, '/users', {
+    const res = await request(baseUrl, path, {
       headers: { Cookie: cookieHeader },
       cache: 'no-store',
     });
@@ -59,12 +73,12 @@ export default async function UsersPage({ searchParams }: PageProps) {
   }
 
   const resolved = searchParams !== undefined ? await searchParams : {};
-  const userColumnIds = ['email', 'displayName', 'profileVisibility'];
+  const userColumnIds = ['email', 'displayName'];
   const effectiveFilterColumns = parseFilterColumns(resolved, userColumnIds);
   const search = resolved.search ?? '';
 
   const tCommon = await getTranslations('common');
-  const { data, error } = await fetchUsers();
+  const { data, error } = await fetchUsers(search, effectiveFilterColumns);
 
   const users = data?.users ?? [];
   const crud = getCrudFlags(user.isSuperAdmin === true, user.permissions, 'usersCrud');
@@ -108,6 +122,7 @@ export default async function UsersPage({ searchParams }: PageProps) {
             initialSearch={search}
             basePath={ROUTES.USERS}
             currentQueryParams={currentQueryParams}
+            filterableColumnIds={['email', 'displayName']}
             canViewUser={crud.read}
             canUpdateUser={crud.update}
             canDeleteUser={crud.delete}

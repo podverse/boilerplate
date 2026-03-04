@@ -2,16 +2,17 @@
 
 import { useMemo } from 'react';
 import { useTranslations } from 'next-intl';
-import Link from 'next/link';
 
-import { Button } from '../../form/Button';
+import { ButtonLink } from '../../form/ButtonLink';
+import { CrudButtons } from '../../form/CrudButtons';
+import { Link } from '../../navigation/Link';
 import { Text } from '../../layout/Text';
 import { Pagination } from '../../navigation/Pagination';
 import { ConfirmDeleteModal } from '../../modal/ConfirmDeleteModal/ConfirmDeleteModal';
 import { Table } from '../Table';
 import { TableFilterBar, type TableFilterBarColumn } from '../TableFilterBar';
 import { useDeleteModal } from '../../../hooks/useDeleteModal';
-import { filterRows, useTableFilterState } from '../../../hooks/useTableFilterState';
+import { useTableFilterState } from '../../../hooks/useTableFilterState';
 
 import styles from './ResourceTableWithFilter.module.scss';
 
@@ -39,6 +40,8 @@ export type ResourceTableWithFilterProps = {
   currentQueryParams: Record<string, string>;
   viewRoute?: (id: string) => string;
   viewLabelKey?: string;
+  /** When set, only this column's cell is a link to the view route; other columns render plain. When undefined, every column cell is a link (backward compatible). */
+  viewLinkColumnId?: string;
   canView?: boolean;
   editRoute: (id: string) => string;
   onDelete: (
@@ -67,6 +70,8 @@ export type ResourceTableWithFilterProps = {
   currentUserId?: string;
   onSelfDelete?: () => Promise<void>;
   searchSyncParams?: Record<string, string>;
+  /** When set, only these column IDs appear in the filter dropdown and are used for search. Omit to allow all columns. */
+  filterableColumnIds?: string[];
 };
 
 export function ResourceTableWithFilter({
@@ -74,11 +79,13 @@ export function ResourceTableWithFilter({
   emptyMessage,
   columns,
   initialFilterColumns,
+  filterableColumnIds,
   initialSearch,
   basePath,
   currentQueryParams,
   viewRoute,
   viewLabelKey,
+  viewLinkColumnId,
   canView = false,
   editRoute,
   onDelete,
@@ -126,7 +133,14 @@ export function ResourceTableWithFilter({
     [pagination, tPagination, tGoToModal]
   );
 
-  const allColumnIds = useMemo(() => columns.map((c) => c.id), [columns]);
+  const filterColumns = useMemo(
+    () =>
+      filterableColumnIds !== undefined && filterableColumnIds.length > 0
+        ? columns.filter((c) => filterableColumnIds.includes(c.id))
+        : columns,
+    [columns, filterableColumnIds]
+  );
+  const allColumnIds = useMemo(() => filterColumns.map((c) => c.id), [filterColumns]);
   const { filter, setFilter, selectedColumnIds, handleFilterColumnsChange } = useTableFilterState({
     initialSearch,
     initialFilterColumns,
@@ -151,8 +165,7 @@ export function ResourceTableWithFilter({
     onSelfDelete,
   });
 
-  const rowsToShow =
-    initialSearch.trim() !== '' ? tableRows : filterRows(tableRows, filter, selectedColumnIds);
+  const rowsToShow = tableRows;
 
   const getActions = (
     row: FilterableTableRow
@@ -185,7 +198,7 @@ export function ResourceTableWithFilter({
           <TableFilterBar
             searchValue={filter}
             onSearchChange={setFilter}
-            columns={columns}
+            columns={filterColumns}
             selectedColumnIds={selectedColumnIds}
             onSelectedColumnIdsChange={handleFilterColumnsChange}
             placeholder={filterPlaceholder}
@@ -194,9 +207,9 @@ export function ResourceTableWithFilter({
           />
         </div>
         {addHref !== undefined && (
-          <Link href={addHref} className={styles.addLink}>
+          <ButtonLink href={addHref} variant="primary" className={styles.addButton}>
             {tCommon(addLabelKey)}
-          </Link>
+          </ButtonLink>
         )}
       </div>
       {deleteError !== null && (
@@ -224,52 +237,58 @@ export function ResourceTableWithFilter({
             ) : null}
             {rowsToShow.map((row) => {
               const rowActions = getActions(row);
+              const rowHref =
+                viewRoute !== undefined && viewLabelKey !== undefined
+                  ? viewRoute(row.id)
+                  : undefined;
+              const cellIsViewLink = (colId: string) =>
+                rowHref !== undefined &&
+                (viewLinkColumnId === undefined || viewLinkColumnId === colId);
               return (
                 <Table.Row key={row.id}>
                   {columns.map((col) => {
                     const cellContent = row.cells[col.id] ?? '—';
-                    const canViewRow =
-                      rowActions.canView && viewRoute !== undefined && viewLabelKey !== undefined;
+                    const columnHref = col.getHref?.(row);
+                    const href = columnHref ?? (cellIsViewLink(col.id) ? rowHref : undefined);
                     return (
                       <Table.Cell key={col.id}>
-                        {canViewRow ? (
-                          <Link href={viewRoute(row.id)} className={styles.cellLink} tabIndex={0}>
-                            {cellContent}
-                          </Link>
-                        ) : (
-                          cellContent
-                        )}
+                        <span className={styles.cellContent}>
+                          {href !== undefined ? (
+                            <Link href={href} className={styles.cellLink} tabIndex={0}>
+                              {cellContent}
+                            </Link>
+                          ) : (
+                            cellContent
+                          )}
+                        </span>
                       </Table.Cell>
                     );
                   })}
                   {showActions && (
                     <Table.Cell>
                       <div className={styles.actionsCell}>
-                        {rowActions.canView &&
-                          viewRoute !== undefined &&
-                          viewLabelKey !== undefined && (
-                            <Link href={viewRoute(row.id)} className={styles.editLink}>
-                              {tCommon(viewLabelKey)}
-                            </Link>
-                          )}
-                        {rowActions.canUpdate && (
-                          <Link href={editRoute(row.id)} className={styles.editLink}>
-                            {tCommon(editLabelKey)}
-                          </Link>
-                        )}
-                        {rowActions.canDelete && (
-                          <Button
-                            variant="secondary"
-                            onClick={() =>
-                              setDeleteTarget({
-                                id: row.id,
-                                displayName: getDisplayName(row),
-                              })
-                            }
-                          >
-                            {tCommon(deleteLabelKey)}
-                          </Button>
-                        )}
+                        <CrudButtons
+                          viewHref={
+                            rowActions.canView &&
+                            viewRoute !== undefined &&
+                            viewLabelKey !== undefined
+                              ? viewRoute(row.id)
+                              : undefined
+                          }
+                          viewLabel={viewLabelKey !== undefined ? tCommon(viewLabelKey) : undefined}
+                          editHref={rowActions.canUpdate ? editRoute(row.id) : undefined}
+                          editLabel={tCommon(editLabelKey)}
+                          onDelete={
+                            rowActions.canDelete
+                              ? () =>
+                                  setDeleteTarget({
+                                    id: row.id,
+                                    displayName: getDisplayName(row),
+                                  })
+                              : undefined
+                          }
+                          deleteLabel={tCommon(deleteLabelKey)}
+                        />
                       </div>
                     </Table.Cell>
                   )}

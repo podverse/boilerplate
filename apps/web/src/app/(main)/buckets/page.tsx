@@ -12,6 +12,8 @@ import {
 } from '../../../lib/server-request';
 import { ROUTES } from '../../../lib/routes';
 
+export const dynamic = 'force-dynamic';
+
 export type Bucket = {
   id: string;
   shortId: string;
@@ -26,11 +28,17 @@ export type Bucket = {
 
 type BucketsResponse = { buckets: Bucket[] };
 
-async function fetchBuckets(): Promise<{ data: BucketsResponse | null; error: string | null }> {
+async function fetchBuckets(
+  search?: string
+): Promise<{ data: BucketsResponse | null; error: string | null }> {
   const cookieHeader = await getCookieHeader();
   const baseUrl = getServerApiBaseUrl();
+  const path =
+    search !== undefined && search.trim() !== ''
+      ? `/buckets?${new URLSearchParams({ search: search.trim() }).toString()}`
+      : '/buckets';
   try {
-    const res = await request(baseUrl, '/buckets', {
+    const res = await request(baseUrl, path, {
       headers: { Cookie: cookieHeader },
       cache: 'no-store',
     });
@@ -59,26 +67,23 @@ export default async function BucketsPage({ searchParams }: PageProps) {
 
   const t = await getTranslations('buckets');
   const resolved = searchParams !== undefined ? await searchParams : {};
-  const bucketColumnIds = ['name', 'slug', 'isPublic'];
+  const bucketColumnIds = ['name'];
   const effectiveFilterColumns = parseFilterColumns(resolved, bucketColumnIds);
   const search = resolved.search ?? '';
 
-  const { data, error } = await fetchBuckets();
+  const { data, error } = await fetchBuckets(search);
   const buckets = data?.buckets ?? [];
-  const apiBaseUrl = getServerApiBaseUrl();
 
   const tableRows = buckets.map((b) => ({
     id: b.shortId,
     cells: {
       name: b.name,
-      slug: (b.slug ?? '').trim() || '—',
       isPublic: b.isPublic ? t('publicYes') : t('publicNo'),
     },
   }));
 
   const columns = [
     { id: 'name', label: t('name') },
-    { id: 'slug', label: t('slug') },
     { id: 'isPublic', label: t('isPublic') },
   ];
 
@@ -101,11 +106,8 @@ export default async function BucketsPage({ searchParams }: PageProps) {
           initialSearch={search}
           basePath={ROUTES.BUCKETS}
           currentQueryParams={currentQueryParams}
-          canView={true}
-          canUpdate={true}
-          canDelete={true}
-          apiBaseUrl={apiBaseUrl}
           addBucketHref={ROUTES.BUCKETS_NEW}
+          filterableColumnIds={['name']}
         />
       )}
     </FilterTablePageLayout>

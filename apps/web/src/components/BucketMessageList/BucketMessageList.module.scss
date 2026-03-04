@@ -1,0 +1,85 @@
+@use '@boilerplate/ui/styles/variables' as *;
+
+.list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+
+  &.readableText {
+    max-width: 660px;
+  }
+}
+
+.listItem {
+  margin-bottom: $space-4;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+
+  &:first-child {
+    margin-top: 0;
+  }
+}
+
+.listItemInner {
+  display: flex;
+  align-items: center;
+  gap: $space-4;
+}
+
+// Higher specificity than Card's div.root so this tint wins and cards are visible on dark theme
+// (page and Card both use --color-bg; the mix with --color-border gives a distinct surface).
+.listItem .messageCard {
+  flex: 1;
+  min-width: 0;
+  background-color: color-mix(in srgb, var(--color-border) 18%, var(--color-bg));
+  border-radius: $radius-md;
+}
+
+.content {
+  min-width: 0;
+}
+
+.headerRow {
+  display: flex;
+  align-items: center;
+  gap: $space-2;
+  flex-wrap: wrap;
+}
+
+.senderName {
+  font-weight: $font-weight-semibold;
+}
+
+.meta {
+  font-size: $font-size-sm;
+  color: var(--color-text-muted);
+  display: inline-flex;
+  align-items: center;
+  gap: $space-1;
+}
+
+.publicPrivateIcon {
+  display: inline-flex;
+  align-items: center;
+  font-size: $font-size-sm;
+}
+
+.bodySnippet {
+  display: block;
+  margin-top: $space-1;
+}
+
+.bodyFull {
+  display: block;
+  margin-top: $space-3;
+  white-space: pre-wrap;
+}
+
+.actions {
+  display: flex;
+  gap: $space-2;
+  flex-shrink: 0;
+  align-items: center;
+}

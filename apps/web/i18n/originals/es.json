@@ -53,9 +53,14 @@
     "publicTooltip": "Cubos públicos: todos los mensajes visibles para todos. No públicos: solo tú y los administradores del cubo podéis ver los mensajes.",
     "publicYes": "Sí",
     "publicNo": "No",
+    "publicLabel": "Público",
+    "privateLabel": "Privado",
     "topics": "Temas",
     "messages": "Mensajes",
+    "noMessagesYet": "Aún no hay mensajes.",
+    "noPublicMessagesYet": "Aún no hay mensajes públicos.",
     "admins": "Administradores",
+    "noAdmins": "Ninguno",
     "edit": "Editar",
     "delete": "Eliminar",
     "detail": "Detalle del cubo",
@@ -64,6 +69,7 @@
     "createTopic": "Añadir tema",
     "failedToLoad": "Error al cargar los cubos",
     "owner": "Propietario",
+    "anonymous": "Anónimo",
     "admin": "Administrador",
     "cancel": "Cancelar",
     "save": "Guardar",
@@ -71,7 +77,17 @@
     "crudCreate": "Crear",
     "crudRead": "Leer",
     "crudUpdate": "Actualizar",
-    "crudDelete": "Eliminar"
+    "crudDelete": "Eliminar",
+    "adminPermissionsLabel": "Permisos de administrador",
+    "addAdmin": "Añadir administrador",
+    "addAdminDescription": "Selecciona los permisos que quieres asignar al nuevo administrador. Al pulsar \"Añadir administrador\" se crea un enlace que puedes enviarles; al abrirlo, podrán aceptar o rechazar la invitación.",
+    "inviteLinkCopy": "Comparte este enlace. Al abrirlo, podrán aceptar o rechazar.",
+    "pendingInvitations": "Invitaciones activas",
+    "pendingInvitationsEmpty": "No hay invitaciones activas.",
+    "invitationLink": "Enlace de invitación",
+    "expires": "Caduca",
+    "copy": "Copiar",
+    "copied": "Copiado"
   },
   "common": {
     "loading": "Cargando…",
@@ -267,5 +283,20 @@
         "placeholder": "1–{max}"
       }
     }
+  },
+  "invite": {
+    "title": "Invitación a administrador del cubo",
+    "invitedTo": "Te han invitado a ser administrador del cubo",
+    "loginRequired": "Debes iniciar sesión para aceptar o rechazar esta invitación.",
+    "loginButton": "Iniciar sesión",
+    "accept": "Aceptar",
+    "reject": "Rechazar",
+    "accepted": "Has sido añadido como administrador. Redirigiendo…",
+    "rejected": "Invitación rechazada.",
+    "linkInvalidAfterReject": "Este enlace ya no es válido.",
+    "acceptFailed": "Error al aceptar la invitación.",
+    "rejectFailed": "Error al rechazar la invitación.",
+    "loading": "Cargando invitación…",
+    "goHome": "Ir al inicio"
   }
 }

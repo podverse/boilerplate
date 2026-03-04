@@ -14,6 +14,7 @@ import { RefreshToken } from './entities/RefreshToken.js';
 import { Bucket } from './entities/Bucket.js';
 import { BucketSettings } from './entities/BucketSettings.js';
 import { BucketAdmin } from './entities/BucketAdmin.js';
+import { BucketAdminInvitation } from './entities/BucketAdminInvitation.js';
 import { BucketMessage } from './entities/BucketMessage.js';
 
 const ENTITIES = [
@@ -25,6 +26,7 @@ const ENTITIES = [
   Bucket,
   BucketSettings,
   BucketAdmin,
+  BucketAdminInvitation,
   BucketMessage,
 ];
 

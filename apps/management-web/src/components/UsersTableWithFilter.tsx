@@ -16,6 +16,8 @@ export type UsersTableWithFilterProps = {
   initialSearch: string;
   basePath: string;
   currentQueryParams: Record<string, string>;
+  /** Column IDs that can be selected in the filter dropdown (default: all columns). */
+  filterableColumnIds?: string[];
   canViewUser: boolean;
   canUpdateUser: boolean;
   canDeleteUser: boolean;
@@ -31,6 +33,7 @@ export function UsersTableWithFilter({
   initialSearch,
   basePath,
   currentQueryParams,
+  filterableColumnIds,
   canViewUser,
   canUpdateUser,
   canDeleteUser,
@@ -46,6 +49,7 @@ export function UsersTableWithFilter({
       initialSearch={initialSearch}
       basePath={basePath}
       currentQueryParams={currentQueryParams}
+      filterableColumnIds={filterableColumnIds}
       viewRoute={userViewRoute}
       viewLabelKey="usersTable.view"
       canView={canViewUser}

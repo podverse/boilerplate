@@ -8,8 +8,10 @@ import { Text } from '../Text';
 import styles from './ContentPageLayout.module.scss';
 
 export type ContentPageLayoutProps = {
-  /** Page title (e.g. "Profile", "Settings"). Rendered as an h1 via PageHeader. */
-  title: ReactNode;
+  /** Page title (e.g. "Profile", "Settings"). Rendered as an h1 via PageHeader. Omit to hide the header (e.g. when the page renders its own). */
+  title?: ReactNode;
+  /** Optional breadcrumbs rendered above the page header. */
+  breadcrumbs?: ReactNode;
   /** Optional error message shown above children when present. */
   error?: string | null;
   /** Variant for the error message. Default "muted". */
@@ -27,6 +29,7 @@ export type ContentPageLayoutProps = {
  */
 export function ContentPageLayout({
   title,
+  breadcrumbs,
   error,
   errorVariant = 'muted',
   type,
@@ -42,7 +45,8 @@ export function ContentPageLayout({
     );
   return (
     <Container>
-      <PageHeader title={title} />
+      {breadcrumbs}
+      {title !== undefined && title !== null && <PageHeader title={title} />}
       {error !== undefined && error !== null && error !== '' && (
         <Text variant={errorVariant} role="alert">
           {error}

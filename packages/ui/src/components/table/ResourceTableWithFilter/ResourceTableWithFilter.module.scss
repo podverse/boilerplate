@@ -19,22 +19,8 @@
   min-width: 0;
 }
 
-.addLink {
-  display: inline-flex;
-  align-items: center;
+.addButton {
   flex-shrink: 0;
-  padding: $space-2 $space-4;
-  background-color: var(--color-primary);
-  color: $color-on-primary;
-  border-radius: $radius-sm;
-  text-decoration: none;
-  font-size: $font-size-base;
-  line-height: $line-height-base;
-  transition: background-color $transition-fast;
-
-  &:hover {
-    background-color: var(--color-primary-hover);
-  }
 
   @media (max-width: 767px) {
     width: 100%;
@@ -55,26 +41,12 @@
   align-items: center;
 }
 
-.editLink {
-  display: inline-flex;
-  align-items: center;
-  padding: $space-2 $space-4;
-  background-color: var(--color-bg);
-  color: var(--color-text);
-  border: $border-width solid var(--color-border);
-  border-radius: $radius-sm;
-  text-decoration: none;
-  font-size: $font-size-base;
-  line-height: $line-height-base;
-  transition: background-color $transition-fast;
-
-  &:hover {
-    background-color: var(--color-border);
-  }
-}
-
 .deleteError {
   margin-bottom: $space-2;
+}
+
+.cellContent {
+  display: block;
 }
 
 .cellLink {
@@ -82,6 +54,7 @@
   text-decoration: none;
   display: block;
   width: 100%;
+  padding: $space-2 0;
 
   &:hover {
     text-decoration: underline;

@@ -1,10 +1,10 @@
 import { notFound } from 'next/navigation';
-import Link from 'next/link';
 import { getTranslations } from 'next-intl/server';
 import type { PublicBucket, PublicBucketMessage } from '@boilerplate/helpers-requests';
 import { webBuckets } from '@boilerplate/helpers-requests';
-import { Button, Container, SectionWithHeading, Text } from '@boilerplate/ui';
+import { ButtonLink, Container, SectionWithHeading } from '@boilerplate/ui';
 
+import { BucketMessageList } from '../../../../components/BucketMessageList/BucketMessageList';
 import { getServerApiBaseUrl } from '../../../../lib/server-request';
 import { publicBucketSubmitRoute } from '../../../../lib/routes';
 
@@ -34,39 +34,34 @@ export default async function PublicBucketPage({ params }: { params: Promise<{ i
   const messages = await fetchPublicMessages(id);
   const t = await getTranslations('buckets');
 
+  const listItems: {
+    id: string;
+    senderName: string;
+    body: string;
+    isPublic: boolean;
+    createdAt: string;
+  }[] = messages.map((m) => ({
+    id: m.id,
+    senderName: m.senderName,
+    body: m.body,
+    isPublic: m.isPublic,
+    createdAt: m.createdAt,
+  }));
+
   return (
     <Container>
       <SectionWithHeading title={bucket.name}>
-        <div style={{ marginTop: '1rem' }}>
-          <Link href={publicBucketSubmitRoute(id)}>
-            <Button variant="primary">Submit a message</Button>
-          </Link>
-        </div>
+        <ButtonLink href={publicBucketSubmitRoute(id)} variant="primary">
+          Submit a message
+        </ButtonLink>
       </SectionWithHeading>
       <SectionWithHeading title={t('messages')}>
-        {messages.length === 0 ? (
-          <Text variant="muted">No public messages yet.</Text>
-        ) : (
-          <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
-            {messages.map((m) => (
-              <li
-                key={m.id}
-                style={{
-                  padding: '0.75rem 0',
-                  borderBottom: '1px solid var(--pv-color-border, #eee)',
-                }}
-              >
-                <Text style={{ fontWeight: 600 }}>{m.senderName}</Text>
-                <Text variant="muted" style={{ fontSize: '0.875rem' }}>
-                  {new Date(m.createdAt).toLocaleString()}
-                </Text>
-                <Text style={{ display: 'block', marginTop: '0.25rem', whiteSpace: 'pre-wrap' }}>
-                  {m.body}
-                </Text>
-              </li>
-            ))}
-          </ul>
-        )}
+        <BucketMessageList
+          messages={listItems}
+          variant="public"
+          emptyMessage={t('noPublicMessagesYet')}
+          readableText
+        />
       </SectionWithHeading>
     </Container>
   );

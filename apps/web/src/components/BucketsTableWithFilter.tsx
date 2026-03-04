@@ -16,11 +16,9 @@ export type BucketsTableWithFilterProps = {
   initialSearch: string;
   basePath: string;
   currentQueryParams: Record<string, string>;
-  canView: boolean;
-  canUpdate: boolean;
-  canDelete: boolean;
-  apiBaseUrl: string;
   addBucketHref: string;
+  /** Column IDs that can be selected in the filter dropdown (default: all columns). */
+  filterableColumnIds?: string[];
 };
 
 export function BucketsTableWithFilter({
@@ -31,11 +29,8 @@ export function BucketsTableWithFilter({
   initialSearch,
   basePath,
   currentQueryParams,
-  canView,
-  canUpdate,
-  canDelete,
-  apiBaseUrl,
   addBucketHref,
+  filterableColumnIds,
 }: BucketsTableWithFilterProps) {
   return (
     <ResourceTableWithFilter
@@ -46,9 +41,11 @@ export function BucketsTableWithFilter({
       initialSearch={initialSearch}
       basePath={basePath}
       currentQueryParams={currentQueryParams}
+      filterableColumnIds={filterableColumnIds}
       viewRoute={bucketDetailRoute}
       viewLabelKey="bucketsTable.view"
-      canView={canView}
+      viewLinkColumnId="name"
+      canView={false}
       editRoute={bucketEditRoute}
       onDelete={async (baseUrl, id) => {
         const res = await webBuckets.reqDeleteBucket(baseUrl, id);
@@ -59,9 +56,9 @@ export function BucketsTableWithFilter({
       actionsLabelKey="bucketsTable.actions"
       editLabelKey="bucketsTable.edit"
       deleteLabelKey="bucketsTable.delete"
-      canUpdate={canUpdate}
-      canDelete={canDelete}
-      apiBaseUrl={apiBaseUrl}
+      canUpdate={false}
+      canDelete={false}
+      apiBaseUrl=""
       confirmDeleteTranslationKeyPrefix="common.confirmDeleteBucket"
       getDisplayName={(row) => row.cells['name'] ?? ''}
     />

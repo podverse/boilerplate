@@ -2,10 +2,10 @@
 
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
-import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import {
   Button,
+  ButtonLink,
   CheckboxField,
   FormActions,
   FormContainer,
@@ -112,11 +112,9 @@ export function EditMessageForm({
           <Button type="submit" variant="primary" loading={loading} disabled={!canSubmit}>
             {t('save')}
           </Button>
-          <Link href={cancelHref}>
-            <Button type="button" variant="secondary">
-              {t('cancel')}
-            </Button>
-          </Link>
+          <ButtonLink href={cancelHref} variant="secondary">
+            {t('cancel')}
+          </ButtonLink>
         </FormActions>
       </Stack>
     </FormContainer>

@@ -1,4 +1,4 @@
--- Combined migrations generated Mon Mar  2 08:25:54 CST 2026
+-- Combined migrations generated Wed Mar  4 11:30:56 CST 2026
 -- DO NOT EDIT - regenerate with scripts/database/combine-migrations.sh
 
 -- Including: 0000_management_helpers.sql

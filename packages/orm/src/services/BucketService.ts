@@ -1,4 +1,5 @@
 import { DEFAULT_MESSAGE_BODY_MAX_LENGTH, generateShortId } from '@boilerplate/helpers';
+import { Brackets } from 'typeorm';
 import { appDataSourceRead, appDataSourceReadWrite } from '../data-source.js';
 import { Bucket } from '../entities/Bucket.js';
 import { BucketSettings } from '../entities/BucketSettings.js';
@@ -16,8 +17,12 @@ export class BucketService {
 
   /**
    * List buckets where user is owner or has a bucket_admin row (any permission).
+   * Optional search filters by bucket name (case-insensitive substring).
    */
-  static async findAccessibleByUser(userId: string): Promise<Bucket[]> {
+  static async findAccessibleByUser(
+    userId: string,
+    options?: { search?: string }
+  ): Promise<Bucket[]> {
     const repo = appDataSourceRead.getRepository(Bucket);
     const qb = repo
       .createQueryBuilder('bucket')
@@ -25,10 +30,20 @@ export class BucketService {
       .leftJoin('bucket_admin', 'ba', 'ba.bucket_id = bucket.id AND ba.user_id = :userId', {
         userId,
       })
-      .where('bucket.owner_id = :userId', { userId })
-      .orWhere('ba.user_id IS NOT NULL')
+      .where(
+        new Brackets((bq) => {
+          bq.where('bucket.owner_id = :userId', { userId }).orWhere('ba.user_id IS NOT NULL');
+        })
+      )
       .setParameter('userId', userId)
-      .orderBy('bucket.created_at', 'DESC');
+      .orderBy('LOWER(bucket.name)', 'ASC');
+    const searchTrim = options?.search?.trim();
+    if (searchTrim !== undefined && searchTrim !== '') {
+      const escaped = searchTrim.replace(/\\/g, '\\\\').replace(/%/g, '\\%').replace(/_/g, '\\_');
+      qb.andWhere("LOWER(bucket.name) LIKE LOWER(:search) ESCAPE '\\'", {
+        search: `%${escaped}%`,
+      });
+    }
     return qb.getMany();
   }
 

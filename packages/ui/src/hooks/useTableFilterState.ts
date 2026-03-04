@@ -4,26 +4,6 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { SEARCH_DEBOUNCE_MS } from '@boilerplate/helpers';
 
-export type FilterableTableRow = {
-  id: string;
-  cells: Record<string, string>;
-};
-
-export function filterRows(
-  rows: FilterableTableRow[],
-  search: string,
-  selectedColumnIds: string[]
-): FilterableTableRow[] {
-  const q = search.trim().toLowerCase();
-  if (q === '') return rows;
-  return rows.filter((row) =>
-    selectedColumnIds.some((colId) => {
-      const cell = row.cells[colId];
-      return typeof cell === 'string' && cell.toLowerCase().includes(q);
-    })
-  );
-}
-
 export type UseTableFilterStateOptions = {
   initialSearch: string;
   initialFilterColumns: string[];
@@ -64,13 +44,18 @@ export function useTableFilterState({
     debounceRef.current = setTimeout(() => {
       debounceRef.current = null;
       const params = new URLSearchParams(currentQueryParams);
-      params.set('search', filter.trim());
+      if (filter.trim() !== '') {
+        params.set('search', filter.trim());
+      } else {
+        params.delete('search');
+      }
       if (searchSyncParams !== undefined) {
         for (const [k, v] of Object.entries(searchSyncParams)) {
           params.set(k, v);
         }
       }
-      router.push(`${basePath}?${params.toString()}`);
+      const query = params.toString();
+      router.push(query !== '' ? `${basePath}?${query}` : basePath);
     }, SEARCH_DEBOUNCE_MS);
     return () => {
       if (debounceRef.current !== null) clearTimeout(debounceRef.current);

@@ -2,11 +2,18 @@
 
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
-import Link from 'next/link';
 import { useTranslations } from 'next-intl';
-import { Button, CrudCheckboxes, FormActions, FormContainer, Stack, Text } from '@boilerplate/ui';
+import {
+  Button,
+  ButtonLink,
+  CrudCheckboxes,
+  FormActions,
+  FormContainer,
+  Stack,
+  Text,
+} from '@boilerplate/ui';
 import type { CrudFlags } from '@boilerplate/ui';
-import { bitmaskToFlags, flagsToBitmask } from '@boilerplate/helpers';
+import { CRUD_BITS, bitmaskToFlags, flagsToBitmask } from '@boilerplate/helpers';
 import { getApiBaseUrl } from '../../../../lib/api-client';
 
 export function EditBucketAdminForm({
@@ -14,6 +21,7 @@ export function EditBucketAdminForm({
   userId,
   initialBucketCrud,
   initialMessageCrud,
+  initialAdminCrud,
   successHref,
   cancelHref,
 }: {
@@ -21,6 +29,7 @@ export function EditBucketAdminForm({
   userId: string;
   initialBucketCrud: number;
   initialMessageCrud: number;
+  initialAdminCrud: number;
   successHref: string;
   cancelHref: string;
 }) {
@@ -34,8 +43,16 @@ export function EditBucketAdminForm({
   const router = useRouter();
   const [bucketFlags, setBucketFlags] = useState<CrudFlags>(bitmaskToFlags(initialBucketCrud));
   const [messageFlags, setMessageFlags] = useState<CrudFlags>(bitmaskToFlags(initialMessageCrud));
+  const [adminFlags, setAdminFlags] = useState<CrudFlags>({
+    ...bitmaskToFlags(initialAdminCrud),
+    read: true,
+  });
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+
+  const setAdminFlagsWithReadForced = (next: CrudFlags) => {
+    setAdminFlags({ ...next, read: true });
+  };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -50,6 +67,7 @@ export function EditBucketAdminForm({
         body: JSON.stringify({
           bucketCrud: flagsToBitmask(bucketFlags),
           messageCrud: flagsToBitmask(messageFlags),
+          adminCrud: flagsToBitmask(adminFlags) | CRUD_BITS.read,
         }),
       });
       if (!res.ok) {
@@ -80,6 +98,13 @@ export function EditBucketAdminForm({
           flags={messageFlags}
           onChange={setMessageFlags}
         />
+        <CrudCheckboxes
+          label={t('adminPermissionsLabel')}
+          labels={crudLabels}
+          flags={adminFlags}
+          onChange={setAdminFlagsWithReadForced}
+          disabledBits={{ read: true }}
+        />
         {submitError !== null && (
           <Text variant="error" size="sm" as="p" role="alert">
             {submitError}
@@ -89,11 +114,9 @@ export function EditBucketAdminForm({
           <Button type="submit" variant="primary" loading={loading}>
             {t('save')}
           </Button>
-          <Link href={cancelHref}>
-            <Button type="button" variant="secondary">
-              {t('cancel')}
-            </Button>
-          </Link>
+          <ButtonLink href={cancelHref} variant="secondary">
+            {t('cancel')}
+          </ButtonLink>
         </FormActions>
       </Stack>
     </FormContainer>

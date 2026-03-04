@@ -47,6 +47,7 @@
 .brand {
   display: flex;
   align-items: center;
+  gap: $space-2; /* space between app name and title icon */
   text-decoration: none;
   color: inherit;
   margin: 0;

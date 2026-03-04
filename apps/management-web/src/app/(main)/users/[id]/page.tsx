@@ -1,13 +1,12 @@
-import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
 import { request } from '@boilerplate/helpers-requests';
-import { Button, Stack, Text } from '@boilerplate/ui';
+import { ButtonLink, Stack, Text } from '@boilerplate/ui';
 
 import { ResourcePageCard } from '../../../../components/ResourcePageCard';
 
 import { getServerUser } from '../../../../lib/server-auth';
-import { getManagementApiBaseUrl } from '../../../../config/env';
+import { getServerManagementApiBaseUrl } from '../../../../config/env';
 import { getCrudFlags, hasReadPermission } from '../../../../lib/main-nav';
 import { ROUTES, userEditRoute } from '../../../../lib/routes';
 import { getCookieHeader } from '../../../../lib/server-request';
@@ -19,7 +18,7 @@ type ViewUserPageProps = {
 
 async function fetchUser(id: string): Promise<{ user: MainAppUser } | null> {
   const cookieHeader = await getCookieHeader();
-  const baseUrl = getManagementApiBaseUrl();
+  const baseUrl = getServerManagementApiBaseUrl();
   try {
     const res = await request(baseUrl, `/users/${id}`, {
       headers: { Cookie: cookieHeader },
@@ -77,17 +76,13 @@ export default async function ViewUserPage({ params }: ViewUserPageProps) {
         </Text>
         <Stack>
           {crud.update && (
-            <Link href={userEditRoute(id)}>
-              <Button type="button" variant="primary">
-                {tCommon('usersTable.edit')}
-              </Button>
-            </Link>
+            <ButtonLink href={userEditRoute(id)} variant="primary">
+              {tCommon('usersTable.edit')}
+            </ButtonLink>
           )}
-          <Link href={ROUTES.USERS}>
-            <Button type="button" variant="secondary">
-              {tCommon('adminForm.cancel')}
-            </Button>
-          </Link>
+          <ButtonLink href={ROUTES.USERS} variant="secondary">
+            {tCommon('adminForm.cancel')}
+          </ButtonLink>
         </Stack>
       </Stack>
     </ResourcePageCard>

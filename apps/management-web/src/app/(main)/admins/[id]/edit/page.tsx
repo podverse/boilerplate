@@ -5,7 +5,7 @@ import { AdminForm } from '../../../../../components/admins/AdminForm';
 import { ResourcePageCard } from '../../../../../components/ResourcePageCard';
 import type { AdminFormInitialValues } from '../../../../../components/admins/AdminForm';
 import { getServerUser } from '../../../../../lib/server-auth';
-import { getManagementApiBaseUrl } from '../../../../../config/env';
+import { getManagementApiBaseUrl, getServerManagementApiBaseUrl } from '../../../../../config/env';
 import { getCrudFlags } from '../../../../../lib/main-nav';
 import { ROUTES } from '../../../../../lib/routes';
 import { getCookieHeader } from '../../../../../lib/server-request';
@@ -17,7 +17,7 @@ type EditAdminPageProps = {
 
 async function fetchAdmin(id: string): Promise<{ admin: ManagementUser } | null> {
   const cookieHeader = await getCookieHeader();
-  const baseUrl = getManagementApiBaseUrl();
+  const baseUrl = getServerManagementApiBaseUrl();
   try {
     const res = await request(baseUrl, `/admins/${id}`, {
       headers: { Cookie: cookieHeader },

@@ -37,6 +37,8 @@ export type TableWithFilterProps = {
   maxGoToPage?: number;
   /** Optional content rendered on the same row as the filter bar (e.g. sort select), aligned to the end. Row wraps when space is tight. */
   trailingToolbar?: React.ReactNode;
+  /** When set, only these column IDs appear in the filter dropdown. Omit to allow all columns. */
+  filterableColumnIds?: string[];
 };
 
 function filterRows(
@@ -69,6 +71,7 @@ export function TableWithFilter({
   extraPaginationParams,
   maxGoToPage,
   trailingToolbar,
+  filterableColumnIds,
 }: TableWithFilterProps) {
   const router = useRouter();
   const tFilterBar = useTranslations('ui.tableFilterBar');
@@ -92,7 +95,14 @@ export function TableWithFilter({
     }),
     [tPagination, tGoToModal]
   );
-  const allColumnIds = useMemo(() => columns.map((c) => c.id), [columns]);
+  const filterColumns = useMemo(
+    () =>
+      filterableColumnIds !== undefined && filterableColumnIds.length > 0
+        ? columns.filter((c) => filterableColumnIds.includes(c.id))
+        : columns,
+    [columns, filterableColumnIds]
+  );
+  const allColumnIds = useMemo(() => filterColumns.map((c) => c.id), [filterColumns]);
   const [filter, setFilter] = useState(initialSearch);
   const lastInitialSearchRef = useRef(initialSearch);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -148,7 +158,7 @@ export function TableWithFilter({
           <TableFilterBar
             searchValue={filter}
             onSearchChange={setFilter}
-            columns={columns}
+            columns={filterColumns}
             selectedColumnIds={selectedColumnIds}
             onSelectedColumnIdsChange={handleFilterColumnsChange}
             placeholder={filterPlaceholder}

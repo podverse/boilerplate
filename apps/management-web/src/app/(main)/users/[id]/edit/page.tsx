@@ -5,7 +5,7 @@ import { ResourcePageCard } from '../../../../../components/ResourcePageCard';
 import { UserForm } from '../../../../../components/users/UserForm';
 import type { UserFormInitialValues } from '../../../../../components/users/UserForm';
 import { getServerUser } from '../../../../../lib/server-auth';
-import { getManagementApiBaseUrl } from '../../../../../config/env';
+import { getManagementApiBaseUrl, getServerManagementApiBaseUrl } from '../../../../../config/env';
 import { getCrudFlags } from '../../../../../lib/main-nav';
 import { ROUTES } from '../../../../../lib/routes';
 import { getCookieHeader } from '../../../../../lib/server-request';
@@ -17,7 +17,7 @@ type EditUserPageProps = {
 
 async function fetchUser(id: string): Promise<{ user: MainAppUser } | null> {
   const cookieHeader = await getCookieHeader();
-  const baseUrl = getManagementApiBaseUrl();
+  const baseUrl = getServerManagementApiBaseUrl();
   try {
     const res = await request(baseUrl, `/users/${id}`, {
       headers: { Cookie: cookieHeader },

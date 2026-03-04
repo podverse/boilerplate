@@ -130,10 +130,14 @@ export async function proxy(request: NextRequest) {
     return redirectRes;
   }
 
-  // Already logged in visiting login/signup -> redirect to dashboard
+  // Already logged in visiting login/signup -> redirect to dashboard or returnUrl
   if (hasSession && (pathname === ROUTES.LOGIN || pathname === ROUTES.SIGNUP)) {
-    const dashboardUrl = new URL(ROUTES.DASHBOARD, request.url);
-    return NextResponse.redirect(dashboardUrl);
+    const returnUrl = new URL(request.url).searchParams.get('returnUrl');
+    const safeReturn =
+      returnUrl !== null && returnUrl.trim().startsWith('/') && !returnUrl.trim().startsWith('//');
+    const target = safeReturn ? returnUrl.trim() : ROUTES.DASHBOARD;
+    const redirectUrl = new URL(target, request.url);
+    return NextResponse.redirect(redirectUrl);
   }
 
   return response;

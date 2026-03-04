@@ -8,7 +8,7 @@ import { Container, SectionWithHeading, Text } from '@boilerplate/ui';
 import { EventsSortSelect } from '../../../components/EventsSortSelect';
 import { EventsTableWithFilter } from '../../../components/EventsTableWithFilter';
 import { getServerUser } from '../../../lib/server-auth';
-import { getManagementApiBaseUrl } from '../../../config/env';
+import { getManagementApiBaseUrl, getServerManagementApiBaseUrl } from '../../../config/env';
 import { ROUTES } from '../../../lib/routes';
 import { getCookieHeader } from '../../../lib/server-request';
 
@@ -39,7 +39,7 @@ async function fetchEvents(
   search?: string
 ): Promise<{ data: EventsResponse | null; error: string | null }> {
   const cookieHeader = await getCookieHeader();
-  const baseUrl = getManagementApiBaseUrl();
+  const baseUrl = getServerManagementApiBaseUrl();
   const params = new URLSearchParams();
   if (page > 1) params.set('page', String(page));
   if (limit !== DEFAULT_PAGE_LIMIT) params.set('limit', String(limit));
@@ -96,7 +96,7 @@ export default async function EventsPage({ searchParams }: PageProps) {
   const limit = DEFAULT_PAGE_LIMIT;
   const sort = resolved.sort === 'oldest' ? 'oldest' : 'recent';
   const filterColumnsRaw = resolved.filterColumns ?? '';
-  const eventColumnIds = ['timestamp', 'actor', 'action', 'target', 'details'];
+  const eventColumnIds = ['actor', 'action', 'target', 'details'];
   const initialFilterColumns =
     filterColumnsRaw.trim() === ''
       ? eventColumnIds
@@ -173,6 +173,7 @@ export default async function EventsPage({ searchParams }: PageProps) {
             defaultLimit={DEFAULT_PAGE_LIMIT}
             sort={sort}
             maxGoToPage={500}
+            filterableColumnIds={['actor', 'action', 'target', 'details']}
             trailingToolbar={
               <EventsSortSelect
                 sort={sort}

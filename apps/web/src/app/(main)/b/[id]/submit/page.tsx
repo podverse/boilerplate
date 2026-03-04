@@ -1,9 +1,8 @@
 import { notFound } from 'next/navigation';
-import Link from 'next/link';
 import { getTranslations } from 'next-intl/server';
 import type { PublicBucket } from '@boilerplate/helpers-requests';
 import { webBuckets } from '@boilerplate/helpers-requests';
-import { BackToButton, Container, SectionWithHeading, Text } from '@boilerplate/ui';
+import { Container, SectionWithHeading } from '@boilerplate/ui';
 
 import { getServerApiBaseUrl } from '../../../../../lib/server-request';
 import { publicBucketRoute } from '../../../../../lib/routes';
@@ -26,11 +25,6 @@ export default async function PublicSubmitPage({ params }: { params: Promise<{ i
   return (
     <Container>
       <SectionWithHeading title={`${t('messages')} – ${bucket.name}`}>
-        <Text>
-          <Link href={publicBucketRoute(id)}>
-            <BackToButton>{t('backToBucket')}</BackToButton>
-          </Link>
-        </Text>
         <PublicSubmitForm
           bucketId={id}
           messageBodyMaxLength={bucket.messageBodyMaxLength ?? null}

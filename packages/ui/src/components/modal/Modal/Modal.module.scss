@@ -11,6 +11,11 @@
   box-sizing: border-box;
 }
 
+/* Allow clicks to pass through to the page underneath (e.g. navigation loading overlay). */
+.overlayClickThrough {
+  pointer-events: none;
+}
+
 .overlayTransparent {
   background: transparent;
 }

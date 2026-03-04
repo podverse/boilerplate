@@ -33,7 +33,9 @@ export default function LoginPage() {
     const result = await login(email, password);
     setLoading(false);
     if (result.ok) {
-      router.push(ROUTES.DASHBOARD);
+      // Full-page navigation so the next request includes the session cookie (same-origin after login).
+      window.location.href = ROUTES.DASHBOARD;
+      return;
     } else if (result.rateLimit !== undefined) {
       setRateLimitRetrySeconds(result.rateLimit.retryAfterSeconds);
       setShowRateLimitModal(true);

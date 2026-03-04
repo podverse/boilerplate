@@ -3,11 +3,7 @@ import { Router } from 'express';
 import * as authController from '../controllers/authController.js';
 import { loginRateLimiter } from '../middleware/rateLimit.js';
 import { validateBody } from '../middleware/validateBody.js';
-import {
-  loginSchema,
-  changePasswordSchema,
-  updateProfileSchema,
-} from '../schemas/auth.js';
+import { loginSchema, changePasswordSchema, updateProfileSchema } from '../schemas/auth.js';
 
 export function createAuthRouter(requireAuth: RequestHandler): Router {
   const router = Router();
@@ -23,21 +19,11 @@ export function createAuthRouter(requireAuth: RequestHandler): Router {
   router.get('/me', requireAuth, (req, res) => {
     authController.me(req, res);
   });
-  router.post(
-    '/change-password',
-    requireAuth,
-    validateBody(changePasswordSchema),
-    (req, res) => {
-      void authController.changePassword(req, res);
-    }
-  );
-  router.patch(
-    '/me',
-    requireAuth,
-    validateBody(updateProfileSchema),
-    (req, res) => {
-      void authController.updateProfile(req, res);
-    }
-  );
+  router.post('/change-password', requireAuth, validateBody(changePasswordSchema), (req, res) => {
+    void authController.changePassword(req, res);
+  });
+  router.patch('/me', requireAuth, validateBody(updateProfileSchema), (req, res) => {
+    void authController.updateProfile(req, res);
+  });
   return router;
 }

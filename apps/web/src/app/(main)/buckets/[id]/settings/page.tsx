@@ -1,35 +1,21 @@
-import { redirect, notFound } from 'next/navigation';
-import Link from 'next/link';
-import { getTranslations } from 'next-intl/server';
-import {
-  BackToButton,
-  Button,
-  ContentPageLayout,
-  Divider,
-  SectionWithHeading,
-} from '@boilerplate/ui';
+import { notFound } from 'next/navigation';
 
-import { fetchAdmins, fetchBucket } from '../../../../../lib/buckets';
-import { getServerUser } from '../../../../../lib/server-auth';
-import { ROUTES, bucketDetailRoute } from '../../../../../lib/routes';
+import { fetchBucket } from '../../../../../lib/buckets';
+import { bucketDetailRoute } from '../../../../../lib/routes';
 import { BucketForm } from '../../BucketForm';
 import type { BucketForForm } from '../../BucketForm';
-import { BucketAdminsClient } from '../BucketAdminsClient';
 
-export default async function BucketSettingsPage({ params }: { params: Promise<{ id: string }> }) {
-  const user = await getServerUser();
-  if (user === null) {
-    redirect(ROUTES.LOGIN);
-  }
-
+export default async function BucketSettingsGeneralPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
   const { id } = await params;
   const { bucket } = await fetchBucket(id);
   if (bucket === null) {
     notFound();
   }
 
-  const admins = await fetchAdmins(id);
-  const t = await getTranslations('buckets');
   const forForm: BucketForForm = {
     id: bucket.id,
     name: bucket.name,
@@ -38,26 +24,11 @@ export default async function BucketSettingsPage({ params }: { params: Promise<{
   };
 
   return (
-    <ContentPageLayout title={t('settings')} type="form">
-      <div style={{ marginBottom: '1rem' }}>
-        <Link href={bucketDetailRoute(id)}>
-          <Button variant="secondary">
-            <BackToButton>{t('backToBucket')}</BackToButton> – {bucket.name}
-          </Button>
-        </Link>
-      </div>
-      <SectionWithHeading title={t('editTitle')}>
-        <BucketForm
-          mode="edit"
-          bucket={forForm}
-          successHref={bucketDetailRoute(id)}
-          cancelHref={bucketDetailRoute(id)}
-        />
-      </SectionWithHeading>
-      <Divider />
-      <SectionWithHeading title={t('admins')}>
-        <BucketAdminsClient bucketId={id} initialAdmins={admins} />
-      </SectionWithHeading>
-    </ContentPageLayout>
+    <BucketForm
+      mode="edit"
+      bucket={forForm}
+      successHref={bucketDetailRoute(id)}
+      cancelHref={bucketDetailRoute(id)}
+    />
   );
 }

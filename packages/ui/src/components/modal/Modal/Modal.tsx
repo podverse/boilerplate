@@ -10,6 +10,8 @@ export type ModalProps = {
   withBackdrop?: boolean;
   /** When true (and withBackdrop), backdrop is opaque for better readability. Default false. */
   backdropOpaque?: boolean;
+  /** When true, overlay and content do not capture pointer events; clicks pass through to the page. Use for non-blocking indicators (e.g. navigation loading spinner). Default false. */
+  clickThrough?: boolean;
   /** Optional className for the overlay. */
   className?: string;
   /** When provided, a close button is shown in the upper-right corner of the modal content. */
@@ -25,6 +27,7 @@ export function Modal({
   children,
   withBackdrop = false,
   backdropOpaque = false,
+  clickThrough = false,
   className = '',
   onClose,
 }: ModalProps) {
@@ -36,6 +39,7 @@ export function Modal({
         ? styles.overlayBackdropOpaque
         : styles.overlayBackdrop
       : styles.overlayTransparent,
+    clickThrough ? styles.overlayClickThrough : '',
     className,
   ]
     .filter(Boolean)

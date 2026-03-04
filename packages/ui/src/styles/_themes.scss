@@ -1,6 +1,7 @@
 // Theme variables for light, dark, and dracula. Use in app root (e.g. globals or layout).
 // Import once: @use '@boilerplate/ui/styles/themes'; then wrap app with [data-theme="light"], [data-theme="dark"], or [data-theme="dracula"].
 // Both apps/web and apps/management-web use these from the package.
+// When adding a new --color-* token used by shared components, add it to all three theme blocks below.
 
 @use 'variables' as *;
 
@@ -8,6 +9,7 @@
 [data-theme='light'],
 :root {
   --color-bg: #fff;
+  --color-bg-muted: #f5f5f5;
   --color-text: #1a1a1a;
   --color-text-muted: #666;
   --color-border: #e0e0e0;
@@ -24,12 +26,13 @@
 // Dark theme
 [data-theme='dark'] {
   --color-bg: #1a1a1a;
+  --color-bg-muted: #262626;
   --color-text: #f5f5f5;
   --color-text-muted: #a3a3a3;
   --color-border: #404040;
   --color-navbar-bg: #2d2d2d;
   --color-primary: #60a5fa;
-  --color-primary-hover: #93c5fd;
+  --color-primary-hover: #3b82f6;
   --color-on-primary: #fff;
   --color-error: #ef4444;
   --color-success: #22c55e;
@@ -40,12 +43,13 @@
 // Dracula theme
 [data-theme='dracula'] {
   --color-bg: #282a36;
+  --color-bg-muted: #44475a;
   --color-text: #f8f8f2;
   --color-text-muted: #6272a4;
   --color-border: #44475a;
   --color-navbar-bg: #44475a;
   --color-primary: #bd93f9;
-  --color-primary-hover: #ff79c6;
+  --color-primary-hover: #a78bfa;
   --color-on-primary: #282a36;
   --color-error: #ff5555;
   --color-success: #50fa7b;

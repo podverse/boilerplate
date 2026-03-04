@@ -22,6 +22,8 @@ export type EventsTableWithFilterProps = {
   defaultLimit: number;
   sort: string;
   maxGoToPage?: number;
+  /** Column IDs that can be selected in the filter dropdown (default: all columns). */
+  filterableColumnIds?: string[];
   /** Rendered on the same row as the filter (e.g. sort select). */
   trailingToolbar?: React.ReactNode;
 };

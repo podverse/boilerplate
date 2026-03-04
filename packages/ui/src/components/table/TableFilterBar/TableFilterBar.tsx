@@ -9,6 +9,8 @@ import styles from './TableFilterBar.module.scss';
 export type TableFilterBarColumn = {
   id: string;
   label: string;
+  /** Optional per-column link; when set, this column's cell is a link to the returned href. Use for columns that link somewhere other than the main view route (e.g. a "public" column linking to a public page). */
+  getHref?: (row: { id: string; cells: Record<string, string> }) => string | undefined;
 };
 
 export type TableFilterBarProps = {

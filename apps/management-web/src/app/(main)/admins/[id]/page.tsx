@@ -1,15 +1,14 @@
-import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
 import { request } from '@boilerplate/helpers-requests';
-import { Button, Stack, Text } from '@boilerplate/ui';
+import { ButtonLink, Stack, Text } from '@boilerplate/ui';
 
 import { ResourcePageCard } from '../../../../components/ResourcePageCard';
 import { bitmaskToFlags } from '@boilerplate/helpers';
 import type { CrudBit } from '@boilerplate/helpers';
 
 import { getServerUser } from '../../../../lib/server-auth';
-import { getManagementApiBaseUrl } from '../../../../config/env';
+import { getManagementApiBaseUrl, getServerManagementApiBaseUrl } from '../../../../config/env';
 import { getCrudFlags, hasReadPermission } from '../../../../lib/main-nav';
 import { ROUTES, adminEditRoute } from '../../../../lib/routes';
 import { getCookieHeader } from '../../../../lib/server-request';
@@ -21,7 +20,7 @@ type ViewAdminPageProps = {
 
 async function fetchAdmin(id: string): Promise<{ admin: ManagementUser } | null> {
   const cookieHeader = await getCookieHeader();
-  const baseUrl = getManagementApiBaseUrl();
+  const baseUrl = getServerManagementApiBaseUrl();
   try {
     const res = await request(baseUrl, `/admins/${id}`, {
       headers: { Cookie: cookieHeader },
@@ -106,17 +105,13 @@ export default async function ViewAdminPage({ params }: ViewAdminPageProps) {
         {admin.isSuperAdmin === true && <Text>{tCommon('viewAdminSuperAdminNote')}</Text>}
         <Stack>
           {canEdit && (
-            <Link href={adminEditRoute(id)}>
-              <Button type="button" variant="primary">
-                {tCommon('adminsTable.edit')}
-              </Button>
-            </Link>
+            <ButtonLink href={adminEditRoute(id)} variant="primary">
+              {tCommon('adminsTable.edit')}
+            </ButtonLink>
           )}
-          <Link href={ROUTES.ADMINS}>
-            <Button type="button" variant="secondary">
-              {tCommon('adminForm.cancel')}
-            </Button>
-          </Link>
+          <ButtonLink href={ROUTES.ADMINS} variant="secondary">
+            {tCommon('adminForm.cancel')}
+          </ButtonLink>
         </Stack>
       </Stack>
     </ResourcePageCard>

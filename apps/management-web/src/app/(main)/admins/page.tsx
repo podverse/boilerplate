@@ -6,7 +6,7 @@ import { FilterTablePageLayout, Stack } from '@boilerplate/ui';
 
 import { AdminsTableWithFilter } from '../../../components/AdminsTableWithFilter';
 import { getServerUser } from '../../../lib/server-auth';
-import { getManagementApiBaseUrl } from '../../../config/env';
+import { getManagementApiBaseUrl, getServerManagementApiBaseUrl } from '../../../config/env';
 import { getCrudFlags, hasReadPermission } from '../../../lib/main-nav';
 import { ROUTES } from '../../../lib/routes';
 import { getCookieHeader, parseFilterColumns } from '../../../lib/server-request';
@@ -26,7 +26,7 @@ async function fetchAdmins(
   search?: string
 ): Promise<{ data: AdminsResponse | null; error: string | null }> {
   const cookieHeader = await getCookieHeader();
-  const baseUrl = getManagementApiBaseUrl();
+  const baseUrl = getServerManagementApiBaseUrl();
   const params = new URLSearchParams();
   if (page > 1) params.set('page', String(page));
   if (limit !== DEFAULT_PAGE_LIMIT) params.set('limit', String(limit));

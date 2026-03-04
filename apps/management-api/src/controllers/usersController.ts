@@ -32,12 +32,49 @@ function userToJson(user: UserWithRelations): {
   };
 }
 
-export async function listUsers(_req: Request, res: Response): Promise<void> {
+const USER_SEARCH_COLUMN_IDS = ['email', 'displayName'] as const;
+
+export async function listUsers(req: Request, res: Response): Promise<void> {
+  const searchRaw =
+    typeof req.query.search === 'string' && req.query.search.trim() !== ''
+      ? req.query.search.trim()
+      : undefined;
+  const filterColumnsRaw =
+    typeof req.query.filterColumns === 'string' && req.query.filterColumns.trim() !== ''
+      ? req.query.filterColumns.trim()
+      : undefined;
+  const searchColumns =
+    filterColumnsRaw !== undefined
+      ? filterColumnsRaw
+          .split(',')
+          .map((s) => s.trim())
+          .filter((id): id is (typeof USER_SEARCH_COLUMN_IDS)[number] =>
+            USER_SEARCH_COLUMN_IDS.includes(id as (typeof USER_SEARCH_COLUMN_IDS)[number])
+          )
+      : [...USER_SEARCH_COLUMN_IDS];
+  const searchInEmail = searchColumns.length === 0 || searchColumns.includes('email');
+  const searchInDisplayName = searchColumns.length === 0 || searchColumns.includes('displayName');
+
   const repo = appDataSourceRead.getRepository(User);
-  const users = await repo.find({
-    relations: ['credentials', 'bio'],
-    order: { createdAt: 'ASC' },
-  });
+  const qb = repo
+    .createQueryBuilder('user')
+    .leftJoinAndSelect('user.credentials', 'credentials')
+    .leftJoinAndSelect('user.bio', 'bio')
+    .orderBy('user.created_at', 'ASC');
+  if (searchRaw !== undefined) {
+    const escaped = searchRaw.replace(/\\/g, '\\\\').replace(/%/g, '\\%').replace(/_/g, '\\_');
+    const conditions: string[] = [];
+    if (searchInEmail) {
+      conditions.push("LOWER(credentials.email) LIKE LOWER(:search) ESCAPE '\\'");
+    }
+    if (searchInDisplayName) {
+      conditions.push("LOWER(bio.display_name) LIKE LOWER(:search) ESCAPE '\\'");
+    }
+    if (conditions.length > 0) {
+      qb.andWhere(`(${conditions.join(' OR ')})`, { search: `%${escaped}%` });
+    }
+  }
+  const users = await qb.getMany();
   res.status(200).json({
     users: (users as UserWithRelations[]).map((u) => userToJson(u)),
   });

@@ -7,12 +7,14 @@ import {
   createTopicSchema,
   createBucketAdminSchema,
   updateBucketAdminSchema,
+  createBucketAdminInvitationSchema,
   createMessageSchema,
   updateMessageSchema,
   publicSubmitMessageSchema,
 } from '../schemas/buckets.js';
 import * as bucketsController from '../controllers/bucketsController.js';
 import * as bucketAdminsController from '../controllers/bucketAdminsController.js';
+import * as bucketAdminInvitationsController from '../controllers/bucketAdminInvitationsController.js';
 import * as bucketMessagesController from '../controllers/bucketMessagesController.js';
 
 export function createBucketsRouter(requireAuthMiddleware: RequestHandler): Router {
@@ -51,11 +53,32 @@ export function createBucketsRouter(requireAuthMiddleware: RequestHandler): Rout
   );
 
   router.get('/:bucketId/admins', requireAuthMiddleware, bucketAdminsController.listBucketAdmins);
+  router.get(
+    '/:bucketId/admins/:userId',
+    requireAuthMiddleware,
+    bucketAdminsController.getBucketAdmin
+  );
   router.post(
     '/:bucketId/admins',
     requireAuthMiddleware,
     validateBody(createBucketAdminSchema),
     bucketAdminsController.createBucketAdmin
+  );
+  router.get(
+    '/:bucketId/admin-invitations',
+    requireAuthMiddleware,
+    bucketAdminInvitationsController.listBucketAdminInvitations
+  );
+  router.post(
+    '/:bucketId/admin-invitations',
+    requireAuthMiddleware,
+    validateBody(createBucketAdminInvitationSchema),
+    bucketAdminInvitationsController.createBucketAdminInvitation
+  );
+  router.delete(
+    '/:bucketId/admin-invitations/:invitationId',
+    requireAuthMiddleware,
+    bucketAdminInvitationsController.deleteBucketAdminInvitation
   );
   router.patch(
     '/:bucketId/admins/:userId',

@@ -67,3 +67,89 @@ do it
 - packages/ui: hooks/useDeleteModal.ts, hooks/useTableFilterState.ts; components/modal/ConfirmDeleteModal (tsx + scss), components/table/ResourceTableWithFilter (tsx + scss); index.ts exports.
 - apps/web: BucketsTableWithFilter imports from @boilerplate/ui; removed ResourceTableWithFilter, ConfirmDeleteModal, useDeleteModal, useTableFilterState and their scss.
 - apps/management-web: AdminsTableWithFilter and UsersTableWithFilter import from @boilerplate/ui; AdminsTableWithFilter onSelfDelete now does logout() + router.push(ROUTES.LOGIN); removed same duplicated components/hooks.
+
+---
+
+### Session 5 - 2025-03-04
+
+#### Prompt (Developer)
+it looks like you have sorted the page results for bucket on the front end, but i think this should happen on the back end, since this table can potentially be paginated
+
+#### Key Decisions
+- Sort buckets by name on the API: `BucketService.findAccessibleByUser` now orders by `LOWER(bucket.name) ASC` so list order is stable and correct when pagination is added later.
+- Removed client-side sort on buckets list page; table uses API response order as-is.
+
+#### Files Modified
+- packages/orm/src/services/BucketService.ts (orderBy LOWER(name) ASC).
+- apps/web/src/app/(main)/buckets/page.tsx (removed .sort(), use data?.buckets ?? [] directly).
+
+---
+
+### Session 6 - 2025-03-04
+
+#### Prompt (Developer)
+You can remove the actions from the buckets table in web
+
+#### Key Decisions
+- Buckets table in web no longer shows View / Edit / Delete actions: BucketsTableWithFilter passes canView=false, canUpdate=false, canDelete=false to ResourceTableWithFilter and no longer accepts canView, canUpdate, canDelete, apiBaseUrl from the page.
+- Page no longer passes canView, canUpdate, canDelete, apiBaseUrl to BucketsTableWithFilter.
+
+#### Files Modified
+- apps/web/src/components/BucketsTableWithFilter.tsx (removed action props; hardcode canView/canUpdate/canDelete false, apiBaseUrl "").
+- apps/web/src/app/(main)/buckets/page.tsx (removed canView, canUpdate, canDelete, apiBaseUrl, addBucketHref still passed).
+
+---
+
+### Session 7 - 2025-03-04
+
+#### Prompt (Developer)
+You can also remove the slug column
+
+#### Key Decisions
+- Slug column removed from buckets table: dropped from columns, tableRows.cells, and bucketColumnIds (filter).
+
+#### Files Modified
+- apps/web/src/app/(main)/buckets/page.tsx (slug removed from columns, cells, bucketColumnIds).
+
+---
+
+### Session 8 - 2025-03-04
+
+#### Prompt (Developer)
+It seems like the table component does not allow you to click the rows as links if you do not have the view permissions set, but these should be hand. handled independently clicking a filter row should always function as a link Even if the view action is not passed into it
+
+#### Key Decisions
+- Row click / cell link in ResourceTableWithFilter now depends only on viewRoute and viewLabelKey being provided; canView no longer gates the row link. So when viewRoute is passed, every row cell is a link to the detail page. The View button in the actions column remains gated by canView.
+
+#### Files Modified
+- packages/ui/src/components/table/ResourceTableWithFilter/ResourceTableWithFilter.tsx (use rowHref from viewRoute when viewRoute and viewLabelKey are set; do not require canView for cell links).
+
+---
+
+### Session 9 - 2025-03-04
+
+#### Prompt (Developer)
+The name column should be clickable, but the public column should not be clickable. Allow these links to be independent. set someday we may want a column like public or any other column to be their own links that go somewhere separate from the first column but in this case we just want the name column to be a clickable link
+
+#### Key Decisions
+- Only the name column is a link on the buckets table: added viewLinkColumnId prop to ResourceTableWithFilter; when set, only that column's cell uses the view route link; other columns render plain. BucketsTableWithFilter passes viewLinkColumnId="name".
+- Per-column link support for future: TableFilterBarColumn now has optional getHref(row) => string | undefined. If a column defines getHref, that href is used for that cell (e.g. a "public" column could link elsewhere). ResourceTableWithFilter uses columnHref = col.getHref?.(row) first, then falls back to view link when cellIsViewLink(col.id).
+
+#### Files Modified
+- packages/ui/src/components/table/ResourceTableWithFilter/ResourceTableWithFilter.tsx (viewLinkColumnId prop; cell href = col.getHref?.(row) ?? view link when viewLinkColumnId matches).
+- packages/ui/src/components/table/TableFilterBar/TableFilterBar.tsx (TableFilterBarColumn.getHref optional).
+- apps/web/src/components/BucketsTableWithFilter.tsx (viewLinkColumnId="name").
+
+---
+
+### Session 10 - 2025-03-04
+
+#### Prompt (Developer)
+The clickable area of the links in the table should be increased with some vertical padding. Add padding vertical of space to to the links and text The padding should be there even if it's not a clickable link, even if it is just text information.
+
+#### Key Decisions
+- Resource table data cells: wrapped content in .cellContent (padding $space-2 0) and added same vertical padding to .cellLink so link and plain-text cells both have consistent vertical padding and link click area is larger.
+
+#### Files Modified
+- packages/ui/src/components/table/ResourceTableWithFilter/ResourceTableWithFilter.tsx (wrap cell content in span.cellContent).
+- packages/ui/src/components/table/ResourceTableWithFilter/ResourceTableWithFilter.module.scss (.cellContent and .cellLink padding: $space-2 0).

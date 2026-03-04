@@ -15,7 +15,11 @@ export async function listBuckets(req: Request, res: Response): Promise<void> {
     res.status(401).json({ message: 'Authentication required' });
     return;
   }
-  const buckets = await BucketService.findAccessibleByUser(user.id);
+  const search =
+    typeof req.query.search === 'string' && req.query.search.trim() !== ''
+      ? req.query.search.trim()
+      : undefined;
+  const buckets = await BucketService.findAccessibleByUser(user.id, { search });
   res.status(200).json({ buckets: buckets.map(toBucketResponse) });
 }
 

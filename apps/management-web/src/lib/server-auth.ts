@@ -4,7 +4,7 @@ import { headers } from 'next/headers';
 
 import { request } from '@boilerplate/helpers-requests';
 
-import { getManagementApiBaseUrl } from '../config/env';
+import { getServerManagementApiBaseUrl } from '../config/env';
 import type { ManagementUserPermissions } from '../types/management-api';
 import { getCookieHeader } from './server-request';
 
@@ -19,7 +19,7 @@ export type ServerUser = {
 const AUTH_USER_HEADER = 'x-auth-user';
 
 function getServerApiBaseUrl(): string {
-  return getManagementApiBaseUrl();
+  return getServerManagementApiBaseUrl();
 }
 
 function parseAuthUserHeader(value: string | null): ServerUser | null {

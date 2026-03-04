@@ -526,6 +526,23 @@ export const openApiDocument = {
         description: 'List all main-app users. Requires users read permission.',
         operationId: 'listUsers',
         security: [{ bearerAuth: [] }],
+        parameters: [
+          {
+            name: 'search',
+            in: 'query',
+            required: false,
+            schema: { type: 'string' },
+            description: 'Filter by email or display name (case-insensitive substring).',
+          },
+          {
+            name: 'filterColumns',
+            in: 'query',
+            required: false,
+            schema: { type: 'string' },
+            description:
+              'Comma-separated column IDs to apply search in: email, displayName. If omitted, search applies to both.',
+          },
+        ],
         responses: {
           '200': {
             description: 'OK',

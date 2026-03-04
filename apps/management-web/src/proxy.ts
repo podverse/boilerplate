@@ -1,18 +1,12 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
+import { getServerManagementApiBaseUrl } from './config/env';
 import { PUBLIC_PATHS, ROUTES } from './lib/routes';
 
 const SESSION_COOKIE_NAME = 'management_session';
 const REFRESH_COOKIE_NAME = 'management_refresh';
 const AUTH_USER_HEADER = 'x-auth-user';
-
-function getManagementApiBaseUrl(): string {
-  const base = (process.env.NEXT_PUBLIC_MANAGEMENT_API_URL ?? '').replace(/\/$/, '');
-  const ver = process.env.NEXT_PUBLIC_MANAGEMENT_API_VERSION_PATH?.trim();
-  const versionPath = ver && ver.startsWith('/') ? ver : '/v1';
-  return base + versionPath;
-}
 
 async function trySessionRestore(
   request: NextRequest
@@ -24,7 +18,7 @@ async function trySessionRestore(
   }
 
   const cookieHeader = request.headers.get('cookie') ?? '';
-  const baseUrl = getManagementApiBaseUrl();
+  const baseUrl = getServerManagementApiBaseUrl();
   if (baseUrl === '/v1' || baseUrl === '') {
     return { response: NextResponse.next(), hasRestoredSession: false };
   }
@@ -96,8 +90,7 @@ export async function proxy(request: NextRequest) {
   }
 
   const { response, hasRestoredSession } = await trySessionRestore(request);
-  const hasSession =
-    request.cookies.has(SESSION_COOKIE_NAME) || hasRestoredSession;
+  const hasSession = request.cookies.has(SESSION_COOKIE_NAME) || hasRestoredSession;
   const isPublic = PUBLIC_PATHS.includes(pathname);
 
   // Protected route without session -> redirect to login

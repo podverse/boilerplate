@@ -26,6 +26,14 @@ export function bucketSettingsRoute(id: string): string {
   return `/buckets/${id}/settings`;
 }
 
+export function bucketSettingsAdminsRoute(id: string): string {
+  return `/buckets/${id}/settings/admins`;
+}
+
+export function bucketSettingsAdminEditRoute(bucketId: string, userId: string): string {
+  return `/buckets/${bucketId}/settings/admins/${userId}/edit`;
+}
+
 export function bucketMessagesRoute(id: string): string {
   return `/buckets/${id}/messages`;
 }
@@ -49,6 +57,13 @@ export const PUBLIC_PATHS: readonly string[] = [
 ];
 
 /** Public bucket view and submit live under /b/[id] and /b/[id]/submit. */
+/** Admin invitation accept/decline page (login required to act, but page is public). */
 export function isPublicPath(pathname: string): boolean {
-  return PUBLIC_PATHS.includes(pathname) || pathname.startsWith('/b/');
+  return (
+    PUBLIC_PATHS.includes(pathname) || pathname.startsWith('/b/') || pathname.startsWith('/invite/')
+  );
+}
+
+export function inviteRoute(token: string): string {
+  return `/invite/${token}`;
 }

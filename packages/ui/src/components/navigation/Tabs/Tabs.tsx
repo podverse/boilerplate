@@ -22,13 +22,15 @@ export type TabsProps = {
   LinkComponent: React.ComponentType<TabsLinkComponentProps>;
   /** Optional: current path for active state. If omitted, uses usePathname() (Next.js). */
   activeHref?: string;
+  /** When true, only exact path match is active (no prefix match). Use for sibling tabs under the same base path. */
+  exactMatch?: boolean;
 };
 
 /**
  * Horizontal tabs navigation. Renders a list of links with active state based on current path.
  * Pass LinkComponent for framework routing (e.g. Next.js Link) so clicks do not trigger full reload.
  */
-export function Tabs({ items, LinkComponent, activeHref }: TabsProps) {
+export function Tabs({ items, LinkComponent, activeHref, exactMatch = false }: TabsProps) {
   const t = useTranslations('ui.tabs');
   const pathname = usePathname();
   const currentHref = activeHref ?? pathname ?? '';
@@ -38,9 +40,10 @@ export function Tabs({ items, LinkComponent, activeHref }: TabsProps) {
       <div className={styles.scrollWrap}>
         <ul className={styles.nav}>
           {items.map((item) => {
-            const isActive =
-              currentHref === item.href ||
-              (item.href !== '/' && currentHref.startsWith(item.href + '/'));
+            const isActive = exactMatch
+              ? currentHref === item.href
+              : currentHref === item.href ||
+                (item.href !== '/' && currentHref.startsWith(item.href + '/'));
             const linkClass = [styles.tabLink, isActive ? styles.tabLinkActive : '']
               .filter(Boolean)
               .join(' ');

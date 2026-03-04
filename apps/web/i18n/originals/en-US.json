@@ -62,10 +62,16 @@
     "submit": "Submit",
     "publicYes": "Yes",
     "publicNo": "No",
+    "publicLabel": "Public",
+    "privateLabel": "Private",
     "topics": "Topics",
     "messages": "Messages",
+    "noMessagesYet": "No messages yet.",
+    "noPublicMessagesYet": "No public messages yet.",
     "admins": "Admins",
+    "noAdmins": "None",
     "edit": "Edit",
+    "editAdminTitle": "Edit admin",
     "delete": "Delete",
     "detail": "Bucket detail",
     "newTitle": "New bucket",
@@ -73,15 +79,28 @@
     "createTopic": "Add topic",
     "failedToLoad": "Failed to load buckets",
     "owner": "Owner",
+    "anonymous": "Anonymous",
     "admin": "Admin",
     "cancel": "Cancel",
     "save": "Save",
     "settings": "Settings",
+    "bucketSettings": "Bucket Settings",
+    "general": "General",
     "backToBucket": "Back to bucket",
     "crudCreate": "Create",
     "crudRead": "Read",
     "crudUpdate": "Update",
-    "crudDelete": "Delete"
+    "crudDelete": "Delete",
+    "adminPermissionsLabel": "Admin permissions",
+    "addAdmin": "Add admin",
+    "addAdminDescription": "Select the permissions you want to assign to the new admin. Pressing \"Add admin\" creates a link you can send to them; when they open it, they can accept or decline the invitation.",
+    "inviteLinkCopy": "Share this link. When they open it, they can accept or decline.",
+    "pendingInvitations": "Active invitations",
+    "pendingInvitationsEmpty": "No active invitations.",
+    "invitationLink": "Invitation link",
+    "expires": "Expires",
+    "copy": "Copy",
+    "copied": "Copied"
   },
   "common": {
     "loading": "Loading…",
@@ -277,5 +296,20 @@
         "placeholder": "1–{max}"
       }
     }
+  },
+  "invite": {
+    "title": "Bucket admin invitation",
+    "invitedTo": "You have been invited to become an admin for bucket",
+    "loginRequired": "You must log in to accept or decline this invitation.",
+    "loginButton": "Log in",
+    "accept": "Accept",
+    "reject": "Decline",
+    "accepted": "You have been added as an admin. Redirecting…",
+    "rejected": "Invitation declined.",
+    "linkInvalidAfterReject": "This link is no longer valid.",
+    "acceptFailed": "Failed to accept invitation.",
+    "rejectFailed": "Failed to decline invitation.",
+    "loading": "Loading invitation…",
+    "goHome": "Go to home"
   }
 }

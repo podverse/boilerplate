@@ -2,7 +2,6 @@
 
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
-import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import {
   Button,
@@ -10,6 +9,7 @@ import {
   FormActions,
   FormContainer,
   CheckboxField,
+  Link,
   Stack,
   Text,
 } from '@boilerplate/ui';

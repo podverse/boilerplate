@@ -1,4 +1,4 @@
--- 0003 migration: bucket (and topics as child buckets), bucket_admin, bucket_message
+-- 0003 migration: bucket (and topics as child buckets), bucket_admin, bucket_message, bucket_admin_invitation
 
 -- Bucket: top-level have parent_bucket_id NULL; topics are rows with parent_bucket_id set.
 -- short_id: URL-safe public id (app sets on insert via nanoid).
@@ -28,13 +28,14 @@ CREATE TABLE bucket_settings (
     message_body_max_length INTEGER NULL
 );
 
--- Bucket admins: CRUD bitmasks for bucket and messages (create=1, read=2, update=4, delete=8).
+-- Bucket admins: CRUD bitmasks for bucket, messages, and other admins (create=1, read=2, update=4, delete=8). Read on admins is always required (enforced in app).
 CREATE TABLE bucket_admin (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     bucket_id UUID NOT NULL REFERENCES bucket(id) ON DELETE CASCADE,
     user_id UUID NOT NULL REFERENCES "user"(id) ON DELETE CASCADE,
     bucket_crud INTEGER NOT NULL DEFAULT 0,
     message_crud INTEGER NOT NULL DEFAULT 0,
+    admin_crud INTEGER NOT NULL DEFAULT 2,
     created_at server_time_with_default NOT NULL,
     UNIQUE (bucket_id, user_id)
 );
@@ -55,3 +56,21 @@ CREATE TABLE bucket_message (
 CREATE INDEX idx_bucket_message_bucket_id ON bucket_message(bucket_id);
 CREATE INDEX idx_bucket_message_created_at ON bucket_message(created_at);
 CREATE INDEX idx_bucket_message_bucket_id_is_public ON bucket_message(bucket_id, is_public);
+
+-- Invitation token: URL-safe, unique. status: pending | accepted | rejected. admin_crud: read=2 always required (enforced in app).
+CREATE TABLE bucket_admin_invitation (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    bucket_id UUID NOT NULL REFERENCES bucket(id) ON DELETE CASCADE,
+    token VARCHAR(64) NOT NULL,
+    bucket_crud INTEGER NOT NULL DEFAULT 0,
+    message_crud INTEGER NOT NULL DEFAULT 0,
+    admin_crud INTEGER NOT NULL DEFAULT 2,
+    status VARCHAR(20) NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'accepted', 'rejected')),
+    created_at server_time_with_default NOT NULL,
+    expires_at TIMESTAMP NOT NULL DEFAULT (NOW() + interval '7 days'),
+    UNIQUE (token)
+);
+
+CREATE INDEX idx_bucket_admin_invitation_bucket_id ON bucket_admin_invitation(bucket_id);
+CREATE INDEX idx_bucket_admin_invitation_token ON bucket_admin_invitation(token);
+CREATE INDEX idx_bucket_admin_invitation_status ON bucket_admin_invitation(status);

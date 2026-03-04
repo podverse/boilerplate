@@ -14,7 +14,20 @@ export function getManagementApiVersionPath(): string {
   return path.startsWith('/') ? path : `/${path}`;
 }
 
-/** Full base URL for API requests (base URL + version path). */
+/** Full base URL for API requests (base URL + version path). Used by client and by server when MANAGEMENT_API_BACKEND_URL is not set. */
 export function getManagementApiBaseUrl(): string {
   return getManagementApiUrl() + getManagementApiVersionPath();
+}
+
+/**
+ * Server-only: base URL for backend API (used by proxy and getServerUser).
+ * When set (e.g. in dev with proxied client), server calls backend directly so cookies from the app origin are forwarded and validated.
+ * When not set, falls back to getManagementApiBaseUrl() (e.g. production same-host).
+ */
+export function getServerManagementApiBaseUrl(): string {
+  const backend = process.env.MANAGEMENT_API_BACKEND_URL?.trim();
+  if (backend !== undefined && backend !== '') {
+    return backend.replace(/\/$/, '') + getManagementApiVersionPath();
+  }
+  return getManagementApiBaseUrl();
 }

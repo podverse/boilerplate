@@ -25,11 +25,20 @@ export const createBucketAdminSchema = Joi.object({
   userId: Joi.string().min(10).max(36).required(),
   bucketCrud: crudMask.optional(),
   messageCrud: crudMask.optional(),
+  adminCrud: crudMask.optional(),
+});
+
+/** Create admin invitation (no userId); returns token for shareable link. */
+export const createBucketAdminInvitationSchema = Joi.object({
+  bucketCrud: crudMask.optional(),
+  messageCrud: crudMask.optional(),
+  adminCrud: crudMask.optional(),
 });
 
 export const updateBucketAdminSchema = Joi.object({
   bucketCrud: crudMask.optional(),
   messageCrud: crudMask.optional(),
+  adminCrud: crudMask.optional(),
 }).min(1);
 
 export const createMessageSchema = Joi.object({
@@ -57,8 +66,22 @@ export type UpdateBucketBody = {
   messageBodyMaxLength?: number | null;
 };
 export type CreateTopicBody = { name: string; isPublic?: boolean };
-export type CreateBucketAdminBody = { userId: string; bucketCrud?: number; messageCrud?: number };
-export type UpdateBucketAdminBody = { bucketCrud?: number; messageCrud?: number };
+export type CreateBucketAdminBody = {
+  userId: string;
+  bucketCrud?: number;
+  messageCrud?: number;
+  adminCrud?: number;
+};
+export type CreateBucketAdminInvitationBody = {
+  bucketCrud?: number;
+  messageCrud?: number;
+  adminCrud?: number;
+};
+export type UpdateBucketAdminBody = {
+  bucketCrud?: number;
+  messageCrud?: number;
+  adminCrud?: number;
+};
 export type CreateMessageBody = { senderName: string; body: string; isPublic?: boolean };
 export type UpdateMessageBody = { body?: string; isPublic?: boolean };
 export type PublicSubmitMessageBody = { senderName: string; body: string; isPublic?: boolean };

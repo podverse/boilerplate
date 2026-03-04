@@ -1,12 +1,11 @@
 import { redirect, notFound } from 'next/navigation';
-import Link from 'next/link';
 import { getTranslations } from 'next-intl/server';
-import { Button, Container } from '@boilerplate/ui';
+import { Container } from '@boilerplate/ui';
 
+import { BucketMessageList } from '../../../../../components/BucketMessageList/BucketMessageList';
 import { fetchBucket, fetchMessages } from '../../../../../lib/buckets';
 import { getServerUser } from '../../../../../lib/server-auth';
-import { ROUTES, bucketDetailRoute } from '../../../../../lib/routes';
-import { MessagesList } from '../MessagesList';
+import { ROUTES } from '../../../../../lib/routes';
 
 export default async function BucketMessagesPage({ params }: { params: Promise<{ id: string }> }) {
   const user = await getServerUser();
@@ -19,15 +18,27 @@ export default async function BucketMessagesPage({ params }: { params: Promise<{
   const messages = await fetchMessages(id);
   const t = await getTranslations('buckets');
 
+  const listItems = messages.map((m) => ({
+    id: m.id,
+    senderName: m.senderName,
+    body: m.body,
+    isPublic: m.isPublic,
+    createdAt: m.createdAt,
+    bucketId: m.bucketId,
+  }));
+
   return (
     <Container>
-      <h2>{t('messages')}</h2>
-      <div style={{ marginBottom: '1rem' }}>
-        <Link href={bucketDetailRoute(id)}>
-          <Button variant="secondary">← {bucket.name}</Button>
-        </Link>
-      </div>
-      <MessagesList bucketId={id} initialMessages={messages} />
+      <h2>
+        {t('messages')} – {bucket.name}
+      </h2>
+      <BucketMessageList
+        messages={listItems}
+        variant="management"
+        bucketId={id}
+        emptyMessage={t('noMessagesYet')}
+        readableText
+      />
     </Container>
   );
 }

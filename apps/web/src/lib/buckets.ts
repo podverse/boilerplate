@@ -56,6 +56,7 @@ export type BucketAdminRow = {
   userId: string;
   bucketCrud: number;
   messageCrud: number;
+  adminCrud?: number;
   createdAt: string;
   user: { id: string; shortId: string; email: string; displayName: string | null } | null;
 };
@@ -75,4 +76,33 @@ export async function fetchAdmins(bucketId: string): Promise<BucketAdminRow[]> {
   }
   const data = res.data as { admins?: BucketAdminRow[] };
   return Array.isArray(data.admins) ? data.admins : [];
+}
+
+export type BucketAdminInvitationRow = {
+  id: string;
+  token: string;
+  bucketCrud: number;
+  messageCrud: number;
+  adminCrud?: number;
+  status: string;
+  expiresAt: string;
+};
+
+/**
+ * Server-side: fetch pending admin invitations for a bucket. Returns [] on error or invalid response.
+ */
+export async function fetchPendingInvitations(
+  bucketId: string
+): Promise<BucketAdminInvitationRow[]> {
+  const cookieHeader = await getCookieHeader();
+  const baseUrl = getServerApiBaseUrl();
+  const res = await request(baseUrl, `/buckets/${bucketId}/admin-invitations`, {
+    headers: { Cookie: cookieHeader },
+    cache: 'no-store',
+  });
+  if (!res.ok || res.data === undefined) {
+    return [];
+  }
+  const data = res.data as { invitations?: BucketAdminInvitationRow[] };
+  return Array.isArray(data.invitations) ? data.invitations : [];
 }

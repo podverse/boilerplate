@@ -27,6 +27,9 @@ export class BucketAdmin {
   @Column({ name: 'message_crud', type: 'integer', default: 0 })
   messageCrud!: number;
 
+  @Column({ name: 'admin_crud', type: 'integer', default: 2 })
+  adminCrud!: number;
+
   @CreateDateColumn({ name: 'created_at' })
   createdAt!: Date;
 
