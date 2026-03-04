@@ -67,6 +67,7 @@
     "admin": "Admin",
     "cancel": "Cancel",
     "save": "Save",
+    "settings": "Settings",
     "backToBucket": "← Back to bucket",
     "crudCreate": "Create",
     "crudRead": "Read",

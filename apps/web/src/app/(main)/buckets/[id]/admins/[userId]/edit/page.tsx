@@ -1,6 +1,6 @@
 import { redirect, notFound } from 'next/navigation';
 import { request } from '@boilerplate/helpers-requests';
-import { Container, Stack } from '@boilerplate/ui';
+import { Container } from '@boilerplate/ui';
 
 import { getServerUser } from '../../../../../../../lib/server-auth';
 import { getCookieHeader, getServerApiBaseUrl } from '../../../../../../../lib/server-request';
@@ -59,16 +59,14 @@ export default async function EditBucketAdminPage({
 
   return (
     <Container>
-      <Stack>
-        <EditBucketAdminForm
-          bucketId={bucketId}
-          userId={userId}
-          initialBucketCrud={admin.bucketCrud}
-          initialMessageCrud={admin.messageCrud}
-          successHref={`/buckets/${bucketId}/admins`}
-          cancelHref={`/buckets/${bucketId}/admins`}
-        />
-      </Stack>
+      <EditBucketAdminForm
+        bucketId={bucketId}
+        userId={userId}
+        initialBucketCrud={admin.bucketCrud}
+        initialMessageCrud={admin.messageCrud}
+        successHref={`/buckets/${bucketId}/admins`}
+        cancelHref={`/buckets/${bucketId}/admins`}
+      />
     </Container>
   );
 }

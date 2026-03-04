@@ -22,6 +22,10 @@ export function bucketEditRoute(id: string): string {
   return `/buckets/${id}/edit`;
 }
 
+export function bucketSettingsRoute(id: string): string {
+  return `/buckets/${id}/settings`;
+}
+
 export function bucketMessagesRoute(id: string): string {
   return `/buckets/${id}/messages`;
 }

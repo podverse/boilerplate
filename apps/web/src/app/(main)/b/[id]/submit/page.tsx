@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { getTranslations } from 'next-intl/server';
 import type { PublicBucket } from '@boilerplate/helpers-requests';
 import { webBuckets } from '@boilerplate/helpers-requests';
-import { Card, Container, Stack } from '@boilerplate/ui';
+import { Container, SectionWithHeading, Text } from '@boilerplate/ui';
 
 import { getServerApiBaseUrl } from '../../../../../lib/server-request';
 import { publicBucketRoute } from '../../../../../lib/routes';
@@ -25,14 +25,12 @@ export default async function PublicSubmitPage({ params }: { params: Promise<{ i
   const t = await getTranslations('buckets');
   return (
     <Container>
-      <Stack>
-        <Card title={`${t('messages')} – ${bucket.name}`}>
-          <p>
-            <Link href={publicBucketRoute(id)}>{t('backToBucket')}</Link>
-          </p>
-          <PublicSubmitForm bucketId={id} successHref={publicBucketRoute(id)} />
-        </Card>
-      </Stack>
+      <SectionWithHeading title={`${t('messages')} – ${bucket.name}`}>
+        <Text>
+          <Link href={publicBucketRoute(id)}>{t('backToBucket')}</Link>
+        </Text>
+        <PublicSubmitForm bucketId={id} successHref={publicBucketRoute(id)} />
+      </SectionWithHeading>
     </Container>
   );
 }

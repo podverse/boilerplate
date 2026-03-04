@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { getTranslations } from 'next-intl/server';
 import type { PublicBucket, PublicBucketMessage } from '@boilerplate/helpers-requests';
 import { webBuckets } from '@boilerplate/helpers-requests';
-import { Button, Card, Container, Stack, Text } from '@boilerplate/ui';
+import { Button, Container, SectionWithHeading, Text } from '@boilerplate/ui';
 
 import { getServerApiBaseUrl } from '../../../../lib/server-request';
 import { publicBucketSubmitRoute } from '../../../../lib/routes';
@@ -36,40 +36,38 @@ export default async function PublicBucketPage({ params }: { params: Promise<{ i
 
   return (
     <Container>
-      <Stack>
-        <Card title={bucket.name}>
-          <div style={{ marginTop: '1rem' }}>
-            <Link href={publicBucketSubmitRoute(id)}>
-              <Button variant="primary">Submit a message</Button>
-            </Link>
-          </div>
-        </Card>
-        <Card title={t('messages')}>
-          {messages.length === 0 ? (
-            <Text variant="muted">No public messages yet.</Text>
-          ) : (
-            <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
-              {messages.map((m) => (
-                <li
-                  key={m.id}
-                  style={{
-                    padding: '0.75rem 0',
-                    borderBottom: '1px solid var(--pv-color-border, #eee)',
-                  }}
-                >
-                  <Text style={{ fontWeight: 600 }}>{m.senderName}</Text>
-                  <Text variant="muted" style={{ fontSize: '0.875rem' }}>
-                    {new Date(m.createdAt).toLocaleString()}
-                  </Text>
-                  <Text style={{ display: 'block', marginTop: '0.25rem', whiteSpace: 'pre-wrap' }}>
-                    {m.body}
-                  </Text>
-                </li>
-              ))}
-            </ul>
-          )}
-        </Card>
-      </Stack>
+      <SectionWithHeading title={bucket.name}>
+        <div style={{ marginTop: '1rem' }}>
+          <Link href={publicBucketSubmitRoute(id)}>
+            <Button variant="primary">Submit a message</Button>
+          </Link>
+        </div>
+      </SectionWithHeading>
+      <SectionWithHeading title={t('messages')}>
+        {messages.length === 0 ? (
+          <Text variant="muted">No public messages yet.</Text>
+        ) : (
+          <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+            {messages.map((m) => (
+              <li
+                key={m.id}
+                style={{
+                  padding: '0.75rem 0',
+                  borderBottom: '1px solid var(--pv-color-border, #eee)',
+                }}
+              >
+                <Text style={{ fontWeight: 600 }}>{m.senderName}</Text>
+                <Text variant="muted" style={{ fontSize: '0.875rem' }}>
+                  {new Date(m.createdAt).toLocaleString()}
+                </Text>
+                <Text style={{ display: 'block', marginTop: '0.25rem', whiteSpace: 'pre-wrap' }}>
+                  {m.body}
+                </Text>
+              </li>
+            ))}
+          </ul>
+        )}
+      </SectionWithHeading>
     </Container>
   );
 }

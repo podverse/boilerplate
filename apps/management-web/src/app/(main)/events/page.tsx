@@ -3,7 +3,7 @@ import { getLocale, getTranslations } from 'next-intl/server';
 import { DEFAULT_PAGE_LIMIT } from '@boilerplate/helpers';
 import { request } from '@boilerplate/helpers-requests';
 import { formatDateTimeReadable } from '@boilerplate/helpers-i18n';
-import { Card, Container, Stack, Text } from '@boilerplate/ui';
+import { Container, SectionWithHeading, Text } from '@boilerplate/ui';
 
 import { EventsSortSelect } from '../../../components/EventsSortSelect';
 import { EventsTableWithFilter } from '../../../components/EventsTableWithFilter';
@@ -152,46 +152,42 @@ export default async function EventsPage({ searchParams }: PageProps) {
 
   return (
     <Container>
-      <Stack>
-        <Card title={tCommon('events')}>
-          {error !== null && (
-            <Text variant="error" role="alert">
-              {error}
-            </Text>
-          )}
-          {error === null && (
-            <Stack>
-              <EventsTableWithFilter
-                tableRows={tableRows}
-                emptyMessage={events.length === 0 ? tCommon('noEvents') : undefined}
-                columns={eventColumns}
-                initialFilterColumns={effectiveFilterColumns}
-                initialSearch={search}
-                basePath={ROUTES.EVENTS}
-                currentQueryParams={currentQueryParams}
-                currentPage={currentPage}
-                totalPages={totalPages}
+      <SectionWithHeading title={tCommon('events')}>
+        {error !== null && (
+          <Text variant="error" role="alert">
+            {error}
+          </Text>
+        )}
+        {error === null && (
+          <EventsTableWithFilter
+            tableRows={tableRows}
+            emptyMessage={events.length === 0 ? tCommon('noEvents') : undefined}
+            columns={eventColumns}
+            initialFilterColumns={effectiveFilterColumns}
+            initialSearch={search}
+            basePath={ROUTES.EVENTS}
+            currentQueryParams={currentQueryParams}
+            currentPage={currentPage}
+            totalPages={totalPages}
+            limit={limit}
+            defaultLimit={DEFAULT_PAGE_LIMIT}
+            sort={sort}
+            maxGoToPage={500}
+            trailingToolbar={
+              <EventsSortSelect
+                sort={sort}
                 limit={limit}
                 defaultLimit={DEFAULT_PAGE_LIMIT}
-                sort={sort}
-                maxGoToPage={500}
-                trailingToolbar={
-                  <EventsSortSelect
-                    sort={sort}
-                    limit={limit}
-                    defaultLimit={DEFAULT_PAGE_LIMIT}
-                    label={tCommon('eventsSort.label')}
-                    sortOptionLabels={{
-                      recent: tCommon('eventsSortOptions.recent'),
-                      oldest: tCommon('eventsSortOptions.oldest'),
-                    }}
-                  />
-                }
+                label={tCommon('eventsSort.label')}
+                sortOptionLabels={{
+                  recent: tCommon('eventsSortOptions.recent'),
+                  oldest: tCommon('eventsSortOptions.oldest'),
+                }}
               />
-            </Stack>
-          )}
-        </Card>
-      </Stack>
+            }
+          />
+        )}
+      </SectionWithHeading>
     </Container>
   );
 }

@@ -1,5 +1,5 @@
 import { redirect, notFound } from 'next/navigation';
-import { Container, Stack } from '@boilerplate/ui';
+import { Container } from '@boilerplate/ui';
 
 import { fetchBucket } from '../../../../../../lib/buckets';
 import { getServerUser } from '../../../../../../lib/server-auth';
@@ -20,13 +20,11 @@ export default async function NewTopicPage({ params }: { params: Promise<{ id: s
 
   return (
     <Container>
-      <Stack>
-        <TopicForm
-          parentBucketId={bucketId}
-          successHref={bucketDetailRoute(bucketId)}
-          cancelHref={bucketDetailRoute(bucketId)}
-        />
-      </Stack>
+      <TopicForm
+        parentBucketId={bucketId}
+        successHref={bucketDetailRoute(bucketId)}
+        cancelHref={bucketDetailRoute(bucketId)}
+      />
     </Container>
   );
 }

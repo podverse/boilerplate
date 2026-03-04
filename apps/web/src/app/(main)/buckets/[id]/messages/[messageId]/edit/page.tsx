@@ -1,7 +1,7 @@
 import { redirect, notFound } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
 import { request } from '@boilerplate/helpers-requests';
-import { Card, Container, Stack } from '@boilerplate/ui';
+import { Container, SectionWithHeading } from '@boilerplate/ui';
 
 import { getServerUser } from '../../../../../../../lib/server-auth';
 import { getCookieHeader, getServerApiBaseUrl } from '../../../../../../../lib/server-request';
@@ -60,18 +60,16 @@ export default async function EditMessagePage({
   const t = await getTranslations('buckets');
   return (
     <Container>
-      <Stack>
-        <Card title={`${t('edit')} message`}>
-          <EditMessageForm
-            bucketId={bucketId}
-            messageId={messageId}
-            initialBody={message.body}
-            initialIsPublic={message.isPublic}
-            successHref={bucketMessagesRoute(bucketId)}
-            cancelHref={bucketMessagesRoute(bucketId)}
-          />
-        </Card>
-      </Stack>
+      <SectionWithHeading title={`${t('edit')} message`}>
+        <EditMessageForm
+          bucketId={bucketId}
+          messageId={messageId}
+          initialBody={message.body}
+          initialIsPublic={message.isPublic}
+          successHref={bucketMessagesRoute(bucketId)}
+          cancelHref={bucketMessagesRoute(bucketId)}
+        />
+      </SectionWithHeading>
     </Container>
   );
 }

@@ -46,6 +46,8 @@ export { CenterInViewport } from './components/layout/CenterInViewport';
 export type { CenterInViewportProps } from './components/layout/CenterInViewport';
 export { Container } from './components/layout/Container';
 export type { ContainerProps } from './components/layout/Container';
+export { DataDetail } from './components/layout/DataDetail';
+export type { DataDetailItem, DataDetailProps } from './components/layout/DataDetail';
 export { Divider } from './components/layout/Divider';
 export type { DividerProps } from './components/layout/Divider';
 export { PageHeader } from './components/layout/PageHeader';

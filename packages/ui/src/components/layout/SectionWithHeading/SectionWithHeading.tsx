@@ -1,5 +1,7 @@
 import type { ReactNode } from 'react';
 
+import { Stack } from '../Stack';
+
 import styles from './SectionWithHeading.module.scss';
 
 export type SectionWithHeadingProps = {
@@ -18,7 +20,7 @@ export function SectionWithHeading({ title, children, className = '' }: SectionW
   return (
     <section className={`${styles.root} ${className}`.trim()}>
       <h2 className={styles.title}>{title}</h2>
-      {children}
+      <Stack>{children}</Stack>
     </section>
   );
 }

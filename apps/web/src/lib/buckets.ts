@@ -1,7 +1,7 @@
 import 'server-only';
 
 import type { Bucket, BucketMessage } from '@boilerplate/helpers-requests';
-import { webBuckets } from '@boilerplate/helpers-requests';
+import { request, webBuckets } from '@boilerplate/helpers-requests';
 
 import { getCookieHeader, getServerApiBaseUrl } from './server-request';
 
@@ -48,4 +48,31 @@ export async function fetchMessages(bucketId: string): Promise<BucketMessage[]> 
   }
   const data = res.data;
   return Array.isArray(data.messages) ? data.messages : [];
+}
+
+export type BucketAdminRow = {
+  id: string;
+  bucketId: string;
+  userId: string;
+  bucketCrud: number;
+  messageCrud: number;
+  createdAt: string;
+  user: { id: string; shortId: string; email: string; displayName: string | null } | null;
+};
+
+/**
+ * Server-side: fetch bucket admins. Returns [] on error or invalid response.
+ */
+export async function fetchAdmins(bucketId: string): Promise<BucketAdminRow[]> {
+  const cookieHeader = await getCookieHeader();
+  const baseUrl = getServerApiBaseUrl();
+  const res = await request(baseUrl, `/buckets/${bucketId}/admins`, {
+    headers: { Cookie: cookieHeader },
+    cache: 'no-store',
+  });
+  if (!res.ok || res.data === undefined) {
+    return [];
+  }
+  const data = res.data as { admins?: BucketAdminRow[] };
+  return Array.isArray(data.admins) ? data.admins : [];
 }

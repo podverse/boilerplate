@@ -42,15 +42,13 @@ export function ContentPageLayout({
     );
   return (
     <Container>
-      <Stack>
-        <PageHeader title={title} />
-        {error !== undefined && error !== null && error !== '' && (
-          <Text variant={errorVariant} role="alert">
-            {error}
-          </Text>
-        )}
-        {content}
-      </Stack>
+      <PageHeader title={title} />
+      {error !== undefined && error !== null && error !== '' && (
+        <Text variant={errorVariant} role="alert">
+          {error}
+        </Text>
+      )}
+      {content}
     </Container>
   );
 }

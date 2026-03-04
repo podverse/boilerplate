@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
-import { Card, Container, Stack } from '@boilerplate/ui';
+import { Container, SectionWithHeading, Text } from '@boilerplate/ui';
 
 import { getServerUser } from '../../../lib/server-auth';
 import { ROUTES } from '../../../lib/routes';
@@ -17,11 +17,9 @@ export default async function DashboardPage() {
 
   return (
     <Container>
-      <Stack>
-        <Card title={t('title')}>
-          <p>{t('hello', { name: displayName })}</p>
-        </Card>
-      </Stack>
+      <SectionWithHeading title={t('title')}>
+        <Text>{t('hello', { name: displayName })}</Text>
+      </SectionWithHeading>
     </Container>
   );
 }

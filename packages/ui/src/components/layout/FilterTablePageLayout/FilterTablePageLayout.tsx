@@ -2,7 +2,6 @@ import type { ReactNode } from 'react';
 
 import { Container } from '../Container';
 import { PageHeader } from '../PageHeader';
-import { Stack } from '../Stack';
 import { Text } from '../Text';
 
 export type FilterTablePageLayoutProps = {
@@ -28,15 +27,13 @@ export function FilterTablePageLayout({
 }: FilterTablePageLayoutProps) {
   return (
     <Container>
-      <Stack>
-        <PageHeader title={title} />
-        {error !== undefined && error !== null && error !== '' && (
-          <Text variant={errorVariant} role="alert">
-            {error}
-          </Text>
-        )}
-        {children}
-      </Stack>
+      <PageHeader title={title} />
+      {error !== undefined && error !== null && error !== '' && (
+        <Text variant={errorVariant} role="alert">
+          {error}
+        </Text>
+      )}
+      {children}
     </Container>
   );
 }
