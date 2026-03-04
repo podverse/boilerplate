@@ -193,7 +193,7 @@ export function BucketAdminsClient({
     <>
       <FormContainer onSubmit={handleGenerateLink}>
         <Stack>
-          <Text as="p" variant="muted" className={styles.addAdminDescription}>
+          <Text as="p" variant="muted">
             {t('addAdminDescription')}
           </Text>
           <CrudCheckboxes

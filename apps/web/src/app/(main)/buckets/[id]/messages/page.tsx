@@ -1,8 +1,9 @@
 import { redirect, notFound } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
-import { Container } from '@boilerplate/ui';
+import { ContentPageLayout } from '@boilerplate/ui';
 
 import { BucketMessageList } from '../../../../../components/BucketMessageList/BucketMessageList';
+import { BucketMessagesBreadcrumbs } from './BucketMessagesBreadcrumbs';
 import { fetchBucket, fetchMessages } from '../../../../../lib/buckets';
 import { getServerUser } from '../../../../../lib/server-auth';
 import { ROUTES } from '../../../../../lib/routes';
@@ -28,10 +29,10 @@ export default async function BucketMessagesPage({ params }: { params: Promise<{
   }));
 
   return (
-    <Container>
-      <h2>
-        {t('messages')} – {bucket.name}
-      </h2>
+    <ContentPageLayout
+      breadcrumbs={<BucketMessagesBreadcrumbs bucketId={id} bucketName={bucket.name} />}
+      title={t('messages')}
+    >
       <BucketMessageList
         messages={listItems}
         variant="management"
@@ -39,6 +40,6 @@ export default async function BucketMessagesPage({ params }: { params: Promise<{
         emptyMessage={t('noMessagesYet')}
         readableText
       />
-    </Container>
+    </ContentPageLayout>
   );
 }

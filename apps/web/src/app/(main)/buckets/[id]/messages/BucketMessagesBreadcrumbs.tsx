@@ -5,7 +5,7 @@ import { Breadcrumbs, Link } from '@boilerplate/ui';
 import type { BreadcrumbItem } from '@boilerplate/ui';
 import { bucketDetailRoute } from '../../../../../lib/routes';
 
-type BucketSettingsBreadcrumbsProps = {
+type BucketMessagesBreadcrumbsProps = {
   bucketId: string;
   bucketName: string;
 };
@@ -26,12 +26,13 @@ function LinkAdapter({
   );
 }
 
-/** Breadcrumb for bucket settings: only the bucket name (link to detail). Page title and tabs provide the rest. */
-export function BucketSettingsBreadcrumbs({
+export function BucketMessagesBreadcrumbs({
   bucketId,
   bucketName,
-}: BucketSettingsBreadcrumbsProps) {
+}: BucketMessagesBreadcrumbsProps) {
   const t = useTranslations('buckets');
+
   const items: BreadcrumbItem[] = [{ label: bucketName, href: bucketDetailRoute(bucketId) }];
-  return <Breadcrumbs items={items} LinkComponent={LinkAdapter} ariaLabel={t('bucketSettings')} />;
+
+  return <Breadcrumbs items={items} LinkComponent={LinkAdapter} ariaLabel={t('messages')} />;
 }

@@ -22,12 +22,17 @@ export function bucketEditRoute(id: string): string {
   return `/buckets/${id}/edit`;
 }
 
-export function bucketSettingsRoute(id: string): string {
-  return `/buckets/${id}/settings`;
+export type BucketSettingsTab = 'general' | 'admins';
+
+export function bucketSettingsRoute(id: string, tab?: BucketSettingsTab): string {
+  const base = `/buckets/${id}/settings`;
+  if (tab === 'admins') return `${base}?tab=admins`;
+  return base;
 }
 
+/** Settings page with Admins tab selected. Use for "back to admins" from edit page. */
 export function bucketSettingsAdminsRoute(id: string): string {
-  return `/buckets/${id}/settings/admins`;
+  return bucketSettingsRoute(id, 'admins');
 }
 
 export function bucketSettingsAdminEditRoute(bucketId: string, userId: string): string {

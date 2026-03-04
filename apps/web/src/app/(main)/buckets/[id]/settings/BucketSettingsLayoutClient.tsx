@@ -3,7 +3,6 @@
 import { usePathname } from 'next/navigation';
 import { ContentPageLayout } from '@boilerplate/ui';
 import { BucketSettingsBreadcrumbs } from './BucketSettingsBreadcrumbs';
-import { BucketSettingsTabs } from './BucketSettingsTabs';
 
 type BucketSettingsLayoutClientProps = {
   bucketId: string;
@@ -33,14 +32,7 @@ export function BucketSettingsLayoutClient({
       title={isEditAdminPage ? undefined : bucketSettingsTitle}
       type="form"
     >
-      {isEditAdminPage ? (
-        children
-      ) : (
-        <>
-          <BucketSettingsTabs bucketId={bucketId} />
-          {children}
-        </>
-      )}
+      {children}
     </ContentPageLayout>
   );
 }

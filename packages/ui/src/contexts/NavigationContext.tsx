@@ -1,7 +1,7 @@
 'use client';
 
 import { createContext, useCallback, useContext, useEffect, useState } from 'react';
-import { usePathname } from 'next/navigation';
+import { usePathname, useSearchParams } from 'next/navigation';
 
 import { NavigationLoadingOverlay } from '../components/modal/Modal/NavigationLoadingOverlay';
 
@@ -18,10 +18,12 @@ export function useNavigationContext(): NavigationContextValue | null {
 export function NavigationProvider({ children }: { children: React.ReactNode }) {
   const [isNavigating, setIsNavigating] = useState(false);
   const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const searchString = searchParams.toString();
 
   useEffect(() => {
     setIsNavigating(false);
-  }, [pathname]);
+  }, [pathname, searchString]);
 
   const setNavigating = useCallback((value: boolean) => {
     setIsNavigating(value);

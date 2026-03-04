@@ -21,7 +21,8 @@ export type BreadcrumbsProps = {
 };
 
 /**
- * Renders a list of breadcrumb items. Items with href use LinkComponent; the last item without href is current page.
+ * Renders a list of breadcrumb items (ancestors only; current page is omitted and shown in the page header).
+ * Items with href are rendered as links; items without href are rendered as current.
  */
 export function Breadcrumbs({ items, LinkComponent, ariaLabel = 'Breadcrumb' }: BreadcrumbsProps) {
   if (items.length === 0) return null;
@@ -30,10 +31,10 @@ export function Breadcrumbs({ items, LinkComponent, ariaLabel = 'Breadcrumb' }: 
       <ol className={styles.list}>
         {items.map((item, index) => {
           const isLast = index === items.length - 1;
-          const isLink = item.href !== undefined && item.href !== '' && !isLast;
+          const hasHref = item.href !== undefined && item.href !== '';
           return (
             <li key={index} className={styles.item}>
-              {isLink && item.href !== undefined && item.href !== '' ? (
+              {hasHref ? (
                 <LinkComponent href={item.href} className={styles.link}>
                   {item.label}
                 </LinkComponent>
