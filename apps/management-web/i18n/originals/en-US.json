@@ -194,7 +194,15 @@
       "messages": "Messages",
       "publicPage": "Public page",
       "editBucket": "Edit bucket",
-      "settings": "Settings"
+      "settings": "Settings",
+      "topics": "Topics",
+      "name": "Name",
+      "lastMessage": "Last Message",
+      "created": "Created",
+      "actions": "Actions",
+      "view": "View",
+      "edit": "Edit",
+      "createTopic": "Add topic"
     },
     "bucketForm": {
       "name": "Name",
@@ -204,6 +212,7 @@
       "noUsersAvailable": "No users available. Create a user first.",
       "messageBodyMaxLengthInvalid": "Enter a positive number or leave blank",
       "isPublic": "Public",
+      "publicTooltip": "Public buckets: all messages visible to everyone. Non-public: only the owner and bucket admins can see messages.",
       "messageBodyMaxLength": "Message body max length",
       "messageBodyMaxLengthPlaceholder": "Leave blank for default",
       "createBucket": "Create Bucket",

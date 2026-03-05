@@ -26,17 +26,17 @@ export function accountSettingsRoute(tab?: AccountSettingsTab): string {
 }
 
 export function bucketDetailRoute(id: string): string {
-  return `/buckets/${id}`;
+  return `/bucket/${id}`;
 }
 
 export function bucketEditRoute(id: string): string {
-  return `/buckets/${id}/edit`;
+  return `/bucket/${id}/edit`;
 }
 
 export type BucketSettingsTab = 'general' | 'admins';
 
 export function bucketSettingsRoute(id: string, tab?: BucketSettingsTab): string {
-  const base = `/buckets/${id}/settings`;
+  const base = `/bucket/${id}/settings`;
   if (tab === 'admins') return `${base}?tab=admins`;
   return base;
 }
@@ -47,11 +47,39 @@ export function bucketSettingsAdminsRoute(id: string): string {
 }
 
 export function bucketSettingsAdminEditRoute(bucketId: string, userId: string): string {
-  return `/buckets/${bucketId}/settings/admins/${userId}/edit`;
+  return `/bucket/${bucketId}/settings/admins/${userId}/edit`;
 }
 
 export function bucketMessagesRoute(id: string): string {
-  return `/buckets/${id}/messages`;
+  return `/bucket/${id}/messages`;
+}
+
+export function bucketMessageEditRoute(bucketId: string, messageId: string): string {
+  return `/bucket/${bucketId}/messages/${messageId}/edit`;
+}
+
+export function topicMessagesRoute(parentId: string, topicId: string): string {
+  return `/bucket/${parentId}/topic/${topicId}/messages`;
+}
+
+export function topicMessageEditRoute(
+  parentId: string,
+  topicId: string,
+  messageId: string
+): string {
+  return `/bucket/${parentId}/topic/${topicId}/messages/${messageId}/edit`;
+}
+
+export function topicDetailRoute(parentId: string, topicId: string): string {
+  return `/bucket/${parentId}/topic/${topicId}`;
+}
+
+export function topicEditRoute(parentId: string, topicId: string): string {
+  return `/bucket/${parentId}/topic/${topicId}/edit`;
+}
+
+export function topicNewRoute(parentId: string): string {
+  return `/bucket/${parentId}/topic/new`;
 }
 
 /** Public bucket page (no auth). */
@@ -60,7 +88,16 @@ export function publicBucketRoute(id: string): string {
 }
 
 export function publicBucketSubmitRoute(id: string): string {
-  return `/b/${id}/submit`;
+  return `/b/${id}/send-message`;
+}
+
+/** Public topic page (no auth); parentId is bucket id, topicId is topic bucket id. */
+export function publicTopicRoute(parentId: string, topicId: string): string {
+  return `/b/${parentId}/t/${topicId}`;
+}
+
+export function publicTopicSubmitRoute(parentId: string, topicId: string): string {
+  return `/b/${parentId}/t/${topicId}/send-message`;
 }
 
 /** Paths where unauthenticated users are allowed; 401 on these should not trigger redirect. */
@@ -72,7 +109,7 @@ export const PUBLIC_PATHS: readonly string[] = [
   ROUTES.RESET_PASSWORD,
 ];
 
-/** Public bucket view and submit live under /b/[id] and /b/[id]/submit. */
+/** Public bucket view and send-message live under /b/[id] and /b/[id]/send-message. */
 /** Admin invitation accept/decline page (login required to act, but page is public). */
 export function isPublicPath(pathname: string): boolean {
   return (

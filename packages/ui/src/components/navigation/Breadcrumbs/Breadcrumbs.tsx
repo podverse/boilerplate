@@ -21,8 +21,8 @@ export type BreadcrumbsProps = {
 };
 
 /**
- * Renders a list of breadcrumb items (ancestors only; current page is omitted and shown in the page header).
- * Items with href are rendered as links; items without href are rendered as current.
+ * Renders a list of breadcrumb items. The last item is always rendered as current (text only, never a link).
+ * All other items with href are rendered as links; items without href are rendered as current.
  */
 export function Breadcrumbs({ items, LinkComponent, ariaLabel = 'Breadcrumb' }: BreadcrumbsProps) {
   if (items.length === 0) return null;
@@ -32,7 +32,7 @@ export function Breadcrumbs({ items, LinkComponent, ariaLabel = 'Breadcrumb' }: 
         {items.map((item, index) => {
           const isLast = index === items.length - 1;
           const linkHref = item.href ?? '';
-          const hasHref = linkHref !== '';
+          const hasHref = linkHref !== '' && !isLast;
           return (
             <li key={index} className={styles.item}>
               {hasHref ? (

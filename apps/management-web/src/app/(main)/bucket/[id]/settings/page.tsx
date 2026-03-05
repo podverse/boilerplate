@@ -1,4 +1,4 @@
-import { notFound } from 'next/navigation';
+import { notFound, redirect } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
 import { request } from '@boilerplate/helpers-requests';
 import { BucketSettingsTabs } from '@boilerplate/ui';
@@ -45,6 +45,9 @@ export default async function BucketSettingsPage({
   const { id } = await params;
   const bucket = await fetchBucket(id);
   if (bucket === null) notFound();
+  if (bucket.parentBucketId !== null) {
+    redirect(bucketSettingsRoute(bucket.parentBucketId));
+  }
 
   const resolvedSearch = searchParams !== undefined ? await searchParams : {};
   const tabParam = resolvedSearch.tab ?? 'general';

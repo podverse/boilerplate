@@ -17,7 +17,7 @@ import {
 } from '@boilerplate/ui';
 import { DEFAULT_MESSAGE_BODY_MAX_LENGTH } from '@boilerplate/helpers';
 import { webBuckets } from '@boilerplate/helpers-requests';
-import { getApiBaseUrl } from '../../../../../lib/api-client';
+import { getApiBaseUrl } from '../../../lib/api-client';
 
 export function PublicSubmitForm({
   bucketId,

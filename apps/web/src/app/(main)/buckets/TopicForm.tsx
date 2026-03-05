@@ -9,9 +9,12 @@ import {
   FormActions,
   FormContainer,
   CheckboxField,
+  InfoIcon,
   Link,
+  Row,
   Stack,
   Text,
+  Tooltip,
 } from '@boilerplate/ui';
 import { getApiBaseUrl } from '../../../lib/api-client';
 
@@ -25,7 +28,7 @@ export function TopicForm({ parentBucketId, successHref, cancelHref }: TopicForm
   const t = useTranslations('buckets');
   const router = useRouter();
   const [name, setName] = useState('');
-  const [isPublic, setIsPublic] = useState(false);
+  const [isPublic, setIsPublic] = useState(true);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -74,12 +77,17 @@ export function TopicForm({ parentBucketId, successHref, cancelHref }: TopicForm
           disabled={loading}
           required
         />
-        <CheckboxField
-          label={t('isPublic')}
-          checked={isPublic}
-          onChange={setIsPublic}
-          disabled={loading}
-        />
+        <Row>
+          <CheckboxField
+            label={t('isPublic')}
+            checked={isPublic}
+            onChange={setIsPublic}
+            disabled={loading}
+          />
+          <Tooltip content={t('publicTooltip')}>
+            <InfoIcon size={18} />
+          </Tooltip>
+        </Row>
         {submitError !== null && (
           <Text variant="error" size="sm" as="p" role="alert">
             {submitError}

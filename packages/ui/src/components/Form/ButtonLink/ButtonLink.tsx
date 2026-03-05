@@ -22,12 +22,20 @@ function normalizePath(p: string): string {
   return p === '/' ? p : p.replace(/\/$/, '') || '/';
 }
 
+/** Strip query and hash from href so we only show loading overlay when pathname changes. */
+function pathnameFromHref(href: string): string {
+  const withoutHash = href.split('#')[0] ?? '';
+  const pathnameOnly = withoutHash.split('?')[0] ?? '';
+  return pathnameOnly;
+}
+
 export function ButtonLink({
   href,
   variant = 'secondary',
   className = '',
   children,
   onClick,
+  target,
   ...rest
 }: ButtonLinkProps) {
   const pathname = usePathname();
@@ -40,9 +48,15 @@ export function ButtonLink({
         : styles.secondary;
   const combinedClass = [styles.root, variantClass, className].filter(Boolean).join(' ');
 
-  const handleClick = () => {
-    if (isInternalHref(href)) {
-      const targetPath = normalizePath(href);
+  const handleClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    const opensInNewTab =
+      target === '_blank' ||
+      (typeof target === 'string' && target !== '_self') ||
+      e.ctrlKey ||
+      e.metaKey ||
+      e.button !== 0;
+    if (!opensInNewTab && isInternalHref(href)) {
+      const targetPath = normalizePath(pathnameFromHref(href));
       const currentPath = pathname !== null ? normalizePath(pathname) : '';
       if (targetPath !== currentPath) {
         navigationContext?.setNavigating(true);
@@ -52,7 +66,7 @@ export function ButtonLink({
   };
 
   return (
-    <NextLink href={href} className={combinedClass} onClick={handleClick} {...rest}>
+    <NextLink href={href} className={combinedClass} onClick={handleClick} target={target} {...rest}>
       {children}
     </NextLink>
   );

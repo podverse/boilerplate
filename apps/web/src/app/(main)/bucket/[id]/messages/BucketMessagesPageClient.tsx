@@ -5,6 +5,7 @@ import { BucketMessagesPageContent } from '@boilerplate/ui';
 import type { BucketMessageListItem } from '@boilerplate/ui';
 
 import { getApiBaseUrl } from '../../../../../lib/api-client';
+import { bucketMessageEditRoute } from '../../../../../lib/routes';
 
 export type BucketMessagesPageClientProps = {
   bucketId: string;
@@ -48,7 +49,7 @@ export function BucketMessagesPageClient({
       bucketId={bucketId}
       emptyMessage={emptyMessage}
       onDelete={handleDelete}
-      getEditHref={(messageId) => `/buckets/${bucketId}/messages/${messageId}/edit`}
+      getEditHref={(messageId) => bucketMessageEditRoute(bucketId, messageId)}
     />
   );
 }

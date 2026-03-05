@@ -38,6 +38,30 @@ export class BucketMessageService {
     return qb.getCount();
   }
 
+  /**
+   * Returns the latest message createdAt per bucket for the given bucket IDs.
+   * Only buckets that have at least one message are included.
+   */
+  static async getLatestMessageCreatedAtByBucketIds(
+    bucketIds: string[]
+  ): Promise<Map<string, Date>> {
+    if (bucketIds.length === 0) return new Map();
+    const repo = appDataSourceRead.getRepository(BucketMessage);
+    const rows = await repo
+      .createQueryBuilder('msg')
+      .select('msg.bucket_id', 'bucketId')
+      .addSelect('MAX(msg.created_at)', 'latest')
+      .where('msg.bucket_id IN (:...ids)', { ids: bucketIds })
+      .groupBy('msg.bucket_id')
+      .getRawMany<{ bucketId: string; latest: string | Date }>();
+    const map = new Map<string, Date>();
+    for (const row of rows) {
+      const date = typeof row.latest === 'string' ? new Date(row.latest) : row.latest;
+      map.set(row.bucketId, date);
+    }
+    return map;
+  }
+
   static async create(data: {
     bucketId: string;
     senderName: string;

@@ -30,9 +30,19 @@ export class BucketService {
       .leftJoin('bucket_admin', 'ba', 'ba.bucket_id = bucket.id AND ba.user_id = :userId', {
         userId,
       })
+      .leftJoin('bucket.parentBucket', 'parent')
+      .leftJoin(
+        'bucket_admin',
+        'parent_ba',
+        'parent_ba.bucket_id = parent.id AND parent_ba.user_id = :userId'
+      )
       .where(
         new Brackets((bq) => {
-          bq.where('bucket.owner_id = :userId', { userId }).orWhere('ba.user_id IS NOT NULL');
+          bq.where('bucket.owner_id = :userId', { userId })
+            .orWhere('ba.user_id IS NOT NULL')
+            .orWhere(
+              '(bucket.parent_bucket_id IS NOT NULL AND (parent.owner_id = :userId OR parent_ba.user_id IS NOT NULL))'
+            );
         })
       )
       .setParameter('userId', userId)
@@ -95,17 +105,19 @@ export class BucketService {
       const bucket = repo.create({
         ownerId: data.ownerId,
         name: data.name,
-        isPublic: data.isPublic ?? false,
+        isPublic: data.isPublic ?? true,
         parentBucketId: data.parentBucketId ?? null,
         shortId: generateShortId(),
       });
       try {
         const saved = await repo.save(bucket);
-        const settingsRepo = appDataSourceReadWrite.getRepository(BucketSettings);
-        await settingsRepo.insert({
-          bucketId: saved.id,
-          messageBodyMaxLength: DEFAULT_MESSAGE_BODY_MAX_LENGTH,
-        });
+        if (saved.parentBucketId === null) {
+          const settingsRepo = appDataSourceReadWrite.getRepository(BucketSettings);
+          await settingsRepo.insert({
+            bucketId: saved.id,
+            messageBodyMaxLength: DEFAULT_MESSAGE_BODY_MAX_LENGTH,
+          });
+        }
         return saved;
       } catch (err) {
         const isUniqueViolation =

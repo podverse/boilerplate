@@ -1,4 +1,4 @@
-import { notFound } from 'next/navigation';
+import { notFound, redirect } from 'next/navigation';
 
 import type { BucketSettingsTab } from '../../../../../lib/routes';
 import {
@@ -8,8 +8,9 @@ import {
   type BucketAdminRow,
   type BucketAdminInvitationRow,
 } from '../../../../../lib/buckets';
+import { bucketSettingsRoute } from '../../../../../lib/routes';
 import { BucketSettingsContent } from './BucketSettingsContent';
-import type { BucketForForm } from '../../BucketForm';
+import type { BucketForForm } from '../../../buckets/BucketForm';
 
 export default async function BucketSettingsPage({
   params,
@@ -26,6 +27,9 @@ export default async function BucketSettingsPage({
   const { bucket } = await fetchBucket(id);
   if (bucket === null) {
     notFound();
+  }
+  if (bucket.parentBucketId !== null) {
+    redirect(bucketSettingsRoute(bucket.parentBucketId));
   }
 
   const forForm: BucketForForm = {

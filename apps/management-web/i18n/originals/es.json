@@ -193,7 +193,15 @@
       "messages": "Mensajes",
       "publicPage": "Página pública",
       "editBucket": "Editar bucket",
-      "settings": "Ajustes"
+      "settings": "Ajustes",
+      "topics": "Temas",
+      "name": "Nombre",
+      "lastMessage": "Último mensaje",
+      "created": "Creado",
+      "actions": "Acciones",
+      "view": "Ver",
+      "edit": "Editar",
+      "createTopic": "Añadir tema"
     },
     "bucketForm": {
       "name": "Nombre",
@@ -203,6 +211,7 @@
       "noUsersAvailable": "No hay usuarios disponibles. Crea un usuario primero.",
       "messageBodyMaxLengthInvalid": "Introduce un número positivo o deja en blanco",
       "isPublic": "Público",
+      "publicTooltip": "Cubos públicos: todos los mensajes visibles para todos. No públicos: solo el propietario y los administradores del cubo pueden ver los mensajes.",
       "messageBodyMaxLength": "Longitud máxima del cuerpo del mensaje",
       "messageBodyMaxLengthPlaceholder": "Dejar en blanco para el valor por defecto",
       "createBucket": "Crear bucket",

@@ -17,33 +17,33 @@ export const ROUTES = {
 } as const;
 
 export function adminViewRoute(id: string): string {
-  return `/admins/${id}`;
+  return `/admin/${id}`;
 }
 
 export function adminEditRoute(id: string): string {
-  return `/admins/${id}/edit`;
+  return `/admin/${id}/edit`;
 }
 
 export function userViewRoute(id: string): string {
-  return `/users/${id}`;
+  return `/user/${id}`;
 }
 
 export function userEditRoute(id: string): string {
-  return `/users/${id}/edit`;
+  return `/user/${id}/edit`;
 }
 
 export function bucketViewRoute(id: string): string {
-  return `/buckets/${id}`;
+  return `/bucket/${id}`;
 }
 
 export function bucketEditRoute(id: string): string {
-  return `/buckets/${id}/edit`;
+  return `/bucket/${id}/edit`;
 }
 
 export type BucketSettingsTab = 'general' | 'admins';
 
 export function bucketSettingsRoute(id: string, tab?: BucketSettingsTab): string {
-  const base = `/buckets/${id}/settings`;
+  const base = `/bucket/${id}/settings`;
   if (tab === 'admins') return `${base}?tab=admins`;
   return base;
 }
@@ -53,15 +53,39 @@ export function bucketSettingsAdminsRoute(id: string): string {
 }
 
 export function bucketSettingsAdminEditRoute(bucketId: string, userId: string): string {
-  return `/buckets/${bucketId}/settings/admins/${userId}/edit`;
+  return `/bucket/${bucketId}/settings/admins/${userId}/edit`;
 }
 
 export function bucketMessagesRoute(id: string): string {
-  return `/buckets/${id}/messages`;
+  return `/bucket/${id}/messages`;
 }
 
 export function bucketMessageEditRoute(bucketId: string, messageId: string): string {
-  return `/buckets/${bucketId}/messages/${messageId}/edit`;
+  return `/bucket/${bucketId}/messages/${messageId}/edit`;
+}
+
+export function topicMessagesRoute(parentId: string, topicId: string): string {
+  return `/bucket/${parentId}/topic/${topicId}/messages`;
+}
+
+export function topicMessageEditRoute(
+  parentId: string,
+  topicId: string,
+  messageId: string
+): string {
+  return `/bucket/${parentId}/topic/${topicId}/messages/${messageId}/edit`;
+}
+
+export function topicDetailRoute(parentId: string, topicId: string): string {
+  return `/bucket/${parentId}/topic/${topicId}`;
+}
+
+export function topicEditRoute(parentId: string, topicId: string): string {
+  return `/bucket/${parentId}/topic/${topicId}/edit`;
+}
+
+export function topicNewRoute(parentId: string): string {
+  return `/bucket/${parentId}/topic/new`;
 }
 
 /** Paths where unauthenticated users are allowed; 401 on these should not trigger redirect. */

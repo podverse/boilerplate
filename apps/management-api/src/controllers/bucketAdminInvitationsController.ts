@@ -7,7 +7,7 @@ import {
 } from '@boilerplate/helpers';
 import { BucketAdminInvitationService } from '@boilerplate/orm';
 import type { CreateBucketAdminInvitationBody } from '../schemas/buckets.js';
-import { resolveBucket } from './bucketsController.js';
+import { getBucketAndEffective } from '../lib/bucket-effective.js';
 
 const ADMIN_CRUD_READ = CRUD_BITS.read;
 
@@ -37,11 +37,12 @@ function invitationToJson(inv: {
 
 export async function createBucketAdminInvitation(req: Request, res: Response): Promise<void> {
   const bucketId = req.params.id as string;
-  const bucket = await resolveBucket(bucketId);
-  if (bucket === null) {
+  const resolved = await getBucketAndEffective(bucketId);
+  if (resolved === null) {
     res.status(404).json({ message: 'Bucket not found' });
     return;
   }
+  const { effectiveBucket } = resolved;
   const body = req.body as CreateBucketAdminInvitationBody;
   const token = generateInvitationToken();
   const expiresAt = new Date(
@@ -49,7 +50,7 @@ export async function createBucketAdminInvitation(req: Request, res: Response): 
   );
   const adminCrud = (body.adminCrud ?? ADMIN_CRUD_READ) | ADMIN_CRUD_READ;
   const inv = await BucketAdminInvitationService.create({
-    bucketId: bucket.id,
+    bucketId: effectiveBucket.id,
     token,
     bucketCrud: body.bucketCrud ?? 0,
     messageCrud: body.messageCrud ?? 0,
@@ -71,12 +72,13 @@ export async function createBucketAdminInvitation(req: Request, res: Response): 
 
 export async function listBucketAdminInvitations(req: Request, res: Response): Promise<void> {
   const bucketId = req.params.id as string;
-  const bucket = await resolveBucket(bucketId);
-  if (bucket === null) {
+  const resolved = await getBucketAndEffective(bucketId);
+  if (resolved === null) {
     res.status(404).json({ message: 'Bucket not found' });
     return;
   }
-  const list = await BucketAdminInvitationService.findByBucketIdPending(bucket.id);
+  const { effectiveBucket } = resolved;
+  const list = await BucketAdminInvitationService.findByBucketIdPending(effectiveBucket.id);
   res.status(200).json({
     invitations: list.map((inv) => invitationToJson(inv)),
   });
@@ -85,12 +87,13 @@ export async function listBucketAdminInvitations(req: Request, res: Response): P
 export async function deleteBucketAdminInvitation(req: Request, res: Response): Promise<void> {
   const bucketId = req.params.id as string;
   const invitationId = req.params.invitationId as string;
-  const bucket = await resolveBucket(bucketId);
-  if (bucket === null) {
+  const resolved = await getBucketAndEffective(bucketId);
+  if (resolved === null) {
     res.status(404).json({ message: 'Bucket not found' });
     return;
   }
-  const list = await BucketAdminInvitationService.findByBucketIdPending(bucket.id);
+  const { effectiveBucket } = resolved;
+  const list = await BucketAdminInvitationService.findByBucketIdPending(effectiveBucket.id);
   const inv = list.find((i) => i.id === invitationId);
   if (inv === undefined) {
     res.status(404).json({ message: 'Invitation not found or not pending' });

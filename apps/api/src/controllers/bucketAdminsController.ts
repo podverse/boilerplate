@@ -1,9 +1,10 @@
 import type { Request, Response } from 'express';
 import { CRUD_BITS } from '@boilerplate/helpers';
-import { BucketService, BucketAdminService, UserService } from '@boilerplate/orm';
+import { BucketAdminService, UserService } from '@boilerplate/orm';
 import type { CreateBucketAdminBody, UpdateBucketAdminBody } from '../schemas/buckets.js';
 import { userToJson } from '../lib/userToJson.js';
 import { canManageBucketAdmins } from '../lib/bucket-policy.js';
+import { getBucketAndEffective } from '../lib/bucket-effective.js';
 import type { UserWithRelations } from '@boilerplate/orm';
 
 /** Admin CRUD always includes read; enforce when serializing or persisting. */
@@ -48,17 +49,18 @@ export async function listBucketAdmins(req: Request, res: Response): Promise<voi
     return;
   }
   const bucketId = req.params.bucketId as string;
-  const bucket = await BucketService.findByShortId(bucketId);
-  if (bucket === null) {
+  const resolved = await getBucketAndEffective(bucketId);
+  if (resolved === null) {
     res.status(404).json({ message: 'Bucket not found' });
     return;
   }
-  const bucketAdmin = await BucketAdminService.findByBucketAndUser(bucket.id, user.id);
-  if (!canManageBucketAdmins(user.id, bucket, bucketAdmin)) {
+  const { effectiveBucket } = resolved;
+  const bucketAdmin = await BucketAdminService.findByBucketAndUser(effectiveBucket.id, user.id);
+  if (!canManageBucketAdmins(user.id, effectiveBucket, bucketAdmin)) {
     res.status(403).json({ message: 'Forbidden' });
     return;
   }
-  const admins = await BucketAdminService.findByBucketId(bucket.id);
+  const admins = await BucketAdminService.findByBucketId(effectiveBucket.id);
   const withUser = admins.map((a) => {
     const u =
       a.user !== undefined && a.user !== null && 'credentials' in a.user
@@ -78,13 +80,14 @@ export async function getBucketAdmin(req: Request, res: Response): Promise<void>
   }
   const bucketId = req.params.bucketId as string;
   const userIdParam = req.params.userId as string;
-  const bucket = await BucketService.findByShortId(bucketId);
-  if (bucket === null) {
+  const resolved = await getBucketAndEffective(bucketId);
+  if (resolved === null) {
     res.status(404).json({ message: 'Bucket not found' });
     return;
   }
-  const bucketAdmin = await BucketAdminService.findByBucketAndUser(bucket.id, user.id);
-  if (!canManageBucketAdmins(user.id, bucket, bucketAdmin)) {
+  const { effectiveBucket } = resolved;
+  const bucketAdmin = await BucketAdminService.findByBucketAndUser(effectiveBucket.id, user.id);
+  if (!canManageBucketAdmins(user.id, effectiveBucket, bucketAdmin)) {
     res.status(403).json({ message: 'Forbidden' });
     return;
   }
@@ -93,7 +96,7 @@ export async function getBucketAdmin(req: Request, res: Response): Promise<void>
     res.status(404).json({ message: 'User not found' });
     return;
   }
-  const existing = await BucketAdminService.findByBucketAndUser(bucket.id, targetUser.id);
+  const existing = await BucketAdminService.findByBucketAndUser(effectiveBucket.id, targetUser.id);
   if (existing === null) {
     res.status(404).json({ message: 'Bucket admin not found' });
     return;
@@ -108,13 +111,14 @@ export async function createBucketAdmin(req: Request, res: Response): Promise<vo
     return;
   }
   const bucketId = req.params.bucketId as string;
-  const bucket = await BucketService.findByShortId(bucketId);
-  if (bucket === null) {
+  const resolved = await getBucketAndEffective(bucketId);
+  if (resolved === null) {
     res.status(404).json({ message: 'Bucket not found' });
     return;
   }
-  const bucketAdmin = await BucketAdminService.findByBucketAndUser(bucket.id, user.id);
-  if (!canManageBucketAdmins(user.id, bucket, bucketAdmin)) {
+  const { effectiveBucket } = resolved;
+  const bucketAdmin = await BucketAdminService.findByBucketAndUser(effectiveBucket.id, user.id);
+  if (!canManageBucketAdmins(user.id, effectiveBucket, bucketAdmin)) {
     res.status(403).json({ message: 'Forbidden' });
     return;
   }
@@ -124,14 +128,14 @@ export async function createBucketAdmin(req: Request, res: Response): Promise<vo
     res.status(404).json({ message: 'User not found' });
     return;
   }
-  const existing = await BucketAdminService.findByBucketAndUser(bucket.id, targetUser.id);
+  const existing = await BucketAdminService.findByBucketAndUser(effectiveBucket.id, targetUser.id);
   if (existing !== null) {
     res.status(409).json({ message: 'User is already an admin for this bucket' });
     return;
   }
   const adminCrud = (body.adminCrud ?? ADMIN_CRUD_READ) | ADMIN_CRUD_READ;
   const admin = await BucketAdminService.create({
-    bucketId: bucket.id,
+    bucketId: effectiveBucket.id,
     userId: targetUser.id,
     bucketCrud: body.bucketCrud ?? 0,
     messageCrud: body.messageCrud ?? 0,
@@ -148,27 +152,28 @@ export async function updateBucketAdmin(req: Request, res: Response): Promise<vo
   }
   const bucketId = req.params.bucketId as string;
   const userIdParam = req.params.userId as string;
-  const bucket = await BucketService.findByShortId(bucketId);
-  if (bucket === null) {
+  const resolved = await getBucketAndEffective(bucketId);
+  if (resolved === null) {
     res.status(404).json({ message: 'Bucket not found' });
     return;
   }
+  const { effectiveBucket } = resolved;
   const targetUser = await resolveUser(userIdParam);
   if (targetUser === null) {
     res.status(404).json({ message: 'User not found' });
     return;
   }
-  const bucketAdmin = await BucketAdminService.findByBucketAndUser(bucket.id, user.id);
-  if (!canManageBucketAdmins(user.id, bucket, bucketAdmin)) {
+  const bucketAdmin = await BucketAdminService.findByBucketAndUser(effectiveBucket.id, user.id);
+  if (!canManageBucketAdmins(user.id, effectiveBucket, bucketAdmin)) {
     res.status(403).json({ message: 'Forbidden' });
     return;
   }
-  const existing = await BucketAdminService.findByBucketAndUser(bucket.id, targetUser.id);
+  const existing = await BucketAdminService.findByBucketAndUser(effectiveBucket.id, targetUser.id);
   if (existing === null) {
     res.status(404).json({ message: 'Bucket admin not found' });
     return;
   }
-  if (targetUser.id === bucket.ownerId) {
+  if (targetUser.id === effectiveBucket.ownerId) {
     res.status(403).json({ message: 'Bucket owner cannot be edited' });
     return;
   }
@@ -178,9 +183,9 @@ export async function updateBucketAdmin(req: Request, res: Response): Promise<vo
   if (body.messageCrud !== undefined) update.messageCrud = body.messageCrud;
   if (body.adminCrud !== undefined) update.adminCrud = body.adminCrud | ADMIN_CRUD_READ;
   if (Object.keys(update).length > 0) {
-    await BucketAdminService.update(bucket.id, targetUser.id, update);
+    await BucketAdminService.update(effectiveBucket.id, targetUser.id, update);
   }
-  const updated = await BucketAdminService.findByBucketAndUser(bucket.id, targetUser.id);
+  const updated = await BucketAdminService.findByBucketAndUser(effectiveBucket.id, targetUser.id);
   if (updated === null) {
     res.status(500).json({ message: 'Failed to load updated admin' });
     return;
@@ -196,30 +201,31 @@ export async function deleteBucketAdmin(req: Request, res: Response): Promise<vo
   }
   const bucketId = req.params.bucketId as string;
   const userIdParam = req.params.userId as string;
-  const bucket = await BucketService.findByShortId(bucketId);
-  if (bucket === null) {
+  const resolved = await getBucketAndEffective(bucketId);
+  if (resolved === null) {
     res.status(404).json({ message: 'Bucket not found' });
     return;
   }
+  const { effectiveBucket } = resolved;
   const targetUser = await resolveUser(userIdParam);
   if (targetUser === null) {
     res.status(404).json({ message: 'User not found' });
     return;
   }
-  const bucketAdmin = await BucketAdminService.findByBucketAndUser(bucket.id, user.id);
-  if (!canManageBucketAdmins(user.id, bucket, bucketAdmin)) {
+  const bucketAdmin = await BucketAdminService.findByBucketAndUser(effectiveBucket.id, user.id);
+  if (!canManageBucketAdmins(user.id, effectiveBucket, bucketAdmin)) {
     res.status(403).json({ message: 'Forbidden' });
     return;
   }
-  const existing = await BucketAdminService.findByBucketAndUser(bucket.id, targetUser.id);
+  const existing = await BucketAdminService.findByBucketAndUser(effectiveBucket.id, targetUser.id);
   if (existing === null) {
     res.status(404).json({ message: 'Bucket admin not found' });
     return;
   }
-  if (targetUser.id === bucket.ownerId) {
+  if (targetUser.id === effectiveBucket.ownerId) {
     res.status(403).json({ message: 'Bucket owner cannot be removed' });
     return;
   }
-  await BucketAdminService.remove(bucket.id, targetUser.id);
+  await BucketAdminService.remove(effectiveBucket.id, targetUser.id);
   res.status(204).send();
 }

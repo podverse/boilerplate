@@ -1,10 +1,11 @@
 import type { Request, Response } from 'express';
 import { DEFAULT_PAGE_LIMIT, MAX_PAGE_SIZE, MAX_TOTAL_CAP } from '@boilerplate/helpers';
-import { BucketService, UserService } from '@boilerplate/orm';
+import { BucketMessageService, BucketService, UserService } from '@boilerplate/orm';
 import type { Bucket } from '@boilerplate/orm';
 
 import type { CreateBucketBody, UpdateBucketBody } from '../schemas/buckets.js';
 import { bucketToJson } from '../lib/bucketToJson.js';
+import { getBucketAndEffective } from '../lib/bucket-effective.js';
 
 export async function listBuckets(req: Request, res: Response): Promise<void> {
   const page = Math.max(1, Number(req.query.page) || 1);
@@ -48,14 +49,25 @@ export async function resolveBucket(idOrShortId: string): Promise<Bucket | null>
 
 export async function getBucket(req: Request, res: Response): Promise<void> {
   const id = req.params.id as string;
-  const bucket = await resolveBucket(id);
-  if (bucket === null) {
+  const resolved = await getBucketAndEffective(id);
+  if (resolved === null) {
     res.status(404).json({ message: 'Bucket not found' });
     return;
   }
-  const owner = await UserService.findById(bucket.ownerId);
+  const { bucket, effectiveBucket, effectiveSettings } = resolved;
+  const owner = await UserService.findById(effectiveBucket.ownerId);
   const ownerDisplayName = owner !== null ? formatOwnerDisplayName(owner) : null;
-  res.status(200).json({ bucket: bucketToJson(bucket, ownerDisplayName) });
+  const overrides =
+    bucket.parentBucketId !== null
+      ? {
+          ownerId: effectiveBucket.ownerId,
+          ownerDisplayName,
+          messageBodyMaxLength: effectiveSettings?.messageBodyMaxLength ?? null,
+        }
+      : undefined;
+  res.status(200).json({
+    bucket: bucketToJson(bucket, ownerDisplayName, overrides),
+  });
 }
 
 export async function createBucket(req: Request, res: Response): Promise<void> {
@@ -68,7 +80,7 @@ export async function createBucket(req: Request, res: Response): Promise<void> {
   const bucket = await BucketService.create({
     ownerId: body.ownerId,
     name: body.name,
-    isPublic: body.isPublic ?? false,
+    isPublic: body.isPublic ?? true,
     parentBucketId: null,
   });
   res.status(201).json({ bucket: bucketToJson(bucket) });
@@ -76,9 +88,16 @@ export async function createBucket(req: Request, res: Response): Promise<void> {
 
 export async function updateBucket(req: Request, res: Response): Promise<void> {
   const id = req.params.id as string;
-  const bucket = await resolveBucket(id);
-  if (bucket === null) {
+  const resolved = await getBucketAndEffective(id);
+  if (resolved === null) {
     res.status(404).json({ message: 'Bucket not found' });
+    return;
+  }
+  const { bucket } = resolved;
+  if (bucket.parentBucketId !== null) {
+    res.status(400).json({
+      message: 'Topic buckets inherit settings from the parent; update the parent bucket instead.',
+    });
     return;
   }
   const body = req.body as UpdateBucketBody;
@@ -104,4 +123,34 @@ export async function deleteBucket(req: Request, res: Response): Promise<void> {
   }
   await BucketService.delete(bucket.id);
   res.status(204).send();
+}
+
+/** List child buckets (topics) for a parent bucket. GET /buckets/:id/buckets */
+export async function listTopics(req: Request, res: Response): Promise<void> {
+  const id = req.params.id as string;
+  const parent = await resolveBucket(id);
+  if (parent === null) {
+    res.status(404).json({ message: 'Bucket not found' });
+    return;
+  }
+  const owner = await UserService.findById(parent.ownerId);
+  const ownerDisplayName = owner !== null ? formatOwnerDisplayName(owner) : null;
+  const messageBodyMaxLength = parent.settings?.messageBodyMaxLength ?? null;
+  const children = await BucketService.findChildren(parent.id);
+  const lastMessageAtMap = await BucketMessageService.getLatestMessageCreatedAtByBucketIds(
+    children.map((b) => b.id)
+  );
+  const overrides = {
+    ownerId: parent.ownerId,
+    ownerDisplayName,
+    messageBodyMaxLength,
+  };
+  res.status(200).json({
+    buckets: children.map((b) =>
+      bucketToJson(b, ownerDisplayName, {
+        ...overrides,
+        lastMessageAt: lastMessageAtMap.get(b.id)?.toISOString() ?? null,
+      })
+    ),
+  });
 }

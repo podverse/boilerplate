@@ -193,7 +193,15 @@
       "messages": "",
       "publicPage": "",
       "editBucket": "",
-      "settings": ""
+      "settings": "",
+      "topics": "",
+      "name": "",
+      "lastMessage": "",
+      "created": "",
+      "actions": "",
+      "view": "",
+      "edit": "",
+      "createTopic": ""
     },
     "bucketForm": {
       "name": "",
@@ -203,6 +211,7 @@
       "noUsersAvailable": "",
       "messageBodyMaxLengthInvalid": "",
       "isPublic": "",
+      "publicTooltip": "",
       "messageBodyMaxLength": "",
       "messageBodyMaxLengthPlaceholder": "",
       "createBucket": "",

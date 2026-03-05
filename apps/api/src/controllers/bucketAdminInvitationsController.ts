@@ -5,9 +5,10 @@ import {
   BUCKET_ADMIN_INVITATION_TOKEN_BYTES,
   CRUD_BITS,
 } from '@boilerplate/helpers';
-import { BucketService, BucketAdminService, BucketAdminInvitationService } from '@boilerplate/orm';
+import { BucketAdminService, BucketAdminInvitationService } from '@boilerplate/orm';
 import type { CreateBucketAdminInvitationBody } from '../schemas/buckets.js';
 import { canManageBucketAdmins } from '../lib/bucket-policy.js';
+import { getBucketAndEffective } from '../lib/bucket-effective.js';
 
 const ADMIN_CRUD_READ = CRUD_BITS.read;
 
@@ -54,13 +55,14 @@ export async function createBucketAdminInvitation(req: Request, res: Response): 
     return;
   }
   const bucketId = req.params.bucketId as string;
-  const bucket = await BucketService.findByShortId(bucketId);
-  if (bucket === null) {
+  const resolved = await getBucketAndEffective(bucketId);
+  if (resolved === null) {
     res.status(404).json({ message: 'Bucket not found' });
     return;
   }
-  const bucketAdmin = await BucketAdminService.findByBucketAndUser(bucket.id, user.id);
-  if (!canManageBucketAdmins(user.id, bucket, bucketAdmin)) {
+  const { effectiveBucket } = resolved;
+  const bucketAdmin = await BucketAdminService.findByBucketAndUser(effectiveBucket.id, user.id);
+  if (!canManageBucketAdmins(user.id, effectiveBucket, bucketAdmin)) {
     res.status(403).json({ message: 'Forbidden' });
     return;
   }
@@ -71,7 +73,7 @@ export async function createBucketAdminInvitation(req: Request, res: Response): 
   );
   const adminCrud = (body.adminCrud ?? ADMIN_CRUD_READ) | ADMIN_CRUD_READ;
   const inv = await BucketAdminInvitationService.create({
-    bucketId: bucket.id,
+    bucketId: effectiveBucket.id,
     token,
     bucketCrud: body.bucketCrud ?? 0,
     messageCrud: body.messageCrud ?? 0,
@@ -119,17 +121,18 @@ export async function listBucketAdminInvitations(req: Request, res: Response): P
     return;
   }
   const bucketId = req.params.bucketId as string;
-  const bucket = await BucketService.findByShortId(bucketId);
-  if (bucket === null) {
+  const resolved = await getBucketAndEffective(bucketId);
+  if (resolved === null) {
     res.status(404).json({ message: 'Bucket not found' });
     return;
   }
-  const bucketAdmin = await BucketAdminService.findByBucketAndUser(bucket.id, user.id);
-  if (!canManageBucketAdmins(user.id, bucket, bucketAdmin)) {
+  const { effectiveBucket } = resolved;
+  const bucketAdmin = await BucketAdminService.findByBucketAndUser(effectiveBucket.id, user.id);
+  if (!canManageBucketAdmins(user.id, effectiveBucket, bucketAdmin)) {
     res.status(403).json({ message: 'Forbidden' });
     return;
   }
-  const list = await BucketAdminInvitationService.findByBucketIdPending(bucket.id);
+  const list = await BucketAdminInvitationService.findByBucketIdPending(effectiveBucket.id);
   res.status(200).json({
     invitations: list.map((inv) => invitationToJson(inv)),
   });
@@ -144,17 +147,18 @@ export async function deleteBucketAdminInvitation(req: Request, res: Response): 
   }
   const bucketId = req.params.bucketId as string;
   const invitationId = req.params.invitationId as string;
-  const bucket = await BucketService.findByShortId(bucketId);
-  if (bucket === null) {
+  const resolved = await getBucketAndEffective(bucketId);
+  if (resolved === null) {
     res.status(404).json({ message: 'Bucket not found' });
     return;
   }
-  const bucketAdmin = await BucketAdminService.findByBucketAndUser(bucket.id, user.id);
-  if (!canManageBucketAdmins(user.id, bucket, bucketAdmin)) {
+  const { effectiveBucket } = resolved;
+  const bucketAdmin = await BucketAdminService.findByBucketAndUser(effectiveBucket.id, user.id);
+  if (!canManageBucketAdmins(user.id, effectiveBucket, bucketAdmin)) {
     res.status(403).json({ message: 'Forbidden' });
     return;
   }
-  const list = await BucketAdminInvitationService.findByBucketIdPending(bucket.id);
+  const list = await BucketAdminInvitationService.findByBucketIdPending(effectiveBucket.id);
   const inv = list.find((i) => i.id === invitationId);
   if (inv === undefined) {
     res.status(404).json({ message: 'Invitation not found or not pending' });

@@ -1,5 +1,5 @@
 import type { Request, Response } from 'express';
-import { BucketService, BucketAdminService } from '@boilerplate/orm';
+import { BucketService, BucketAdminService, BucketMessageService } from '@boilerplate/orm';
 import type { CreateBucketBody, UpdateBucketBody, CreateTopicBody } from '../schemas/buckets.js';
 import {
   canReadBucket,
@@ -7,6 +7,7 @@ import {
   canDeleteBucket,
   canCreateBucket,
 } from '../lib/bucket-policy.js';
+import { getBucketAndEffective } from '../lib/bucket-effective.js';
 import { toBucketResponse } from '../lib/bucket-response.js';
 
 export async function listBuckets(req: Request, res: Response): Promise<void> {
@@ -20,7 +21,35 @@ export async function listBuckets(req: Request, res: Response): Promise<void> {
       ? req.query.search.trim()
       : undefined;
   const buckets = await BucketService.findAccessibleByUser(user.id, { search });
-  res.status(200).json({ buckets: buckets.map(toBucketResponse) });
+  const parentIds = [
+    ...new Set(
+      buckets
+        .map((b) => b.parentBucketId)
+        .filter((id): id is string => id !== null && id !== undefined)
+    ),
+  ];
+  const pairs = await Promise.all(
+    parentIds.map(async (id) => {
+      const parent = await BucketService.findById(id);
+      return [id, parent] as [string, Awaited<ReturnType<typeof BucketService.findById>>];
+    })
+  );
+  const parentMap = new Map(pairs);
+  const bucketResponses = buckets.map((bucket) => {
+    if (bucket.parentBucketId !== null) {
+      const parent = parentMap.get(bucket.parentBucketId) ?? null;
+      const overrides =
+        parent !== null
+          ? {
+              messageBodyMaxLength: parent.settings?.messageBodyMaxLength ?? null,
+              ownerId: parent.ownerId,
+            }
+          : undefined;
+      return toBucketResponse(bucket, overrides);
+    }
+    return toBucketResponse(bucket);
+  });
+  res.status(200).json({ buckets: bucketResponses });
 }
 
 export async function createBucket(req: Request, res: Response): Promise<void> {
@@ -33,7 +62,7 @@ export async function createBucket(req: Request, res: Response): Promise<void> {
   const bucket = await BucketService.create({
     ownerId: user.id,
     name: body.name,
-    isPublic: body.isPublic ?? false,
+    isPublic: body.isPublic ?? true,
     parentBucketId: null,
   });
   res.status(201).json({ bucket: toBucketResponse(bucket) });
@@ -46,17 +75,25 @@ export async function getBucket(req: Request, res: Response): Promise<void> {
     return;
   }
   const id = req.params.id as string;
-  const bucket = await BucketService.findByShortId(id);
-  if (bucket === null) {
+  const resolved = await getBucketAndEffective(id);
+  if (resolved === null) {
     res.status(404).json({ message: 'Bucket not found' });
     return;
   }
-  const bucketAdmin = await BucketAdminService.findByBucketAndUser(bucket.id, user.id);
-  if (!canReadBucket(user.id, bucket, bucketAdmin)) {
+  const { bucket, effectiveBucket, effectiveSettings } = resolved;
+  const bucketAdmin = await BucketAdminService.findByBucketAndUser(effectiveBucket.id, user.id);
+  if (!canReadBucket(user.id, effectiveBucket, bucketAdmin)) {
     res.status(403).json({ message: 'Forbidden' });
     return;
   }
-  res.status(200).json({ bucket: toBucketResponse(bucket) });
+  const overrides =
+    bucket.parentBucketId !== null
+      ? {
+          messageBodyMaxLength: effectiveSettings?.messageBodyMaxLength ?? null,
+          ownerId: effectiveBucket.ownerId,
+        }
+      : undefined;
+  res.status(200).json({ bucket: toBucketResponse(bucket, overrides) });
 }
 
 export async function updateBucket(req: Request, res: Response): Promise<void> {
@@ -66,13 +103,21 @@ export async function updateBucket(req: Request, res: Response): Promise<void> {
     return;
   }
   const id = req.params.id as string;
-  const bucket = await BucketService.findByShortId(id);
-  if (bucket === null) {
+  const resolved = await getBucketAndEffective(id);
+  if (resolved === null) {
     res.status(404).json({ message: 'Bucket not found' });
     return;
   }
-  const bucketAdmin = await BucketAdminService.findByBucketAndUser(bucket.id, user.id);
-  if (!canUpdateBucket(user.id, bucket, bucketAdmin)) {
+  const { bucket, effectiveBucket } = resolved;
+  if (bucket.parentBucketId !== null) {
+    res.status(400).json({
+      message:
+        'Topic buckets inherit settings from the parent bucket; update the parent bucket instead.',
+    });
+    return;
+  }
+  const bucketAdmin = await BucketAdminService.findByBucketAndUser(effectiveBucket.id, user.id);
+  if (!canUpdateBucket(user.id, effectiveBucket, bucketAdmin)) {
     res.status(403).json({ message: 'Forbidden' });
     return;
   }
@@ -97,13 +142,14 @@ export async function deleteBucket(req: Request, res: Response): Promise<void> {
     return;
   }
   const id = req.params.id as string;
-  const bucket = await BucketService.findByShortId(id);
-  if (bucket === null) {
+  const resolved = await getBucketAndEffective(id);
+  if (resolved === null) {
     res.status(404).json({ message: 'Bucket not found' });
     return;
   }
-  const bucketAdmin = await BucketAdminService.findByBucketAndUser(bucket.id, user.id);
-  if (!canDeleteBucket(user.id, bucket, bucketAdmin)) {
+  const { bucket, effectiveBucket } = resolved;
+  const bucketAdmin = await BucketAdminService.findByBucketAndUser(effectiveBucket.id, user.id);
+  if (!canDeleteBucket(user.id, effectiveBucket, bucketAdmin)) {
     res.status(403).json({ message: 'Forbidden' });
     return;
   }
@@ -129,7 +175,21 @@ export async function listTopics(req: Request, res: Response): Promise<void> {
     return;
   }
   const topics = await BucketService.findChildren(parent.id);
-  res.status(200).json({ buckets: topics.map(toBucketResponse) });
+  const topicIds = topics.map((t) => t.id);
+  const lastMessageAtMap =
+    await BucketMessageService.getLatestMessageCreatedAtByBucketIds(topicIds);
+  const inheritedOverrides = {
+    messageBodyMaxLength: parent.settings?.messageBodyMaxLength ?? null,
+    ownerId: parent.ownerId,
+  };
+  res.status(200).json({
+    buckets: topics.map((t) =>
+      toBucketResponse(t, {
+        ...inheritedOverrides,
+        lastMessageAt: lastMessageAtMap.get(t.id)?.toISOString() ?? null,
+      })
+    ),
+  });
 }
 
 export async function createTopic(req: Request, res: Response): Promise<void> {
@@ -157,10 +217,14 @@ export async function createTopic(req: Request, res: Response): Promise<void> {
   }
   const body = req.body as CreateTopicBody;
   const topic = await BucketService.create({
-    ownerId: user.id,
+    ownerId: parent.ownerId,
     name: body.name,
-    isPublic: body.isPublic ?? false,
+    isPublic: body.isPublic ?? true,
     parentBucketId: parent.id,
   });
-  res.status(201).json({ bucket: toBucketResponse(topic) });
+  const overrides = {
+    messageBodyMaxLength: parent.settings?.messageBodyMaxLength ?? null,
+    ownerId: parent.ownerId,
+  };
+  res.status(201).json({ bucket: toBucketResponse(topic, overrides) });
 }

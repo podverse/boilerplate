@@ -4,7 +4,15 @@ import { useCallback, useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { AUTH_MESSAGE_LOGIN_FAILED } from '@boilerplate/helpers';
-import { Button, Container, LoginForm, RateLimitModal, Stack, Text } from '@boilerplate/ui';
+import {
+  Button,
+  CenterInViewport,
+  LoginForm,
+  RateLimitModal,
+  Row,
+  Stack,
+  Text,
+} from '@boilerplate/ui';
 
 import { useAuth } from '../../../../context/AuthContext';
 import { getApiBaseUrl } from '../../../../lib/api-client';
@@ -176,22 +184,26 @@ export function InvitePageClient() {
 
   if (loadingInvitation) {
     return (
-      <Container>
-        <Text>{t('loading')}</Text>
-      </Container>
+      <CenterInViewport contentMaxWidth="readable" contentTextAlign="center">
+        <Stack>
+          <Text>{t('loading')}</Text>
+        </Stack>
+      </CenterInViewport>
     );
   }
 
   if (invitationError !== null && invitation === null) {
     return (
-      <Container>
-        <Text variant="error" as="p">
-          {invitationError}
-        </Text>
-        <Button variant="secondary" onClick={() => router.push(ROUTES.HOME)}>
-          {t('goHome')}
-        </Button>
-      </Container>
+      <CenterInViewport contentMaxWidth="readable" contentTextAlign="center">
+        <Stack>
+          <Text variant="error" as="p">
+            {invitationError}
+          </Text>
+          <Button variant="secondary" onClick={() => router.push(ROUTES.HOME)}>
+            {t('goHome')}
+          </Button>
+        </Stack>
+      </CenterInViewport>
     );
   }
 
@@ -206,63 +218,64 @@ export function InvitePageClient() {
         onClose={() => setShowRateLimitModal(false)}
         retryAfterSeconds={rateLimitRetrySeconds}
       />
-      <Container>
-        <h2>{t('title')}</h2>
-        <Text as="p">
-          {t('invitedTo')} <strong>{invitation.bucketName ?? invitation.bucketId}</strong>
-        </Text>
-
-        {user === null ? (
-          <Stack>
-            <Text as="p" variant="muted">
-              {t('loginRequired')}
-            </Text>
-            {!showLoginForm ? (
-              <Button variant="primary" onClick={() => setShowLoginForm(true)}>
-                {t('loginButton')}
-              </Button>
-            ) : (
-              <LoginForm
-                email={loginEmail}
-                password={loginPassword}
-                onEmailChange={setLoginEmail}
-                onPasswordChange={setLoginPassword}
-                onSubmit={handleLoginSubmit}
-                loading={loginLoading}
-                submitError={loginError}
-                signupHref={ROUTES.SIGNUP}
-                forgotPasswordHref={ROUTES.FORGOT_PASSWORD}
-              />
-            )}
-          </Stack>
-        ) : (
-          <Stack>
-            {resultMessage !== null && (
-              <Text as="p" variant="muted" role="status">
-                {resultMessage}
+      <CenterInViewport contentMaxWidth="readable" contentTextAlign="center">
+        <Stack alignItems="center">
+          <h2>{t('title')}</h2>
+          <Text as="p">
+            {t('invitedTo')} <strong>{invitation.bucketName ?? invitation.bucketId}</strong>
+          </Text>
+          {user === null ? (
+            <>
+              <Text as="p" variant="muted">
+                {t('loginRequired')}
               </Text>
-            )}
-            {resultMessage === null && (
-              <>
-                <Button
-                  variant="primary"
-                  onClick={handleAccept}
-                  loading={acceptRejectLoading === 'accept'}
-                >
-                  {t('accept')}
+              {!showLoginForm ? (
+                <Button variant="primary" onClick={() => setShowLoginForm(true)}>
+                  {t('loginButton')}
                 </Button>
-                <Button
-                  variant="secondary"
-                  onClick={handleReject}
-                  loading={acceptRejectLoading === 'reject'}
-                >
-                  {t('reject')}
-                </Button>
-              </>
-            )}
-          </Stack>
-        )}
-      </Container>
+              ) : (
+                <LoginForm
+                  email={loginEmail}
+                  password={loginPassword}
+                  onEmailChange={setLoginEmail}
+                  onPasswordChange={setLoginPassword}
+                  onSubmit={handleLoginSubmit}
+                  loading={loginLoading}
+                  submitError={loginError}
+                  signupHref={ROUTES.SIGNUP}
+                  forgotPasswordHref={ROUTES.FORGOT_PASSWORD}
+                />
+              )}
+            </>
+          ) : (
+            <>
+              {resultMessage !== null && (
+                <Text as="p" variant="muted" role="status">
+                  {resultMessage}
+                </Text>
+              )}
+              {resultMessage === null && (
+                <Row>
+                  <Button
+                    variant="secondary"
+                    onClick={handleReject}
+                    loading={acceptRejectLoading === 'reject'}
+                  >
+                    {t('reject')}
+                  </Button>
+                  <Button
+                    variant="primary"
+                    onClick={handleAccept}
+                    loading={acceptRejectLoading === 'accept'}
+                  >
+                    {t('accept')}
+                  </Button>
+                </Row>
+              )}
+            </>
+          )}
+        </Stack>
+      </CenterInViewport>
     </>
   );
 }

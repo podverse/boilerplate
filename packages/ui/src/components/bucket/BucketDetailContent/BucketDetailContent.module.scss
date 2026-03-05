@@ -1,15 +1,10 @@
 @use '../../../styles/variables' as *;
 
-/** Topics table: no header row; first data row has top border for a clean list look. */
+/** Topics table: header row + Name, Last Message, Created, Actions columns. */
 .topicsTable {
-  /* Name column takes remaining space. */
+  /* Name column takes remaining space; date/actions columns don't grow. */
   tbody tr td:first-child {
     width: 99%;
-  }
-
-  /* First row gets a top border so the list has a line above the first item. */
-  tbody tr:first-child td {
-    border-top: $border-width solid var(--color-border);
   }
 }
 

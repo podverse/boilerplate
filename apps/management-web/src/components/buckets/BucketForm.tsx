@@ -10,10 +10,13 @@ import {
   CheckboxField,
   FormActions,
   FormContainer,
+  InfoIcon,
   Input,
+  Row,
   Select,
   Stack,
   Text,
+  Tooltip,
 } from '@boilerplate/ui';
 
 import { getManagementApiBaseUrl } from '../../config/env';
@@ -40,7 +43,7 @@ export function BucketForm({ mode, bucketId, initialValues, ownerOptions = [] }:
 
   const [name, setName] = useState(initialValues?.name ?? '');
   const [ownerId, setOwnerId] = useState('');
-  const [isPublic, setIsPublic] = useState(initialValues?.isPublic ?? false);
+  const [isPublic, setIsPublic] = useState(initialValues?.isPublic ?? true);
   const [messageBodyMaxLength, setMessageBodyMaxLength] = useState(
     initialValues?.messageBodyMaxLength !== undefined &&
       initialValues?.messageBodyMaxLength !== null
@@ -162,7 +165,12 @@ export function BucketForm({ mode, bucketId, initialValues, ownerOptions = [] }:
             {ownerError}
           </Text>
         )}
-        <CheckboxField label={t('isPublic')} checked={isPublic} onChange={setIsPublic} />
+        <Row>
+          <CheckboxField label={t('isPublic')} checked={isPublic} onChange={setIsPublic} />
+          <Tooltip content={t('publicTooltip')}>
+            <InfoIcon size={18} />
+          </Tooltip>
+        </Row>
         {mode === 'edit' && (
           <Input
             label={t('messageBodyMaxLength')}

@@ -10,8 +10,8 @@ import {
   bucketSettingsRoute,
   bucketSettingsAdminsRoute,
 } from '../../../../../lib/routes';
-import { BucketForm } from '../../BucketForm';
-import type { BucketForForm } from '../../BucketForm';
+import { BucketForm } from '../../../buckets/BucketForm';
+import type { BucketForForm } from '../../../buckets/BucketForm';
 import { BucketAdminsClient } from '../BucketAdminsClient';
 
 type AdminRow = {

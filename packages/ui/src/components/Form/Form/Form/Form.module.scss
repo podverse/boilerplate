@@ -1,5 +1,9 @@
 @use '../../../../styles/variables' as *;
 
+.form {
+  text-align: left;
+}
+
 .submitError {
   margin: 0;
   font-size: $font-size-sm;

@@ -32,7 +32,10 @@ export function BucketMessagesBreadcrumbs({
 }: BucketMessagesBreadcrumbsProps) {
   const t = useTranslations('buckets');
 
-  const items: BreadcrumbItem[] = [{ label: bucketName, href: bucketDetailRoute(bucketId) }];
+  const items: BreadcrumbItem[] = [
+    { label: bucketName, href: bucketDetailRoute(bucketId) },
+    { label: t('messages'), href: undefined },
+  ];
 
   return <Breadcrumbs items={items} LinkComponent={LinkAdapter} ariaLabel={t('messages')} />;
 }

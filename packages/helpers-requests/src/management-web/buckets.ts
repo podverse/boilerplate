@@ -1,5 +1,5 @@
 import { request } from '../request.js';
-import type { ApiResponse } from '../request.js';
+import type { ApiResponse, RequestOptions } from '../request.js';
 
 export type ManagementBucket = {
   id: string;
@@ -13,6 +13,7 @@ export type ManagementBucket = {
   messageBodyMaxLength: number | null;
   createdAt: string;
   updatedAt: string;
+  lastMessageAt?: string | null;
 };
 
 export type ListBucketsData = {
@@ -48,6 +49,22 @@ export async function getBucket(
   return request<{ bucket: ManagementBucket }>(baseUrl, `/buckets/${id}`, {
     token: token ?? undefined,
   });
+}
+
+/**
+ * GET /buckets/:id/buckets — list child buckets (topics) for a parent bucket.
+ * Use options.headers (e.g. Cookie) for server-side auth, or options.token for client.
+ */
+export async function getBucketTopics(
+  baseUrl: string,
+  bucketId: string,
+  options?: RequestOptions
+): Promise<ApiResponse<{ buckets: ManagementBucket[] }>> {
+  return request<{ buckets: ManagementBucket[] }>(
+    baseUrl,
+    `/buckets/${bucketId}/buckets`,
+    options ?? {}
+  );
 }
 
 export type CreateBucketBody = { name: string; isPublic?: boolean; ownerId: string };

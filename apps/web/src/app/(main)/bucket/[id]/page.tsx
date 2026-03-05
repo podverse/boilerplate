@@ -1,15 +1,18 @@
 import { redirect, notFound } from 'next/navigation';
-import { getTranslations } from 'next-intl/server';
+import { getLocale, getTranslations } from 'next-intl/server';
+import { formatDateTimeReadable } from '@boilerplate/helpers-i18n';
 import { BucketDetailContent } from '@boilerplate/ui';
 
 import { fetchAdmins, fetchBucket, fetchTopics } from '../../../../lib/buckets';
 import { getServerUser } from '../../../../lib/server-auth';
 import {
   ROUTES,
-  bucketDetailRoute,
   bucketMessagesRoute,
   bucketSettingsRoute,
   publicBucketRoute,
+  topicDetailRoute,
+  topicEditRoute,
+  topicNewRoute,
 } from '../../../../lib/routes';
 
 function formatEmailDisplayName(email: string, displayName: string | null | undefined): string {
@@ -47,12 +50,20 @@ export default async function BucketDetailPage({ params }: { params: Promise<{ i
     notFound();
   }
 
+  if (bucket.parentBucketId !== null) {
+    const { bucket: parent } = await fetchBucket(bucket.parentBucketId);
+    if (parent !== null) {
+      redirect(topicDetailRoute(parent.shortId, bucket.shortId));
+    }
+  }
+
   const [topics, admins] = await Promise.all([
     bucket.parentBucketId === null ? fetchTopics(id) : [],
     fetchAdmins(id),
   ]);
 
   const t = await getTranslations('buckets');
+  const locale = await getLocale();
   const isViewerOwner = user.id === bucket.ownerId;
   const ownerAdmin = admins.find((a) => a.userId === bucket.ownerId);
   const ownerLabel = (() => {
@@ -80,15 +91,17 @@ export default async function BucketDetailPage({ params }: { params: Promise<{ i
 
   const topicsForContent =
     bucket.parentBucketId === null
-      ? topics.map((topic) => {
-          const href = bucketDetailRoute(topic.shortId);
-          return {
-            id: topic.id,
-            name: topic.name,
-            href,
-            editHref: `${href}/edit`,
-          };
-        })
+      ? topics.map((topic) => ({
+          id: topic.id,
+          name: topic.name,
+          href: topicDetailRoute(id, topic.shortId),
+          editHref: topicEditRoute(id, topic.shortId),
+          createdAtDisplay: formatDateTimeReadable(locale, topic.createdAt),
+          lastMessageAtDisplay:
+            topic.lastMessageAt !== undefined && topic.lastMessageAt !== null
+              ? formatDateTimeReadable(locale, topic.lastMessageAt)
+              : null,
+        }))
       : undefined;
 
   return (
@@ -109,8 +122,12 @@ export default async function BucketDetailPage({ params }: { params: Promise<{ i
       topicViewLabel={topicsForContent !== undefined ? t('view') : undefined}
       topicEditLabel={topicsForContent !== undefined ? t('edit') : undefined}
       topicDeleteLabel={topicsForContent !== undefined ? t('delete') : undefined}
-      createTopicHref={topicsForContent !== undefined ? `/buckets/${id}/topics/new` : undefined}
+      createTopicHref={topicsForContent !== undefined ? topicNewRoute(id) : undefined}
       createTopicLabel={topicsForContent !== undefined ? t('createTopic') : undefined}
+      topicsColumnName={topicsForContent !== undefined ? t('name') : undefined}
+      topicsColumnLastMessage={topicsForContent !== undefined ? t('lastMessage') : undefined}
+      topicsColumnCreated={topicsForContent !== undefined ? t('created') : undefined}
+      topicsColumnActions={topicsForContent !== undefined ? t('actions') : undefined}
     />
   );
 }

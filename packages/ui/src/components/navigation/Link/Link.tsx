@@ -37,8 +37,13 @@ export function Link({ href, children, className = '', onClick, target, ...rest 
   const navigationContext = useNavigationContext();
   const combinedClass = [styles.root, className].filter(Boolean).join(' ');
 
-  const handleClick = () => {
-    const opensInNewTab = target === '_blank' || (typeof target === 'string' && target !== '_self');
+  const handleClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    const opensInNewTab =
+      target === '_blank' ||
+      (typeof target === 'string' && target !== '_self') ||
+      e.ctrlKey ||
+      e.metaKey ||
+      e.button !== 0;
     if (!opensInNewTab && isInternalHref(href)) {
       const targetPath = normalizePath(pathnameFromHref(href));
       const currentPath = pathname !== null ? normalizePath(pathname) : '';

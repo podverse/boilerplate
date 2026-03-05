@@ -13,6 +13,7 @@ export type Bucket = {
   messageBodyMaxLength: number | null;
   createdAt: string;
   updatedAt: string;
+  lastMessageAt?: string | null;
 };
 
 export type PublicBucket = {
@@ -20,6 +21,7 @@ export type PublicBucket = {
   shortId: string;
   name: string;
   isPublic: boolean;
+  parentBucketId: string | null;
   messageBodyMaxLength: number | null;
 };
 

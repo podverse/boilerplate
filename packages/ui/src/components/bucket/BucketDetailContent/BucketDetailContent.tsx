@@ -22,6 +22,10 @@ export type BucketTopic = {
   href: string;
   /** Optional edit URL for this topic. When set, edit button is shown (avoids passing a function from Server Components). */
   editHref?: string;
+  /** Formatted date string for the Created column. */
+  createdAtDisplay: string;
+  /** Formatted date string for the Last Message column; when null/undefined show "—". */
+  lastMessageAtDisplay?: string | null;
 };
 
 export type BucketDetailContentProps = {
@@ -54,6 +58,16 @@ export type BucketDetailContentProps = {
   renderTopicActions?: (topic: BucketTopic) => ReactNode;
   createTopicHref?: string;
   createTopicLabel?: ReactNode;
+  /** Column header for Name. Default: "Name". */
+  topicsColumnName?: ReactNode;
+  /** Column header for Last Message. Default: "Last Message". */
+  topicsColumnLastMessage?: ReactNode;
+  /** Column header for Created. Default: "Created". */
+  topicsColumnCreated?: ReactNode;
+  /** Column header for Actions. Default: "Actions". */
+  topicsColumnActions?: ReactNode;
+  /** When false, do not wrap content in Container (e.g. when the page already wraps in Container). Default: true. */
+  wrapInContainer?: boolean;
 };
 
 /**
@@ -82,6 +96,11 @@ export function BucketDetailContent({
   renderTopicActions,
   createTopicHref,
   createTopicLabel,
+  topicsColumnName = 'Name',
+  topicsColumnLastMessage = 'Last Message',
+  topicsColumnCreated = 'Created',
+  topicsColumnActions = 'Actions',
+  wrapInContainer = true,
 }: BucketDetailContentProps) {
   const getTopicActions = (topic: BucketTopic): ReactNode => {
     if (renderTopicActions !== undefined) return renderTopicActions(topic);
@@ -107,8 +126,8 @@ export function BucketDetailContent({
       />
     );
   };
-  return (
-    <Container contentMaxWidth="readable">
+  const content = (
+    <>
       <PageHeader title={bucketName} />
       <DataDetail items={detailItems} />
       <Row wrap>
@@ -150,6 +169,14 @@ export function BucketDetailContent({
           ) : (
             <Table.ScrollContainer>
               <Table className={styles.topicsTable}>
+                <Table.Head>
+                  <Table.Row>
+                    <Table.HeaderCell>{topicsColumnName}</Table.HeaderCell>
+                    <Table.HeaderCell>{topicsColumnLastMessage}</Table.HeaderCell>
+                    <Table.HeaderCell>{topicsColumnCreated}</Table.HeaderCell>
+                    <Table.HeaderCell>{topicsColumnActions}</Table.HeaderCell>
+                  </Table.Row>
+                </Table.Head>
                 <Table.Body>
                   {topics.map((topic) => (
                     <Table.Row key={topic.id}>
@@ -158,6 +185,14 @@ export function BucketDetailContent({
                           {topic.name}
                         </Link>
                       </Table.Cell>
+                      <Table.Cell>
+                        {topic.lastMessageAtDisplay !== undefined &&
+                        topic.lastMessageAtDisplay !== null &&
+                        topic.lastMessageAtDisplay !== ''
+                          ? topic.lastMessageAtDisplay
+                          : '—'}
+                      </Table.Cell>
+                      <Table.Cell>{topic.createdAtDisplay}</Table.Cell>
                       <Table.Cell>
                         <div className={styles.actionsCell}>{getTopicActions(topic)}</div>
                       </Table.Cell>
@@ -169,6 +204,7 @@ export function BucketDetailContent({
           )}
         </SectionWithHeading>
       )}
-    </Container>
+    </>
   );
+  return wrapInContainer ? <Container>{content}</Container> : content;
 }

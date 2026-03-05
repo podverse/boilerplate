@@ -22,7 +22,7 @@ type BucketSettingsLayoutClientProps = {
 
 function isEditAdminPath(pathname: string | null, bucketId: string): boolean {
   if (pathname === null || pathname === undefined) return false;
-  const settingsAdminsPrefix = `/buckets/${bucketId}/settings/admins/`;
+  const settingsAdminsPrefix = `/bucket/${bucketId}/settings/admins/`;
   return pathname.startsWith(settingsAdminsPrefix) && pathname.endsWith('/edit');
 }
 
@@ -45,6 +45,7 @@ export function BucketSettingsLayoutClient({
           settingsHref={bucketSettingsRoute(bucketId)}
           settingsLabel={t('bucketSettings')}
           settingsAriaLabel={t('bucketSettings')}
+          currentPageLabel={isEditAdminPage ? t('editAdminTitle') : bucketSettingsTitle}
           isEditAdminPage={isEditAdminPage}
           adminsHref={bucketSettingsAdminsRoute(bucketId)}
           adminsLabel={t('admins')}

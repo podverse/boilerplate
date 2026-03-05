@@ -6,7 +6,7 @@ import { Container, SectionWithHeading } from '@boilerplate/ui';
 
 import { getServerApiBaseUrl } from '../../../../../lib/server-request';
 import { publicBucketRoute } from '../../../../../lib/routes';
-import { PublicSubmitForm } from './PublicSubmitForm';
+import { PublicSubmitForm } from '../../PublicSubmitForm';
 
 async function fetchPublicBucket(id: string): Promise<PublicBucket | null> {
   const baseUrl = getServerApiBaseUrl();
@@ -16,12 +16,17 @@ async function fetchPublicBucket(id: string): Promise<PublicBucket | null> {
   return bucket !== undefined && typeof bucket?.id === 'string' ? bucket : null;
 }
 
-export default async function PublicSubmitPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function PublicBucketSendMessagePage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
   const { id } = await params;
   const bucket = await fetchPublicBucket(id);
   if (bucket === null) notFound();
 
   const t = await getTranslations('buckets');
+
   return (
     <Container>
       <SectionWithHeading title={`${t('messages')} – ${bucket.name}`}>

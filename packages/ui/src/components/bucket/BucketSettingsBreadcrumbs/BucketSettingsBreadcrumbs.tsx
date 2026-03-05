@@ -9,7 +9,9 @@ export type BucketSettingsBreadcrumbsProps = {
   settingsHref: string;
   settingsLabel: string;
   settingsAriaLabel: string;
-  /** When true, show bucket → Settings → Admins. */
+  /** Title of the current page (last breadcrumb, text only). */
+  currentPageLabel: string;
+  /** When true, show bucket → Settings → Admins before current page. */
   isEditAdminPage?: boolean;
   adminsHref?: string;
   adminsLabel?: string;
@@ -41,16 +43,20 @@ export function BucketSettingsBreadcrumbs({
   settingsHref,
   settingsLabel,
   settingsAriaLabel,
+  currentPageLabel,
   isEditAdminPage = false,
   adminsHref,
   adminsLabel,
 }: BucketSettingsBreadcrumbsProps) {
-  const items: BreadcrumbItem[] = [{ label: bucketName, href: bucketDetailHref }];
+  const items: BreadcrumbItem[] = [
+    { label: bucketName, href: bucketDetailHref },
+    { label: settingsLabel, href: settingsHref },
+  ];
   if (isEditAdminPage && adminsHref !== undefined && adminsLabel !== undefined) {
-    items.push(
-      { label: settingsLabel, href: settingsHref },
-      { label: adminsLabel, href: adminsHref }
-    );
+    items.push({ label: adminsLabel, href: adminsHref });
+  }
+  if (currentPageLabel !== settingsLabel || isEditAdminPage) {
+    items.push({ label: currentPageLabel, href: undefined });
   }
   return <Breadcrumbs items={items} LinkComponent={LinkAdapter} ariaLabel={settingsAriaLabel} />;
 }

@@ -38,6 +38,7 @@ export function BucketMessagesPageContent({
         <BucketMessagesBreadcrumbs
           bucketName={bucketName}
           bucketDetailHref={bucketDetailHref}
+          currentPageLabel={messagesTitle}
           messagesAriaLabel={messagesAriaLabel}
         />
       }

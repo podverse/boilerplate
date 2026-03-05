@@ -17,6 +17,7 @@
   },
   "dependencies": {
     "@boilerplate/helpers": "*",
+    "@boilerplate/helpers-i18n": "*",
     "@boilerplate/helpers-requests": "*",
     "@boilerplate/ui": "*",
     "@fortawesome/fontawesome-free": "^6.7.2",

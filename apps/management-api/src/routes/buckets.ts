@@ -24,6 +24,9 @@ export function createBucketsRouter(requireAuth: RequestHandler): Router {
   router.get('/:id', requireAuth, requireCrud('buckets', 'read'), (req, res) => {
     void bucketsController.getBucket(req, res);
   });
+  router.get('/:id/buckets', requireAuth, requireCrud('buckets', 'read'), (req, res) => {
+    void bucketsController.listTopics(req, res);
+  });
   router.post(
     '/',
     requireAuth,

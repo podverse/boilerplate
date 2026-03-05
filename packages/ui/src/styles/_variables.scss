@@ -32,6 +32,9 @@ $space-8: 2rem;
 /** Shared gap for Stack and UnorderedList (vertical spacing between items). */
 $gap-standard: $space-6;
 
+/** Gap between buttons in a horizontal row (Row, FormActions, CrudButtons, etc.). */
+$gap-button-row: $space-4;
+
 // Border
 $border-width: 1px;
 $radius-xs: 0.125rem;
@@ -77,7 +80,7 @@ $rotation-full: 360deg;
 $z-dropdown-panel: 50;
 $z-modal: 100;
 
-// CenterInViewport (centered auth/form content)
+// CenterInViewport (centered content: auth, invite, splash, etc.)
 $center-in-viewport-content-max-width: 24rem;
 
 // Form / modal form (min width for small forms e.g. go-to-page modal)

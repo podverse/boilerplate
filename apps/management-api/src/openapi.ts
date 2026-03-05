@@ -1129,6 +1129,59 @@ export const openApiDocument = {
         },
       },
     },
+    '/buckets/{id}/buckets': {
+      get: {
+        summary: 'List child buckets (topics)',
+        description:
+          'Returns sub-buckets (topics) for the given parent bucket. Id can be bucket UUID or shortId.',
+        operationId: 'listBucketTopics',
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          {
+            name: 'id',
+            in: 'path',
+            required: true,
+            schema: { type: 'string', description: 'Bucket UUID or shortId' },
+          },
+        ],
+        responses: {
+          '200': {
+            description: 'OK',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    buckets: {
+                      type: 'array',
+                      items: { $ref: '#/components/schemas/Bucket' },
+                    },
+                  },
+                },
+              },
+            },
+          },
+          '401': {
+            description: 'Authentication required',
+            content: {
+              'application/json': { schema: { $ref: '#/components/schemas/ErrorMessage' } },
+            },
+          },
+          '403': {
+            description: 'Insufficient permissions',
+            content: {
+              'application/json': { schema: { $ref: '#/components/schemas/ErrorMessage' } },
+            },
+          },
+          '404': {
+            description: 'Bucket not found',
+            content: {
+              'application/json': { schema: { $ref: '#/components/schemas/ErrorMessage' } },
+            },
+          },
+        },
+      },
+    },
     '/buckets/{id}/admins': {
       get: {
         summary: 'List bucket admins',
