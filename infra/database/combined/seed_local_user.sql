@@ -4,8 +4,8 @@
 -- Hash generated with bcrypt 10 rounds; safe to commit.
 
 WITH u AS (
-  INSERT INTO "user" (short_id, profile_visibility, email_verified_at)
-  VALUES ('localdev01', false, NOW())
+  INSERT INTO "user" (short_id, email_verified_at)
+  VALUES ('localdev01', NOW())
   RETURNING id
 )
 INSERT INTO user_credentials (user_id, email, password_hash)

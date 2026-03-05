@@ -15,6 +15,9 @@ export type EventVisibility = 'own' | 'all_admins' | 'all';
 export type ManagementUserPermissions = {
   adminsCrud: number;
   usersCrud: number;
+  bucketsCrud: number;
+  bucketMessagesCrud: number;
+  bucketAdminsCrud: number;
   eventVisibility: EventVisibility;
 };
 

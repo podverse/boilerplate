@@ -34,7 +34,6 @@ export type AuthUser = {
   id: string;
   email: string;
   displayName: string | null;
-  profileVisibility: boolean;
 };
 
 export type AuthContextValue = {
@@ -62,7 +61,6 @@ function parseUserFromMe(data: unknown): AuthUser | null {
         id?: string;
         email?: string;
         displayName?: string | null;
-        profileVisibility?: boolean;
       };
     }
   ).user;
@@ -71,7 +69,6 @@ function parseUserFromMe(data: unknown): AuthUser | null {
     id: u.id,
     email: u.email,
     displayName: u.displayName ?? null,
-    profileVisibility: u.profileVisibility === true,
   };
 }
 
@@ -84,7 +81,6 @@ function parseUserFromLoginOrRefresh(data: unknown): AuthUser | null {
         id?: string;
         email?: string;
         displayName?: string | null;
-        profileVisibility?: boolean;
       };
     }
   ).user;
@@ -93,7 +89,6 @@ function parseUserFromLoginOrRefresh(data: unknown): AuthUser | null {
     id: u.id,
     email: u.email,
     displayName: u.displayName ?? null,
-    profileVisibility: u.profileVisibility === true,
   };
 }
 
@@ -190,7 +185,6 @@ export function AuthProvider({ children, initialUser }: AuthProviderProps) {
           id: string;
           email: string;
           displayName: string | null;
-          profileVisibility?: boolean;
         };
       };
       const u = data?.user
@@ -198,7 +192,6 @@ export function AuthProvider({ children, initialUser }: AuthProviderProps) {
             id: data.user.id,
             email: data.user.email,
             displayName: data.user.displayName ?? null,
-            profileVisibility: data.user.profileVisibility === true,
           }
         : null;
       if (u !== null) setUser(u);

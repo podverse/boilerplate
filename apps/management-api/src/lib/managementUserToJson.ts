@@ -17,6 +17,9 @@ export interface PublicManagementUser {
   permissions?: {
     adminsCrud: number;
     usersCrud: number;
+    bucketsCrud: number;
+    bucketMessagesCrud: number;
+    bucketAdminsCrud: number;
     eventVisibility: EventVisibility;
   } | null;
 }
@@ -35,6 +38,9 @@ export function managementUserToJson(user: ManagementUser): PublicManagementUser
         ? {
             adminsCrud: perm.adminsCrud,
             usersCrud: perm.usersCrud,
+            bucketsCrud: perm.bucketsCrud,
+            bucketMessagesCrud: perm.bucketMessagesCrud,
+            bucketAdminsCrud: perm.bucketAdminsCrud,
             eventVisibility: perm.eventVisibility,
           }
         : null,

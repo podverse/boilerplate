@@ -42,7 +42,6 @@ export class UserService {
     email: string;
     password: string;
     displayName?: string | null;
-    profileVisibility?: boolean;
   }): Promise<UserWithRelations> {
     const maxRetries = 5;
     for (let attempt = 0; attempt < maxRetries; attempt++) {
@@ -57,7 +56,6 @@ export class UserService {
 
         const user = userRepo.create({
           shortId,
-          profileVisibility: data.profileVisibility ?? false,
         });
         const savedUser = await userRepo.save(user);
 
@@ -116,10 +114,5 @@ export class UserService {
   static async updateDisplayName(userId: string, displayName: string | null): Promise<void> {
     const repo = appDataSourceReadWrite.getRepository(UserBio);
     await repo.update({ userId }, { displayName });
-  }
-
-  static async updateProfileVisibility(userId: string, profileVisibility: boolean): Promise<void> {
-    const repo = appDataSourceReadWrite.getRepository(User);
-    await repo.update(userId, { profileVisibility });
   }
 }

@@ -7,7 +7,7 @@ import { fetchBucket } from '../../../../../../../../lib/buckets';
 import { getServerUser } from '../../../../../../../../lib/server-auth';
 import { getCookieHeader, getServerApiBaseUrl } from '../../../../../../../../lib/server-request';
 import { ROUTES, bucketSettingsAdminsRoute } from '../../../../../../../../lib/routes';
-import { EditBucketAdminForm } from '../../../../EditBucketAdminForm';
+import { EditBucketAdminFormClient } from '../../../../EditBucketAdminFormClient';
 
 type AdminUser = {
   email: string;
@@ -96,7 +96,7 @@ export default async function EditBucketAdminPage({
     <>
       <PageHeader title={t('editAdminTitle')} />
       <AdminDisplayInfo user={admin.user} />
-      <EditBucketAdminForm
+      <EditBucketAdminFormClient
         bucketId={bucketId}
         userId={userId}
         initialBucketCrud={admin.bucketCrud}

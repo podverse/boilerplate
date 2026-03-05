@@ -16,13 +16,11 @@ export const createUserSchema = Joi.object({
   email: Joi.string().email().max(EMAIL_MAX_LENGTH).required(),
   password: Joi.string().min(PASSWORD_MIN_LENGTH).max(PASSWORD_MAX_LENGTH).required(),
   displayName: Joi.string().max(SHORT_TEXT_MAX_LENGTH).allow(null, ''),
-  profileVisibility: Joi.boolean().default(false),
 });
 
 export const updateUserSchema = Joi.object({
   email: Joi.string().email().max(EMAIL_MAX_LENGTH),
   displayName: Joi.string().max(SHORT_TEXT_MAX_LENGTH).allow(null, ''),
-  profileVisibility: Joi.boolean(),
 }).min(1);
 
 export const changeUserPasswordSchema = Joi.object({

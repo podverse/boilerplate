@@ -22,13 +22,11 @@ function userToJson(user: UserWithRelations): {
   id: string;
   email: string;
   displayName: string | null;
-  profileVisibility: boolean;
 } {
   return {
     id: user.id,
     email: user.credentials.email,
     displayName: user.bio?.displayName ?? null,
-    profileVisibility: user.profileVisibility,
   };
 }
 
@@ -113,7 +111,6 @@ export async function createUser(req: Request, res: Response): Promise<void> {
     email: body.email,
     password: hashed,
     displayName: body.displayName ?? null,
-    profileVisibility: body.profileVisibility,
   });
   await UserService.setEmailVerifiedAt(user.id);
   await recordEvent({
@@ -142,15 +139,9 @@ export async function updateUser(req: Request, res: Response): Promise<void> {
   if (body.email !== undefined) {
     await UserService.updateEmail(id, body.email);
   }
-  if (body.displayName !== undefined || body.profileVisibility !== undefined) {
-    const userRepo = appDataSourceReadWrite.getRepository(User);
+  if (body.displayName !== undefined) {
     const bioRepo = appDataSourceReadWrite.getRepository(UserBio);
-    if (body.displayName !== undefined) {
-      await bioRepo.update({ userId: id }, { displayName: body.displayName });
-    }
-    if (body.profileVisibility !== undefined) {
-      await userRepo.update(id, { profileVisibility: body.profileVisibility });
-    }
+    await bioRepo.update({ userId: id }, { displayName: body.displayName });
   }
   await recordEvent({
     actor,

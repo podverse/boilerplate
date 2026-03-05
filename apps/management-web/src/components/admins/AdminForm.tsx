@@ -34,6 +34,9 @@ export type AdminFormInitialValues = {
   permissions: {
     adminsCrud: number;
     usersCrud: number;
+    bucketsCrud: number;
+    bucketMessagesCrud: number;
+    bucketAdminsCrud: number;
     eventVisibility: EventVisibility;
   } | null;
 };
@@ -68,11 +71,11 @@ function isValidEmail(value: string): boolean {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
 }
 
-/** Total number of bits set across two CRUD bitmasks. */
-function totalBits(a: CrudFlags, b: CrudFlags): number {
+/** Total number of bits set across admins + users CRUD (used for "at least one permission" validation). */
+function totalAdminsUsersBits(admins: CrudFlags, users: CrudFlags): number {
   return (
-    (Object.values(a) as boolean[]).filter(Boolean).length +
-    (Object.values(b) as boolean[]).filter(Boolean).length
+    (Object.values(admins) as boolean[]).filter(Boolean).length +
+    (Object.values(users) as boolean[]).filter(Boolean).length
   );
 }
 
@@ -106,13 +109,25 @@ export function AdminForm({
   const [permissionsTouched, setPermissionsTouched] = useState(false);
 
   const defaultPerms = initialValues?.permissions;
-  // New admins default to all permissions on; edit mode uses actual permissions.
+  // New admins: admins/users default to all on; buckets/messages default to 0 (all disabled).
   const defaultAdminsCrud = mode === 'create' ? 15 : (defaultPerms?.adminsCrud ?? 0);
   const defaultUsersCrud = mode === 'create' ? 15 : (defaultPerms?.usersCrud ?? 0);
+  const defaultBucketsCrud = defaultPerms?.bucketsCrud ?? 0;
+  const defaultBucketMessagesCrud = defaultPerms?.bucketMessagesCrud ?? 0;
+  const defaultBucketAdminsCrud = defaultPerms?.bucketAdminsCrud ?? 0;
   const [adminsCrudFlags, setAdminsCrudFlags] = useState<CrudFlags>(
     bitmaskToFlags(defaultAdminsCrud)
   );
   const [usersCrudFlags, setUsersCrudFlags] = useState<CrudFlags>(bitmaskToFlags(defaultUsersCrud));
+  const [bucketsCrudFlags, setBucketsCrudFlags] = useState<CrudFlags>(
+    bitmaskToFlags(defaultBucketsCrud)
+  );
+  const [bucketMessagesCrudFlags, setBucketMessagesCrudFlags] = useState<CrudFlags>(
+    bitmaskToFlags(defaultBucketMessagesCrud)
+  );
+  const [bucketAdminsCrudFlags, setBucketAdminsCrudFlags] = useState<CrudFlags>(
+    bitmaskToFlags(defaultBucketAdminsCrud)
+  );
   const [eventVisibility, setEventVisibility] = useState<EventVisibility>(
     defaultPerms?.eventVisibility ?? 'all_admins'
   );
@@ -160,7 +175,7 @@ export function AdminForm({
     permissionsRelevant &&
     isSuperAdmin &&
     permissionsTouched &&
-    totalBits(adminsCrudFlags, usersCrudFlags) === 0
+    totalAdminsUsersBits(adminsCrudFlags, usersCrudFlags) === 0
       ? t('permissionsRequired')
       : null;
 
@@ -173,6 +188,21 @@ export function AdminForm({
 
   const handleUsersCrudChange = (next: CrudFlags) => {
     setUsersCrudFlags(withReadEnforced(next));
+    setPermissionsTouched(true);
+  };
+
+  const handleBucketsCrudChange = (next: CrudFlags) => {
+    setBucketsCrudFlags(withReadEnforced(next));
+    setPermissionsTouched(true);
+  };
+
+  const handleBucketMessagesCrudChange = (next: CrudFlags) => {
+    setBucketMessagesCrudFlags(withReadEnforced(next));
+    setPermissionsTouched(true);
+  };
+
+  const handleBucketAdminsCrudChange = (next: CrudFlags) => {
+    setBucketAdminsCrudFlags(withReadEnforced(next));
     setPermissionsTouched(true);
   };
 
@@ -190,11 +220,11 @@ export function AdminForm({
     if (email.trim() === '' || !isValidEmail(email.trim())) return;
     if (mode === 'create' && !passwordValidation.valid) return;
     if (password !== '' && !passwordValidation.valid) return;
-    // Require at least one permission when creating, or when editing a non–super-admin (permissions are editable)
+    // Require at least one permission (admins or users) when creating, or when editing a non–super-admin
     if (
       isSuperAdmin &&
       (mode === 'create' || !targetIsSuperAdmin) &&
-      totalBits(adminsCrudFlags, usersCrudFlags) === 0
+      totalAdminsUsersBits(adminsCrudFlags, usersCrudFlags) === 0
     )
       return;
 
@@ -209,6 +239,9 @@ export function AdminForm({
           password,
           adminsCrud: flagsToBitmask(adminsCrudFlags),
           usersCrud: flagsToBitmask(usersCrudFlags),
+          bucketsCrud: flagsToBitmask(bucketsCrudFlags),
+          bucketMessagesCrud: flagsToBitmask(bucketMessagesCrudFlags),
+          bucketAdminsCrud: flagsToBitmask(bucketAdminsCrudFlags),
           eventVisibility,
         };
         const res = await managementWebAdmins.createAdmin(apiBaseUrl, body);
@@ -234,6 +267,9 @@ export function AdminForm({
         if (maySetPermissions) {
           body.adminsCrud = flagsToBitmask(adminsCrudFlags);
           body.usersCrud = flagsToBitmask(usersCrudFlags);
+          body.bucketsCrud = flagsToBitmask(bucketsCrudFlags);
+          body.bucketMessagesCrud = flagsToBitmask(bucketMessagesCrudFlags);
+          body.bucketAdminsCrud = flagsToBitmask(bucketAdminsCrudFlags);
           body.eventVisibility = eventVisibility;
         }
         const res = await managementWebAdmins.updateAdmin(apiBaseUrl, adminId, body);
@@ -300,6 +336,27 @@ export function AdminForm({
               flags={usersCrudFlags}
               onChange={handleUsersCrudChange}
               disabledBits={computeDisabledBits(usersCrudFlags)}
+            />
+            <CrudCheckboxes
+              label={t('bucketsCrud')}
+              labels={crudLabels}
+              flags={bucketsCrudFlags}
+              onChange={handleBucketsCrudChange}
+              disabledBits={computeDisabledBits(bucketsCrudFlags)}
+            />
+            <CrudCheckboxes
+              label={t('bucketMessagesCrud')}
+              labels={crudLabels}
+              flags={bucketMessagesCrudFlags}
+              onChange={handleBucketMessagesCrudChange}
+              disabledBits={computeDisabledBits(bucketMessagesCrudFlags)}
+            />
+            <CrudCheckboxes
+              label={t('bucketAdminsCrud')}
+              labels={crudLabels}
+              flags={bucketAdminsCrudFlags}
+              onChange={handleBucketAdminsCrudChange}
+              disabledBits={computeDisabledBits(bucketAdminsCrudFlags)}
             />
             <Select
               label={t('eventVisibility')}

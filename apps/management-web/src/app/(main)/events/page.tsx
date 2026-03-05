@@ -8,7 +8,7 @@ import { Container, SectionWithHeading, Text } from '@boilerplate/ui';
 import { EventsSortSelect } from '../../../components/EventsSortSelect';
 import { EventsTableWithFilter } from '../../../components/EventsTableWithFilter';
 import { getServerUser } from '../../../lib/server-auth';
-import { getManagementApiBaseUrl, getServerManagementApiBaseUrl } from '../../../config/env';
+import { getServerManagementApiBaseUrl } from '../../../config/env';
 import { ROUTES } from '../../../lib/routes';
 import { getCookieHeader } from '../../../lib/server-request';
 

@@ -53,7 +53,6 @@ export async function seedMain(rows: number): Promise<void> {
       const bucketRepo = manager.getRepository(Bucket);
 
       const user = uRepo.create({
-        profileVisibility: faker.datatype.boolean(),
         emailVerifiedAt: faker.datatype.boolean(0.3) ? faker.date.past() : null,
       });
       await uRepo.save(user);

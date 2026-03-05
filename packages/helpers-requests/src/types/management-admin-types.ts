@@ -15,6 +15,9 @@ export interface PublicManagementUser {
   permissions?: {
     adminsCrud: number;
     usersCrud: number;
+    bucketsCrud: number;
+    bucketMessagesCrud: number;
+    bucketAdminsCrud: number;
     eventVisibility: EventVisibility;
   } | null;
 }
@@ -36,6 +39,9 @@ export interface CreateAdminBody {
   displayName: string;
   adminsCrud: number;
   usersCrud: number;
+  bucketsCrud: number;
+  bucketMessagesCrud: number;
+  bucketAdminsCrud: number;
   eventVisibility: EventVisibility;
 }
 
@@ -46,5 +52,8 @@ export interface UpdateAdminBody {
   password?: string;
   adminsCrud?: number;
   usersCrud?: number;
+  bucketsCrud?: number;
+  bucketMessagesCrud?: number;
+  bucketAdminsCrud?: number;
   eventVisibility?: EventVisibility;
 }

@@ -35,14 +35,18 @@ export function CopyLinkBox({
   className = '',
 }: CopyLinkBoxProps) {
   const [copied, setCopied] = useState(false);
+  const [copying, setCopying] = useState(false);
 
   const handleCopy = async () => {
+    setCopying(true);
     try {
       await navigator.clipboard.writeText(value);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch {
       // Caller can optionally listen for errors via a future onCopyError prop if needed.
+    } finally {
+      setCopying(false);
     }
   };
 
@@ -61,7 +65,13 @@ export function CopyLinkBox({
           className={styles.input}
           aria-label={inputAriaLabel ?? copyLabel}
         />
-        <Button type="button" variant="secondary" onClick={handleCopy}>
+        <Button
+          type="button"
+          variant="secondary"
+          onClick={handleCopy}
+          loading={copying}
+          disabled={copying}
+        >
           {copied ? copiedLabel : copyLabel}
         </Button>
       </div>

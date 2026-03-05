@@ -8,7 +8,7 @@ import { bitmaskToFlags } from '@boilerplate/helpers';
 import type { CrudBit } from '@boilerplate/helpers';
 
 import { getServerUser } from '../../../../lib/server-auth';
-import { getManagementApiBaseUrl, getServerManagementApiBaseUrl } from '../../../../config/env';
+import { getServerManagementApiBaseUrl } from '../../../../config/env';
 import { getCrudFlags, hasReadPermission } from '../../../../lib/main-nav';
 import { ROUTES, adminEditRoute } from '../../../../lib/routes';
 import { getCookieHeader } from '../../../../lib/server-request';

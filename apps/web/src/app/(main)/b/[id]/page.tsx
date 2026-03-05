@@ -2,9 +2,16 @@ import { notFound } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
 import type { PublicBucket, PublicBucketMessage } from '@boilerplate/helpers-requests';
 import { webBuckets } from '@boilerplate/helpers-requests';
-import { ButtonLink, ContentPageLayout, Divider, SectionWithHeading, Stack } from '@boilerplate/ui';
+import {
+  BucketMessageList,
+  ButtonLink,
+  ContentPageLayout,
+  Divider,
+  SectionWithHeading,
+  Stack,
+} from '@boilerplate/ui';
+import type { BucketMessageListItem } from '@boilerplate/ui';
 
-import { BucketMessageList } from '../../../../components/BucketMessageList/BucketMessageList';
 import { getServerApiBaseUrl } from '../../../../lib/server-request';
 import { publicBucketSubmitRoute } from '../../../../lib/routes';
 
@@ -34,13 +41,7 @@ export default async function PublicBucketPage({ params }: { params: Promise<{ i
   const messages = await fetchPublicMessages(id);
   const t = await getTranslations('buckets');
 
-  const listItems: {
-    id: string;
-    senderName: string;
-    body: string;
-    isPublic: boolean;
-    createdAt: string;
-  }[] = messages.map((m) => ({
+  const listItems: BucketMessageListItem[] = messages.map((m) => ({
     id: m.id,
     senderName: m.senderName,
     body: m.body,
@@ -49,7 +50,7 @@ export default async function PublicBucketPage({ params }: { params: Promise<{ i
   }));
 
   return (
-    <ContentPageLayout title={bucket.name}>
+    <ContentPageLayout title={bucket.name} contentMaxWidth="readable">
       <Stack>
         <ButtonLink href={publicBucketSubmitRoute(id)} variant="primary">
           Submit a message
@@ -60,7 +61,6 @@ export default async function PublicBucketPage({ params }: { params: Promise<{ i
             messages={listItems}
             variant="public"
             emptyMessage={t('noPublicMessagesYet')}
-            readableText
           />
         </SectionWithHeading>
       </Stack>

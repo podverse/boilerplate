@@ -82,7 +82,7 @@ export async function changePassword(
 /** Call PATCH /auth/me to update profile (display name, profile visibility). Uses cookies by default. */
 export async function updateProfile(
   baseUrl: string,
-  body: { displayName: string | null; profileVisibility?: boolean },
+  body: { displayName: string | null },
   options?: { token?: string | null }
 ): AuthResponse {
   return request(baseUrl, '/auth/me', {

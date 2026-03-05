@@ -55,6 +55,34 @@ export class BucketService {
     });
   }
 
+  /**
+   * List all buckets with optional search (name) and pagination. For management API.
+   */
+  static async listPaginated(
+    limit: number,
+    offset: number,
+    search?: string
+  ): Promise<{ buckets: Bucket[]; total: number }> {
+    const repo = appDataSourceRead.getRepository(Bucket);
+    const qb = repo
+      .createQueryBuilder('bucket')
+      .leftJoinAndSelect('bucket.settings', 'settings')
+      .orderBy('bucket.createdAt', 'DESC');
+    const countQb = repo.createQueryBuilder('bucket');
+    const searchTrim = search?.trim();
+    if (searchTrim !== undefined && searchTrim !== '') {
+      const escaped = searchTrim.replace(/\\/g, '\\\\').replace(/%/g, '\\%').replace(/_/g, '\\_');
+      const pattern = `%${escaped}%`;
+      qb.andWhere("LOWER(bucket.name) LIKE LOWER(:search) ESCAPE '\\'", { search: pattern });
+      countQb.andWhere("LOWER(bucket.name) LIKE LOWER(:search) ESCAPE '\\'", { search: pattern });
+    }
+    const [buckets, total] = await Promise.all([
+      qb.take(limit).skip(offset).getMany(),
+      countQb.getCount(),
+    ]);
+    return { buckets, total };
+  }
+
   static async create(data: {
     ownerId: string;
     name: string;

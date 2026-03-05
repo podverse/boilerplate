@@ -1,8 +1,17 @@
 'use client';
 
 import { usePathname } from 'next/navigation';
-import { ContentPageLayout } from '@boilerplate/ui';
-import { BucketSettingsBreadcrumbs } from './BucketSettingsBreadcrumbs';
+import { useTranslations } from 'next-intl';
+import {
+  BucketSettingsBreadcrumbs,
+  BucketSettingsLayoutClient as UISettingsLayout,
+} from '@boilerplate/ui';
+
+import {
+  bucketDetailRoute,
+  bucketSettingsRoute,
+  bucketSettingsAdminsRoute,
+} from '../../../../../lib/routes';
 
 type BucketSettingsLayoutClientProps = {
   bucketId: string;
@@ -24,15 +33,27 @@ export function BucketSettingsLayoutClient({
   children,
 }: BucketSettingsLayoutClientProps) {
   const pathname = usePathname();
+  const t = useTranslations('buckets');
   const isEditAdminPage = isEditAdminPath(pathname, bucketId);
 
   return (
-    <ContentPageLayout
-      breadcrumbs={<BucketSettingsBreadcrumbs bucketId={bucketId} bucketName={bucketName} />}
+    <UISettingsLayout
+      breadcrumbs={
+        <BucketSettingsBreadcrumbs
+          bucketName={bucketName}
+          bucketDetailHref={bucketDetailRoute(bucketId)}
+          settingsHref={bucketSettingsRoute(bucketId)}
+          settingsLabel={t('bucketSettings')}
+          settingsAriaLabel={t('bucketSettings')}
+          isEditAdminPage={isEditAdminPage}
+          adminsHref={bucketSettingsAdminsRoute(bucketId)}
+          adminsLabel={t('admins')}
+        />
+      }
       title={isEditAdminPage ? undefined : bucketSettingsTitle}
-      type="form"
+      contentMaxWidth="form"
     >
       {children}
-    </ContentPageLayout>
+    </UISettingsLayout>
   );
 }

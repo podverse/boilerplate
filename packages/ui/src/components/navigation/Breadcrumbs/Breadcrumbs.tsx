@@ -31,11 +31,12 @@ export function Breadcrumbs({ items, LinkComponent, ariaLabel = 'Breadcrumb' }: 
       <ol className={styles.list}>
         {items.map((item, index) => {
           const isLast = index === items.length - 1;
-          const hasHref = item.href !== undefined && item.href !== '';
+          const linkHref = item.href ?? '';
+          const hasHref = linkHref !== '';
           return (
             <li key={index} className={styles.item}>
               {hasHref ? (
-                <LinkComponent href={item.href} className={styles.link}>
+                <LinkComponent href={linkHref} className={styles.link}>
                   {item.label}
                 </LinkComponent>
               ) : (

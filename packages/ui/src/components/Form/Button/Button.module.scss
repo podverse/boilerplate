@@ -62,12 +62,14 @@
 .loading {
   position: relative;
   pointer-events: none;
+  /* Min width so button doesn't collapse when label is hidden; spinner stays visible. */
+  min-width: 2.5rem;
 
   &::after {
     content: '';
     position: absolute;
-    width: $size-inline;
-    height: $size-inline;
+    width: 1.25em;
+    height: 1.25em;
     border: $loading-spinner-border-width solid transparent;
     border-right-color: var(--color-text);
     border-radius: $radius-full;

@@ -6,3 +6,16 @@
   gap: $gap-standard;
   min-width: 0;
 }
+
+.stackReadable {
+  width: 100%;
+  max-width: $content-readable-max-width;
+  box-sizing: border-box;
+}
+
+.stackForm {
+  width: 100%;
+  max-width: $input-max-width;
+  min-width: 0;
+  box-sizing: border-box;
+}

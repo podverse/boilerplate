@@ -1,11 +1,18 @@
 'use client';
 
+import { usePathname, useSearchParams } from 'next/navigation';
+import { useTranslations } from 'next-intl';
+import { BucketSettingsTabs } from '@boilerplate/ui';
+
 import type { BucketSettingsTab } from '../../../../../lib/routes';
-import { bucketDetailRoute } from '../../../../../lib/routes';
+import {
+  bucketDetailRoute,
+  bucketSettingsRoute,
+  bucketSettingsAdminsRoute,
+} from '../../../../../lib/routes';
 import { BucketForm } from '../../BucketForm';
 import type { BucketForForm } from '../../BucketForm';
 import { BucketAdminsClient } from '../BucketAdminsClient';
-import { BucketSettingsTabs } from './BucketSettingsTabs';
 
 type AdminRow = {
   id: string;
@@ -45,9 +52,24 @@ export function BucketSettingsContent({
   admins,
   pendingInvitations,
 }: BucketSettingsContentProps) {
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const tabParam = searchParams.get('tab');
+  const currentHref =
+    pathname !== null && pathname !== undefined
+      ? `${pathname}${tabParam !== null && tabParam !== '' ? `?tab=${tabParam}` : ''}`
+      : bucketSettingsRoute(bucketId, activeTab);
+  const t = useTranslations('buckets');
+
   return (
     <>
-      <BucketSettingsTabs bucketId={bucketId} activeTab={activeTab} />
+      <BucketSettingsTabs
+        generalHref={bucketSettingsRoute(bucketId)}
+        generalLabel={t('general')}
+        adminsHref={bucketSettingsAdminsRoute(bucketId)}
+        adminsLabel={t('admins')}
+        activeHref={currentHref}
+      />
       {activeTab === 'general' ? (
         <BucketForm
           mode="edit"

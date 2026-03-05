@@ -91,6 +91,9 @@ $dropdown-panel-min-width-lg: 14rem;
 // Input (text, email, password, etc.)
 $input-max-width: 32rem;
 
+// Content readable width (e.g. bucket detail, messages list — Stack/Container maxWidth="readable")
+$content-readable-max-width: 660px;
+
 // Password strength meter
 $password-strength-label-min-width: 4.5rem;
 

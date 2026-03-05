@@ -4,7 +4,6 @@
 -- short_id: URL-safe public id (app sets on insert via nanoid).
 CREATE TABLE "user" (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    profile_visibility BOOLEAN NOT NULL DEFAULT false,
     email_verified_at TIMESTAMP NULL,
     short_id VARCHAR(12) NOT NULL,
     created_at server_time_with_default NOT NULL,

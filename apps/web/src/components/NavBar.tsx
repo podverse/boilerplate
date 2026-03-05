@@ -30,7 +30,6 @@ export function NavBar({ appName }: { appName: string }) {
       onLogout={handleLogout}
       navItems={[
         { href: ROUTES.BUCKETS, label: t('buckets') },
-        { href: ROUTES.PROFILE, label: t('profile') },
         { href: ROUTES.SETTINGS, label: t('settings') },
       ]}
       loginHref={ROUTES.LOGIN}

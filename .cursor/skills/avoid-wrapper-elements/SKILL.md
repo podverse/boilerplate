@@ -14,6 +14,8 @@ Do **not** add free-floating wrappers (div, span, etc.) whose sole purpose is to
 1. **Use an existing component** that already provides the structure (e.g. `Stack`, `Container`, `SectionWithHeading`, `Card`, `ContentPageLayout`).
 2. **Add a reusable component** if the pattern is repeated or will be—put the structure and styles in that component and use it from the page.
 
+In **shared UI / layout components** (e.g. `BucketDetailContent`), do **not** use raw `<div>`, `<h1>`, `<h2>`, or other heading tags when a layout component exists: use **PageHeader** for page/section titles, **SectionWithHeading** for section blocks, **Stack** / **Container** for layout. This keeps markup consistent and lets the design system own structure and semantics.
+
 ## How to fix
 
 - **Spacing between blocks:** Prefer layout components (e.g. `Stack` with gap) or margin/padding on the real semantic parent (section, article, the component that owns the content).
@@ -30,6 +32,9 @@ Do **not** add free-floating wrappers (div, span, etc.) whose sole purpose is to
 
 - **Bad:** Nested divs that each apply one CSS property.  
   **Good:** Single semantic container or existing layout component; consolidate styles there or in a new reusable component.
+
+- **Bad:** `<h2>{name}</h2>` or a raw `<div className={styles.wrap}>` for content width in a shared component.  
+  **Good:** `<PageHeader title={name} />` for the title; `<Container contentMaxWidth="readable">` or `<Stack maxWidth="readable">` for layout.
 
 ## Relation to other skills
 

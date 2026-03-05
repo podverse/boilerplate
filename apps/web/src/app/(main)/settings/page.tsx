@@ -2,14 +2,30 @@ import { redirect } from 'next/navigation';
 
 import { getServerUser } from '../../../lib/server-auth';
 import { ROUTES } from '../../../lib/routes';
-import { SettingsContent } from './SettingsContent';
+import type { AccountSettingsTab } from '../../../lib/routes';
+import { SettingsPageContent } from './SettingsPageContent';
 
-export default async function SettingsPage() {
+export default async function SettingsPage({
+  searchParams,
+}: {
+  searchParams?: Promise<{ tab?: string }>;
+}) {
   const user = await getServerUser();
 
   if (user === null) {
     redirect(ROUTES.LOGIN);
   }
 
-  return <SettingsContent settingsCookieName="web-settings" />;
+  const resolvedSearch = searchParams !== undefined ? await searchParams : {};
+  const tabParam = resolvedSearch.tab ?? 'general';
+  const activeTab: AccountSettingsTab =
+    tabParam === 'profile'
+      ? 'profile'
+      : tabParam === 'password'
+        ? 'password'
+        : tabParam === 'email'
+          ? 'email'
+          : 'general';
+
+  return <SettingsPageContent initialUser={user} activeTab={activeTab} />;
 }

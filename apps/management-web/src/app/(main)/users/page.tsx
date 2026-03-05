@@ -89,16 +89,12 @@ export default async function UsersPage({ searchParams }: PageProps) {
     cells: {
       email: u.email,
       displayName: u.displayName !== null && u.displayName !== '' ? u.displayName : '—',
-      profileVisibility: u.profileVisibility
-        ? tCommon('usersTable.visibilityYes')
-        : tCommon('usersTable.visibilityNo'),
     },
   }));
 
   const userColumns = [
     { id: 'email', label: tCommon('usersTable.email') },
     { id: 'displayName', label: tCommon('usersTable.displayName') },
-    { id: 'profileVisibility', label: tCommon('usersTable.profileVisibility') },
   ];
 
   const currentQueryParams: Record<string, string> = {};

@@ -1,4 +1,4 @@
--- Combined migrations generated Wed Mar  4 11:30:55 CST 2026
+-- Combined migrations generated Wed Mar  4 13:30:55 CST 2026
 -- DO NOT EDIT - regenerate with scripts/database/combine-migrations.sh
 
 -- Including: 0000_init_helpers.sql
@@ -33,7 +33,6 @@ $$ LANGUAGE plpgsql;
 -- short_id: URL-safe public id (app sets on insert via nanoid).
 CREATE TABLE "user" (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    profile_visibility BOOLEAN NOT NULL DEFAULT false,
     email_verified_at TIMESTAMP NULL,
     short_id VARCHAR(12) NOT NULL,
     created_at server_time_with_default NOT NULL,

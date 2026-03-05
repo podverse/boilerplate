@@ -5,7 +5,7 @@ import { ResourcePageCard } from '../../../../../components/ResourcePageCard';
 import { UserForm } from '../../../../../components/users/UserForm';
 import type { UserFormInitialValues } from '../../../../../components/users/UserForm';
 import { getServerUser } from '../../../../../lib/server-auth';
-import { getManagementApiBaseUrl, getServerManagementApiBaseUrl } from '../../../../../config/env';
+import { getServerManagementApiBaseUrl } from '../../../../../config/env';
 import { getCrudFlags } from '../../../../../lib/main-nav';
 import { ROUTES } from '../../../../../lib/routes';
 import { getCookieHeader } from '../../../../../lib/server-request';
@@ -54,7 +54,6 @@ export default async function EditUserPage({ params }: EditUserPageProps) {
   const initialValues: UserFormInitialValues = {
     email: mainUser.email,
     displayName: mainUser.displayName ?? '',
-    profileVisibility: mainUser.profileVisibility,
   };
 
   const tCommon = await getTranslations('common');

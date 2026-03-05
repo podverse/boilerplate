@@ -18,9 +18,6 @@ export class User {
   @Column({ name: 'short_id', length: 12, unique: true })
   shortId!: string;
 
-  @Column({ name: 'profile_visibility', type: 'boolean', default: false })
-  profileVisibility!: boolean;
-
   @Column({ name: 'email_verified_at', type: 'timestamp', nullable: true })
   emailVerifiedAt!: Date | null;
 

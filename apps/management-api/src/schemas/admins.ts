@@ -21,6 +21,9 @@ export const createAdminSchema = Joi.object({
   displayName: Joi.string().max(SHORT_TEXT_MAX_LENGTH).min(1).required(),
   adminsCrud: crudSchema.default(0),
   usersCrud: crudSchema.default(0),
+  bucketsCrud: crudSchema.default(0),
+  bucketMessagesCrud: crudSchema.default(0),
+  bucketAdminsCrud: crudSchema.default(0),
   eventVisibility: eventVisibilitySchema.default('all_admins'),
 });
 
@@ -30,6 +33,9 @@ export const updateAdminSchema = Joi.object({
   password: Joi.string().min(PASSWORD_MIN_LENGTH).max(PASSWORD_MAX_LENGTH),
   adminsCrud: crudSchema,
   usersCrud: crudSchema,
+  bucketsCrud: crudSchema,
+  bucketMessagesCrud: crudSchema,
+  bucketAdminsCrud: crudSchema,
   eventVisibility: eventVisibilitySchema,
 }).min(1);
 

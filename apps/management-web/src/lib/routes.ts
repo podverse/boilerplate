@@ -12,6 +12,8 @@ export const ROUTES = {
   EVENTS: '/events',
   USERS: '/users',
   USERS_NEW: '/users/new',
+  BUCKETS: '/buckets',
+  BUCKETS_NEW: '/buckets/new',
 } as const;
 
 export function adminViewRoute(id: string): string {
@@ -28,6 +30,38 @@ export function userViewRoute(id: string): string {
 
 export function userEditRoute(id: string): string {
   return `/users/${id}/edit`;
+}
+
+export function bucketViewRoute(id: string): string {
+  return `/buckets/${id}`;
+}
+
+export function bucketEditRoute(id: string): string {
+  return `/buckets/${id}/edit`;
+}
+
+export type BucketSettingsTab = 'general' | 'admins';
+
+export function bucketSettingsRoute(id: string, tab?: BucketSettingsTab): string {
+  const base = `/buckets/${id}/settings`;
+  if (tab === 'admins') return `${base}?tab=admins`;
+  return base;
+}
+
+export function bucketSettingsAdminsRoute(id: string): string {
+  return bucketSettingsRoute(id, 'admins');
+}
+
+export function bucketSettingsAdminEditRoute(bucketId: string, userId: string): string {
+  return `/buckets/${bucketId}/settings/admins/${userId}/edit`;
+}
+
+export function bucketMessagesRoute(id: string): string {
+  return `/buckets/${id}/messages`;
+}
+
+export function bucketMessageEditRoute(bucketId: string, messageId: string): string {
+  return `/buckets/${bucketId}/messages/${messageId}/edit`;
 }
 
 /** Paths where unauthenticated users are allowed; 401 on these should not trigger redirect. */

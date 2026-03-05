@@ -8,7 +8,6 @@ import { managementWebUsers } from '@boilerplate/helpers-requests';
 import type { CreateUserBody } from '@boilerplate/helpers-requests';
 import {
   Button,
-  CheckboxField,
   FormActions,
   FormContainer,
   FormSection,
@@ -24,7 +23,6 @@ import { ROUTES } from '../../lib/routes';
 export type UserFormInitialValues = {
   email: string;
   displayName: string;
-  profileVisibility: boolean;
 };
 
 export type UserFormProps = {
@@ -45,9 +43,6 @@ export function UserForm({ mode, userId, initialValues }: UserFormProps) {
   const [email, setEmail] = useState(initialValues?.email ?? '');
   const [password, setPassword] = useState('');
   const [displayName, setDisplayName] = useState(initialValues?.displayName ?? '');
-  const [profileVisibility, setProfileVisibility] = useState(
-    initialValues?.profileVisibility ?? false
-  );
 
   const [newPassword, setNewPassword] = useState('');
 
@@ -116,7 +111,6 @@ export function UserForm({ mode, userId, initialValues }: UserFormProps) {
           email: email.trim(),
           password,
           displayName: displayName.trim() === '' ? null : displayName.trim(),
-          profileVisibility,
         };
         const res = await managementWebUsers.createUser(apiBaseUrl, body);
         if (!res.ok) {
@@ -136,7 +130,6 @@ export function UserForm({ mode, userId, initialValues }: UserFormProps) {
         const res = await managementWebUsers.updateUser(apiBaseUrl, userId, {
           email: email.trim(),
           displayName: displayName.trim() === '' ? null : displayName.trim(),
-          profileVisibility,
         });
         if (!res.ok) {
           setSubmitError(res.error.message ?? t('updateFailed'));
@@ -207,11 +200,6 @@ export function UserForm({ mode, userId, initialValues }: UserFormProps) {
           value={displayName}
           onChange={setDisplayName}
           autoComplete="off"
-        />
-        <CheckboxField
-          label={t('profileVisibility')}
-          checked={profileVisibility}
-          onChange={setProfileVisibility}
         />
 
         {submitError !== null && (

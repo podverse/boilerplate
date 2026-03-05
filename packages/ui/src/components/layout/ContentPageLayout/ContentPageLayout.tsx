@@ -5,8 +5,6 @@ import { PageHeader } from '../PageHeader';
 import { Stack } from '../Stack';
 import { Text } from '../Text';
 
-import styles from './ContentPageLayout.module.scss';
-
 export type ContentPageLayoutProps = {
   /** Page title (e.g. "Profile", "Settings"). Rendered as an h1 via PageHeader. Omit to hide the header (e.g. when the page renders its own). */
   title?: ReactNode;
@@ -16,8 +14,8 @@ export type ContentPageLayoutProps = {
   error?: string | null;
   /** Variant for the error message. Default "muted". */
   errorVariant?: 'muted' | 'error';
-  /** When "form", constrains content to form width (same max-width as FormContainer). Omit for default layout. */
-  type?: 'form';
+  /** When set, constrains content max-width: "readable" (e.g. message lists), "form" (form width, aligns with FormContainer). Passed to Container. */
+  contentMaxWidth?: 'readable' | 'form';
   /** Main content below the header. */
   children: ReactNode;
 };
@@ -25,26 +23,18 @@ export type ContentPageLayoutProps = {
 /**
  * Standard layout for content pages with a page header and no table: Container > Stack > PageHeader + optional error + children.
  * Use for profile, settings, and any other page that shows a PageHeader and content (forms, cards) without a filter table.
- * Pass type="form" for pages with multiple form sections so content uses the form max-width.
+ * Pass contentMaxWidth="form" or contentMaxWidth="readable" to constrain content width.
  */
 export function ContentPageLayout({
   title,
   breadcrumbs,
   error,
   errorVariant = 'muted',
-  type,
+  contentMaxWidth,
   children,
 }: ContentPageLayoutProps) {
-  const content =
-    type === 'form' ? (
-      <div className={styles.form}>
-        <Stack>{children}</Stack>
-      </div>
-    ) : (
-      <Stack>{children}</Stack>
-    );
   return (
-    <Container>
+    <Container contentMaxWidth={contentMaxWidth}>
       {breadcrumbs}
       {title !== undefined && title !== null && <PageHeader title={title} />}
       {error !== undefined && error !== null && error !== '' && (
@@ -52,7 +42,7 @@ export function ContentPageLayout({
           {error}
         </Text>
       )}
-      {content}
+      <Stack>{children}</Stack>
     </Container>
   );
 }

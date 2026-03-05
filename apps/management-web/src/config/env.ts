@@ -31,3 +31,14 @@ export function getServerManagementApiBaseUrl(): string {
   }
   return getManagementApiBaseUrl();
 }
+
+/**
+ * Base URL of the main web app (e.g. http://localhost:4002). No trailing slash.
+ * Used for: "Public page" link from bucket detail; invitation links (so they point to the web app, not management-web).
+ * When set, public and invite links use this base. When unset, public link falls back to same-origin; invite link is path-only.
+ */
+export function getWebAppUrl(): string | undefined {
+  const url = process.env.NEXT_PUBLIC_WEB_APP_URL?.trim();
+  if (url === undefined || url === '') return undefined;
+  return url.replace(/\/$/, '');
+}

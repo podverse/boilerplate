@@ -1,12 +1,10 @@
 import { redirect, notFound } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
-import { ContentPageLayout } from '@boilerplate/ui';
 
-import { BucketMessageList } from '../../../../../components/BucketMessageList/BucketMessageList';
-import { BucketMessagesBreadcrumbs } from './BucketMessagesBreadcrumbs';
+import { BucketMessagesPageClient } from './BucketMessagesPageClient';
 import { fetchBucket, fetchMessages } from '../../../../../lib/buckets';
 import { getServerUser } from '../../../../../lib/server-auth';
-import { ROUTES } from '../../../../../lib/routes';
+import { ROUTES, bucketDetailRoute } from '../../../../../lib/routes';
 
 export default async function BucketMessagesPage({ params }: { params: Promise<{ id: string }> }) {
   const user = await getServerUser();
@@ -29,17 +27,14 @@ export default async function BucketMessagesPage({ params }: { params: Promise<{
   }));
 
   return (
-    <ContentPageLayout
-      breadcrumbs={<BucketMessagesBreadcrumbs bucketId={id} bucketName={bucket.name} />}
-      title={t('messages')}
-    >
-      <BucketMessageList
-        messages={listItems}
-        variant="management"
-        bucketId={id}
-        emptyMessage={t('noMessagesYet')}
-        readableText
-      />
-    </ContentPageLayout>
+    <BucketMessagesPageClient
+      bucketId={id}
+      bucketName={bucket.name}
+      bucketDetailHref={bucketDetailRoute(id)}
+      messages={listItems}
+      messagesTitle={t('messages')}
+      messagesAriaLabel={t('messages')}
+      emptyMessage={t('noMessagesYet')}
+    />
   );
 }

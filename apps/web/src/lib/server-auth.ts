@@ -11,7 +11,6 @@ export type ServerUser = {
   shortId: string;
   email: string;
   displayName: string | null;
-  profileVisibility: boolean;
 };
 
 const AUTH_USER_HEADER = 'x-auth-user';
@@ -35,7 +34,6 @@ function parseAuthUserHeader(value: string | null): ServerUser | null {
       shortId?: string;
       email?: string;
       displayName?: string | null;
-      profileVisibility?: boolean;
     };
     if (typeof parsed.id !== 'string' || typeof parsed.email !== 'string') {
       return null;
@@ -45,7 +43,6 @@ function parseAuthUserHeader(value: string | null): ServerUser | null {
       shortId: typeof parsed.shortId === 'string' ? parsed.shortId : parsed.id,
       email: parsed.email,
       displayName: parsed.displayName ?? null,
-      profileVisibility: parsed.profileVisibility === true,
     };
   } catch {
     return null;
@@ -98,7 +95,6 @@ export async function getServerUser(): Promise<ServerUser | null> {
       shortId: typeof data.user.shortId === 'string' ? data.user.shortId : data.user.id,
       email: data.user.email,
       displayName: data.user.displayName ?? null,
-      profileVisibility: data.user.profileVisibility === true,
     };
   } catch {
     return null;

@@ -17,6 +17,10 @@ div.root {
   color: var(--color-text);
 }
 
+.rootSurface {
+  background-color: color-mix(in srgb, var(--color-border) 18%, var(--color-bg));
+}
+
 // Reset first/last paragraph margins inside card content
 .root > p:first-of-type {
   margin-top: 0;

@@ -14,7 +14,7 @@ export type ButtonLinkProps = Omit<LinkProps, 'className'> & {
   className?: string;
 };
 
-function isInternalHref(href: ButtonLinkProps['href']): boolean {
+function isInternalHref(href: ButtonLinkProps['href']): href is string {
   return typeof href === 'string' && href.startsWith('/') && !href.startsWith('//');
 }
 

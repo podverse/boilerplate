@@ -71,7 +71,6 @@ async function trySessionRestore(request: NextRequest): Promise<{
       shortId?: string;
       email?: string;
       displayName?: string | null;
-      profileVisibility?: boolean;
     };
   };
   try {
@@ -93,7 +92,6 @@ async function trySessionRestore(request: NextRequest): Promise<{
     shortId: typeof user.shortId === 'string' ? user.shortId : user.id,
     email: user.email,
     displayName: user.displayName ?? null,
-    profileVisibility: user.profileVisibility === true,
   });
   const newHeaders = new Headers(request.headers);
   newHeaders.set(AUTH_USER_HEADER, authUser);

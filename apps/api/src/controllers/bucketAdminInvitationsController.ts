@@ -1,15 +1,18 @@
 import type { Request, Response } from 'express';
 import { randomBytes } from 'crypto';
-import { CRUD_BITS } from '@boilerplate/helpers';
+import {
+  BUCKET_ADMIN_INVITATION_EXPIRY_DAYS,
+  BUCKET_ADMIN_INVITATION_TOKEN_BYTES,
+  CRUD_BITS,
+} from '@boilerplate/helpers';
 import { BucketService, BucketAdminService, BucketAdminInvitationService } from '@boilerplate/orm';
 import type { CreateBucketAdminInvitationBody } from '../schemas/buckets.js';
 import { canManageBucketAdmins } from '../lib/bucket-policy.js';
 
-const INVITATION_TOKEN_BYTES = 32;
 const ADMIN_CRUD_READ = CRUD_BITS.read;
 
 function generateInvitationToken(): string {
-  return randomBytes(INVITATION_TOKEN_BYTES).toString('base64url');
+  return randomBytes(BUCKET_ADMIN_INVITATION_TOKEN_BYTES).toString('base64url');
 }
 
 /** GET /admin-invitations/:token – public, returns invitation details for the invite page. */
@@ -63,7 +66,9 @@ export async function createBucketAdminInvitation(req: Request, res: Response): 
   }
   const body = req.body as CreateBucketAdminInvitationBody;
   const token = generateInvitationToken();
-  const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+  const expiresAt = new Date(
+    Date.now() + BUCKET_ADMIN_INVITATION_EXPIRY_DAYS * 24 * 60 * 60 * 1000
+  );
   const adminCrud = (body.adminCrud ?? ADMIN_CRUD_READ) | ADMIN_CRUD_READ;
   const inv = await BucketAdminInvitationService.create({
     bucketId: bucket.id,
@@ -180,12 +185,28 @@ export async function acceptInvitation(req: Request, res: Response): Promise<voi
     });
     return;
   }
+  const bucket = inv.bucket;
+  if (bucket !== undefined && bucket !== null && bucket.ownerId === user.id) {
+    await BucketAdminInvitationService.updateStatus(inv.id, 'accepted');
+    res.status(200).json({
+      message: 'You are the owner of this bucket',
+      alreadyOwner: true,
+      bucketShortId: bucket.shortId,
+    });
+    return;
+  }
   const existing = await BucketAdminService.findByBucketAndUser(inv.bucketId, user.id);
   if (existing !== null) {
     await BucketAdminInvitationService.updateStatus(inv.id, 'accepted');
-    res
-      .status(200)
-      .json({ message: 'You are already an admin for this bucket', alreadyAdmin: true });
+    const bucketForRedirect = inv.bucket;
+    res.status(200).json({
+      message: 'You are already an admin for this bucket',
+      alreadyAdmin: true,
+      bucketShortId:
+        bucketForRedirect !== undefined && bucketForRedirect !== null
+          ? bucketForRedirect.shortId
+          : undefined,
+    });
     return;
   }
   const adminCrud = inv.adminCrud | ADMIN_CRUD_READ;

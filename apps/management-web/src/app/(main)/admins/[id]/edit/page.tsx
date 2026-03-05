@@ -5,7 +5,7 @@ import { AdminForm } from '../../../../../components/admins/AdminForm';
 import { ResourcePageCard } from '../../../../../components/ResourcePageCard';
 import type { AdminFormInitialValues } from '../../../../../components/admins/AdminForm';
 import { getServerUser } from '../../../../../lib/server-auth';
-import { getManagementApiBaseUrl, getServerManagementApiBaseUrl } from '../../../../../config/env';
+import { getServerManagementApiBaseUrl } from '../../../../../config/env';
 import { getCrudFlags } from '../../../../../lib/main-nav';
 import { ROUTES } from '../../../../../lib/routes';
 import { getCookieHeader } from '../../../../../lib/server-request';

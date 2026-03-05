@@ -14,6 +14,17 @@ export const ROUTES = {
   RESET_PASSWORD: '/reset-password',
 } as const;
 
+/** Account settings tab; URL param ?tab= for profile, password, email. */
+export type AccountSettingsTab = 'general' | 'profile' | 'password' | 'email';
+
+export function accountSettingsRoute(tab?: AccountSettingsTab): string {
+  const base = ROUTES.SETTINGS;
+  if (tab === 'profile') return `${base}?tab=profile`;
+  if (tab === 'password') return `${base}?tab=password`;
+  if (tab === 'email') return `${base}?tab=email`;
+  return base;
+}
+
 export function bucketDetailRoute(id: string): string {
   return `/buckets/${id}`;
 }

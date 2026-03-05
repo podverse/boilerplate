@@ -126,7 +126,7 @@ export function ProfileContent({ initialUser }: ProfileContentProps) {
   );
 
   return (
-    <ContentPageLayout title={t('title')} type="form">
+    <ContentPageLayout title={t('title')} contentMaxWidth="form">
       <SectionWithHeading title={t('profileInformation')}>
         <FormContainer onSubmit={handleUpdateProfile}>
           <Input

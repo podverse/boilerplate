@@ -48,6 +48,7 @@ export function ConfirmDeleteModal({
             className={styles.deleteButton}
             onClick={onConfirm}
             disabled={confirmLoading}
+            loading={confirmLoading}
           >
             {t('delete')}
           </Button>

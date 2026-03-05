@@ -1,0 +1,471 @@
+/**
+ * Management API – buckets and messages integration tests.
+ * Covers bucket CRUD, message list/get/create/update/delete, and permission gating (bucketsCrud, bucketMessagesCrud).
+ */
+import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import request from 'supertest';
+
+import { BucketAdminService, appDataSourceRead, appDataSourceReadWrite } from '@boilerplate/orm';
+import { managementDataSource } from '@boilerplate/management-orm';
+import { createApp } from '../app.js';
+import { config } from '../config/index.js';
+import { createSuperAdminForTest } from './createSuperAdminForTest.js';
+
+const API = config.apiVersionPath;
+const superAdminEmail = 'test-buckets-super@example.com';
+const superAdminPassword = 'test-buckets-super-password-1';
+
+describe('management-api buckets and messages', () => {
+  let app: ReturnType<typeof createApp>;
+  let superAdminAgent: ReturnType<typeof request.agent>;
+  let ownerUserId: string;
+  let bucketId: string;
+  let messageId: string;
+
+  beforeAll(async () => {
+    await appDataSourceRead.initialize();
+    await appDataSourceReadWrite.initialize();
+    await managementDataSource.initialize();
+    await createSuperAdminForTest(superAdminEmail, superAdminPassword);
+    app = createApp();
+    superAdminAgent = request.agent(app);
+    await superAdminAgent
+      .post(`${API}/auth/login`)
+      .send({ email: superAdminEmail, password: superAdminPassword })
+      .expect(200);
+
+    const userRes = await superAdminAgent
+      .post(`${API}/users`)
+      .send({
+        email: 'bucket-owner@example.com',
+        password: 'owner-password-1',
+        displayName: 'Bucket Owner',
+      })
+      .expect(201);
+    ownerUserId = userRes.body.user.id;
+  });
+
+  afterAll(async () => {
+    if (managementDataSource.isInitialized) {
+      await managementDataSource.destroy();
+    }
+    if (appDataSourceReadWrite.isInitialized) {
+      await appDataSourceReadWrite.destroy();
+    }
+    if (appDataSourceRead.isInitialized) {
+      await appDataSourceRead.destroy();
+    }
+  });
+
+  describe('buckets', () => {
+    it('GET /buckets returns 401 without auth', async () => {
+      await request(app).get(`${API}/buckets`).expect(401);
+    });
+
+    it('GET /buckets returns 200 with buckets array (super admin)', async () => {
+      const res = await superAdminAgent.get(`${API}/buckets`).expect(200);
+      expect(res.body).toHaveProperty('buckets');
+      expect(Array.isArray(res.body.buckets)).toBe(true);
+      expect(res.body).toHaveProperty('total');
+      expect(res.body).toHaveProperty('page');
+      expect(res.body).toHaveProperty('limit');
+      expect(res.body).toHaveProperty('totalPages');
+    });
+
+    it('POST /buckets returns 400 when ownerId is not a valid user', async () => {
+      await superAdminAgent
+        .post(`${API}/buckets`)
+        .send({
+          name: 'Test Bucket',
+          ownerId: '00000000-0000-0000-0000-000000000000',
+        })
+        .expect(400, { message: 'Owner not found' });
+    });
+
+    it('POST /buckets creates bucket and GET /buckets/:id returns it with ownerDisplayName', async () => {
+      const createRes = await superAdminAgent
+        .post(`${API}/buckets`)
+        .send({
+          name: 'My Bucket',
+          ownerId: ownerUserId,
+          isPublic: true,
+        })
+        .expect(201);
+      expect(createRes.body.bucket).toHaveProperty('id');
+      expect(createRes.body.bucket.name).toBe('My Bucket');
+      expect(createRes.body.bucket.ownerId).toBe(ownerUserId);
+      bucketId = createRes.body.bucket.id;
+
+      const getRes = await superAdminAgent.get(`${API}/buckets/${bucketId}`).expect(200);
+      expect(getRes.body.bucket.id).toBe(bucketId);
+      expect(getRes.body.bucket.name).toBe('My Bucket');
+      expect(getRes.body.bucket.ownerDisplayName).toBeDefined();
+      expect(typeof getRes.body.bucket.ownerDisplayName).toBe('string');
+    });
+
+    it('PATCH /buckets/:id updates bucket', async () => {
+      const res = await superAdminAgent
+        .patch(`${API}/buckets/${bucketId}`)
+        .send({ name: 'Updated Bucket', isPublic: false })
+        .expect(200);
+      expect(res.body.bucket.name).toBe('Updated Bucket');
+      expect(res.body.bucket.isPublic).toBe(false);
+    });
+
+    it('GET /buckets/:id returns 404 for nonexistent id', async () => {
+      await superAdminAgent
+        .get(`${API}/buckets/00000000-0000-0000-0000-000000000000`)
+        .expect(404, { message: 'Bucket not found' });
+    });
+
+    it('DELETE /buckets/:id returns 401 without auth', async () => {
+      await request(app).delete(`${API}/buckets/${bucketId}`).expect(401);
+    });
+  });
+
+  describe('bucket messages', () => {
+    beforeAll(async () => {
+      if (bucketId === undefined) {
+        const createRes = await superAdminAgent
+          .post(`${API}/buckets`)
+          .send({ name: 'Messages Bucket', ownerId: ownerUserId })
+          .expect(201);
+        bucketId = createRes.body.bucket.id;
+      }
+    });
+
+    it('GET /buckets/:bucketId/messages returns 401 without auth', async () => {
+      await request(app).get(`${API}/buckets/${bucketId}/messages`).expect(401);
+    });
+
+    it('GET /buckets/:bucketId/messages returns 200 with messages array', async () => {
+      const res = await superAdminAgent.get(`${API}/buckets/${bucketId}/messages`).expect(200);
+      expect(res.body).toHaveProperty('messages');
+      expect(Array.isArray(res.body.messages)).toBe(true);
+    });
+
+    it('POST /buckets/:bucketId/messages creates message', async () => {
+      const createRes = await superAdminAgent
+        .post(`${API}/buckets/${bucketId}/messages`)
+        .send({ senderName: 'Test Sender', body: 'Hello world', isPublic: true })
+        .expect(201);
+      expect(createRes.body.message).toHaveProperty('id');
+      expect(createRes.body.message.bucketId).toBe(bucketId);
+      expect(createRes.body.message.senderName).toBe('Test Sender');
+      expect(createRes.body.message.body).toBe('Hello world');
+      messageId = createRes.body.message.id;
+    });
+
+    it('GET /buckets/:bucketId/messages/:messageId returns message', async () => {
+      const res = await superAdminAgent
+        .get(`${API}/buckets/${bucketId}/messages/${messageId}`)
+        .expect(200);
+      expect(res.body.message.id).toBe(messageId);
+      expect(res.body.message.body).toBe('Hello world');
+    });
+
+    it('PATCH /buckets/:bucketId/messages/:messageId updates message', async () => {
+      const res = await superAdminAgent
+        .patch(`${API}/buckets/${bucketId}/messages/${messageId}`)
+        .send({ body: 'Updated body', isPublic: false })
+        .expect(200);
+      expect(res.body.message.body).toBe('Updated body');
+      expect(res.body.message.isPublic).toBe(false);
+    });
+
+    it('DELETE /buckets/:bucketId/messages/:messageId deletes message', async () => {
+      await superAdminAgent.delete(`${API}/buckets/${bucketId}/messages/${messageId}`).expect(204);
+      await superAdminAgent
+        .get(`${API}/buckets/${bucketId}/messages/${messageId}`)
+        .expect(404, { message: 'Message not found' });
+    });
+  });
+
+  describe('bucketsCrud permission', () => {
+    const ts = Date.now();
+    const noBucketsEmail = `no-buckets-${ts}@example.com`;
+    const noBucketsPassword = 'no-buckets-password-1';
+    let noBucketsAgent: ReturnType<typeof request.agent>;
+    let testBucketId: string;
+
+    beforeAll(async () => {
+      await superAdminAgent
+        .post(`${API}/admins`)
+        .send({
+          email: noBucketsEmail,
+          password: noBucketsPassword,
+          displayName: `No Buckets Admin ${ts}`,
+          adminsCrud: 0,
+          usersCrud: 0,
+          bucketsCrud: 0,
+          bucketMessagesCrud: 0,
+          bucketAdminsCrud: 0,
+          eventVisibility: 'own',
+        })
+        .expect(201);
+
+      noBucketsAgent = request.agent(app);
+      await noBucketsAgent
+        .post(`${API}/auth/login`)
+        .send({ email: noBucketsEmail, password: noBucketsPassword })
+        .expect(200);
+
+      const bucketRes = await superAdminAgent
+        .post(`${API}/buckets`)
+        .send({ name: 'Perm Test Bucket', ownerId: ownerUserId })
+        .expect(201);
+      testBucketId = bucketRes.body.bucket.id;
+    });
+
+    it('GET /buckets returns 403 when bucketsCrud read is 0', async () => {
+      await noBucketsAgent
+        .get(`${API}/buckets`)
+        .expect(403, { message: 'Insufficient permissions' });
+    });
+
+    it('GET /buckets/:id returns 403 when bucketsCrud read is 0', async () => {
+      await noBucketsAgent
+        .get(`${API}/buckets/${testBucketId}`)
+        .expect(403, { message: 'Insufficient permissions' });
+    });
+
+    it('GET /buckets/:bucketId/messages returns 403 when bucketsCrud read is 0', async () => {
+      await noBucketsAgent
+        .get(`${API}/buckets/${testBucketId}/messages`)
+        .expect(403, { message: 'Insufficient permissions' });
+    });
+  });
+
+  describe('bucketMessagesCrud permission', () => {
+    const ts = Date.now();
+    const bucketsReadOnlyEmail = `buckets-read-${ts}@example.com`;
+    const bucketsReadOnlyPassword = 'buckets-read-password-1';
+    let bucketsReadOnlyAgent: ReturnType<typeof request.agent>;
+    let testBucketId: string;
+
+    beforeAll(async () => {
+      await superAdminAgent
+        .post(`${API}/admins`)
+        .send({
+          email: bucketsReadOnlyEmail,
+          password: bucketsReadOnlyPassword,
+          displayName: `Buckets Read Only ${ts}`,
+          adminsCrud: 0,
+          usersCrud: 0,
+          bucketsCrud: 2,
+          bucketMessagesCrud: 0,
+          bucketAdminsCrud: 0,
+          eventVisibility: 'own',
+        })
+        .expect(201);
+
+      bucketsReadOnlyAgent = request.agent(app);
+      await bucketsReadOnlyAgent
+        .post(`${API}/auth/login`)
+        .send({ email: bucketsReadOnlyEmail, password: bucketsReadOnlyPassword })
+        .expect(200);
+
+      const bucketRes = await superAdminAgent
+        .post(`${API}/buckets`)
+        .send({ name: 'Messages Perm Bucket', ownerId: ownerUserId })
+        .expect(201);
+      testBucketId = bucketRes.body.bucket.id;
+    });
+
+    it('GET /buckets returns 200 when bucketsCrud read is set', async () => {
+      const res = await bucketsReadOnlyAgent.get(`${API}/buckets`).expect(200);
+      expect(Array.isArray(res.body.buckets)).toBe(true);
+    });
+
+    it('GET /buckets/:id returns 200 when bucketsCrud read is set', async () => {
+      await bucketsReadOnlyAgent.get(`${API}/buckets/${testBucketId}`).expect(200);
+    });
+
+    it('GET /buckets/:bucketId/messages returns 403 when bucketMessagesCrud read is 0', async () => {
+      await bucketsReadOnlyAgent
+        .get(`${API}/buckets/${testBucketId}/messages`)
+        .expect(403, { message: 'Insufficient permissions' });
+    });
+  });
+
+  describe('bucketAdminsCrud permission', () => {
+    const ts = Date.now();
+    const noBucketAdminsEmail = `no-bucket-admins-${ts}@example.com`;
+    const noBucketAdminsPassword = 'no-bucket-admins-password-1';
+    const withBucketAdminsEmail = `with-bucket-admins-${ts}@example.com`;
+    const withBucketAdminsPassword = 'with-bucket-admins-password-1';
+    let noBucketAdminsAgent: ReturnType<typeof request.agent>;
+    let withBucketAdminsAgent: ReturnType<typeof request.agent>;
+    let testBucketId: string;
+    let invitationId: string;
+    let adminUserId: string;
+
+    beforeAll(async () => {
+      await superAdminAgent
+        .post(`${API}/admins`)
+        .send({
+          email: noBucketAdminsEmail,
+          password: noBucketAdminsPassword,
+          displayName: `No Bucket Admins ${ts}`,
+          adminsCrud: 0,
+          usersCrud: 0,
+          bucketsCrud: 2,
+          bucketMessagesCrud: 0,
+          bucketAdminsCrud: 0,
+          eventVisibility: 'own',
+        })
+        .expect(201);
+
+      await superAdminAgent
+        .post(`${API}/admins`)
+        .send({
+          email: withBucketAdminsEmail,
+          password: withBucketAdminsPassword,
+          displayName: `With Bucket Admins ${ts}`,
+          adminsCrud: 0,
+          usersCrud: 0,
+          bucketsCrud: 2,
+          bucketMessagesCrud: 0,
+          bucketAdminsCrud: 15,
+          eventVisibility: 'own',
+        })
+        .expect(201);
+
+      noBucketAdminsAgent = request.agent(app);
+      await noBucketAdminsAgent
+        .post(`${API}/auth/login`)
+        .send({ email: noBucketAdminsEmail, password: noBucketAdminsPassword })
+        .expect(200);
+
+      withBucketAdminsAgent = request.agent(app);
+      await withBucketAdminsAgent
+        .post(`${API}/auth/login`)
+        .send({ email: withBucketAdminsEmail, password: withBucketAdminsPassword })
+        .expect(200);
+
+      const bucketRes = await superAdminAgent
+        .post(`${API}/buckets`)
+        .send({ name: 'Bucket Admins Perm Bucket', ownerId: ownerUserId })
+        .expect(201);
+      testBucketId = bucketRes.body.bucket.id;
+
+      const adminUserRes = await superAdminAgent
+        .post(`${API}/users`)
+        .send({
+          email: `bucket-admin-member-${ts}@example.com`,
+          password: 'admin-member-password-1',
+          displayName: 'Bucket Admin Member',
+        })
+        .expect(201);
+      adminUserId = adminUserRes.body.user.id;
+      await BucketAdminService.create({
+        bucketId: testBucketId,
+        userId: adminUserId,
+        bucketCrud: 0,
+        messageCrud: 2,
+        adminCrud: 2,
+      });
+    });
+
+    it('GET /buckets/:id/admins returns 403 when bucketAdminsCrud read is 0', async () => {
+      await noBucketAdminsAgent
+        .get(`${API}/buckets/${testBucketId}/admins`)
+        .expect(403, { message: 'Insufficient permissions' });
+    });
+
+    it('GET /buckets/:id/admin-invitations returns 403 when bucketAdminsCrud read is 0', async () => {
+      await noBucketAdminsAgent
+        .get(`${API}/buckets/${testBucketId}/admin-invitations`)
+        .expect(403, { message: 'Insufficient permissions' });
+    });
+
+    it('POST /buckets/:id/admin-invitations returns 403 when bucketAdminsCrud create is 0', async () => {
+      await noBucketAdminsAgent
+        .post(`${API}/buckets/${testBucketId}/admin-invitations`)
+        .send({ bucketCrud: 0, messageCrud: 0, adminCrud: 2 })
+        .expect(403, { message: 'Insufficient permissions' });
+    });
+
+    it('GET /buckets/:id/admins returns 200 when bucketAdminsCrud read is set', async () => {
+      const res = await withBucketAdminsAgent
+        .get(`${API}/buckets/${testBucketId}/admins`)
+        .expect(200);
+      expect(res.body).toHaveProperty('admins');
+      expect(Array.isArray(res.body.admins)).toBe(true);
+    });
+
+    it('GET /buckets/:id/admin-invitations returns 200 when bucketAdminsCrud read is set', async () => {
+      const res = await withBucketAdminsAgent
+        .get(`${API}/buckets/${testBucketId}/admin-invitations`)
+        .expect(200);
+      expect(res.body).toHaveProperty('invitations');
+      expect(Array.isArray(res.body.invitations)).toBe(true);
+    });
+
+    it('POST /buckets/:id/admin-invitations creates invitation when bucketAdminsCrud create is set', async () => {
+      const res = await withBucketAdminsAgent
+        .post(`${API}/buckets/${testBucketId}/admin-invitations`)
+        .send({ bucketCrud: 0, messageCrud: 2, adminCrud: 2 })
+        .expect(201);
+      expect(res.body.invitation).toHaveProperty('id');
+      expect(res.body.invitation).toHaveProperty('token');
+      expect(res.body.invitation.messageCrud).toBe(2);
+      invitationId = res.body.invitation.id;
+    });
+
+    it('DELETE /buckets/:id/admin-invitations/:invitationId returns 204 when bucketAdminsCrud delete is set', async () => {
+      await withBucketAdminsAgent
+        .delete(`${API}/buckets/${testBucketId}/admin-invitations/${invitationId}`)
+        .expect(204);
+    });
+
+    it('GET /buckets/:id/admins/:userId returns 200 when bucketAdminsCrud read is set', async () => {
+      const res = await withBucketAdminsAgent
+        .get(`${API}/buckets/${testBucketId}/admins/${adminUserId}`)
+        .expect(200);
+      expect(res.body.admin).toHaveProperty('userId', adminUserId);
+      expect(res.body.admin.messageCrud).toBe(2);
+    });
+
+    it('PATCH /buckets/:id/admins/:userId returns 200 when bucketAdminsCrud update is set', async () => {
+      await withBucketAdminsAgent
+        .patch(`${API}/buckets/${testBucketId}/admins/${adminUserId}`)
+        .send({ messageCrud: 4 })
+        .expect(200);
+      const res = await withBucketAdminsAgent
+        .get(`${API}/buckets/${testBucketId}/admins/${adminUserId}`)
+        .expect(200);
+      expect(res.body.admin.messageCrud).toBe(4);
+    });
+
+    it('GET /buckets/:id/admins/:userId returns 403 when bucketAdminsCrud read is 0', async () => {
+      await noBucketAdminsAgent
+        .get(`${API}/buckets/${testBucketId}/admins/${adminUserId}`)
+        .expect(403, { message: 'Insufficient permissions' });
+    });
+
+    it('PATCH /buckets/:id/admins/:userId returns 403 when bucketAdminsCrud update is 0', async () => {
+      await noBucketAdminsAgent
+        .patch(`${API}/buckets/${testBucketId}/admins/${adminUserId}`)
+        .send({ messageCrud: 4 })
+        .expect(403, { message: 'Insufficient permissions' });
+    });
+
+    it('DELETE /buckets/:id/admins/:userId returns 403 when bucketAdminsCrud delete is 0', async () => {
+      await noBucketAdminsAgent
+        .delete(`${API}/buckets/${testBucketId}/admins/${adminUserId}`)
+        .expect(403, { message: 'Insufficient permissions' });
+    });
+
+    it('DELETE /buckets/:id/admins/:userId returns 204 when bucketAdminsCrud delete is set', async () => {
+      await withBucketAdminsAgent
+        .delete(`${API}/buckets/${testBucketId}/admins/${adminUserId}`)
+        .expect(204);
+      const listRes = await withBucketAdminsAgent
+        .get(`${API}/buckets/${testBucketId}/admins`)
+        .expect(200);
+      const found = listRes.body.admins.some((a: { userId: string }) => a.userId === adminUserId);
+      expect(found).toBe(false);
+    });
+  });
+});

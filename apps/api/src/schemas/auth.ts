@@ -55,5 +55,4 @@ export const confirmEmailChangeSchema = Joi.object({
 
 export const updateProfileSchema = Joi.object({
   displayName: Joi.string().max(SHORT_TEXT_MAX_LENGTH).allow(null, ''),
-  profileVisibility: Joi.boolean().optional(),
 });

@@ -1,14 +1,6 @@
 import { redirect, notFound } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
-import {
-  ButtonLink,
-  Container,
-  DataDetail,
-  Link,
-  Row,
-  SectionWithHeading,
-  Text,
-} from '@boilerplate/ui';
+import { BucketDetailContent } from '@boilerplate/ui';
 
 import { fetchAdmins, fetchBucket, fetchTopics } from '../../../../lib/buckets';
 import { getServerUser } from '../../../../lib/server-auth';
@@ -86,61 +78,39 @@ export default async function BucketDetailPage({ params }: { params: Promise<{ i
       : []),
   ];
 
-  return (
-    <Container>
-      <h2>{bucket.name}</h2>
-      <DataDetail items={detailItems} />
-      <Row wrap>
-        <ButtonLink href={bucketMessagesRoute(id)} variant="secondary">
-          {t('messages')}
-        </ButtonLink>
-        {bucket.isPublic && (
-          <ButtonLink
-            href={publicBucketRoute(bucket.shortId)}
-            variant="secondary"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Public page
-          </ButtonLink>
-        )}
-        <ButtonLink href={bucketSettingsRoute(id)} variant="secondary">
-          {t('settings')}
-        </ButtonLink>
-      </Row>
+  const topicsForContent =
+    bucket.parentBucketId === null
+      ? topics.map((topic) => {
+          const href = bucketDetailRoute(topic.shortId);
+          return {
+            id: topic.id,
+            name: topic.name,
+            href,
+            editHref: `${href}/edit`,
+          };
+        })
+      : undefined;
 
-      {bucket.parentBucketId === null && (
-        <SectionWithHeading title={t('topics')}>
-          {topics.length === 0 ? (
-            <Text style={{ margin: 0 }}>No topics yet.</Text>
-          ) : (
-            <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
-              {topics.map((topic) => (
-                <li
-                  key={topic.id}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    padding: '0.5rem 0',
-                    borderBottom: '1px solid var(--pv-color-border, #eee)',
-                  }}
-                >
-                  <Link
-                    href={bucketDetailRoute(topic.shortId)}
-                    style={{ fontWeight: 500, textDecoration: 'none' }}
-                  >
-                    {topic.name}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          )}
-          <ButtonLink href={`/buckets/${id}/topics/new`} variant="primary">
-            {t('createTopic')}
-          </ButtonLink>
-        </SectionWithHeading>
-      )}
-    </Container>
+  return (
+    <BucketDetailContent
+      bucketName={bucket.name}
+      detailItems={detailItems}
+      showMessagesLink={true}
+      messagesHref={bucketMessagesRoute(id)}
+      messagesLabel={t('messages')}
+      showPublicLink={bucket.isPublic}
+      publicHref={bucket.isPublic ? publicBucketRoute(bucket.shortId) : undefined}
+      publicLabel="Public page"
+      showSettingsLink={true}
+      settingsHref={bucketSettingsRoute(id)}
+      settingsLabel={t('settings')}
+      topics={topicsForContent}
+      topicsTitle={topicsForContent !== undefined ? t('topics') : undefined}
+      topicViewLabel={topicsForContent !== undefined ? t('view') : undefined}
+      topicEditLabel={topicsForContent !== undefined ? t('edit') : undefined}
+      topicDeleteLabel={topicsForContent !== undefined ? t('delete') : undefined}
+      createTopicHref={topicsForContent !== undefined ? `/buckets/${id}/topics/new` : undefined}
+      createTopicLabel={topicsForContent !== undefined ? t('createTopic') : undefined}
+    />
   );
 }

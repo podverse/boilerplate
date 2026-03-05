@@ -307,11 +307,8 @@ export async function updateProfile(req: Request, res: Response): Promise<void> 
     res.status(401).json({ message: 'Authentication required' });
     return;
   }
-  const { displayName, profileVisibility } = req.body as UpdateProfileBody;
+  const { displayName } = req.body as UpdateProfileBody;
   await UserService.updateDisplayName(user.id, displayName ?? null);
-  if (profileVisibility !== undefined) {
-    await UserService.updateProfileVisibility(user.id, profileVisibility);
-  }
   const updated = await UserService.findById(user.id);
   if (updated !== null) {
     res.status(200).json({ user: userToJson(updated) });

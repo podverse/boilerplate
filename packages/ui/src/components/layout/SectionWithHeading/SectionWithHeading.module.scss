@@ -7,9 +7,21 @@
   min-width: 0;
 }
 
+.headingRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: $space-4;
+  min-width: 0;
+}
+
 .title {
-  margin: 0 0 0;
+  margin: 0;
   font-size: $font-size-lead;
   font-weight: $font-weight-semibold;
   color: var(--color-text);
+}
+
+.headingAction {
+  flex-shrink: 0;
 }

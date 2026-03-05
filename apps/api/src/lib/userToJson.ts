@@ -9,7 +9,6 @@ export interface PublicUser {
   shortId: string;
   email: string;
   displayName: string | null;
-  profileVisibility: boolean;
 }
 
 /**
@@ -21,6 +20,5 @@ export function userToJson(user: UserWithRelations): PublicUser {
     shortId: user.shortId,
     email: user.credentials.email,
     displayName: user.bio?.displayName ?? null,
-    profileVisibility: user.profileVisibility,
   };
 }

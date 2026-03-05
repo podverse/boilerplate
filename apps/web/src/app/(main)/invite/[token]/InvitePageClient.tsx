@@ -114,12 +114,27 @@ export function InvitePageClient() {
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
       });
-      const data = await res.json().catch(() => ({}));
+      const data = (await res.json().catch(() => ({}))) as {
+        message?: string;
+        alreadyOwner?: boolean;
+        alreadyAdmin?: boolean;
+        bucketShortId?: string;
+      };
       if (res.ok) {
-        setResultMessage(t('accepted'));
-        const shortId = invitation.bucketShortId;
+        const shortId =
+          typeof data.bucketShortId === 'string' ? data.bucketShortId : invitation.bucketShortId;
+        if (data.alreadyOwner === true) {
+          setResultMessage(t('youAreOwner'));
+        } else if (data.alreadyAdmin === true) {
+          setResultMessage(t('alreadyAdmin'));
+        } else {
+          setResultMessage(t('accepted'));
+        }
         if (typeof shortId === 'string') {
-          setTimeout(() => router.push(bucketDetailRoute(shortId)), 1500);
+          setTimeout(
+            () => router.push(bucketDetailRoute(shortId)),
+            data.alreadyOwner === true ? 800 : 1500
+          );
         } else {
           setTimeout(() => router.push(ROUTES.DASHBOARD), 1500);
         }

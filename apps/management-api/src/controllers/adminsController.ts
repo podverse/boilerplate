@@ -75,6 +75,9 @@ export async function createAdmin(req: Request, res: Response): Promise<void> {
     createdBy: actor.id,
     adminsCrud: body.adminsCrud,
     usersCrud: body.usersCrud,
+    bucketsCrud: body.bucketsCrud,
+    bucketMessagesCrud: body.bucketMessagesCrud,
+    bucketAdminsCrud: body.bucketAdminsCrud,
     eventVisibility: body.eventVisibility,
   });
   await recordEvent({
@@ -113,7 +116,14 @@ export async function updateAdmin(req: Request, res: Response): Promise<void> {
       return;
     }
   }
-  const permissionKeys = ['adminsCrud', 'usersCrud', 'eventVisibility'] as const;
+  const permissionKeys = [
+    'adminsCrud',
+    'usersCrud',
+    'bucketsCrud',
+    'bucketMessagesCrud',
+    'bucketAdminsCrud',
+    'eventVisibility',
+  ] as const;
   const hasPermissionUpdate = permissionKeys.some((k) => body[k] !== undefined);
   const isSuperAdminSelfUpdate = admin.isSuperAdmin && actor.id === id;
   const actorAdminsCrud = actor.permissions?.adminsCrud ?? 0;
@@ -135,6 +145,9 @@ export async function updateAdmin(req: Request, res: Response): Promise<void> {
   if (!isSuperAdminSelfUpdate) {
     if (body.adminsCrud !== undefined) updates.adminsCrud = body.adminsCrud;
     if (body.usersCrud !== undefined) updates.usersCrud = body.usersCrud;
+    if (body.bucketsCrud !== undefined) updates.bucketsCrud = body.bucketsCrud;
+    if (body.bucketMessagesCrud !== undefined) updates.bucketMessagesCrud = body.bucketMessagesCrud;
+    if (body.bucketAdminsCrud !== undefined) updates.bucketAdminsCrud = body.bucketAdminsCrud;
     if (body.eventVisibility !== undefined) updates.eventVisibility = body.eventVisibility;
   }
 

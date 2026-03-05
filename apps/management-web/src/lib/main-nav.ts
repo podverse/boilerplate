@@ -9,7 +9,10 @@ import { ROUTES } from './routes';
 import type { ManagementUserPermissions } from '../types/management-api';
 
 /** Permission keys that hold a CRUD bitmask. Used to gate tab visibility by read access. */
-export type CrudPermissionKey = keyof Pick<ManagementUserPermissions, 'adminsCrud' | 'usersCrud'>;
+export type CrudPermissionKey = keyof Pick<
+  ManagementUserPermissions,
+  'adminsCrud' | 'usersCrud' | 'bucketsCrud' | 'bucketMessagesCrud' | 'bucketAdminsCrud'
+>;
 
 export type MainNavEntry = {
   href: string;
@@ -25,6 +28,7 @@ export const MAIN_NAV_ENTRIES: MainNavEntry[] = [
   { href: ROUTES.ADMINS, labelKey: 'admins', readPermission: 'adminsCrud' },
   { href: ROUTES.EVENTS, labelKey: 'events' },
   { href: ROUTES.USERS, labelKey: 'users', readPermission: 'usersCrud' },
+  { href: ROUTES.BUCKETS, labelKey: 'buckets', readPermission: 'bucketsCrud' },
 ];
 
 /**

@@ -68,12 +68,6 @@ export default async function ViewUserPage({ params }: ViewUserPageProps) {
         <Text>
           <strong>{tCommon('usersTable.displayName')}:</strong> {mainUser.displayName ?? '—'}
         </Text>
-        <Text>
-          <strong>{tCommon('usersTable.profileVisibility')}:</strong>{' '}
-          {mainUser.profileVisibility
-            ? tCommon('usersTable.visibilityYes')
-            : tCommon('usersTable.visibilityNo')}
-        </Text>
         <Stack>
           {crud.update && (
             <ButtonLink href={userEditRoute(id)} variant="primary">
