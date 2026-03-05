@@ -23,7 +23,9 @@ type AdminsResponse = {
 async function fetchAdmins(
   page: number,
   limit: number,
-  search?: string
+  search?: string,
+  sortBy?: string,
+  sortOrder?: string
 ): Promise<{ data: AdminsResponse | null; error: string | null }> {
   const cookieHeader = await getCookieHeader();
   const baseUrl = getServerManagementApiBaseUrl();
@@ -31,6 +33,8 @@ async function fetchAdmins(
   if (page > 1) params.set('page', String(page));
   if (limit !== DEFAULT_PAGE_LIMIT) params.set('limit', String(limit));
   if (search !== undefined && search !== '') params.set('search', search);
+  if (sortBy !== undefined && sortBy.trim() !== '') params.set('sortBy', sortBy.trim());
+  if (sortOrder === 'asc' || sortOrder === 'desc') params.set('sortOrder', sortOrder);
   const query = params.toString();
   const path = query ? `${ROUTES.ADMINS}?${query}` : ROUTES.ADMINS;
 
@@ -66,6 +70,8 @@ type PageProps = {
     limit?: string;
     filterColumns?: string;
     search?: string;
+    sortBy?: string;
+    sortOrder?: string;
   }>;
 };
 
@@ -88,9 +94,18 @@ export default async function AdminsPage({ searchParams }: PageProps) {
   const adminColumnIds = ['email', 'displayName'];
   const effectiveFilterColumns = parseFilterColumns(resolved, adminColumnIds);
   const search = resolved.search ?? '';
+  const sortBy = resolved.sortBy?.trim();
+  const sortOrder =
+    resolved.sortOrder === 'asc' || resolved.sortOrder === 'desc' ? resolved.sortOrder : undefined;
 
   const tCommon = await getTranslations('common');
-  const { data, error } = await fetchAdmins(page, limit, search === '' ? undefined : search);
+  const { data, error } = await fetchAdmins(
+    page,
+    limit,
+    search === '' ? undefined : search,
+    sortBy,
+    sortOrder
+  );
 
   const admins = data?.admins ?? [];
   const totalPages = data?.totalPages ?? 1;
@@ -118,6 +133,8 @@ export default async function AdminsPage({ searchParams }: PageProps) {
   if ((resolved.filterColumns ?? '').trim() !== '')
     currentQueryParams.filterColumns = resolved.filterColumns ?? '';
   if (search !== '') currentQueryParams.search = search;
+  if (sortBy !== undefined && sortBy !== '') currentQueryParams.sortBy = sortBy;
+  if (sortOrder !== undefined) currentQueryParams.sortOrder = sortOrder;
 
   return (
     <FilterTablePageLayout

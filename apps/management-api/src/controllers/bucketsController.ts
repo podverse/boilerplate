@@ -12,9 +12,19 @@ export async function listBuckets(req: Request, res: Response): Promise<void> {
   const limit = Math.min(MAX_PAGE_SIZE, Math.max(1, Number(req.query.limit) || DEFAULT_PAGE_LIMIT));
   const searchRaw = typeof req.query.search === 'string' ? req.query.search.trim() : undefined;
   const search = searchRaw === '' ? undefined : searchRaw;
+  const sortByRaw = typeof req.query.sortBy === 'string' ? req.query.sortBy.trim() : undefined;
+  const sortBy = sortByRaw === '' ? undefined : sortByRaw;
+  const sortOrderRaw = req.query.sortOrder;
+  const sortOrder = sortOrderRaw === 'asc' || sortOrderRaw === 'desc' ? sortOrderRaw : undefined;
   const offset = (page - 1) * limit;
 
-  const { buckets, total } = await BucketService.listPaginated(limit, offset, search);
+  const { buckets, total } = await BucketService.listPaginated(
+    limit,
+    offset,
+    search,
+    sortBy,
+    sortOrder
+  );
   const cappedTotal = total > MAX_TOTAL_CAP ? MAX_TOTAL_CAP : total;
   const totalPages = Math.max(1, Math.ceil(cappedTotal / limit));
   const truncatedTotal = total > MAX_TOTAL_CAP;

@@ -20,7 +20,15 @@ export async function listBuckets(req: Request, res: Response): Promise<void> {
     typeof req.query.search === 'string' && req.query.search.trim() !== ''
       ? req.query.search.trim()
       : undefined;
-  const buckets = await BucketService.findAccessibleByUser(user.id, { search });
+  const sortByRaw = typeof req.query.sortBy === 'string' ? req.query.sortBy.trim() : undefined;
+  const sortBy = sortByRaw === '' ? undefined : sortByRaw;
+  const sortOrderRaw = req.query.sortOrder;
+  const sortOrder = sortOrderRaw === 'asc' || sortOrderRaw === 'desc' ? sortOrderRaw : undefined;
+  const buckets = await BucketService.findAccessibleByUser(user.id, {
+    search,
+    sortBy,
+    sortOrder,
+  });
   const parentIds = [
     ...new Set(
       buckets

@@ -1,6 +1,7 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useCallback, useEffect, useMemo } from 'react';
+import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 
 import { ButtonLink } from '../../form/ButtonLink';
@@ -72,6 +73,8 @@ export type ResourceTableWithFilterProps = {
   searchSyncParams?: Record<string, string>;
   /** When set, only these column IDs appear in the filter dropdown and are used for search. Omit to allow all columns. */
   filterableColumnIds?: string[];
+  /** When set, only these column IDs have sortable headers. Omit to make all data columns sortable. */
+  sortableColumnIds?: string[];
 };
 
 export function ResourceTableWithFilter({
@@ -104,7 +107,9 @@ export function ResourceTableWithFilter({
   currentUserId,
   onSelfDelete,
   searchSyncParams,
+  sortableColumnIds,
 }: ResourceTableWithFilterProps) {
+  const router = useRouter();
   const tFilterBar = useTranslations('ui.tableFilterBar');
   const tPagination = useTranslations('ui.pagination');
   const tGoToModal = useTranslations('ui.pagination.goToPageModal');
@@ -191,6 +196,46 @@ export function ResourceTableWithFilter({
 
   const emptyColSpan = columns.length + (showActions ? 1 : 0);
 
+  const isColumnSortable = useCallback(
+    (colId: string) => sortableColumnIds === undefined || sortableColumnIds.includes(colId),
+    [sortableColumnIds]
+  );
+
+  const firstSortableColumnKey = useMemo(() => {
+    const col = columns.find((c) => isColumnSortable(c.id));
+    return col !== undefined ? (col.sortKey ?? col.id) : undefined;
+  }, [columns, isColumnSortable]);
+
+  useEffect(() => {
+    if (firstSortableColumnKey === undefined) return;
+    const hasSortBy =
+      currentQueryParams.sortBy !== undefined && currentQueryParams.sortBy.trim() !== '';
+    if (hasSortBy) return;
+    const params = new URLSearchParams(currentQueryParams);
+    params.set('sortBy', firstSortableColumnKey);
+    params.set('sortOrder', 'desc');
+    router.replace(`${basePath}?${params.toString()}`);
+  }, [basePath, currentQueryParams, firstSortableColumnKey, router]);
+
+  const effectiveSortBy = currentQueryParams.sortBy?.trim() ?? firstSortableColumnKey;
+  const effectiveSortOrder: 'asc' | 'desc' =
+    currentQueryParams.sortOrder === 'asc' || currentQueryParams.sortOrder === 'desc'
+      ? currentQueryParams.sortOrder
+      : 'desc';
+
+  const handleSortHeaderClick = useCallback(
+    (sortKey: string) => {
+      const nextOrder =
+        effectiveSortBy === sortKey && effectiveSortOrder === 'asc' ? 'desc' : 'asc';
+      const params = new URLSearchParams(currentQueryParams);
+      params.set('sortBy', sortKey);
+      params.set('sortOrder', nextOrder);
+      params.set('page', '1');
+      router.push(`${basePath}?${params.toString()}`);
+    },
+    [basePath, currentQueryParams, router, effectiveSortBy, effectiveSortOrder]
+  );
+
   return (
     <>
       <div className={styles.filterAddRow}>
@@ -221,9 +266,22 @@ export function ResourceTableWithFilter({
         <Table>
           <Table.Head>
             <Table.Row>
-              {columns.map((col) => (
-                <Table.HeaderCell key={col.id}>{col.label}</Table.HeaderCell>
-              ))}
+              {columns.map((col) => {
+                const sortKey = col.sortKey ?? col.id;
+                const sortable = isColumnSortable(col.id);
+                return sortable ? (
+                  <Table.SortableHeaderCell
+                    key={col.id}
+                    sortKey={sortKey}
+                    label={col.label}
+                    activeSortBy={effectiveSortBy}
+                    sortOrder={effectiveSortOrder}
+                    onSort={handleSortHeaderClick}
+                  />
+                ) : (
+                  <Table.HeaderCell key={col.id}>{col.label}</Table.HeaderCell>
+                );
+              })}
               {showActions && <Table.HeaderCell>{tCommon(actionsLabelKey)}</Table.HeaderCell>}
             </Table.Row>
           </Table.Head>

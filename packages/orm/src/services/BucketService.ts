@@ -21,32 +21,34 @@ export class BucketService {
    */
   static async findAccessibleByUser(
     userId: string,
-    options?: { search?: string }
+    options?: { search?: string; sortBy?: string; sortOrder?: 'asc' | 'desc' }
   ): Promise<Bucket[]> {
     const repo = appDataSourceRead.getRepository(Bucket);
+    const orderBy =
+      options?.sortBy !== undefined &&
+      (BucketService.LIST_PAGINATED_SORT_FIELDS as readonly string[]).includes(options.sortBy)
+        ? options.sortBy
+        : 'name';
+    const orderDir: 'ASC' | 'DESC' =
+      options?.sortOrder === 'asc' ? 'ASC' : options?.sortOrder === 'desc' ? 'DESC' : 'DESC';
     const qb = repo
       .createQueryBuilder('bucket')
       .leftJoinAndSelect('bucket.settings', 'settings')
       .leftJoin('bucket_admin', 'ba', 'ba.bucket_id = bucket.id AND ba.user_id = :userId', {
         userId,
       })
-      .leftJoin('bucket.parentBucket', 'parent')
-      .leftJoin(
-        'bucket_admin',
-        'parent_ba',
-        'parent_ba.bucket_id = parent.id AND parent_ba.user_id = :userId'
-      )
-      .where(
+      .where('bucket.parent_bucket_id IS NULL')
+      .andWhere(
         new Brackets((bq) => {
-          bq.where('bucket.owner_id = :userId', { userId })
-            .orWhere('ba.user_id IS NOT NULL')
-            .orWhere(
-              '(bucket.parent_bucket_id IS NOT NULL AND (parent.owner_id = :userId OR parent_ba.user_id IS NOT NULL))'
-            );
+          bq.where('bucket.owner_id = :userId', { userId }).orWhere('ba.user_id IS NOT NULL');
         })
       )
-      .setParameter('userId', userId)
-      .orderBy('LOWER(bucket.name)', 'ASC');
+      .setParameter('userId', userId);
+    if (orderBy === 'name') {
+      qb.orderBy('LOWER(bucket.name)', orderDir);
+    } else {
+      qb.orderBy(`bucket.${orderBy}`, orderDir);
+    }
     const searchTrim = options?.search?.trim();
     if (searchTrim !== undefined && searchTrim !== '') {
       const escaped = searchTrim.replace(/\\/g, '\\\\').replace(/%/g, '\\%').replace(/_/g, '\\_');
@@ -65,20 +67,37 @@ export class BucketService {
     });
   }
 
+  /** Allowed sort fields for listPaginated (entity property names). */
+  static readonly LIST_PAGINATED_SORT_FIELDS = ['name', 'createdAt', 'isPublic'] as const;
+
   /**
    * List all buckets with optional search (name) and pagination. For management API.
    */
   static async listPaginated(
     limit: number,
     offset: number,
-    search?: string
+    search?: string,
+    sortBy?: string,
+    sortOrder?: 'asc' | 'desc'
   ): Promise<{ buckets: Bucket[]; total: number }> {
     const repo = appDataSourceRead.getRepository(Bucket);
+    const orderBy =
+      sortBy !== undefined &&
+      (BucketService.LIST_PAGINATED_SORT_FIELDS as readonly string[]).includes(sortBy)
+        ? sortBy
+        : 'name';
+    const orderDir: 'ASC' | 'DESC' =
+      sortOrder === 'asc' ? 'ASC' : sortOrder === 'desc' ? 'DESC' : 'DESC';
     const qb = repo
       .createQueryBuilder('bucket')
       .leftJoinAndSelect('bucket.settings', 'settings')
-      .orderBy('bucket.createdAt', 'DESC');
-    const countQb = repo.createQueryBuilder('bucket');
+      .where('bucket.parent_bucket_id IS NULL');
+    const countQb = repo.createQueryBuilder('bucket').where('bucket.parent_bucket_id IS NULL');
+    if (orderBy === 'name') {
+      qb.orderBy('LOWER(bucket.name)', orderDir);
+    } else {
+      qb.orderBy(`bucket.${orderBy}`, orderDir);
+    }
     const searchTrim = search?.trim();
     if (searchTrim !== undefined && searchTrim !== '') {
       const escaped = searchTrim.replace(/\\/g, '\\\\').replace(/%/g, '\\%').replace(/_/g, '\\_');

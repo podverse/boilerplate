@@ -14,7 +14,9 @@ import type { ListBucketsData } from '@boilerplate/helpers-requests';
 async function fetchBuckets(
   page: number,
   limit: number,
-  search?: string
+  search?: string,
+  sortBy?: string,
+  sortOrder?: string
 ): Promise<{ data: ListBucketsData | null; error: string | null }> {
   const cookieHeader = await getCookieHeader();
   const baseUrl = getServerManagementApiBaseUrl();
@@ -22,6 +24,8 @@ async function fetchBuckets(
   params.set('page', String(page));
   params.set('limit', String(limit));
   if (search !== undefined && search.trim() !== '') params.set('search', search.trim());
+  if (sortBy !== undefined && sortBy.trim() !== '') params.set('sortBy', sortBy.trim());
+  if (sortOrder === 'asc' || sortOrder === 'desc') params.set('sortOrder', sortOrder);
   const path = `/buckets?${params.toString()}`;
   try {
     const res = await request(baseUrl, path, {
@@ -38,7 +42,13 @@ async function fetchBuckets(
 }
 
 type PageProps = {
-  searchParams?: Promise<{ page?: string; limit?: string; search?: string }>;
+  searchParams?: Promise<{
+    page?: string;
+    limit?: string;
+    search?: string;
+    sortBy?: string;
+    sortOrder?: string;
+  }>;
 };
 
 export default async function BucketsPage({ searchParams }: PageProps) {
@@ -54,9 +64,12 @@ export default async function BucketsPage({ searchParams }: PageProps) {
   const page = Math.max(1, Number(resolved.page) || 1);
   const limit = Math.min(100, Math.max(1, Number(resolved.limit) || 20));
   const search = resolved.search ?? '';
+  const sortBy = resolved.sortBy?.trim();
+  const sortOrder =
+    resolved.sortOrder === 'asc' || resolved.sortOrder === 'desc' ? resolved.sortOrder : undefined;
 
   const tCommon = await getTranslations('common');
-  const { data, error } = await fetchBuckets(page, limit, search);
+  const { data, error } = await fetchBuckets(page, limit, search, sortBy, sortOrder);
 
   const buckets = data?.buckets ?? [];
   const crud = getCrudFlags(user.isSuperAdmin === true, user.permissions, 'bucketsCrud');
@@ -81,6 +94,8 @@ export default async function BucketsPage({ searchParams }: PageProps) {
   if (search !== '') currentQueryParams.search = search;
   if (page > 1) currentQueryParams.page = String(page);
   if (limit !== 20) currentQueryParams.limit = String(limit);
+  if (sortBy !== undefined && sortBy !== '') currentQueryParams.sortBy = sortBy;
+  if (sortOrder !== undefined) currentQueryParams.sortOrder = sortOrder;
 
   return (
     <FilterTablePageLayout

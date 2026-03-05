@@ -12,7 +12,7 @@ import {
   SectionWithHeading,
   Stack,
 } from '@boilerplate/ui';
-import type { BreadcrumbItem } from '@boilerplate/ui';
+import type { BreadcrumbItem, BucketMessageListItem } from '@boilerplate/ui';
 
 import { getServerApiBaseUrl } from '../../../../../../lib/server-request';
 import { publicBucketRoute, publicTopicSubmitRoute } from '../../../../../../lib/routes';

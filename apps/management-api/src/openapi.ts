@@ -433,6 +433,18 @@ export const openApiDocument = {
             schema: { type: 'string' },
             description: 'Filter by display name or email (case-insensitive substring)',
           },
+          {
+            name: 'sortBy',
+            in: 'query',
+            schema: { type: 'string', enum: ['email', 'displayName', 'createdAt'] },
+            description: 'Sort field (default: createdAt)',
+          },
+          {
+            name: 'sortOrder',
+            in: 'query',
+            schema: { type: 'string', enum: ['asc', 'desc'] },
+            description: 'Sort direction (default: asc)',
+          },
         ],
         responses: {
           '200': {
@@ -688,6 +700,20 @@ export const openApiDocument = {
             description:
               'Comma-separated column IDs to apply search in: email, displayName. If omitted, search applies to both.',
           },
+          {
+            name: 'sortBy',
+            in: 'query',
+            required: false,
+            schema: { type: 'string', enum: ['email', 'displayName', 'createdAt'] },
+            description: 'Sort field (default: createdAt)',
+          },
+          {
+            name: 'sortOrder',
+            in: 'query',
+            required: false,
+            schema: { type: 'string', enum: ['asc', 'desc'] },
+            description: 'Sort direction (default: asc)',
+          },
         ],
         responses: {
           '200': {
@@ -935,6 +961,18 @@ export const openApiDocument = {
             in: 'query',
             schema: { type: 'string' },
             description: 'Filter by name (case-insensitive)',
+          },
+          {
+            name: 'sortBy',
+            in: 'query',
+            schema: { type: 'string', enum: ['name', 'createdAt', 'isPublic'] },
+            description: 'Sort field (default: createdAt)',
+          },
+          {
+            name: 'sortOrder',
+            in: 'query',
+            schema: { type: 'string', enum: ['asc', 'desc'] },
+            description: 'Sort direction (default: desc)',
           },
         ],
         responses: {
@@ -1777,7 +1815,23 @@ export const openApiDocument = {
             name: 'sort',
             in: 'query',
             schema: { type: 'string', enum: ['recent', 'oldest'], default: 'recent' },
-            description: 'Sort order: newest first (recent) or oldest first (oldest)',
+            description:
+              'Legacy: sort by timestamp (recent = desc, oldest = asc). Ignored when sortBy is set.',
+          },
+          {
+            name: 'sortBy',
+            in: 'query',
+            schema: {
+              type: 'string',
+              enum: ['timestamp', 'actor', 'action', 'target', 'details'],
+            },
+            description: 'Sort field (when set, sortOrder is used)',
+          },
+          {
+            name: 'sortOrder',
+            in: 'query',
+            schema: { type: 'string', enum: ['asc', 'desc'] },
+            description: 'Sort direction (used when sortBy is set)',
           },
           {
             name: 'search',

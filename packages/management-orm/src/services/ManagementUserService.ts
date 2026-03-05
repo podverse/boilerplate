@@ -75,22 +75,53 @@ export class ManagementUserService {
     });
   }
 
+  /** Allowed sort fields for listAdminsPaginated. */
+  static readonly LIST_ADMINS_SORT_FIELDS = ['email', 'displayName', 'createdAt'] as const;
+
   /** Paginated list of all management users (super admin and admins) and total count. Optional ILIKE search over email and display_name. */
   static async listAdminsPaginated(
     limit: number,
     offset: number,
-    search?: string
+    search?: string,
+    sortBy?: string,
+    sortOrder?: 'asc' | 'desc'
   ): Promise<{ admins: ManagementUser[]; total: number }> {
     const repo = managementDataSource.getRepository(ManagementUser);
     const searchTrim = search?.trim();
     const hasSearch = searchTrim !== undefined && searchTrim !== '';
+    const orderBy =
+      sortBy !== undefined &&
+      (ManagementUserService.LIST_ADMINS_SORT_FIELDS as readonly string[]).includes(sortBy)
+        ? sortBy
+        : 'email';
+    const orderDir: 'ASC' | 'DESC' =
+      sortOrder === 'asc' ? 'ASC' : sortOrder === 'desc' ? 'DESC' : 'DESC';
+
     if (!hasSearch) {
-      const [admins, total] = await repo.findAndCount({
-        relations: ['credentials', 'bio', 'permissions'],
-        order: { createdAt: 'ASC' },
-        take: limit,
-        skip: offset,
-      });
+      if (orderBy === 'createdAt') {
+        const [admins, total] = await repo.findAndCount({
+          relations: ['credentials', 'bio', 'permissions'],
+          order: { createdAt: orderDir },
+          take: limit,
+          skip: offset,
+        });
+        return { admins, total };
+      }
+      const qb = repo
+        .createQueryBuilder('u')
+        .leftJoinAndSelect('u.credentials', 'credentials')
+        .leftJoinAndSelect('u.bio', 'bio')
+        .leftJoinAndSelect('u.permissions', 'permissions')
+        .take(limit)
+        .skip(offset);
+      if (orderBy === 'email') {
+        qb.orderBy('credentials.email', orderDir);
+      } else if (orderBy === 'displayName') {
+        qb.orderBy('bio.displayName', orderDir);
+      } else {
+        qb.orderBy('u.createdAt', orderDir);
+      }
+      const [admins, total] = await qb.getManyAndCount();
       return { admins, total };
     }
     const qb = repo
@@ -101,9 +132,15 @@ export class ManagementUserService {
       .where('(credentials.email ILIKE :searchPattern OR bio.display_name ILIKE :searchPattern)', {
         searchPattern: `%${searchTrim}%`,
       })
-      .orderBy('u.createdAt', 'ASC')
       .take(limit)
       .skip(offset);
+    if (orderBy === 'email') {
+      qb.orderBy('credentials.email', orderDir);
+    } else if (orderBy === 'displayName') {
+      qb.orderBy('bio.displayName', orderDir);
+    } else {
+      qb.orderBy('u.createdAt', orderDir);
+    }
     const [admins, total] = await qb.getManyAndCount();
     return { admins, total };
   }

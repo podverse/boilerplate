@@ -32,6 +32,8 @@ function userToJson(user: UserWithRelations): {
 
 const USER_SEARCH_COLUMN_IDS = ['email', 'displayName'] as const;
 
+const USER_SORT_FIELDS = ['email', 'displayName', 'createdAt'] as const;
+
 export async function listUsers(req: Request, res: Response): Promise<void> {
   const searchRaw =
     typeof req.query.search === 'string' && req.query.search.trim() !== ''
@@ -53,12 +55,29 @@ export async function listUsers(req: Request, res: Response): Promise<void> {
   const searchInEmail = searchColumns.length === 0 || searchColumns.includes('email');
   const searchInDisplayName = searchColumns.length === 0 || searchColumns.includes('displayName');
 
+  const sortByRaw = typeof req.query.sortBy === 'string' ? req.query.sortBy.trim() : undefined;
+  const sortBy =
+    sortByRaw !== undefined && (USER_SORT_FIELDS as readonly string[]).includes(sortByRaw)
+      ? sortByRaw
+      : 'email';
+  const sortOrderRaw = req.query.sortOrder;
+  const sortOrder: 'ASC' | 'DESC' =
+    sortOrderRaw === 'asc' ? 'ASC' : sortOrderRaw === 'desc' ? 'DESC' : 'DESC';
+
   const repo = appDataSourceRead.getRepository(User);
   const qb = repo
     .createQueryBuilder('user')
     .leftJoinAndSelect('user.credentials', 'credentials')
-    .leftJoinAndSelect('user.bio', 'bio')
-    .orderBy('user.created_at', 'ASC');
+    .leftJoinAndSelect('user.bio', 'bio');
+
+  if (sortBy === 'email') {
+    qb.orderBy('credentials.email', sortOrder);
+  } else if (sortBy === 'displayName') {
+    qb.orderBy('bio.displayName', sortOrder);
+  } else {
+    qb.orderBy('user.createdAt', sortOrder);
+  }
+
   if (searchRaw !== undefined) {
     const escaped = searchRaw.replace(/\\/g, '\\\\').replace(/%/g, '\\%').replace(/_/g, '\\_');
     const conditions: string[] = [];

@@ -39,6 +39,8 @@ export type TableWithFilterProps = {
   trailingToolbar?: React.ReactNode;
   /** When set, only these column IDs appear in the filter dropdown. Omit to allow all columns. */
   filterableColumnIds?: string[];
+  /** When set, only these column IDs have sortable headers. Omit to make all data columns sortable. */
+  sortableColumnIds?: string[];
 };
 
 function filterRows(
@@ -72,6 +74,7 @@ export function TableWithFilter({
   maxGoToPage,
   trailingToolbar,
   filterableColumnIds,
+  sortableColumnIds,
 }: TableWithFilterProps) {
   const router = useRouter();
   const tFilterBar = useTranslations('ui.tableFilterBar');
@@ -151,6 +154,46 @@ export function TableWithFilter({
     return Object.keys(merged).length > 0 ? merged : undefined;
   }, [currentQueryParams, extraPaginationParams]);
 
+  const isColumnSortable = useCallback(
+    (colId: string) => sortableColumnIds === undefined || sortableColumnIds.includes(colId),
+    [sortableColumnIds]
+  );
+
+  const firstSortableColumnKey = useMemo(() => {
+    const col = columns.find((c) => isColumnSortable(c.id));
+    return col !== undefined ? (col.sortKey ?? col.id) : undefined;
+  }, [columns, isColumnSortable]);
+
+  useEffect(() => {
+    if (firstSortableColumnKey === undefined) return;
+    const hasSortBy =
+      currentQueryParams.sortBy !== undefined && currentQueryParams.sortBy.trim() !== '';
+    if (hasSortBy) return;
+    const params = new URLSearchParams(currentQueryParams);
+    params.set('sortBy', firstSortableColumnKey);
+    params.set('sortOrder', 'desc');
+    router.replace(`${basePath}?${params.toString()}`);
+  }, [basePath, currentQueryParams, firstSortableColumnKey, router]);
+
+  const effectiveSortBy = currentQueryParams.sortBy?.trim() ?? firstSortableColumnKey;
+  const effectiveSortOrder: 'asc' | 'desc' =
+    currentQueryParams.sortOrder === 'asc' || currentQueryParams.sortOrder === 'desc'
+      ? currentQueryParams.sortOrder
+      : 'desc';
+
+  const handleSortHeaderClick = useCallback(
+    (sortKey: string) => {
+      const nextOrder =
+        effectiveSortBy === sortKey && effectiveSortOrder === 'asc' ? 'desc' : 'asc';
+      const params = new URLSearchParams(currentQueryParams);
+      params.set('sortBy', sortKey);
+      params.set('sortOrder', nextOrder);
+      params.set('page', '1');
+      router.push(`${basePath}?${params.toString()}`);
+    },
+    [basePath, currentQueryParams, router, effectiveSortBy, effectiveSortOrder]
+  );
+
   return (
     <>
       <div className={styles.filterRow}>
@@ -177,9 +220,22 @@ export function TableWithFilter({
         <Table>
           <Table.Head>
             <Table.Row>
-              {columns.map((col) => (
-                <Table.HeaderCell key={col.id}>{col.label}</Table.HeaderCell>
-              ))}
+              {columns.map((col) => {
+                const sortKey = col.sortKey ?? col.id;
+                const sortable = isColumnSortable(col.id);
+                return sortable ? (
+                  <Table.SortableHeaderCell
+                    key={col.id}
+                    sortKey={sortKey}
+                    label={col.label}
+                    activeSortBy={effectiveSortBy}
+                    sortOrder={effectiveSortOrder}
+                    onSort={handleSortHeaderClick}
+                  />
+                ) : (
+                  <Table.HeaderCell key={col.id}>{col.label}</Table.HeaderCell>
+                );
+              })}
             </Table.Row>
           </Table.Head>
           <Table.Body>

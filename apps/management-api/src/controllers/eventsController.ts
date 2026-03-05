@@ -40,6 +40,10 @@ export async function listEvents(req: Request, res: Response): Promise<void> {
   const limit = Math.min(MAX_PAGE_SIZE, Math.max(1, Number(req.query.limit) || DEFAULT_PAGE_LIMIT));
   const sortRaw = req.query.sort;
   const order = sortRaw === 'oldest' ? 'oldest' : 'recent';
+  const sortByRaw = typeof req.query.sortBy === 'string' ? req.query.sortBy.trim() : undefined;
+  const sortBy = sortByRaw === '' ? undefined : sortByRaw;
+  const sortOrderRaw = req.query.sortOrder;
+  const sortOrder = sortOrderRaw === 'asc' || sortOrderRaw === 'desc' ? sortOrderRaw : undefined;
   const searchRaw = typeof req.query.search === 'string' ? req.query.search.trim() : undefined;
   const search = searchRaw === '' ? undefined : searchRaw;
   const offset = (page - 1) * limit;
@@ -53,6 +57,8 @@ export async function listEvents(req: Request, res: Response): Promise<void> {
     limit,
     offset,
     order,
+    sortBy,
+    sortOrder,
     search,
   });
   const cappedTotal = total > MAX_TOTAL_CAP ? MAX_TOTAL_CAP : total;

@@ -29,14 +29,17 @@ export type Bucket = {
 type BucketsResponse = { buckets: Bucket[] };
 
 async function fetchBuckets(
-  search?: string
+  search?: string,
+  sortBy?: string,
+  sortOrder?: string
 ): Promise<{ data: BucketsResponse | null; error: string | null }> {
   const cookieHeader = await getCookieHeader();
   const baseUrl = getServerApiBaseUrl();
-  const path =
-    search !== undefined && search.trim() !== ''
-      ? `/buckets?${new URLSearchParams({ search: search.trim() }).toString()}`
-      : '/buckets';
+  const params = new URLSearchParams();
+  if (search !== undefined && search.trim() !== '') params.set('search', search.trim());
+  if (sortBy !== undefined && sortBy.trim() !== '') params.set('sortBy', sortBy.trim());
+  if (sortOrder === 'asc' || sortOrder === 'desc') params.set('sortOrder', sortOrder);
+  const path = params.toString() !== '' ? `/buckets?${params.toString()}` : '/buckets';
   try {
     const res = await request(baseUrl, path, {
       headers: { Cookie: cookieHeader },
@@ -56,7 +59,12 @@ async function fetchBuckets(
 }
 
 type PageProps = {
-  searchParams?: Promise<{ filterColumns?: string; search?: string }>;
+  searchParams?: Promise<{
+    filterColumns?: string;
+    search?: string;
+    sortBy?: string;
+    sortOrder?: string;
+  }>;
 };
 
 export default async function BucketsPage({ searchParams }: PageProps) {
@@ -70,8 +78,11 @@ export default async function BucketsPage({ searchParams }: PageProps) {
   const bucketColumnIds = ['name'];
   const effectiveFilterColumns = parseFilterColumns(resolved, bucketColumnIds);
   const search = resolved.search ?? '';
+  const sortBy = resolved.sortBy?.trim();
+  const sortOrder =
+    resolved.sortOrder === 'asc' || resolved.sortOrder === 'desc' ? resolved.sortOrder : undefined;
 
-  const { data, error } = await fetchBuckets(search);
+  const { data, error } = await fetchBuckets(search, sortBy, sortOrder);
   const buckets = data?.buckets ?? [];
 
   const tableRows = buckets.map((b) => ({
@@ -91,6 +102,8 @@ export default async function BucketsPage({ searchParams }: PageProps) {
   if ((resolved.filterColumns ?? '').trim() !== '')
     currentQueryParams.filterColumns = resolved.filterColumns ?? '';
   if (search !== '') currentQueryParams.search = search;
+  if (sortBy !== undefined && sortBy !== '') currentQueryParams.sortBy = sortBy;
+  if (sortOrder !== undefined) currentQueryParams.sortOrder = sortOrder;
 
   return (
     <FilterTablePageLayout

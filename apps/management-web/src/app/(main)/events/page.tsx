@@ -36,7 +36,9 @@ async function fetchEvents(
   page: number,
   limit: number,
   sort: string,
-  search?: string
+  search?: string,
+  sortBy?: string,
+  sortOrder?: string
 ): Promise<{ data: EventsResponse | null; error: string | null }> {
   const cookieHeader = await getCookieHeader();
   const baseUrl = getServerManagementApiBaseUrl();
@@ -44,6 +46,8 @@ async function fetchEvents(
   if (page > 1) params.set('page', String(page));
   if (limit !== DEFAULT_PAGE_LIMIT) params.set('limit', String(limit));
   if (sort === 'oldest') params.set('sort', 'oldest');
+  if (sortBy !== undefined && sortBy.trim() !== '') params.set('sortBy', sortBy.trim());
+  if (sortOrder === 'asc' || sortOrder === 'desc') params.set('sortOrder', sortOrder);
   if (search !== undefined && search !== '') params.set('search', search);
   const query = params.toString();
   const path = query ? `${ROUTES.EVENTS}?${query}` : ROUTES.EVENTS;
@@ -79,6 +83,8 @@ type PageProps = {
     page?: string;
     limit?: string;
     sort?: string;
+    sortBy?: string;
+    sortOrder?: string;
     filterColumns?: string;
     search?: string;
   }>;
@@ -95,6 +101,9 @@ export default async function EventsPage({ searchParams }: PageProps) {
   const page = Math.max(1, Number(resolved.page) || 1);
   const limit = DEFAULT_PAGE_LIMIT;
   const sort = resolved.sort === 'oldest' ? 'oldest' : 'recent';
+  const sortBy = resolved.sortBy?.trim();
+  const sortOrder =
+    resolved.sortOrder === 'asc' || resolved.sortOrder === 'desc' ? resolved.sortOrder : undefined;
   const filterColumnsRaw = resolved.filterColumns ?? '';
   const eventColumnIds = ['actor', 'action', 'target', 'details'];
   const initialFilterColumns =
@@ -110,7 +119,14 @@ export default async function EventsPage({ searchParams }: PageProps) {
 
   const locale = await getLocale();
   const tCommon = await getTranslations('common');
-  const { data, error } = await fetchEvents(page, limit, sort, search === '' ? undefined : search);
+  const { data, error } = await fetchEvents(
+    page,
+    limit,
+    sort,
+    search === '' ? undefined : search,
+    sortBy,
+    sortOrder
+  );
 
   const events = data?.events ?? [];
   const totalPages = data?.totalPages ?? 1;
@@ -147,6 +163,8 @@ export default async function EventsPage({ searchParams }: PageProps) {
   const currentQueryParams: Record<string, string> = {};
   if (page > 1) currentQueryParams.page = String(page);
   if (sort === 'oldest') currentQueryParams.sort = 'oldest';
+  if (sortBy !== undefined && sortBy !== '') currentQueryParams.sortBy = sortBy;
+  if (sortOrder !== undefined) currentQueryParams.sortOrder = sortOrder;
   if (filterColumnsRaw.trim() !== '') currentQueryParams.filterColumns = filterColumnsRaw;
   if (search !== '') currentQueryParams.search = search;
 
