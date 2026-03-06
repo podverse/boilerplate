@@ -2,6 +2,7 @@ import { redirect, notFound } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
 import { request } from '@boilerplate/helpers-requests';
 import type { ManagementBucket } from '@boilerplate/helpers-requests';
+import type { BreadcrumbItem } from '@boilerplate/ui';
 
 import { BucketSettingsLayoutClient } from './BucketSettingsLayoutClient';
 import { getServerUser } from '../../../../../lib/server-auth';
@@ -9,6 +10,7 @@ import { getServerManagementApiBaseUrl } from '../../../../../config/env';
 import { hasReadPermission } from '../../../../../lib/main-nav';
 import { ROUTES } from '../../../../../lib/routes';
 import { getCookieHeader } from '../../../../../lib/server-request';
+import { bucketViewRoute } from '../../../../../lib/routes';
 
 async function fetchBucket(id: string): Promise<ManagementBucket | null> {
   const cookieHeader = await getCookieHeader();
@@ -20,6 +22,19 @@ async function fetchBucket(id: string): Promise<ManagementBucket | null> {
   if (!res.ok || res.data === undefined) return null;
   const data = res.data as { bucket?: ManagementBucket };
   return data.bucket ?? null;
+}
+
+async function fetchBucketAncestry(bucket: ManagementBucket): Promise<ManagementBucket[]> {
+  if (bucket.parentBucketId === null) return [];
+  const parents: ManagementBucket[] = [];
+  let parentId: string | null = bucket.parentBucketId;
+  while (parentId !== null) {
+    const parent = await fetchBucket(parentId);
+    if (parent === null) break;
+    parents.unshift(parent);
+    parentId = parent.parentBucketId;
+  }
+  return parents;
 }
 
 export default async function BucketSettingsLayout({
@@ -40,13 +55,21 @@ export default async function BucketSettingsLayout({
   const bucket = await fetchBucket(id);
   if (bucket === null) notFound();
 
-  const t = await getTranslations('buckets');
+  const [t, ancestors] = await Promise.all([
+    getTranslations('buckets'),
+    fetchBucketAncestry(bucket),
+  ]);
+  const ancestorItems: BreadcrumbItem[] = ancestors.map((a) => ({
+    label: a.name,
+    href: bucketViewRoute(a.shortId),
+  }));
 
   return (
     <BucketSettingsLayoutClient
       bucketId={id}
       bucketName={bucket.name}
       bucketSettingsTitle={t('bucketSettings')}
+      ancestorItems={ancestorItems}
     >
       {children}
     </BucketSettingsLayoutClient>

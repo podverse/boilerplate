@@ -6,7 +6,7 @@
 div.root {
   min-width: 0; // allow shrinking inside flex so content doesn't overflow
   padding: $space-5 $space-5;
-  background-color: var(--color-bg, #{$color-bg});
+  background-color: var(--color-bg-muted);
   border-radius: $radius-md;
 }
 
@@ -18,7 +18,7 @@ div.root {
 }
 
 .rootSurface {
-  background-color: color-mix(in srgb, var(--color-border) 18%, var(--color-bg));
+  background-color: color-mix(in srgb, var(--color-border) 15%, var(--color-bg-muted));
 }
 
 // Reset first/last paragraph margins inside card content

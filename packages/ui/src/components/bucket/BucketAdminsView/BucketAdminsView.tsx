@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Button } from '../../form/Button/Button';
 import { CopyLinkBox } from '../../layout/CopyLinkBox/CopyLinkBox';
 import { CrudButtons } from '../../form/CrudButtons/CrudButtons';
@@ -10,12 +10,24 @@ import { Divider } from '../../layout/Divider/Divider';
 import { FormContainer } from '../../form/FormContainer/FormContainer';
 import { Link } from '../../navigation/Link/Link';
 import { SectionWithHeading } from '../../layout/SectionWithHeading/SectionWithHeading';
+import { Select } from '../../form/Select/Select';
 import { Stack } from '../../layout/Stack/Stack';
 import { Text } from '../../layout/Text/Text';
 import { UnorderedList } from '../../layout/UnorderedList/UnorderedList';
 import { CRUD_BITS, bitmaskToFlags, flagsToBitmask } from '@boilerplate/helpers';
 
 import styles from './BucketAdminsView.module.scss';
+
+export const CREATE_NEW_ROLE_VALUE = '__create_new__';
+
+export type BucketAdminRoleOption = {
+  id: string;
+  label: string;
+  description?: string;
+  bucketCrud: number;
+  messageCrud: number;
+  adminCrud: number;
+};
 
 export type BucketAdminRow = {
   id: string;
@@ -44,6 +56,7 @@ export type BucketAdminsViewLabels = {
   bucketPermissions: string;
   messagePermissions: string;
   adminPermissionsLabel: string;
+  bucketPermissionsInfo?: string;
   crudCreate: string;
   crudRead: string;
   crudUpdate: string;
@@ -119,12 +132,24 @@ export type BucketAdminsViewProps = {
   getInviteLinkUrl: (token: string) => string;
   /** Optional: locale for formatting invitation expiry (e.g. from useLocale()). */
   locale?: string;
+  /** When provided, show role dropdown instead of CRUD checkboxes. Role options (predefined + custom). */
+  roleOptions?: BucketAdminRoleOption[];
+  /** When set with roleOptions, show "Create new role…" in the role dropdown; selecting it and submitting navigates here. */
+  createNewRoleHref?: string;
+  /** Label for the role dropdown (when roleOptions is used). */
+  roleSelectLabel?: string;
+  /** Label for the "Custom Role" option (when createNewRoleHref is set). */
+  createNewRoleOptionLabel?: string;
 };
 
 function formatExpiresAt(locale: string, expiresAt: string): string {
   const d = new Date(expiresAt);
   if (Number.isNaN(d.getTime())) return '';
   return d.toLocaleString(locale, { dateStyle: 'medium', timeStyle: 'short' });
+}
+
+function rolePermissionScore(role: BucketAdminRoleOption): number {
+  return role.bucketCrud + role.messageCrud + role.adminCrud;
 }
 
 export function BucketAdminsView({
@@ -138,6 +163,10 @@ export function BucketAdminsView({
   getEditHref,
   getInviteLinkUrl,
   locale = 'en-US',
+  roleOptions = [],
+  createNewRoleHref,
+  roleSelectLabel = 'Role',
+  createNewRoleOptionLabel = 'Custom Role',
 }: BucketAdminsViewProps) {
   const crudLabels: Record<'create' | 'read' | 'update' | 'delete', string> = {
     create: labels.crudCreate,
@@ -145,6 +174,9 @@ export function BucketAdminsView({
     update: labels.crudUpdate,
     delete: labels.crudDelete,
   };
+  const useRoleDropdown =
+    roleOptions.length > 0 || (createNewRoleHref !== undefined && createNewRoleHref !== '');
+
   const [bucketFlags, setBucketFlags] = useState<CrudFlags>({
     create: false,
     read: true,
@@ -163,6 +195,23 @@ export function BucketAdminsView({
     update: false,
     delete: false,
   });
+  const selectOptions = roleOptions.map((r) => ({ value: r.id, label: r.label }));
+  if (createNewRoleHref !== undefined && createNewRoleHref !== '') {
+    selectOptions.push({ value: CREATE_NEW_ROLE_VALUE, label: createNewRoleOptionLabel });
+  }
+  const highestRole =
+    roleOptions.length > 0
+      ? roleOptions.reduce((best, role) =>
+          rolePermissionScore(role) > rolePermissionScore(best) ? role : best
+        )
+      : null;
+  const initialRoleId =
+    highestRole !== null
+      ? highestRole.id
+      : createNewRoleHref !== undefined && createNewRoleHref !== ''
+        ? CREATE_NEW_ROLE_VALUE
+        : (selectOptions[0]?.value ?? '');
+  const [selectedRoleId, setSelectedRoleId] = useState<string>(initialRoleId);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -171,27 +220,101 @@ export function BucketAdminsView({
   const setAdminFlagsWithReadForced = (next: CrudFlags) => {
     setAdminFlags({ ...next, read: true });
   };
+  const setBucketFlagsWithReadForced = (next: CrudFlags) => {
+    const withRead = next.create || next.update || next.delete ? { ...next, read: true } : next;
+    setBucketFlags(withRead);
+    setMessageFlags((prev) => ({
+      ...prev,
+      create: prev.create || withRead.create,
+      read: true,
+      update: prev.update || withRead.update,
+      delete: prev.delete || withRead.delete,
+    }));
+  };
+  const setMessageFlagsWithReadForced = (next: CrudFlags) => {
+    setMessageFlags({
+      ...next,
+      read: true,
+      create: next.create || bucketFlags.create,
+      update: next.update || bucketFlags.update,
+      delete: next.delete || bucketFlags.delete,
+    });
+  };
+
+  const selectedRole = roleOptions.find((r) => r.id === selectedRoleId);
+  const isInvalidRoleSelection =
+    useRoleDropdown && selectedRoleId !== CREATE_NEW_ROLE_VALUE && selectedRole === undefined;
+  const selectedRoleDescription =
+    selectedRoleId !== CREATE_NEW_ROLE_VALUE ? (selectedRole?.description ?? null) : null;
+
+  useEffect(() => {
+    if (!useRoleDropdown || selectedRole === undefined) return;
+    setBucketFlags(bitmaskToFlags(selectedRole.bucketCrud));
+    setMessageFlags(bitmaskToFlags(selectedRole.messageCrud));
+    setAdminFlags(bitmaskToFlags(selectedRole.adminCrud));
+  }, [selectedRole, useRoleDropdown]);
+
+  useEffect(() => {
+    if (!useRoleDropdown || highestRole === null) return;
+    if (selectedRoleId === CREATE_NEW_ROLE_VALUE) return;
+    if (selectedRole === undefined) {
+      setSelectedRoleId(highestRole.id);
+    }
+  }, [useRoleDropdown, highestRole, selectedRole, selectedRoleId]);
 
   const handleGenerateLink = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setSubmitError(null);
     setInviteLink(null);
-    setLoading(true);
-    try {
-      const result = await onCreateInvitation({
-        bucketCrud: flagsToBitmask(bucketFlags),
-        messageCrud: flagsToBitmask(messageFlags),
-        adminCrud: flagsToBitmask(adminFlags) | CRUD_BITS.read,
-      });
-      if ('token' in result) {
-        setInviteLink(getInviteLinkUrl(result.token));
-      } else {
-        setSubmitError(result.error);
+    if (useRoleDropdown) {
+      if (selectedRoleId === CREATE_NEW_ROLE_VALUE) {
+        if (createNewRoleHref !== undefined && createNewRoleHref !== '') {
+          window.location.href = createNewRoleHref;
+        }
+        return;
       }
-    } catch {
-      setSubmitError('Network error');
-    } finally {
-      setLoading(false);
+      const role = roleOptions.find((r) => r.id === selectedRoleId);
+      if (role === undefined) {
+        setSubmitError('Select a role');
+        return;
+      }
+      setLoading(true);
+      try {
+        const result = await onCreateInvitation({
+          bucketCrud: role.bucketCrud,
+          messageCrud: role.messageCrud,
+          adminCrud: role.adminCrud | CRUD_BITS.read,
+        });
+        if ('token' in result) {
+          setInviteLink(getInviteLinkUrl(result.token));
+        } else {
+          setSubmitError(result.error);
+        }
+      } catch {
+        setSubmitError('Network error');
+      } finally {
+        setLoading(false);
+      }
+    } else {
+      setLoading(true);
+      try {
+        const bucketCrud = flagsToBitmask(bucketFlags) | CRUD_BITS.read;
+        const messageCrud = flagsToBitmask(messageFlags) | CRUD_BITS.read | bucketCrud;
+        const result = await onCreateInvitation({
+          bucketCrud,
+          messageCrud,
+          adminCrud: flagsToBitmask(adminFlags) | CRUD_BITS.read,
+        });
+        if ('token' in result) {
+          setInviteLink(getInviteLinkUrl(result.token));
+        } else {
+          setSubmitError(result.error);
+        }
+      } catch {
+        setSubmitError('Network error');
+      } finally {
+        setLoading(false);
+      }
     }
   };
 
@@ -234,31 +357,72 @@ export function BucketAdminsView({
           <Text as="p" variant="muted">
             {labels.addAdminDescription}
           </Text>
-          <CrudCheckboxes
-            label={labels.bucketPermissions}
-            labels={crudLabels}
-            flags={bucketFlags}
-            onChange={setBucketFlags}
-          />
-          <CrudCheckboxes
-            label={labels.messagePermissions}
-            labels={crudLabels}
-            flags={messageFlags}
-            onChange={setMessageFlags}
-          />
+          {useRoleDropdown ? (
+            <>
+              <Select
+                label={roleSelectLabel}
+                options={selectOptions}
+                value={selectedRoleId}
+                onChange={(value) => {
+                  if (value === CREATE_NEW_ROLE_VALUE && createNewRoleHref !== undefined) {
+                    window.location.href = createNewRoleHref;
+                    return;
+                  }
+                  setSelectedRoleId(value);
+                }}
+              />
+              {selectedRoleDescription !== null && selectedRoleDescription !== '' ? (
+                <Text variant="muted" size="sm">
+                  {selectedRoleDescription}
+                </Text>
+              ) : null}
+            </>
+          ) : null}
           <CrudCheckboxes
             label={labels.adminPermissionsLabel}
             labels={crudLabels}
             flags={adminFlags}
             onChange={setAdminFlagsWithReadForced}
-            disabledBits={{ read: true }}
+            disabledBits={useRoleDropdown ? undefined : { read: true }}
+            disabled={useRoleDropdown}
+          />
+          <CrudCheckboxes
+            label={labels.bucketPermissions}
+            labels={crudLabels}
+            flags={bucketFlags}
+            onChange={setBucketFlagsWithReadForced}
+            disabled={useRoleDropdown}
+            disabledBits={!useRoleDropdown ? { read: true } : undefined}
+            selectAllInfo={labels.bucketPermissionsInfo}
+          />
+          <CrudCheckboxes
+            label={labels.messagePermissions}
+            labels={crudLabels}
+            flags={messageFlags}
+            onChange={setMessageFlagsWithReadForced}
+            disabled={useRoleDropdown}
+            disabledBits={
+              !useRoleDropdown
+                ? {
+                    read: true,
+                    create: bucketFlags.create,
+                    update: bucketFlags.update,
+                    delete: bucketFlags.delete,
+                  }
+                : undefined
+            }
           />
           {submitError !== null && (
             <Text variant="error" size="sm" as="p" role="alert">
               {submitError}
             </Text>
           )}
-          <Button type="submit" variant="primary" loading={loading}>
+          <Button
+            type="submit"
+            variant="primary"
+            loading={loading}
+            disabled={isInvalidRoleSelection}
+          >
             {labels.addAdmin}
           </Button>
           {inviteLink !== null && (

@@ -6,11 +6,16 @@ import type { ManagementBucket } from '@boilerplate/helpers-requests';
 
 import { BucketForm } from '../../../../../components/buckets/BucketForm';
 import { BucketAdminsClient } from './BucketAdminsClient';
+import { BucketRolesClient } from './BucketRolesClient';
 import { getServerUser } from '../../../../../lib/server-auth';
 import { getServerManagementApiBaseUrl } from '../../../../../config/env';
 import { hasReadPermission } from '../../../../../lib/main-nav';
 import { getCookieHeader } from '../../../../../lib/server-request';
-import { bucketSettingsRoute, bucketSettingsAdminsRoute } from '../../../../../lib/routes';
+import {
+  bucketSettingsRoute,
+  bucketSettingsAdminsRoute,
+  bucketSettingsRolesRoute,
+} from '../../../../../lib/routes';
 import type { BucketSettingsTab } from '../../../../../lib/routes';
 
 async function fetchBucket(id: string): Promise<ManagementBucket | null> {
@@ -51,10 +56,18 @@ export default async function BucketSettingsPage({
 
   const resolvedSearch = searchParams !== undefined ? await searchParams : {};
   const tabParam = resolvedSearch.tab ?? 'general';
-  const activeTab: BucketSettingsTab = tabParam === 'admins' ? 'admins' : 'general';
+  const activeTab: BucketSettingsTab =
+    tabParam === 'admins' ? 'admins' : tabParam === 'roles' ? 'roles' : 'general';
 
   const t = await getTranslations('buckets');
   const generalHref = bucketSettingsRoute(id);
+
+  const activeHref =
+    activeTab === 'admins'
+      ? bucketSettingsAdminsRoute(id)
+      : activeTab === 'roles'
+        ? bucketSettingsRolesRoute(id)
+        : generalHref;
 
   return (
     <>
@@ -63,7 +76,9 @@ export default async function BucketSettingsPage({
         generalLabel={t('general')}
         adminsHref={canReadBucketAdmins ? bucketSettingsAdminsRoute(id) : undefined}
         adminsLabel={canReadBucketAdmins ? t('admins') : undefined}
-        activeHref={activeTab === 'admins' ? bucketSettingsAdminsRoute(id) : generalHref}
+        rolesHref={canReadBucketAdmins ? bucketSettingsRolesRoute(id) : undefined}
+        rolesLabel={canReadBucketAdmins ? t('roles') : undefined}
+        activeHref={activeHref}
       />
       {activeTab === 'general' ? (
         <BucketForm
@@ -75,8 +90,10 @@ export default async function BucketSettingsPage({
             messageBodyMaxLength: bucket.messageBodyMaxLength ?? null,
           }}
         />
-      ) : canReadBucketAdmins ? (
+      ) : activeTab === 'admins' && canReadBucketAdmins ? (
         <BucketAdminsClient bucketId={id} ownerId={bucket.ownerId} />
+      ) : activeTab === 'roles' && canReadBucketAdmins ? (
+        <BucketRolesClient bucketId={id} />
       ) : (
         notFound()
       )}

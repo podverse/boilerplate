@@ -1,14 +1,59 @@
 'use client';
 
-import { useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
 import {
   BucketAdminsView,
+  Text,
+  type BucketAdminRoleOption,
   type BucketAdminInvitationRow,
   type BucketAdminRow,
 } from '@boilerplate/ui';
+import type { BucketRoleItem } from '@boilerplate/helpers-requests';
 import { getApiBaseUrl } from '../../../../lib/api-client';
-import { bucketSettingsAdminEditRoute } from '../../../../lib/routes';
+import {
+  bucketSettingsAdminEditRoute,
+  bucketSettingsAdminsRoute,
+  bucketSettingsRoleNewRoute,
+} from '../../../../lib/routes';
+
+function roleDescription(roleId: string, t: (key: string) => string): string {
+  if (roleId === 'bucket_full') return t('roleDescriptionBucketFull');
+  if (roleId === 'bucket_read') return t('roleDescriptionBucketRead');
+  return t('roleDescriptionCustomRole');
+}
+
+function roleToOption(
+  role: BucketRoleItem,
+  tRoles: (key: string) => string,
+  tBuckets: (key: string) => string
+): BucketAdminRoleOption | null {
+  if (role.isPredefined && 'nameKey' in role) {
+    if (role.id !== 'bucket_full' && role.id !== 'bucket_read') {
+      return null;
+    }
+    const key = role.nameKey.split('.').pop();
+    const label = key !== undefined ? tRoles(key) : role.id;
+    return {
+      id: role.id,
+      label,
+      description: roleDescription(role.id, tBuckets),
+      bucketCrud: role.bucketCrud,
+      messageCrud: role.messageCrud,
+      adminCrud: role.adminCrud,
+    };
+  }
+
+  const name = role.name;
+  return {
+    id: role.id,
+    label: name,
+    description: tBuckets('roleDescriptionCustomRole'),
+    bucketCrud: role.bucketCrud,
+    messageCrud: role.messageCrud,
+    adminCrud: role.adminCrud,
+  };
+}
 
 export function BucketAdminsClient({
   bucketId,
@@ -22,15 +67,44 @@ export function BucketAdminsClient({
   initialPendingInvitations: BucketAdminInvitationRow[];
 }) {
   const t = useTranslations('buckets');
+  const tRoles = useTranslations('roles');
+  const tCommon = useTranslations('common');
   const locale = useLocale();
   const [admins, setAdmins] = useState<BucketAdminRow[]>(initialAdmins);
   const [pendingInvitations, setPendingInvitations] =
     useState<BucketAdminInvitationRow[]>(initialPendingInvitations);
+  const [roles, setRoles] = useState<BucketAdminRoleOption[]>([]);
+  const [loadingRoles, setLoadingRoles] = useState(true);
+
+  const loadRoles = useCallback(async () => {
+    setLoadingRoles(true);
+    const baseUrl = getApiBaseUrl();
+    const res = await fetch(`${baseUrl}/buckets/${bucketId}/roles`, {
+      credentials: 'include',
+      cache: 'no-store',
+    });
+    if (!res.ok) {
+      setLoadingRoles(false);
+      return;
+    }
+    const data = await res.json().catch(() => ({}));
+    const roleList = Array.isArray(data?.roles) ? (data.roles as BucketRoleItem[]) : [];
+    const mapped = roleList
+      .map((role) => roleToOption(role, tRoles, t))
+      .filter((item): item is BucketAdminRoleOption => item !== null);
+    setRoles(mapped);
+    setLoadingRoles(false);
+  }, [bucketId, t, tRoles]);
+
+  useEffect(() => {
+    void loadRoles();
+  }, [loadRoles]);
 
   const labels = {
     addAdmin: t('addAdmin'),
     addAdminDescription: t('addAdminDescription'),
     bucketPermissions: t('bucketPermissions'),
+    bucketPermissionsInfo: t('bucketPermissionsInfo'),
     messagePermissions: t('messagePermissions'),
     adminPermissionsLabel: t('adminPermissionsLabel'),
     crudCreate: t('crudCreate'),
@@ -118,6 +192,10 @@ export function BucketAdminsClient({
     };
   };
 
+  if (loadingRoles) {
+    return <Text variant="muted">{tCommon('loading')}</Text>;
+  }
+
   return (
     <BucketAdminsView
       admins={admins}
@@ -134,6 +212,10 @@ export function BucketAdminsClient({
           : `/invite/${token}`
       }
       locale={locale}
+      roleOptions={roles}
+      createNewRoleHref={bucketSettingsRoleNewRoute(bucketId, bucketSettingsAdminsRoute(bucketId))}
+      roleSelectLabel={t('roles')}
+      createNewRoleOptionLabel={t('customRole')}
     />
   );
 }

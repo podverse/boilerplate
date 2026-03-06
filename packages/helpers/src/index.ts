@@ -13,6 +13,21 @@ export {
 export { generateShortId, SHORT_ID_LENGTH } from './shortId.js';
 export { SEARCH_DEBOUNCE_MS } from './search/constants.js';
 export {
+  PREDEFINED_BUCKET_ROLES,
+  PREDEFINED_BUCKET_ROLE_IDS,
+  getPredefinedRoleById,
+} from './bucketRoles/constants.js';
+export type { PredefinedBucketRole, PredefinedBucketRoleId } from './bucketRoles/constants.js';
+export {
+  PREDEFINED_MANAGEMENT_ADMIN_ROLES,
+  PREDEFINED_MANAGEMENT_ADMIN_ROLE_IDS,
+  getPredefinedManagementAdminRoleById,
+} from './managementAdminRoles/constants.js';
+export type {
+  PredefinedManagementAdminRole,
+  PredefinedManagementAdminRoleId,
+} from './managementAdminRoles/constants.js';
+export {
   BUCKET_ADMIN_INVITATION_EXPIRY_DAYS,
   BUCKET_ADMIN_INVITATION_TOKEN_BYTES,
 } from './invitation/constants.js';

@@ -2,6 +2,7 @@ import { redirect, notFound } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
 import { request } from '@boilerplate/helpers-requests';
 import type { ManagementBucket, ManagementBucketMessage } from '@boilerplate/helpers-requests';
+import type { BreadcrumbItem } from '@boilerplate/ui';
 
 import { BucketMessagesPageClient } from './BucketMessagesPageClient';
 import { getServerUser } from '../../../../../lib/server-auth';
@@ -21,6 +22,19 @@ async function fetchBucket(id: string): Promise<ManagementBucket | null> {
   if (!res.ok || res.data === undefined) return null;
   const data = res.data as { bucket?: ManagementBucket };
   return data.bucket ?? null;
+}
+
+async function fetchBucketAncestry(bucket: ManagementBucket): Promise<ManagementBucket[]> {
+  if (bucket.parentBucketId === null) return [];
+  const parents: ManagementBucket[] = [];
+  let parentId: string | null = bucket.parentBucketId;
+  while (parentId !== null) {
+    const parent = await fetchBucket(parentId);
+    if (parent === null) break;
+    parents.unshift(parent);
+    parentId = parent.parentBucketId;
+  }
+  return parents;
 }
 
 async function fetchMessages(bucketId: string): Promise<ManagementBucketMessage[]> {
@@ -51,7 +65,7 @@ export default async function BucketMessagesPage({ params }: { params: Promise<{
   const bucket = await fetchBucket(id);
   if (bucket === null) notFound();
 
-  const messages = await fetchMessages(id);
+  const [messages, ancestors] = await Promise.all([fetchMessages(id), fetchBucketAncestry(bucket)]);
   const t = await getTranslations('buckets');
 
   const listItems = messages.map((m) => ({
@@ -63,11 +77,17 @@ export default async function BucketMessagesPage({ params }: { params: Promise<{
     bucketId: m.bucketId,
   }));
 
+  const ancestorItems: BreadcrumbItem[] = ancestors.map((a) => ({
+    label: a.name,
+    href: bucketViewRoute(a.shortId),
+  }));
+
   return (
     <BucketMessagesPageClient
       bucketId={id}
       bucketName={bucket.name}
       bucketDetailHref={bucketViewRoute(id)}
+      ancestorItems={ancestorItems}
       messages={listItems}
       messagesTitle={t('messages')}
       messagesAriaLabel={t('messages')}

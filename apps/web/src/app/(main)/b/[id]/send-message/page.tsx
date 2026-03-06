@@ -2,11 +2,13 @@ import { notFound } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
 import type { PublicBucket } from '@boilerplate/helpers-requests';
 import { webBuckets } from '@boilerplate/helpers-requests';
-import { Container, SectionWithHeading } from '@boilerplate/ui';
+import type { BreadcrumbItem } from '@boilerplate/ui';
+import { ContentPageLayout, SectionWithHeading, Stack } from '@boilerplate/ui';
 
+import { PublicSubmitForm } from '../../PublicSubmitForm';
+import { PublicBucketBreadcrumbs } from '../PublicBucketBreadcrumbs';
 import { getServerApiBaseUrl } from '../../../../../lib/server-request';
 import { publicBucketRoute } from '../../../../../lib/routes';
-import { PublicSubmitForm } from '../../PublicSubmitForm';
 
 async function fetchPublicBucket(id: string): Promise<PublicBucket | null> {
   const baseUrl = getServerApiBaseUrl();
@@ -16,26 +18,46 @@ async function fetchPublicBucket(id: string): Promise<PublicBucket | null> {
   return bucket !== undefined && typeof bucket?.id === 'string' ? bucket : null;
 }
 
-export default async function PublicBucketSendMessagePage({
+export default async function PublicSubmitMessagePage({
   params,
 }: {
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
   const bucket = await fetchPublicBucket(id);
-  if (bucket === null) notFound();
+  if (bucket === null || !bucket.isPublic) {
+    notFound();
+  }
 
   const t = await getTranslations('buckets');
+  const ancestors = bucket.ancestors ?? [];
+  const showBreadcrumbs = ancestors.length > 0;
+  const breadcrumbItems: BreadcrumbItem[] = showBreadcrumbs
+    ? [
+        ...ancestors.map((a) => ({ label: a.name, href: publicBucketRoute(a.shortId) })),
+        { label: bucket.name, href: publicBucketRoute(bucket.shortId) },
+        { label: t('submitMessageTitle'), href: undefined },
+      ]
+    : [];
+  const successHref = publicBucketRoute(bucket.shortId);
 
   return (
-    <Container>
-      <SectionWithHeading title={`${t('messages')} – ${bucket.name}`}>
-        <PublicSubmitForm
-          bucketId={id}
-          messageBodyMaxLength={bucket.messageBodyMaxLength ?? null}
-          successHref={publicBucketRoute(id)}
-        />
-      </SectionWithHeading>
-    </Container>
+    <ContentPageLayout
+      title={bucket.name}
+      breadcrumbs={
+        showBreadcrumbs ? <PublicBucketBreadcrumbs items={breadcrumbItems} /> : undefined
+      }
+      contentMaxWidth="readable"
+    >
+      <Stack>
+        <SectionWithHeading title={t('submitMessageTitle')}>
+          <PublicSubmitForm
+            bucketId={bucket.id}
+            messageBodyMaxLength={bucket.messageBodyMaxLength}
+            successHref={successHref}
+          />
+        </SectionWithHeading>
+      </Stack>
+    </ContentPageLayout>
   );
 }

@@ -4,10 +4,12 @@ import { validateBody } from '../middleware/validateBody.js';
 import {
   createBucketSchema,
   updateBucketSchema,
-  createTopicSchema,
+  createChildBucketSchema,
   createBucketAdminSchema,
   updateBucketAdminSchema,
   createBucketAdminInvitationSchema,
+  createBucketRoleSchema,
+  updateBucketRoleSchema,
   createMessageSchema,
   updateMessageSchema,
   publicSubmitMessageSchema,
@@ -15,6 +17,7 @@ import {
 import * as bucketsController from '../controllers/bucketsController.js';
 import * as bucketAdminsController from '../controllers/bucketAdminsController.js';
 import * as bucketAdminInvitationsController from '../controllers/bucketAdminInvitationsController.js';
+import * as bucketRolesController from '../controllers/bucketRolesController.js';
 import * as bucketMessagesController from '../controllers/bucketMessagesController.js';
 
 export function createBucketsRouter(requireAuthMiddleware: RequestHandler): Router {
@@ -44,12 +47,12 @@ export function createBucketsRouter(requireAuthMiddleware: RequestHandler): Rout
   );
   router.delete('/:id', requireAuthMiddleware, bucketsController.deleteBucket);
 
-  router.get('/:bucketId/buckets', requireAuthMiddleware, bucketsController.listTopics);
+  router.get('/:bucketId/buckets', requireAuthMiddleware, bucketsController.listChildBuckets);
   router.post(
     '/:bucketId/buckets',
     requireAuthMiddleware,
-    validateBody(createTopicSchema),
-    bucketsController.createTopic
+    validateBody(createChildBucketSchema),
+    bucketsController.createChildBucket
   );
 
   router.get('/:bucketId/admins', requireAuthMiddleware, bucketAdminsController.listBucketAdmins);
@@ -90,6 +93,25 @@ export function createBucketsRouter(requireAuthMiddleware: RequestHandler): Rout
     '/:bucketId/admins/:userId',
     requireAuthMiddleware,
     bucketAdminsController.deleteBucketAdmin
+  );
+
+  router.get('/:bucketId/roles', requireAuthMiddleware, bucketRolesController.listBucketRoles);
+  router.post(
+    '/:bucketId/roles',
+    requireAuthMiddleware,
+    validateBody(createBucketRoleSchema),
+    bucketRolesController.createBucketRole
+  );
+  router.patch(
+    '/:bucketId/roles/:roleId',
+    requireAuthMiddleware,
+    validateBody(updateBucketRoleSchema),
+    bucketRolesController.updateBucketRole
+  );
+  router.delete(
+    '/:bucketId/roles/:roleId',
+    requireAuthMiddleware,
+    bucketRolesController.deleteBucketRole
   );
 
   router.get('/:bucketId/messages', requireAuthMiddleware, bucketMessagesController.listMessages);

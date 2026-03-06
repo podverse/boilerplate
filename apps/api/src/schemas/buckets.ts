@@ -15,7 +15,7 @@ export const updateBucketSchema = Joi.object({
   messageBodyMaxLength: Joi.number().integer().min(1).allow(null).optional(),
 }).min(1);
 
-export const createTopicSchema = Joi.object({
+export const createChildBucketSchema = Joi.object({
   name: name.required(),
   isPublic: Joi.boolean().optional(),
 });
@@ -36,6 +36,20 @@ export const createBucketAdminInvitationSchema = Joi.object({
 });
 
 export const updateBucketAdminSchema = Joi.object({
+  bucketCrud: crudMask.optional(),
+  messageCrud: crudMask.optional(),
+  adminCrud: crudMask.optional(),
+}).min(1);
+
+const roleName = Joi.string().min(1).max(SHORT_TEXT_MAX_LENGTH);
+export const createBucketRoleSchema = Joi.object({
+  name: roleName.required(),
+  bucketCrud: crudMask.required(),
+  messageCrud: crudMask.required(),
+  adminCrud: crudMask.required(),
+});
+export const updateBucketRoleSchema = Joi.object({
+  name: roleName.optional(),
   bucketCrud: crudMask.optional(),
   messageCrud: crudMask.optional(),
   adminCrud: crudMask.optional(),
@@ -65,7 +79,7 @@ export type UpdateBucketBody = {
   isPublic?: boolean;
   messageBodyMaxLength?: number | null;
 };
-export type CreateTopicBody = { name: string; isPublic?: boolean };
+export type CreateChildBucketBody = { name: string; isPublic?: boolean };
 export type CreateBucketAdminBody = {
   userId: string;
   bucketCrud?: number;
@@ -78,6 +92,18 @@ export type CreateBucketAdminInvitationBody = {
   adminCrud?: number;
 };
 export type UpdateBucketAdminBody = {
+  bucketCrud?: number;
+  messageCrud?: number;
+  adminCrud?: number;
+};
+export type CreateBucketRoleBody = {
+  name: string;
+  bucketCrud: number;
+  messageCrud: number;
+  adminCrud: number;
+};
+export type UpdateBucketRoleBody = {
+  name?: string;
   bucketCrud?: number;
   messageCrud?: number;
   adminCrud?: number;

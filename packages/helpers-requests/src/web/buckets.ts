@@ -7,6 +7,12 @@ import type {
   PublicBucketMessage,
   PublicSubmitMessageBody,
 } from '../types/bucket-types.js';
+import type {
+  BucketRoleItem,
+  CustomBucketRoleItem,
+  CreateBucketRoleBody,
+  UpdateBucketRoleBody,
+} from '../management-web/bucketRoles.js';
 
 const SERVER_OPTIONS = { cache: 'no-store' as RequestCache } as const;
 
@@ -26,9 +32,9 @@ export async function reqFetchBucket(
 }
 
 /**
- * GET /buckets/:bucketId/buckets (authenticated). Returns sub-buckets (topics).
+ * GET /buckets/:bucketId/buckets (authenticated). Returns child buckets.
  */
-export async function reqFetchTopics(
+export async function reqFetchChildBuckets(
   baseUrl: string,
   bucketId: string,
   cookieHeader: string
@@ -116,4 +122,69 @@ export async function reqPostPublicBucketMessage(
       ...SERVER_OPTIONS,
     }
   );
+}
+
+/**
+ * GET /buckets/:bucketId/roles (authenticated). List predefined and custom roles. Owner or admin with update can access.
+ */
+export async function reqListBucketRoles(
+  baseUrl: string,
+  bucketId: string,
+  cookieHeader: string
+): Promise<ApiResponse<{ roles: BucketRoleItem[] }>> {
+  return request<{ roles: BucketRoleItem[] }>(baseUrl, `/buckets/${bucketId}/roles`, {
+    headers: { Cookie: cookieHeader },
+    ...SERVER_OPTIONS,
+  });
+}
+
+/**
+ * POST /buckets/:bucketId/roles (authenticated). Create custom role.
+ */
+export async function reqCreateBucketRole(
+  baseUrl: string,
+  bucketId: string,
+  body: CreateBucketRoleBody,
+  cookieHeader: string
+): Promise<ApiResponse<{ role: CustomBucketRoleItem }>> {
+  return request<{ role: CustomBucketRoleItem }>(baseUrl, `/buckets/${bucketId}/roles`, {
+    method: 'POST',
+    body: JSON.stringify(body),
+    headers: { Cookie: cookieHeader },
+    ...SERVER_OPTIONS,
+  });
+}
+
+/**
+ * PATCH /buckets/:bucketId/roles/:roleId (authenticated). Update custom role.
+ */
+export async function reqUpdateBucketRole(
+  baseUrl: string,
+  bucketId: string,
+  roleId: string,
+  body: UpdateBucketRoleBody,
+  cookieHeader: string
+): Promise<ApiResponse<{ role: CustomBucketRoleItem }>> {
+  return request<{ role: CustomBucketRoleItem }>(baseUrl, `/buckets/${bucketId}/roles/${roleId}`, {
+    method: 'PATCH',
+    body: JSON.stringify(body),
+    headers: { Cookie: cookieHeader },
+    ...SERVER_OPTIONS,
+  });
+}
+
+/**
+ * DELETE /buckets/:bucketId/roles/:roleId (authenticated). Delete custom role.
+ */
+export async function reqDeleteBucketRole(
+  baseUrl: string,
+  bucketId: string,
+  roleId: string,
+  cookieHeader: string
+): Promise<ApiResponse<void>> {
+  return request<void>(baseUrl, `/buckets/${bucketId}/roles/${roleId}`, {
+    method: 'DELETE',
+    headers: { Cookie: cookieHeader },
+    ...SERVER_OPTIONS,
+  });
 }

@@ -21,7 +21,7 @@ export type BucketToJsonOverrides = {
   lastMessageAt?: string | null;
 };
 
-/** Shape bucket for management API responses. Use overrides for topic buckets (inherited from parent). */
+/** Shape bucket for management API responses. Use overrides for child buckets (inherited from parent). */
 export function bucketToJson(
   bucket: Bucket,
   ownerDisplayName?: string | null,

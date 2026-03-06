@@ -51,7 +51,7 @@ integration tests first. On first failure, Make exits and Playwright is not run.
 
 - Seed scripts live in `tools/web/` (web E2E) and `tools/management-web/` (management-web
   E2E). E2E must not rely on faker without a fixed seed; use dedicated E2E seed scripts
-  that insert a fixed set of rows (e.g. one user, two buckets, one topic).
+  that insert a fixed set of rows (e.g. one user, two buckets, one child bucket).
 - Same rows and IDs every run so assertions (e.g. “dashboard shows bucket X”) are
   stable.
 

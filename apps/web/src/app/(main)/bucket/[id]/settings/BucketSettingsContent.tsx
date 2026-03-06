@@ -9,10 +9,12 @@ import {
   bucketDetailRoute,
   bucketSettingsRoute,
   bucketSettingsAdminsRoute,
+  bucketSettingsRolesRoute,
 } from '../../../../../lib/routes';
 import { BucketForm } from '../../../buckets/BucketForm';
 import type { BucketForForm } from '../../../buckets/BucketForm';
 import { BucketAdminsClient } from '../BucketAdminsClient';
+import { BucketRolesClient } from '../BucketRolesClient';
 
 type AdminRow = {
   id: string;
@@ -68,6 +70,8 @@ export function BucketSettingsContent({
         generalLabel={t('general')}
         adminsHref={bucketSettingsAdminsRoute(bucketId)}
         adminsLabel={t('admins')}
+        rolesHref={bucketSettingsRolesRoute(bucketId)}
+        rolesLabel={t('roles')}
         activeHref={currentHref}
       />
       {activeTab === 'general' ? (
@@ -77,13 +81,15 @@ export function BucketSettingsContent({
           successHref={bucketDetailRoute(bucketId)}
           cancelHref={bucketDetailRoute(bucketId)}
         />
-      ) : (
+      ) : activeTab === 'admins' ? (
         <BucketAdminsClient
           bucketId={bucketId}
           ownerId={ownerId}
           initialAdmins={admins}
           initialPendingInvitations={pendingInvitations}
         />
+      ) : (
+        <BucketRolesClient bucketId={bucketId} />
       )}
     </>
   );

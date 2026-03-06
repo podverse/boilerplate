@@ -1,8 +1,9 @@
 import { redirect, notFound } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
-import { fetchBucket } from '../../../../../lib/buckets';
+import type { BreadcrumbItem } from '@boilerplate/ui';
+import { fetchBucket, fetchBucketAncestry } from '../../../../../lib/buckets';
 import { getServerUser } from '../../../../../lib/server-auth';
-import { ROUTES } from '../../../../../lib/routes';
+import { ROUTES, bucketDetailRoute } from '../../../../../lib/routes';
 import { BucketSettingsLayoutClient } from './BucketSettingsLayoutClient';
 
 export default async function BucketSettingsLayout({
@@ -23,12 +24,21 @@ export default async function BucketSettingsLayout({
     notFound();
   }
 
-  const t = await getTranslations('buckets');
+  const [t, ancestors] = await Promise.all([
+    getTranslations('buckets'),
+    fetchBucketAncestry(bucket),
+  ]);
+  const ancestorItems: BreadcrumbItem[] = ancestors.map((a) => ({
+    label: a.name,
+    href: bucketDetailRoute(a.shortId),
+  }));
+
   return (
     <BucketSettingsLayoutClient
       bucketId={id}
       bucketName={bucket.name}
       bucketSettingsTitle={t('bucketSettings')}
+      ancestorItems={ancestorItems}
     >
       {children}
     </BucketSettingsLayoutClient>

@@ -2,7 +2,7 @@
 
 .wrapper {
   display: inline-block;
-  color: var(--color-border, $color-border);
+  color: var(--color-border);
   vertical-align: middle;
 }
 
@@ -23,5 +23,5 @@
 }
 
 .wrapperPrimary {
-  color: var(--color-primary, $color-primary);
+  color: var(--color-primary);
 }

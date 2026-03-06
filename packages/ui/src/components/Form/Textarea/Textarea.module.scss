@@ -33,8 +33,8 @@
   border-radius: $radius-sm;
   transition: border-color $transition-fast;
   resize: vertical;
-  /* Min height in lines of text (--textarea-min-rows from parent, default 6). */
-  min-height: calc(var(--textarea-min-rows, 6) * 1em * #{$line-height-base});
+  /* Min height in lines of text (--textarea-min-rows from theme). */
+  min-height: calc(var(--textarea-min-rows) * 1em * #{$line-height-base});
 
   &::placeholder {
     color: var(--color-text-muted);

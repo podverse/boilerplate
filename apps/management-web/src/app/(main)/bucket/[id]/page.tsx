@@ -2,7 +2,8 @@ import { redirect, notFound } from 'next/navigation';
 import { getLocale, getTranslations } from 'next-intl/server';
 import { formatDateTimeReadable } from '@boilerplate/helpers-i18n';
 import { request, managementWebBuckets } from '@boilerplate/helpers-requests';
-import { BucketDetailContent } from '@boilerplate/ui';
+import { Breadcrumbs, BucketDetailContent, BucketDetailPageLayout, Link } from '@boilerplate/ui';
+import type { BreadcrumbItem } from '@boilerplate/ui';
 
 import { getServerUser } from '../../../../lib/server-auth';
 import { getServerManagementApiBaseUrl, getWebAppUrl } from '../../../../config/env';
@@ -10,11 +11,11 @@ import { getCrudFlags, hasReadPermission } from '../../../../lib/main-nav';
 import { ROUTES } from '../../../../lib/routes';
 import { getCookieHeader } from '../../../../lib/server-request';
 import {
+  bucketEditRoute,
   bucketMessagesRoute,
+  bucketViewRoute,
   bucketSettingsRoute,
-  topicDetailRoute,
-  topicEditRoute,
-  topicNewRoute,
+  bucketNewRouteFromAncestry,
 } from '../../../../lib/routes';
 import type { ManagementBucket } from '@boilerplate/helpers-requests';
 
@@ -32,16 +33,46 @@ async function fetchBucket(id: string): Promise<ManagementBucket | null> {
   return data.bucket ?? null;
 }
 
-async function fetchTopics(bucketId: string): Promise<ManagementBucket[]> {
+async function fetchChildBuckets(bucketId: string): Promise<ManagementBucket[]> {
   const cookieHeader = await getCookieHeader();
   const baseUrl = getServerManagementApiBaseUrl();
-  const res = await managementWebBuckets.getBucketTopics(baseUrl, bucketId, {
+  const res = await managementWebBuckets.getChildBuckets(baseUrl, bucketId, {
     headers: { Cookie: cookieHeader },
     ...requestOptions,
   });
   if (!res.ok || res.data === undefined) return [];
   const data = res.data;
   return Array.isArray(data.buckets) ? data.buckets : [];
+}
+
+function BreadcrumbLink({
+  href,
+  children,
+  className,
+}: {
+  href: string;
+  children: React.ReactNode;
+  className?: string;
+}) {
+  return (
+    <Link href={href} className={className}>
+      {children}
+    </Link>
+  );
+}
+
+async function fetchBucketAncestry(bucket: ManagementBucket): Promise<ManagementBucket[]> {
+  const parents: ManagementBucket[] = [];
+  let parentId = bucket.parentBucketId;
+  while (parentId !== null) {
+    const parent = await fetchBucket(parentId);
+    if (parent === null) {
+      break;
+    }
+    parents.unshift(parent);
+    parentId = parent.parentBucketId;
+  }
+  return parents;
 }
 
 export default async function BucketDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -56,14 +87,8 @@ export default async function BucketDetailPage({ params }: { params: Promise<{ i
   const bucket = await fetchBucket(id);
   if (bucket === null) notFound();
 
-  if (bucket.parentBucketId !== null) {
-    const parent = await fetchBucket(bucket.parentBucketId);
-    if (parent !== null) {
-      redirect(topicDetailRoute(parent.shortId, bucket.shortId));
-    }
-  }
-
-  const topics = bucket.parentBucketId === null ? await fetchTopics(id) : [];
+  const childBuckets = await fetchChildBuckets(id);
+  const ancestors = await fetchBucketAncestry(bucket);
   const locale = await getLocale();
 
   const tCommon = await getTranslations('common');
@@ -81,60 +106,81 @@ export default async function BucketDetailPage({ params }: { params: Promise<{ i
     },
   ];
 
-  const topicsForContent =
-    bucket.parentBucketId === null
-      ? topics.map((topic) => ({
-          id: topic.id,
-          name: topic.name,
-          href: topicDetailRoute(id, topic.shortId),
-          editHref: topicEditRoute(id, topic.shortId),
-          createdAtDisplay: formatDateTimeReadable(locale, topic.createdAt),
-          lastMessageAtDisplay:
-            topic.lastMessageAt !== undefined && topic.lastMessageAt !== null
-              ? formatDateTimeReadable(locale, topic.lastMessageAt)
-              : null,
-        }))
-      : undefined;
+  const bucketAncestryForNewChild = [...ancestors.map((a) => a.shortId), bucket.shortId];
+  const canCreateBucket = bucketsCrud.create;
+  const createTopicHref = canCreateBucket
+    ? bucketNewRouteFromAncestry(bucketAncestryForNewChild)
+    : undefined;
+  const createTopicLabel = canCreateBucket ? tCommon('bucketDetail.createTopic') : undefined;
+
+  const childBucketsForContent = childBuckets.map((childBucket) => ({
+    id: childBucket.id,
+    name: childBucket.name,
+    href: bucketViewRoute(childBucket.shortId),
+    editHref: bucketEditRoute(childBucket.shortId),
+    createdAtDisplay: formatDateTimeReadable(locale, childBucket.createdAt),
+    lastMessageAtDisplay:
+      childBucket.lastMessageAt !== undefined && childBucket.lastMessageAt !== null
+        ? formatDateTimeReadable(locale, childBucket.lastMessageAt)
+        : null,
+    isPublicDisplay: childBucket.isPublic
+      ? tCommon('bucketDetail.publicYes')
+      : tCommon('bucketDetail.publicNo'),
+  }));
+  const breadcrumbItems: BreadcrumbItem[] = ancestors.map((ancestor) => ({
+    label: ancestor.name,
+    href: bucketViewRoute(ancestor.shortId),
+  }));
+  const currentBreadcrumb: BreadcrumbItem = { label: bucket.name, href: undefined };
 
   return (
-    <BucketDetailContent
-      bucketName={bucket.name}
-      detailItems={detailItems}
-      showMessagesLink={showMessagesLink}
-      messagesHref={showMessagesLink ? bucketMessagesRoute(id) : undefined}
-      messagesLabel={tCommon('bucketDetail.messages')}
-      showPublicLink={bucket.isPublic}
-      publicHref={
-        bucket.isPublic
-          ? (() => {
-              const webUrl = getWebAppUrl();
-              const path = `/b/${bucket.shortId}`;
-              return webUrl !== undefined ? `${webUrl}${path}` : path;
-            })()
-          : undefined
+    <BucketDetailPageLayout
+      breadcrumbs={
+        breadcrumbItems.length > 0 ? (
+          <Breadcrumbs
+            items={[...breadcrumbItems, currentBreadcrumb]}
+            LinkComponent={BreadcrumbLink}
+            ariaLabel={tCommon('bucketDetail.settings')}
+          />
+        ) : undefined
       }
-      publicLabel={tCommon('bucketDetail.publicPage')}
-      showSettingsLink={bucketsCrud.update}
-      settingsHref={bucketsCrud.update ? bucketSettingsRoute(id) : undefined}
-      settingsLabel={tCommon('bucketDetail.settings')}
-      topics={topicsForContent}
-      topicsTitle={topicsForContent !== undefined ? tCommon('bucketDetail.topics') : undefined}
-      topicViewLabel={topicsForContent !== undefined ? tCommon('bucketDetail.view') : undefined}
-      topicEditLabel={topicsForContent !== undefined ? tCommon('bucketDetail.edit') : undefined}
-      createTopicHref={topicsForContent !== undefined ? topicNewRoute(id) : undefined}
-      createTopicLabel={
-        topicsForContent !== undefined ? tCommon('bucketDetail.createTopic') : undefined
-      }
-      topicsColumnName={topicsForContent !== undefined ? tCommon('bucketDetail.name') : undefined}
-      topicsColumnLastMessage={
-        topicsForContent !== undefined ? tCommon('bucketDetail.lastMessage') : undefined
-      }
-      topicsColumnCreated={
-        topicsForContent !== undefined ? tCommon('bucketDetail.created') : undefined
-      }
-      topicsColumnActions={
-        topicsForContent !== undefined ? tCommon('bucketDetail.actions') : undefined
-      }
-    />
+    >
+      <BucketDetailContent
+        bucketName={bucket.name}
+        detailItems={detailItems}
+        showMessagesLink={showMessagesLink}
+        messagesHref={showMessagesLink ? bucketMessagesRoute(id) : undefined}
+        messagesLabel={tCommon('bucketDetail.messages')}
+        showPublicLink={bucket.isPublic}
+        publicHref={
+          bucket.isPublic
+            ? (() => {
+                const webUrl = getWebAppUrl();
+                const path = `/b/${bucket.shortId}`;
+                return webUrl !== undefined ? `${webUrl}${path}` : path;
+              })()
+            : undefined
+        }
+        publicLabel={tCommon('bucketDetail.publicPage')}
+        showSettingsLink={bucketsCrud.update && bucket.parentBucketId === null}
+        settingsHref={
+          bucketsCrud.update && bucket.parentBucketId === null ? bucketSettingsRoute(id) : undefined
+        }
+        settingsLabel={tCommon('bucketDetail.settings')}
+        topics={childBucketsForContent}
+        topicsTitle={tCommon('bucketDetail.topics')}
+        topicViewLabel={tCommon('bucketDetail.view')}
+        topicEditLabel={tCommon('bucketDetail.edit')}
+        createTopicHref={createTopicHref}
+        createTopicLabel={createTopicLabel}
+        topicsColumnName={tCommon('bucketDetail.name')}
+        topicsColumnLastMessage={tCommon('bucketDetail.lastMessage')}
+        topicsColumnCreated={tCommon('bucketDetail.created')}
+        topicsColumnPublic={tCommon('bucketDetail.isPublic')}
+        topicsColumnActions={tCommon('bucketDetail.actions')}
+        topicsEmptyMessage={tCommon('bucketDetail.noBucketsYet')}
+        wrapInContainer={false}
+      />
+    </BucketDetailPageLayout>
   );
 }

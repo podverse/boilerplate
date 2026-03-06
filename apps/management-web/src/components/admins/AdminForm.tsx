@@ -1,12 +1,13 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { bitmaskToFlags, flagsToBitmask, validatePassword } from '@boilerplate/helpers';
 import type { CrudBit } from '@boilerplate/helpers';
-import { managementWebAdmins } from '@boilerplate/helpers-requests';
+import { managementWebAdminRoles, managementWebAdmins } from '@boilerplate/helpers-requests';
 import type {
+  ManagementAdminRoleItem,
   CreateAdminBody,
   EventVisibility,
   UpdateAdminBody,
@@ -26,7 +27,22 @@ import {
 import type { CrudFlags } from '@boilerplate/ui';
 
 import { getManagementApiBaseUrl } from '../../config/env';
-import { ROUTES } from '../../lib/routes';
+import { adminRolesNewRoute, ROUTES } from '../../lib/routes';
+
+type ManagementAdminRoleOption = {
+  id: string;
+  label: string;
+  description: string;
+  adminsCrud: number;
+  usersCrud: number;
+  bucketsCrud: number;
+  bucketMessagesCrud: number;
+  bucketAdminsCrud: number;
+  eventVisibility: EventVisibility;
+};
+
+const ADMIN_FORM_CREATE_ROLE_ID = '__create_role__';
+const ADMIN_FORM_CUSTOM_ROLE_ID = '__custom__';
 
 export type AdminFormInitialValues = {
   displayName: string;
@@ -53,22 +69,56 @@ export type AdminFormProps = {
   targetIsSuperAdmin?: boolean;
 };
 
-/** Read is required whenever any write bit is on. */
-function computeDisabledBits(flags: CrudFlags): Partial<Record<CrudBit, boolean>> {
-  const readForced = flags.create || flags.update || flags.delete;
-  return readForced ? { read: true } : {};
-}
-
-/** Enforce: if any write bit is on, read must be on. */
-function withReadEnforced(flags: CrudFlags): CrudFlags {
-  if (flags.create || flags.update || flags.delete) {
-    return { ...flags, read: true };
-  }
-  return flags;
-}
-
 function isValidEmail(value: string): boolean {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+}
+
+function roleDescription(roleId: string, tRoles: (key: string) => string): string {
+  if (roleId === 'everything') return tRoles('descriptionEverything');
+  if (roleId === 'users_full') return tRoles('descriptionUsersFull');
+  if (roleId === 'bucket_full') return tRoles('descriptionBucketFull');
+  if (roleId === 'read_everything') return tRoles('descriptionReadEverything');
+  if (roleId === 'bucket_read') return tRoles('descriptionBucketRead');
+  return tRoles('descriptionCustomRole');
+}
+
+function roleToOption(
+  role: ManagementAdminRoleItem,
+  tRoles: (key: string) => string
+): ManagementAdminRoleOption {
+  const id = role.id;
+  const label =
+    role.isPredefined && 'nameKey' in role
+      ? (() => {
+          const key = role.nameKey.split('.').pop();
+          return key !== undefined ? tRoles(key) : role.nameKey;
+        })()
+      : 'name' in role
+        ? role.name
+        : id;
+  return {
+    id,
+    label,
+    description: roleDescription(id, tRoles),
+    adminsCrud: role.adminsCrud,
+    usersCrud: role.usersCrud,
+    bucketsCrud: role.bucketsCrud,
+    bucketMessagesCrud: role.bucketMessagesCrud,
+    bucketAdminsCrud: role.bucketAdminsCrud,
+    eventVisibility: role.eventVisibility,
+  };
+}
+
+function rolePermissionScore(role: ManagementAdminRoleOption): number {
+  const crudScore =
+    role.adminsCrud +
+    role.usersCrud +
+    role.bucketsCrud +
+    role.bucketMessagesCrud +
+    role.bucketAdminsCrud;
+  const eventScore =
+    role.eventVisibility === 'all' ? 2 : role.eventVisibility === 'all_admins' ? 1 : 0;
+  return crudScore * 10 + eventScore;
 }
 
 /** Total number of bits set across admins + users CRUD (used for "at least one permission" validation). */
@@ -89,6 +139,7 @@ export function AdminForm({
 }: AdminFormProps) {
   const router = useRouter();
   const t = useTranslations('common.adminForm');
+  const tRoles = useTranslations('roles');
   const apiBaseUrl = getManagementApiBaseUrl();
 
   const crudLabels: Record<CrudBit, string> = {
@@ -131,6 +182,9 @@ export function AdminForm({
   const [eventVisibility, setEventVisibility] = useState<EventVisibility>(
     defaultPerms?.eventVisibility ?? 'all_admins'
   );
+  const [roleOptions, setRoleOptions] = useState<ManagementAdminRoleOption[]>([]);
+  const [loadingRoles, setLoadingRoles] = useState(true);
+  const [selectedRoleId, setSelectedRoleId] = useState<string>('');
 
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -140,6 +194,50 @@ export function AdminForm({
     { value: 'all_admins' as EventVisibility, label: t('eventVisibilityAllAdmins') },
     { value: 'all' as EventVisibility, label: t('eventVisibilityAll') },
   ];
+
+  useEffect(() => {
+    let active = true;
+    const run = async () => {
+      const res = await managementWebAdminRoles.listManagementAdminRoles(apiBaseUrl);
+      if (!active) return;
+      if (!res.ok || res.data === undefined) {
+        setLoadingRoles(false);
+        return;
+      }
+      const mapped = res.data.roles.map((role) => roleToOption(role, tRoles));
+      setRoleOptions(mapped);
+      setLoadingRoles(false);
+    };
+    void run();
+    return () => {
+      active = false;
+    };
+  }, [apiBaseUrl, tRoles]);
+
+  useEffect(() => {
+    if (loadingRoles || roleOptions.length === 0) return;
+    const hasValidSelectedRole = roleOptions.some((role) => role.id === selectedRoleId);
+    if (hasValidSelectedRole) return;
+    const highestRole = roleOptions.reduce((best, role) =>
+      rolePermissionScore(role) > rolePermissionScore(best) ? role : best
+    );
+    setSelectedRoleId(highestRole.id);
+  }, [loadingRoles, roleOptions, selectedRoleId]);
+
+  const selectedRole = useMemo(
+    () => roleOptions.find((role) => role.id === selectedRoleId),
+    [roleOptions, selectedRoleId]
+  );
+
+  useEffect(() => {
+    if (selectedRole === undefined) return;
+    setAdminsCrudFlags(bitmaskToFlags(selectedRole.adminsCrud));
+    setUsersCrudFlags(bitmaskToFlags(selectedRole.usersCrud));
+    setBucketsCrudFlags(bitmaskToFlags(selectedRole.bucketsCrud));
+    setBucketMessagesCrudFlags(bitmaskToFlags(selectedRole.bucketMessagesCrud));
+    setBucketAdminsCrudFlags(bitmaskToFlags(selectedRole.bucketAdminsCrud));
+    setEventVisibility(selectedRole.eventVisibility);
+  }, [selectedRole]);
 
   // --- Field validation ---
 
@@ -178,31 +276,52 @@ export function AdminForm({
     totalAdminsUsersBits(adminsCrudFlags, usersCrudFlags) === 0
       ? t('permissionsRequired')
       : null;
+  const roleSelectOptions = [
+    ...roleOptions.map((role) => ({ value: role.id, label: role.label })),
+    { value: ADMIN_FORM_CREATE_ROLE_ID, label: t('customRoleOptionLabel') },
+  ];
+  if (selectedRoleId === ADMIN_FORM_CUSTOM_ROLE_ID) {
+    roleSelectOptions.unshift({
+      value: ADMIN_FORM_CUSTOM_ROLE_ID,
+      label: t('customRoleLabel'),
+    });
+  }
+  const selectedRoleDescription =
+    selectedRoleId === ADMIN_FORM_CUSTOM_ROLE_ID || selectedRole === undefined
+      ? tRoles('descriptionCustomRole')
+      : selectedRole.description;
+  const isInvalidRoleSelection =
+    canEditPermissions &&
+    !loadingRoles &&
+    roleOptions.length > 0 &&
+    selectedRoleId !== ADMIN_FORM_CREATE_ROLE_ID &&
+    selectedRoleId !== ADMIN_FORM_CUSTOM_ROLE_ID &&
+    selectedRole === undefined;
 
   // --- CRUD change handlers (enforce read dependency) ---
 
   const handleAdminsCrudChange = (next: CrudFlags) => {
-    setAdminsCrudFlags(withReadEnforced(next));
+    setAdminsCrudFlags(next);
     setPermissionsTouched(true);
   };
 
   const handleUsersCrudChange = (next: CrudFlags) => {
-    setUsersCrudFlags(withReadEnforced(next));
+    setUsersCrudFlags(next);
     setPermissionsTouched(true);
   };
 
   const handleBucketsCrudChange = (next: CrudFlags) => {
-    setBucketsCrudFlags(withReadEnforced(next));
+    setBucketsCrudFlags(next);
     setPermissionsTouched(true);
   };
 
   const handleBucketMessagesCrudChange = (next: CrudFlags) => {
-    setBucketMessagesCrudFlags(withReadEnforced(next));
+    setBucketMessagesCrudFlags(next);
     setPermissionsTouched(true);
   };
 
   const handleBucketAdminsCrudChange = (next: CrudFlags) => {
-    setBucketAdminsCrudFlags(withReadEnforced(next));
+    setBucketAdminsCrudFlags(next);
     setPermissionsTouched(true);
   };
 
@@ -229,6 +348,20 @@ export function AdminForm({
       return;
 
     setSubmitError(null);
+    if (selectedRoleId === ADMIN_FORM_CREATE_ROLE_ID) {
+      const returnUrl =
+        mode === 'create'
+          ? ROUTES.ADMINS_NEW
+          : adminId !== undefined
+            ? `/admin/${adminId}/edit`
+            : ROUTES.ADMINS;
+      router.push(adminRolesNewRoute(returnUrl));
+      return;
+    }
+    if (isInvalidRoleSelection) {
+      setSubmitError(t('roleSelectLabel'));
+      return;
+    }
     setLoading(true);
 
     try {
@@ -237,6 +370,12 @@ export function AdminForm({
           displayName: displayName.trim(),
           email: email.trim(),
           password,
+          roleId:
+            selectedRoleId !== '' &&
+            selectedRoleId !== ADMIN_FORM_CUSTOM_ROLE_ID &&
+            selectedRoleId !== ADMIN_FORM_CREATE_ROLE_ID
+              ? selectedRoleId
+              : undefined,
           adminsCrud: flagsToBitmask(adminsCrudFlags),
           usersCrud: flagsToBitmask(usersCrudFlags),
           bucketsCrud: flagsToBitmask(bucketsCrudFlags),
@@ -265,12 +404,20 @@ export function AdminForm({
         }
         const maySetPermissions = canEditPermissions && (mode !== 'edit' || !targetIsSuperAdmin);
         if (maySetPermissions) {
-          body.adminsCrud = flagsToBitmask(adminsCrudFlags);
-          body.usersCrud = flagsToBitmask(usersCrudFlags);
-          body.bucketsCrud = flagsToBitmask(bucketsCrudFlags);
-          body.bucketMessagesCrud = flagsToBitmask(bucketMessagesCrudFlags);
-          body.bucketAdminsCrud = flagsToBitmask(bucketAdminsCrudFlags);
-          body.eventVisibility = eventVisibility;
+          if (
+            selectedRoleId !== '' &&
+            selectedRoleId !== ADMIN_FORM_CUSTOM_ROLE_ID &&
+            selectedRoleId !== ADMIN_FORM_CREATE_ROLE_ID
+          ) {
+            body.roleId = selectedRoleId;
+          } else {
+            body.adminsCrud = flagsToBitmask(adminsCrudFlags);
+            body.usersCrud = flagsToBitmask(usersCrudFlags);
+            body.bucketsCrud = flagsToBitmask(bucketsCrudFlags);
+            body.bucketMessagesCrud = flagsToBitmask(bucketMessagesCrudFlags);
+            body.bucketAdminsCrud = flagsToBitmask(bucketAdminsCrudFlags);
+            body.eventVisibility = eventVisibility;
+          }
         }
         const res = await managementWebAdmins.updateAdmin(apiBaseUrl, adminId, body);
         if (!res.ok) {
@@ -322,12 +469,39 @@ export function AdminForm({
 
         {canEditPermissions && (mode === 'create' || !targetIsSuperAdmin) && (
           <FormSection title={t('permissions')}>
+            {loadingRoles ? (
+              <Text variant="muted">{t('loadingRoles')}</Text>
+            ) : (
+              <>
+                <Select
+                  label={t('roleSelectLabel')}
+                  value={selectedRoleId}
+                  onChange={(value) => {
+                    if (value === ADMIN_FORM_CREATE_ROLE_ID) {
+                      const returnUrl =
+                        mode === 'create'
+                          ? ROUTES.ADMINS_NEW
+                          : adminId !== undefined
+                            ? `/admin/${adminId}/edit`
+                            : ROUTES.ADMINS;
+                      router.push(adminRolesNewRoute(returnUrl));
+                      return;
+                    }
+                    setSelectedRoleId(value);
+                  }}
+                  options={roleSelectOptions}
+                />
+                <Text variant="muted" size="sm">
+                  {selectedRoleDescription}
+                </Text>
+              </>
+            )}
             <CrudCheckboxes
               label={t('adminsCrud')}
               labels={crudLabels}
               flags={adminsCrudFlags}
               onChange={handleAdminsCrudChange}
-              disabledBits={computeDisabledBits(adminsCrudFlags)}
+              disabled
               error={permissionsError}
             />
             <CrudCheckboxes
@@ -335,34 +509,35 @@ export function AdminForm({
               labels={crudLabels}
               flags={usersCrudFlags}
               onChange={handleUsersCrudChange}
-              disabledBits={computeDisabledBits(usersCrudFlags)}
+              disabled
             />
             <CrudCheckboxes
               label={t('bucketsCrud')}
               labels={crudLabels}
               flags={bucketsCrudFlags}
               onChange={handleBucketsCrudChange}
-              disabledBits={computeDisabledBits(bucketsCrudFlags)}
-            />
-            <CrudCheckboxes
-              label={t('bucketMessagesCrud')}
-              labels={crudLabels}
-              flags={bucketMessagesCrudFlags}
-              onChange={handleBucketMessagesCrudChange}
-              disabledBits={computeDisabledBits(bucketMessagesCrudFlags)}
+              disabled
             />
             <CrudCheckboxes
               label={t('bucketAdminsCrud')}
               labels={crudLabels}
               flags={bucketAdminsCrudFlags}
               onChange={handleBucketAdminsCrudChange}
-              disabledBits={computeDisabledBits(bucketAdminsCrudFlags)}
+              disabled
+            />
+            <CrudCheckboxes
+              label={t('bucketMessagesCrud')}
+              labels={crudLabels}
+              flags={bucketMessagesCrudFlags}
+              onChange={handleBucketMessagesCrudChange}
+              disabled
             />
             <Select
               label={t('eventVisibility')}
               value={eventVisibility}
               onChange={(v) => setEventVisibility(v as EventVisibility)}
               options={eventVisibilityOptions}
+              disabled
             />
           </FormSection>
         )}
@@ -374,7 +549,12 @@ export function AdminForm({
         )}
 
         <FormActions>
-          <Button type="submit" variant="primary" loading={loading}>
+          <Button
+            type="submit"
+            variant="primary"
+            loading={loading}
+            disabled={isInvalidRoleSelection}
+          >
             {mode === 'create' ? t('createAdmin') : t('saveChanges')}
           </Button>
           <Button

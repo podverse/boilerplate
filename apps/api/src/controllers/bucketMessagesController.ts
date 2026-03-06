@@ -1,6 +1,6 @@
 import type { Request, Response } from 'express';
 import { DEFAULT_PAGE_LIMIT, MAX_PAGE_SIZE } from '@boilerplate/helpers';
-import { BucketAdminService, BucketMessageService } from '@boilerplate/orm';
+import { BucketAdminService, BucketMessageService, BucketService } from '@boilerplate/orm';
 import type {
   CreateMessageBody,
   UpdateMessageBody,
@@ -202,7 +202,11 @@ export async function getPublicBucket(req: Request, res: Response): Promise<void
     bucket.parentBucketId !== null
       ? { messageBodyMaxLength: effectiveSettings?.messageBodyMaxLength ?? null }
       : undefined;
-  res.status(200).json({ bucket: toPublicBucketResponse(bucket, overrides) });
+  const ancestry = await BucketService.findAncestry(bucket.id);
+  const ancestors = ancestry
+    .filter((b) => b.isPublic)
+    .map((b) => ({ shortId: b.shortId, name: b.name }));
+  res.status(200).json({ bucket: toPublicBucketResponse(bucket, overrides, ancestors) });
 }
 
 /** Public: list public messages in a bucket by short_id (only if bucket is public). */

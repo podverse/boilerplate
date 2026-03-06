@@ -40,6 +40,11 @@
   box-shadow: $shadow-modal;
 }
 
+.contentInnerTransparent {
+  background-color: transparent;
+  box-shadow: none;
+}
+
 .closeButton {
   position: absolute;
   top: $space-2;

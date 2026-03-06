@@ -37,6 +37,7 @@ export interface CreateAdminBody {
   email: string;
   password: string;
   displayName: string;
+  roleId?: string;
   adminsCrud: number;
   usersCrud: number;
   bucketsCrud: number;
@@ -50,6 +51,7 @@ export interface UpdateAdminBody {
   email?: string;
   displayName?: string;
   password?: string;
+  roleId?: string;
   adminsCrud?: number;
   usersCrud?: number;
   bucketsCrud?: number;

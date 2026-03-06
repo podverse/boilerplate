@@ -42,11 +42,20 @@ export * as webAuth from './web/auth.js';
 export * as webBuckets from './web/buckets.js';
 export * as managementWebAuth from './management-web/auth.js';
 export * as managementWebAdmins from './management-web/admins.js';
+export * as managementWebAdminRoles from './management-web/adminRoles.js';
 export * as managementWebEvents from './management-web/events.js';
 export * as managementWebUsers from './management-web/users.js';
 export * as managementWebBuckets from './management-web/buckets.js';
 export * as managementWebBucketMessages from './management-web/bucketMessages.js';
 export * as managementWebBucketAdmins from './management-web/bucketAdmins.js';
+export * as managementWebBucketRoles from './management-web/bucketRoles.js';
+export type {
+  CreateManagementAdminRoleBody,
+  CustomManagementAdminRoleItem,
+  ManagementAdminRoleItem,
+  PredefinedManagementAdminRoleItem,
+  UpdateManagementAdminRoleBody,
+} from './management-web/adminRoles.js';
 export type {
   CreateBucketBody,
   ListBucketsData,
@@ -65,3 +74,10 @@ export type {
   ManagementBucketAdminInvitation,
   UpdateBucketAdminBody,
 } from './management-web/bucketAdmins.js';
+export type {
+  BucketRoleItem,
+  CreateBucketRoleBody,
+  CustomBucketRoleItem,
+  PredefinedBucketRoleItem,
+  UpdateBucketRoleBody,
+} from './management-web/bucketRoles.js';

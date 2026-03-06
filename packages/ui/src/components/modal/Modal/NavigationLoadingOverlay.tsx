@@ -10,7 +10,7 @@ import { Modal } from './Modal';
  */
 export function NavigationLoadingOverlay() {
   return (
-    <Modal withBackdrop={false} clickThrough>
+    <Modal withBackdrop={false} clickThrough contentTransparent>
       <LoadingSpinner size="xl" />
     </Modal>
   );

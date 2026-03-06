@@ -1,18 +1,24 @@
 import { redirect, notFound } from 'next/navigation';
 import { getLocale, getTranslations } from 'next-intl/server';
 import { formatDateTimeReadable } from '@boilerplate/helpers-i18n';
-import { BucketDetailContent } from '@boilerplate/ui';
+import { Breadcrumbs, BucketDetailContent, BucketDetailPageLayout, Link } from '@boilerplate/ui';
+import type { BreadcrumbItem } from '@boilerplate/ui';
 
-import { fetchAdmins, fetchBucket, fetchTopics } from '../../../../lib/buckets';
+import {
+  fetchAdmins,
+  fetchBucket,
+  fetchBucketAncestry,
+  fetchChildBuckets,
+} from '../../../../lib/buckets';
 import { getServerUser } from '../../../../lib/server-auth';
 import {
   ROUTES,
+  bucketDetailRoute,
+  bucketEditRoute,
   bucketMessagesRoute,
+  bucketNewRouteFromAncestry,
   bucketSettingsRoute,
   publicBucketRoute,
-  topicDetailRoute,
-  topicEditRoute,
-  topicNewRoute,
 } from '../../../../lib/routes';
 
 function formatEmailDisplayName(email: string, displayName: string | null | undefined): string {
@@ -38,6 +44,22 @@ function formatAdminLabel(
   return isOwner ? `${label} (owner)` : label;
 }
 
+function BreadcrumbLink({
+  href,
+  children,
+  className,
+}: {
+  href: string;
+  children: React.ReactNode;
+  className?: string;
+}) {
+  return (
+    <Link href={href} className={className}>
+      {children}
+    </Link>
+  );
+}
+
 export default async function BucketDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const user = await getServerUser();
   if (user === null) {
@@ -50,16 +72,10 @@ export default async function BucketDetailPage({ params }: { params: Promise<{ i
     notFound();
   }
 
-  if (bucket.parentBucketId !== null) {
-    const { bucket: parent } = await fetchBucket(bucket.parentBucketId);
-    if (parent !== null) {
-      redirect(topicDetailRoute(parent.shortId, bucket.shortId));
-    }
-  }
-
-  const [topics, admins] = await Promise.all([
-    bucket.parentBucketId === null ? fetchTopics(id) : [],
+  const [childBuckets, admins, ancestors] = await Promise.all([
+    fetchChildBuckets(id),
     fetchAdmins(id),
+    fetchBucketAncestry(bucket),
   ]);
 
   const t = await getTranslations('buckets');
@@ -89,45 +105,63 @@ export default async function BucketDetailPage({ params }: { params: Promise<{ i
       : []),
   ];
 
-  const topicsForContent =
-    bucket.parentBucketId === null
-      ? topics.map((topic) => ({
-          id: topic.id,
-          name: topic.name,
-          href: topicDetailRoute(id, topic.shortId),
-          editHref: topicEditRoute(id, topic.shortId),
-          createdAtDisplay: formatDateTimeReadable(locale, topic.createdAt),
-          lastMessageAtDisplay:
-            topic.lastMessageAt !== undefined && topic.lastMessageAt !== null
-              ? formatDateTimeReadable(locale, topic.lastMessageAt)
-              : null,
-        }))
-      : undefined;
+  const childBucketsForContent = childBuckets.map((childBucket) => ({
+    id: childBucket.id,
+    name: childBucket.name,
+    href: bucketDetailRoute(childBucket.shortId),
+    editHref: bucketEditRoute(childBucket.shortId),
+    createdAtDisplay: formatDateTimeReadable(locale, childBucket.createdAt),
+    lastMessageAtDisplay:
+      childBucket.lastMessageAt !== undefined && childBucket.lastMessageAt !== null
+        ? formatDateTimeReadable(locale, childBucket.lastMessageAt)
+        : null,
+    isPublicDisplay: childBucket.isPublic ? t('publicYes') : t('publicNo'),
+  }));
+  const breadcrumbItems: BreadcrumbItem[] = ancestors.map((ancestor) => ({
+    label: ancestor.name,
+    href: bucketDetailRoute(ancestor.shortId),
+  }));
+  const currentBreadcrumb: BreadcrumbItem = { label: bucket.name, href: undefined };
 
   return (
-    <BucketDetailContent
-      bucketName={bucket.name}
-      detailItems={detailItems}
-      showMessagesLink={true}
-      messagesHref={bucketMessagesRoute(id)}
-      messagesLabel={t('messages')}
-      showPublicLink={bucket.isPublic}
-      publicHref={bucket.isPublic ? publicBucketRoute(bucket.shortId) : undefined}
-      publicLabel="Public page"
-      showSettingsLink={true}
-      settingsHref={bucketSettingsRoute(id)}
-      settingsLabel={t('settings')}
-      topics={topicsForContent}
-      topicsTitle={topicsForContent !== undefined ? t('topics') : undefined}
-      topicViewLabel={topicsForContent !== undefined ? t('view') : undefined}
-      topicEditLabel={topicsForContent !== undefined ? t('edit') : undefined}
-      topicDeleteLabel={topicsForContent !== undefined ? t('delete') : undefined}
-      createTopicHref={topicsForContent !== undefined ? topicNewRoute(id) : undefined}
-      createTopicLabel={topicsForContent !== undefined ? t('createTopic') : undefined}
-      topicsColumnName={topicsForContent !== undefined ? t('name') : undefined}
-      topicsColumnLastMessage={topicsForContent !== undefined ? t('lastMessage') : undefined}
-      topicsColumnCreated={topicsForContent !== undefined ? t('created') : undefined}
-      topicsColumnActions={topicsForContent !== undefined ? t('actions') : undefined}
-    />
+    <BucketDetailPageLayout
+      breadcrumbs={
+        breadcrumbItems.length > 0 ? (
+          <Breadcrumbs
+            items={[...breadcrumbItems, currentBreadcrumb]}
+            LinkComponent={BreadcrumbLink}
+            ariaLabel={t('bucketSettings')}
+          />
+        ) : undefined
+      }
+    >
+      <BucketDetailContent
+        bucketName={bucket.name}
+        detailItems={detailItems}
+        showMessagesLink={true}
+        messagesHref={bucketMessagesRoute(id)}
+        messagesLabel={t('messages')}
+        showPublicLink={bucket.isPublic}
+        publicHref={bucket.isPublic ? publicBucketRoute(bucket.shortId) : undefined}
+        publicLabel="Public page"
+        showSettingsLink={bucket.parentBucketId === null}
+        settingsHref={bucket.parentBucketId === null ? bucketSettingsRoute(id) : undefined}
+        settingsLabel={t('settings')}
+        topics={childBucketsForContent}
+        topicsTitle={t('topics')}
+        topicViewLabel={t('view')}
+        topicEditLabel={t('edit')}
+        topicDeleteLabel={t('delete')}
+        createTopicHref={bucketNewRouteFromAncestry([id])}
+        createTopicLabel={t('createTopic')}
+        topicsColumnName={t('name')}
+        topicsColumnLastMessage={t('lastMessage')}
+        topicsColumnCreated={t('created')}
+        topicsColumnPublic={t('isPublic')}
+        topicsColumnActions={t('actions')}
+        topicsEmptyMessage={t('noBucketsYet')}
+        wrapInContainer={false}
+      />
+    </BucketDetailPageLayout>
   );
 }

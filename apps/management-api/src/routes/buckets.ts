@@ -3,15 +3,19 @@ import { Router } from 'express';
 
 import * as bucketAdminInvitationsController from '../controllers/bucketAdminInvitationsController.js';
 import * as bucketAdminsController from '../controllers/bucketAdminsController.js';
+import * as bucketRolesController from '../controllers/bucketRolesController.js';
 import * as bucketsController from '../controllers/bucketsController.js';
 import * as bucketMessagesController from '../controllers/bucketMessagesController.js';
 import { requireCrud } from '../middleware/requireCrud.js';
 import { validateBody } from '../middleware/validateBody.js';
 import {
   createBucketSchema,
+  createChildBucketSchema,
   updateBucketSchema,
   createBucketAdminInvitationSchema,
   updateBucketAdminSchema,
+  createBucketRoleSchema,
+  updateBucketRoleSchema,
 } from '../schemas/buckets.js';
 import { createMessageSchema, updateMessageSchema } from '../schemas/messages.js';
 
@@ -25,8 +29,17 @@ export function createBucketsRouter(requireAuth: RequestHandler): Router {
     void bucketsController.getBucket(req, res);
   });
   router.get('/:id/buckets', requireAuth, requireCrud('buckets', 'read'), (req, res) => {
-    void bucketsController.listTopics(req, res);
+    void bucketsController.listChildBuckets(req, res);
   });
+  router.post(
+    '/:id/buckets',
+    requireAuth,
+    requireCrud('buckets', 'create'),
+    validateBody(createChildBucketSchema),
+    (req, res) => {
+      void bucketsController.createChildBucket(req, res);
+    }
+  );
   router.post(
     '/',
     requireAuth,
@@ -115,6 +128,46 @@ export function createBucketsRouter(requireAuth: RequestHandler): Router {
     requireCrud('bucketAdmins', 'delete'),
     (req, res) => {
       void bucketAdminInvitationsController.deleteBucketAdminInvitation(req, res);
+    }
+  );
+
+  // Bucket roles: require buckets read + bucketAdmins CRUD
+  router.get(
+    '/:id/roles',
+    requireAuth,
+    requireCrud('buckets', 'read'),
+    requireCrud('bucketAdmins', 'read'),
+    (req, res) => {
+      void bucketRolesController.listBucketRoles(req, res);
+    }
+  );
+  router.post(
+    '/:id/roles',
+    requireAuth,
+    requireCrud('buckets', 'read'),
+    requireCrud('bucketAdmins', 'create'),
+    validateBody(createBucketRoleSchema),
+    (req, res) => {
+      void bucketRolesController.createBucketRole(req, res);
+    }
+  );
+  router.patch(
+    '/:id/roles/:roleId',
+    requireAuth,
+    requireCrud('buckets', 'read'),
+    requireCrud('bucketAdmins', 'update'),
+    validateBody(updateBucketRoleSchema),
+    (req, res) => {
+      void bucketRolesController.updateBucketRole(req, res);
+    }
+  );
+  router.delete(
+    '/:id/roles/:roleId',
+    requireAuth,
+    requireCrud('buckets', 'read'),
+    requireCrud('bucketAdmins', 'delete'),
+    (req, res) => {
+      void bucketRolesController.deleteBucketRole(req, res);
     }
   );
 

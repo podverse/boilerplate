@@ -294,6 +294,41 @@ export const openApiDocument = {
           adminCrud: { type: 'integer', minimum: 0, maximum: 15 },
         },
       },
+      BucketRoleItem: {
+        type: 'object',
+        description:
+          'Predefined role (id: everything|users_full|bucket_full|read_everything|bucket_read, nameKey, isPredefined: true) or custom role (id: uuid, name, isPredefined: false, createdAt).',
+        properties: {
+          id: { type: 'string', description: 'Predefined id or UUID for custom' },
+          nameKey: { type: 'string', nullable: true, description: 'i18n key for predefined' },
+          name: { type: 'string', nullable: true, description: 'Display name for custom' },
+          bucketCrud: { type: 'integer', minimum: 0, maximum: 15 },
+          messageCrud: { type: 'integer', minimum: 0, maximum: 15 },
+          adminCrud: { type: 'integer', minimum: 0, maximum: 15 },
+          isPredefined: { type: 'boolean' },
+          createdAt: { type: 'string', format: 'date-time', nullable: true },
+        },
+      },
+      CreateBucketRoleBody: {
+        type: 'object',
+        required: ['name', 'bucketCrud', 'messageCrud', 'adminCrud'],
+        properties: {
+          name: { type: 'string', minLength: 1, maxLength: 50 },
+          bucketCrud: { type: 'integer', minimum: 0, maximum: 15 },
+          messageCrud: { type: 'integer', minimum: 0, maximum: 15 },
+          adminCrud: { type: 'integer', minimum: 0, maximum: 15 },
+        },
+      },
+      UpdateBucketRoleBody: {
+        type: 'object',
+        minProperties: 1,
+        properties: {
+          name: { type: 'string', minLength: 1, maxLength: 50 },
+          bucketCrud: { type: 'integer', minimum: 0, maximum: 15 },
+          messageCrud: { type: 'integer', minimum: 0, maximum: 15 },
+          adminCrud: { type: 'integer', minimum: 0, maximum: 15 },
+        },
+      },
       ErrorMessage: {
         type: 'object',
         properties: { message: { type: 'string' } },
@@ -1168,11 +1203,74 @@ export const openApiDocument = {
       },
     },
     '/buckets/{id}/buckets': {
-      get: {
-        summary: 'List child buckets (topics)',
+      post: {
+        summary: 'Create child bucket',
         description:
-          'Returns sub-buckets (topics) for the given parent bucket. Id can be bucket UUID or shortId.',
-        operationId: 'listBucketTopics',
+          'Creates a child bucket under the given parent. Owner is inherited from the parent. Requires buckets create permission.',
+        operationId: 'createChildBucket',
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          {
+            name: 'id',
+            in: 'path',
+            required: true,
+            schema: { type: 'string', description: 'Parent bucket UUID or shortId' },
+          },
+        ],
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                required: ['name'],
+                properties: {
+                  name: { type: 'string' },
+                  isPublic: { type: 'boolean', default: true },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          '201': {
+            description: 'Created',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    bucket: { $ref: '#/components/schemas/Bucket' },
+                  },
+                },
+              },
+            },
+          },
+          '401': {
+            description: 'Authentication required',
+            content: {
+              'application/json': { schema: { $ref: '#/components/schemas/ErrorMessage' } },
+            },
+          },
+          '403': {
+            description: 'Insufficient permissions',
+            content: {
+              'application/json': { schema: { $ref: '#/components/schemas/ErrorMessage' } },
+            },
+          },
+          '404': {
+            description: 'Bucket not found',
+            content: {
+              'application/json': { schema: { $ref: '#/components/schemas/ErrorMessage' } },
+            },
+          },
+        },
+      },
+      get: {
+        summary: 'List child buckets',
+        description:
+          'Returns child buckets for the given parent bucket. Id can be bucket UUID or shortId.',
+        operationId: 'listChildBuckets',
         security: [{ bearerAuth: [] }],
         parameters: [
           {
@@ -1536,6 +1634,133 @@ export const openApiDocument = {
               'application/json': { schema: { $ref: '#/components/schemas/ErrorMessage' } },
             },
           },
+        },
+      },
+    },
+    '/buckets/{id}/roles': {
+      get: {
+        summary: 'List bucket roles',
+        description:
+          'Returns predefined roles (same for all buckets) and custom roles for this bucket. Requires buckets read and bucketAdmins read.',
+        operationId: 'listBucketRoles',
+        security: [{ bearerAuth: [] }],
+        parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }],
+        responses: {
+          '200': {
+            description: 'OK',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    roles: {
+                      type: 'array',
+                      items: { $ref: '#/components/schemas/BucketRoleItem' },
+                    },
+                  },
+                },
+              },
+            },
+          },
+          '401': { description: 'Authentication required' },
+          '403': { description: 'Insufficient permissions' },
+          '404': { description: 'Bucket not found' },
+        },
+      },
+      post: {
+        summary: 'Create custom bucket role',
+        description: 'Requires buckets read and bucketAdmins create. Parent bucket only.',
+        operationId: 'createBucketRole',
+        security: [{ bearerAuth: [] }],
+        parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }],
+        requestBody: {
+          content: {
+            'application/json': {
+              schema: { $ref: '#/components/schemas/CreateBucketRoleBody' },
+            },
+          },
+        },
+        responses: {
+          '201': {
+            description: 'Created',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    role: { $ref: '#/components/schemas/BucketRoleItem' },
+                  },
+                },
+              },
+            },
+          },
+          '400': { description: 'Descendant bucket settings are inherited from root bucket' },
+          '401': { description: 'Authentication required' },
+          '403': { description: 'Insufficient permissions' },
+          '404': { description: 'Bucket not found' },
+        },
+      },
+    },
+    '/buckets/{id}/roles/{roleId}': {
+      patch: {
+        summary: 'Update custom bucket role',
+        description: 'Requires buckets read and bucketAdmins update. roleId is UUID.',
+        operationId: 'updateBucketRole',
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          { name: 'id', in: 'path', required: true, schema: { type: 'string' } },
+          {
+            name: 'roleId',
+            in: 'path',
+            required: true,
+            schema: { type: 'string', format: 'uuid' },
+          },
+        ],
+        requestBody: {
+          content: {
+            'application/json': {
+              schema: { $ref: '#/components/schemas/UpdateBucketRoleBody' },
+            },
+          },
+        },
+        responses: {
+          '200': {
+            description: 'OK',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    role: { $ref: '#/components/schemas/BucketRoleItem' },
+                  },
+                },
+              },
+            },
+          },
+          '401': { description: 'Authentication required' },
+          '403': { description: 'Insufficient permissions' },
+          '404': { description: 'Bucket or role not found' },
+        },
+      },
+      delete: {
+        summary: 'Delete custom bucket role',
+        description: 'Requires buckets read and bucketAdmins delete.',
+        operationId: 'deleteBucketRole',
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          { name: 'id', in: 'path', required: true, schema: { type: 'string' } },
+          {
+            name: 'roleId',
+            in: 'path',
+            required: true,
+            schema: { type: 'string', format: 'uuid' },
+          },
+        ],
+        responses: {
+          '204': { description: 'Deleted' },
+          '401': { description: 'Authentication required' },
+          '403': { description: 'Insufficient permissions' },
+          '404': { description: 'Bucket or role not found' },
         },
       },
     },

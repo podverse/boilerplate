@@ -11,6 +11,11 @@ export const createBucketSchema = Joi.object({
   ownerId: Joi.string().uuid().required(),
 });
 
+export const createChildBucketSchema = Joi.object({
+  name: name.required(),
+  isPublic: Joi.boolean().optional(),
+});
+
 export const updateBucketSchema = Joi.object({
   name: name.optional(),
   isPublic: Joi.boolean().optional(),
@@ -41,7 +46,37 @@ export type UpdateBucketAdminBody = {
   adminCrud?: number;
 };
 
+const roleName = Joi.string().min(1).max(SHORT_TEXT_MAX_LENGTH);
+
+export const createBucketRoleSchema = Joi.object({
+  name: roleName.required(),
+  bucketCrud: crudMask.required(),
+  messageCrud: crudMask.required(),
+  adminCrud: crudMask.required(),
+});
+
+export const updateBucketRoleSchema = Joi.object({
+  name: roleName.optional(),
+  bucketCrud: crudMask.optional(),
+  messageCrud: crudMask.optional(),
+  adminCrud: crudMask.optional(),
+}).min(1);
+
+export type CreateBucketRoleBody = {
+  name: string;
+  bucketCrud: number;
+  messageCrud: number;
+  adminCrud: number;
+};
+export type UpdateBucketRoleBody = {
+  name?: string;
+  bucketCrud?: number;
+  messageCrud?: number;
+  adminCrud?: number;
+};
+
 export type CreateBucketBody = { name: string; isPublic?: boolean; ownerId: string };
+export type CreateChildBucketBody = { name: string; isPublic?: boolean };
 export type UpdateBucketBody = {
   name?: string;
   isPublic?: boolean;

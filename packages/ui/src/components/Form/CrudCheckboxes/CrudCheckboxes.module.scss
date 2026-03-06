@@ -10,10 +10,18 @@
 .headerLabel {
   display: flex;
   align-items: center;
-  gap: $space-2;
-  cursor: pointer;
+  justify-content: flex-start;
+  gap: $space-3;
   font-weight: $font-weight-medium;
   margin-bottom: $space-3;
+}
+
+.selectAllLabel {
+  display: flex;
+  align-items: center;
+  gap: $space-2;
+  cursor: pointer;
+  font-weight: 400;
 }
 
 .checkboxGroup {

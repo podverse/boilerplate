@@ -2,6 +2,7 @@ import type { Request, Response } from 'express';
 import { CRUD_BITS } from '@boilerplate/helpers';
 import { BucketAdminService, UserService } from '@boilerplate/orm';
 import type { CreateBucketAdminBody, UpdateBucketAdminBody } from '../schemas/buckets.js';
+import { normalizeBucketMessageCrud } from '../lib/bucket-admin-permissions.js';
 import { userToJson } from '../lib/userToJson.js';
 import { canManageBucketAdmins } from '../lib/bucket-policy.js';
 import { getBucketAndEffective } from '../lib/bucket-effective.js';
@@ -116,7 +117,13 @@ export async function createBucketAdmin(req: Request, res: Response): Promise<vo
     res.status(404).json({ message: 'Bucket not found' });
     return;
   }
-  const { effectiveBucket } = resolved;
+  const { effectiveBucket, isDescendant } = resolved;
+  if (isDescendant) {
+    res.status(400).json({
+      message: 'Admins are managed on the root bucket only.',
+    });
+    return;
+  }
   const bucketAdmin = await BucketAdminService.findByBucketAndUser(effectiveBucket.id, user.id);
   if (!canManageBucketAdmins(user.id, effectiveBucket, bucketAdmin)) {
     res.status(403).json({ message: 'Forbidden' });
@@ -134,11 +141,15 @@ export async function createBucketAdmin(req: Request, res: Response): Promise<vo
     return;
   }
   const adminCrud = (body.adminCrud ?? ADMIN_CRUD_READ) | ADMIN_CRUD_READ;
+  const { bucketCrud, messageCrud } = normalizeBucketMessageCrud(
+    body.bucketCrud ?? 0,
+    body.messageCrud ?? 0
+  );
   const admin = await BucketAdminService.create({
     bucketId: effectiveBucket.id,
     userId: targetUser.id,
-    bucketCrud: body.bucketCrud ?? 0,
-    messageCrud: body.messageCrud ?? 0,
+    bucketCrud,
+    messageCrud,
     adminCrud,
   });
   res.status(201).json({ admin: adminToJson(admin, targetUser) });
@@ -157,7 +168,13 @@ export async function updateBucketAdmin(req: Request, res: Response): Promise<vo
     res.status(404).json({ message: 'Bucket not found' });
     return;
   }
-  const { effectiveBucket } = resolved;
+  const { effectiveBucket, isDescendant } = resolved;
+  if (isDescendant) {
+    res.status(400).json({
+      message: 'Admins are managed on the root bucket only.',
+    });
+    return;
+  }
   const targetUser = await resolveUser(userIdParam);
   if (targetUser === null) {
     res.status(404).json({ message: 'User not found' });
@@ -179,8 +196,14 @@ export async function updateBucketAdmin(req: Request, res: Response): Promise<vo
   }
   const body = req.body as UpdateBucketAdminBody;
   const update: { bucketCrud?: number; messageCrud?: number; adminCrud?: number } = {};
-  if (body.bucketCrud !== undefined) update.bucketCrud = body.bucketCrud;
-  if (body.messageCrud !== undefined) update.messageCrud = body.messageCrud;
+  if (body.bucketCrud !== undefined || body.messageCrud !== undefined) {
+    const { bucketCrud, messageCrud } = normalizeBucketMessageCrud(
+      body.bucketCrud ?? existing.bucketCrud,
+      body.messageCrud ?? existing.messageCrud
+    );
+    update.bucketCrud = bucketCrud;
+    update.messageCrud = messageCrud;
+  }
   if (body.adminCrud !== undefined) update.adminCrud = body.adminCrud | ADMIN_CRUD_READ;
   if (Object.keys(update).length > 0) {
     await BucketAdminService.update(effectiveBucket.id, targetUser.id, update);
@@ -206,7 +229,13 @@ export async function deleteBucketAdmin(req: Request, res: Response): Promise<vo
     res.status(404).json({ message: 'Bucket not found' });
     return;
   }
-  const { effectiveBucket } = resolved;
+  const { effectiveBucket, isDescendant } = resolved;
+  if (isDescendant) {
+    res.status(400).json({
+      message: 'Admins are managed on the root bucket only.',
+    });
+    return;
+  }
   const targetUser = await resolveUser(userIdParam);
   if (targetUser === null) {
     res.status(404).json({ message: 'User not found' });

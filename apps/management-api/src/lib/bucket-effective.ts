@@ -3,14 +3,17 @@ import { BucketService } from '@boilerplate/orm';
 
 export type BucketAndEffective = {
   bucket: Bucket;
+  /** Root (top-level) bucket; governance (owner/admins/settings) is resolved from here. */
   effectiveBucket: Bucket;
   effectiveSettings: Bucket['settings'];
+  /** True when bucket is a descendant (has a parent). Descendants may only update name. */
+  isDescendant: boolean;
 };
 
 /**
- * Resolve bucket by shortId or id. For topic buckets (parentBucketId != null),
- * effectiveBucket is the parent (used for settings and owner); otherwise
- * effectiveBucket is the bucket itself.
+ * Resolve bucket by shortId or id. effectiveBucket is the root ancestor (top of
+ * parent chain), used for settings and owner. For root buckets,
+ * effectiveBucket === bucket; for descendants, we walk up to the root.
  */
 export async function getBucketAndEffective(
   idOrShortId: string
@@ -18,18 +21,19 @@ export async function getBucketAndEffective(
   const bucket =
     (await BucketService.findByShortId(idOrShortId)) ?? (await BucketService.findById(idOrShortId));
   if (bucket === null) return null;
-  if (bucket.parentBucketId !== null) {
-    const parent = await BucketService.findById(bucket.parentBucketId);
+  let current: Bucket = bucket;
+  while (current.parentBucketId !== null) {
+    const parent = await BucketService.findById(current.parentBucketId);
     if (parent === null) return null;
-    return {
-      bucket,
-      effectiveBucket: parent,
-      effectiveSettings: parent.settings ?? null,
-    };
+    current = parent;
   }
+  const effectiveBucket = current;
+  const effectiveSettings = effectiveBucket.settings ?? null;
+  const isDescendant = bucket.id !== effectiveBucket.id;
   return {
     bucket,
-    effectiveBucket: bucket,
-    effectiveSettings: bucket.settings ?? null,
+    effectiveBucket,
+    effectiveSettings,
+    isDescendant,
   };
 }

@@ -12,7 +12,7 @@
   }
 
   &::-webkit-scrollbar-thumb {
-    background: var(--color-border, $color-border);
+    background: var(--color-border);
     border-radius: $radius-xs;
   }
 }
@@ -44,36 +44,36 @@
   padding: $space-2 $space-4;
   font-size: $font-size-sm;
   font-weight: $font-weight-medium;
-  color: var(--color-text-muted, $color-text-muted);
+  color: var(--color-text-muted);
   text-decoration: none;
   border-radius: $radius-pill;
   background: transparent;
-  border: 1px solid var(--color-border, $color-border);
+  border: 1px solid var(--color-border);
   transition:
     color $transition-fast,
     background-color $transition-fast,
     border-color $transition-fast;
 
   &:hover {
-    color: var(--color-primary, $color-primary);
-    border-color: var(--color-primary, $color-primary);
+    color: var(--color-primary);
+    border-color: var(--color-primary);
     text-decoration: none;
   }
 
   &:focus-visible {
-    outline: $focus-outline-width solid var(--color-primary, $color-primary);
+    outline: $focus-outline-width solid var(--color-primary);
     outline-offset: $focus-outline-offset;
   }
 }
 
 .tabLinkActive {
-  color: var(--color-on-primary, $color-on-primary);
-  background: var(--color-primary, $color-primary);
-  border-color: var(--color-primary, $color-primary);
+  color: var(--color-on-primary);
+  background: var(--color-primary);
+  border-color: var(--color-primary);
 
   &:hover {
-    color: var(--color-on-primary, $color-on-primary);
-    background: var(--color-primary-hover, $color-primary-hover);
-    border-color: var(--color-primary-hover, $color-primary-hover);
+    color: var(--color-on-primary);
+    background: var(--color-primary-hover);
+    border-color: var(--color-primary-hover);
   }
 }

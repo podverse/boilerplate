@@ -4,6 +4,8 @@ import { Breadcrumbs, Link } from '@boilerplate/ui';
 import type { BreadcrumbItem } from '@boilerplate/ui';
 
 export type BucketSettingsBreadcrumbsProps = {
+  /** Optional parent buckets in hierarchy order (root first). When set, shown before the current bucket. */
+  ancestorItems?: BreadcrumbItem[];
   bucketName: string;
   bucketDetailHref: string;
   settingsHref: string;
@@ -15,6 +17,10 @@ export type BucketSettingsBreadcrumbsProps = {
   isEditAdminPage?: boolean;
   adminsHref?: string;
   adminsLabel?: string;
+  /** When true, show bucket → Settings → Roles before current page. */
+  isRolePage?: boolean;
+  rolesHref?: string;
+  rolesLabel?: string;
 };
 
 function LinkAdapter({
@@ -38,6 +44,7 @@ function LinkAdapter({
  * When isEditAdminPage and adminsHref/adminsLabel provided: bucket → Settings → Admins.
  */
 export function BucketSettingsBreadcrumbs({
+  ancestorItems = [],
   bucketName,
   bucketDetailHref,
   settingsHref,
@@ -47,15 +54,22 @@ export function BucketSettingsBreadcrumbs({
   isEditAdminPage = false,
   adminsHref,
   adminsLabel,
+  isRolePage = false,
+  rolesHref,
+  rolesLabel,
 }: BucketSettingsBreadcrumbsProps) {
   const items: BreadcrumbItem[] = [
+    ...ancestorItems,
     { label: bucketName, href: bucketDetailHref },
     { label: settingsLabel, href: settingsHref },
   ];
   if (isEditAdminPage && adminsHref !== undefined && adminsLabel !== undefined) {
     items.push({ label: adminsLabel, href: adminsHref });
   }
-  if (currentPageLabel !== settingsLabel || isEditAdminPage) {
+  if (isRolePage && rolesHref !== undefined && rolesLabel !== undefined) {
+    items.push({ label: rolesLabel, href: rolesHref });
+  }
+  if (currentPageLabel !== settingsLabel || isEditAdminPage || isRolePage) {
     items.push({ label: currentPageLabel, href: undefined });
   }
   return <Breadcrumbs items={items} LinkComponent={LinkAdapter} ariaLabel={settingsAriaLabel} />;

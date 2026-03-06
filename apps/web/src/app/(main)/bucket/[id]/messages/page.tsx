@@ -1,8 +1,9 @@
 import { redirect, notFound } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
 
+import type { BreadcrumbItem } from '@boilerplate/ui';
 import { BucketMessagesPageClient } from './BucketMessagesPageClient';
-import { fetchBucket, fetchMessages } from '../../../../../lib/buckets';
+import { fetchBucket, fetchBucketAncestry, fetchMessages } from '../../../../../lib/buckets';
 import { getServerUser } from '../../../../../lib/server-auth';
 import { ROUTES, bucketDetailRoute } from '../../../../../lib/routes';
 
@@ -14,7 +15,7 @@ export default async function BucketMessagesPage({ params }: { params: Promise<{
   const { bucket } = await fetchBucket(id);
   if (bucket === null) notFound();
 
-  const messages = await fetchMessages(id);
+  const [messages, ancestors] = await Promise.all([fetchMessages(id), fetchBucketAncestry(bucket)]);
   const t = await getTranslations('buckets');
 
   const listItems = messages.map((m) => ({
@@ -26,11 +27,17 @@ export default async function BucketMessagesPage({ params }: { params: Promise<{
     bucketId: m.bucketId,
   }));
 
+  const ancestorItems: BreadcrumbItem[] = ancestors.map((a) => ({
+    label: a.name,
+    href: bucketDetailRoute(a.shortId),
+  }));
+
   return (
     <BucketMessagesPageClient
       bucketId={id}
       bucketName={bucket.name}
       bucketDetailHref={bucketDetailRoute(id)}
+      ancestorItems={ancestorItems}
       messages={listItems}
       messagesTitle={t('messages')}
       messagesAriaLabel={t('messages')}

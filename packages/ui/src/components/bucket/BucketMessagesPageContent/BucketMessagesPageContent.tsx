@@ -3,6 +3,7 @@
 import { BucketMessageList } from '../BucketMessageList';
 import type { BucketMessageListItem } from '../BucketMessageList';
 import { BucketMessagesBreadcrumbs } from '../BucketMessagesBreadcrumbs';
+import type { BreadcrumbItem } from '../../navigation/Breadcrumbs';
 import { ContentPageLayout } from '../../layout/ContentPageLayout';
 
 /**
@@ -10,6 +11,8 @@ import { ContentPageLayout } from '../../layout/ContentPageLayout';
  * Renders breadcrumbs + title + message list only. No "Add message" — that is only on the public bucket page.
  */
 export type BucketMessagesPageContentProps = {
+  /** Optional parent buckets in hierarchy order (root first) for breadcrumbs. */
+  ancestorItems?: BreadcrumbItem[];
   bucketName: string;
   bucketDetailHref: string;
   messagesAriaLabel: string;
@@ -22,6 +25,7 @@ export type BucketMessagesPageContentProps = {
 };
 
 export function BucketMessagesPageContent({
+  ancestorItems = [],
   bucketName,
   bucketDetailHref,
   messagesAriaLabel,
@@ -36,6 +40,7 @@ export function BucketMessagesPageContent({
     <ContentPageLayout
       breadcrumbs={
         <BucketMessagesBreadcrumbs
+          ancestorItems={ancestorItems}
           bucketName={bucketName}
           bucketDetailHref={bucketDetailHref}
           currentPageLabel={messagesTitle}

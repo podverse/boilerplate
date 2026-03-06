@@ -16,6 +16,7 @@ import { BucketSettings } from './entities/BucketSettings.js';
 import { BucketAdmin } from './entities/BucketAdmin.js';
 import { BucketAdminInvitation } from './entities/BucketAdminInvitation.js';
 import { BucketMessage } from './entities/BucketMessage.js';
+import { BucketRole } from './entities/BucketRole.js';
 
 const ENTITIES = [
   User,
@@ -28,6 +29,7 @@ const ENTITIES = [
   BucketAdmin,
   BucketAdminInvitation,
   BucketMessage,
+  BucketRole,
 ];
 
 function getReadOptions(): DataSourceOptions {

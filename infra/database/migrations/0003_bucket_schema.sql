@@ -1,6 +1,6 @@
--- 0003 migration: bucket (and topics as child buckets), bucket_admin, bucket_message, bucket_admin_invitation
+-- 0003 migration: bucket (and child buckets), bucket_admin, bucket_role, bucket_message, bucket_admin_invitation
 
--- Bucket: top-level have parent_bucket_id NULL; topics are rows with parent_bucket_id set.
+-- Bucket: top-level have parent_bucket_id NULL; child buckets are rows with parent_bucket_id set.
 -- short_id: URL-safe public id (app sets on insert via nanoid).
 CREATE TABLE bucket (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -42,6 +42,20 @@ CREATE TABLE bucket_admin (
 
 CREATE INDEX idx_bucket_admin_bucket_id ON bucket_admin(bucket_id);
 CREATE INDEX idx_bucket_admin_user_id ON bucket_admin(user_id);
+
+-- Bucket-scoped custom roles (name + CRUD bitmasks). Predefined roles exist only in code.
+CREATE TABLE bucket_role (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    bucket_id UUID NOT NULL REFERENCES bucket(id) ON DELETE CASCADE,
+    name varchar_short NOT NULL,
+    bucket_crud INTEGER NOT NULL,
+    message_crud INTEGER NOT NULL,
+    admin_crud INTEGER NOT NULL,
+    created_at server_time_with_default NOT NULL,
+    UNIQUE (bucket_id, name)
+);
+
+CREATE INDEX idx_bucket_role_bucket_id ON bucket_role(bucket_id);
 
 -- Messages in a bucket; is_public controls visibility on public bucket page.
 CREATE TABLE bucket_message (

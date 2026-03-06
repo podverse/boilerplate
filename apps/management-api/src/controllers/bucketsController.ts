@@ -3,7 +3,11 @@ import { DEFAULT_PAGE_LIMIT, MAX_PAGE_SIZE, MAX_TOTAL_CAP } from '@boilerplate/h
 import { BucketMessageService, BucketService, UserService } from '@boilerplate/orm';
 import type { Bucket } from '@boilerplate/orm';
 
-import type { CreateBucketBody, UpdateBucketBody } from '../schemas/buckets.js';
+import type {
+  CreateBucketBody,
+  CreateChildBucketBody,
+  UpdateBucketBody,
+} from '../schemas/buckets.js';
 import { bucketToJson } from '../lib/bucketToJson.js';
 import { getBucketAndEffective } from '../lib/bucket-effective.js';
 
@@ -103,25 +107,41 @@ export async function updateBucket(req: Request, res: Response): Promise<void> {
     res.status(404).json({ message: 'Bucket not found' });
     return;
   }
-  const { bucket } = resolved;
-  if (bucket.parentBucketId !== null) {
-    res.status(400).json({
-      message: 'Topic buckets inherit settings from the parent; update the parent bucket instead.',
-    });
-    return;
-  }
+  const { bucket, effectiveBucket, effectiveSettings, isDescendant } = resolved;
   const body = req.body as UpdateBucketBody;
-  await BucketService.update(bucket.id, {
-    name: body.name,
-    isPublic: body.isPublic,
-    messageBodyMaxLength: body.messageBodyMaxLength,
-  });
+  if (isDescendant) {
+    if (body.isPublic !== undefined || body.messageBodyMaxLength !== undefined) {
+      res.status(400).json({
+        message:
+          'Descendant buckets inherit settings from the root bucket; only name can be updated.',
+      });
+      return;
+    }
+    await BucketService.update(bucket.id, { name: body.name });
+  } else {
+    await BucketService.update(bucket.id, {
+      name: body.name,
+      isPublic: body.isPublic,
+      messageBodyMaxLength: body.messageBodyMaxLength,
+    });
+  }
   const updated = await BucketService.findById(bucket.id);
   if (updated === null) {
     res.status(404).json({ message: 'Bucket not found' });
     return;
   }
-  res.status(200).json({ bucket: bucketToJson(updated) });
+  const overrides =
+    updated.parentBucketId !== null
+      ? {
+          ownerId: effectiveBucket.ownerId,
+          messageBodyMaxLength: effectiveSettings?.messageBodyMaxLength ?? null,
+        }
+      : undefined;
+  const owner = await UserService.findById(effectiveBucket.ownerId);
+  const ownerDisplayName = owner !== null ? formatOwnerDisplayName(owner) : null;
+  res.status(200).json({
+    bucket: bucketToJson(updated, ownerDisplayName, overrides),
+  });
 }
 
 export async function deleteBucket(req: Request, res: Response): Promise<void> {
@@ -135,23 +155,24 @@ export async function deleteBucket(req: Request, res: Response): Promise<void> {
   res.status(204).send();
 }
 
-/** List child buckets (topics) for a parent bucket. GET /buckets/:id/buckets */
-export async function listTopics(req: Request, res: Response): Promise<void> {
+/** List child buckets for a bucket. GET /buckets/:id/buckets. Uses effective root for inherited overrides. */
+export async function listChildBuckets(req: Request, res: Response): Promise<void> {
   const id = req.params.id as string;
-  const parent = await resolveBucket(id);
-  if (parent === null) {
+  const resolved = await getBucketAndEffective(id);
+  if (resolved === null) {
     res.status(404).json({ message: 'Bucket not found' });
     return;
   }
-  const owner = await UserService.findById(parent.ownerId);
+  const { bucket: parent, effectiveBucket, effectiveSettings } = resolved;
+  const owner = await UserService.findById(effectiveBucket.ownerId);
   const ownerDisplayName = owner !== null ? formatOwnerDisplayName(owner) : null;
-  const messageBodyMaxLength = parent.settings?.messageBodyMaxLength ?? null;
+  const messageBodyMaxLength = effectiveSettings?.messageBodyMaxLength ?? null;
   const children = await BucketService.findChildren(parent.id);
   const lastMessageAtMap = await BucketMessageService.getLatestMessageCreatedAtByBucketIds(
     children.map((b) => b.id)
   );
   const overrides = {
-    ownerId: parent.ownerId,
+    ownerId: effectiveBucket.ownerId,
     ownerDisplayName,
     messageBodyMaxLength,
   };
@@ -162,5 +183,32 @@ export async function listTopics(req: Request, res: Response): Promise<void> {
         lastMessageAt: lastMessageAtMap.get(b.id)?.toISOString() ?? null,
       })
     ),
+  });
+}
+
+/** Create a child bucket under the given parent. POST /buckets/:id/buckets. */
+export async function createChildBucket(req: Request, res: Response): Promise<void> {
+  const bucketId = req.params.id as string;
+  const resolved = await getBucketAndEffective(bucketId);
+  if (resolved === null) {
+    res.status(404).json({ message: 'Bucket not found' });
+    return;
+  }
+  const { bucket: parent, effectiveBucket, effectiveSettings } = resolved;
+  const body = req.body as CreateChildBucketBody;
+  const childBucket = await BucketService.create({
+    ownerId: effectiveBucket.ownerId,
+    name: body.name,
+    isPublic: body.isPublic ?? true,
+    parentBucketId: parent.id,
+  });
+  const overrides = {
+    messageBodyMaxLength: effectiveSettings?.messageBodyMaxLength ?? null,
+    ownerId: effectiveBucket.ownerId,
+  };
+  const owner = await UserService.findById(effectiveBucket.ownerId);
+  const ownerDisplayName = owner !== null ? formatOwnerDisplayName(owner) : null;
+  res.status(201).json({
+    bucket: bucketToJson(childBucket, ownerDisplayName, overrides),
   });
 }

@@ -22,7 +22,10 @@ export function NavigationProvider({ children }: { children: React.ReactNode }) 
   const searchString = searchParams.toString();
 
   useEffect(() => {
-    setIsNavigating(false);
+    // Defer clearing so the overlay unmounts after Next.js finishes its DOM update.
+    // Clearing in the same tick can cause removeChild/parentNode null during route transition.
+    const id = setTimeout(() => setIsNavigating(false), 0);
+    return () => clearTimeout(id);
   }, [pathname, searchString]);
 
   const setNavigating = useCallback((value: boolean) => {

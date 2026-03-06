@@ -6,16 +6,23 @@ import {
   BucketAdminsView,
   Text,
   type BucketAdminInvitationRow,
+  type BucketAdminRoleOption,
   type BucketAdminRow,
 } from '@boilerplate/ui';
 import {
   managementWebBucketAdmins,
+  managementWebBucketRoles,
   type ManagementBucketAdmin,
   type ManagementBucketAdminInvitation,
+  type BucketRoleItem,
 } from '@boilerplate/helpers-requests';
 import { getManagementApiBaseUrl } from '../../../../../config/env';
 import { getWebAppUrl } from '../../../../../config/env';
-import { bucketSettingsAdminEditRoute } from '../../../../../lib/routes';
+import {
+  bucketSettingsAdminEditRoute,
+  bucketSettingsAdminsRoute,
+  bucketSettingsRoleNewRoute,
+} from '../../../../../lib/routes';
 
 function toAdminRow(a: ManagementBucketAdmin): BucketAdminRow {
   return {
@@ -42,20 +49,56 @@ function toInvitationRow(inv: ManagementBucketAdminInvitation): BucketAdminInvit
   };
 }
 
+function roleToOption(
+  role: BucketRoleItem,
+  tRoles: (key: string) => string
+): BucketAdminRoleOption {
+  const id = role.id;
+  const label =
+    role.isPredefined && 'nameKey' in role
+      ? (() => {
+          const key = role.nameKey.split('.').pop();
+          return key !== undefined ? tRoles(key) : role.nameKey;
+        })()
+      : 'name' in role
+        ? role.name
+        : id;
+  return {
+    id,
+    label,
+    description:
+      id === 'everything'
+        ? tRoles('descriptionEverything')
+        : id === 'bucket_full'
+          ? tRoles('descriptionBucketFull')
+          : id === 'read_everything'
+            ? tRoles('descriptionReadEverything')
+            : id === 'bucket_read'
+              ? tRoles('descriptionBucketRead')
+              : tRoles('descriptionCustomRole'),
+    bucketCrud: role.bucketCrud,
+    messageCrud: role.messageCrud,
+    adminCrud: role.adminCrud,
+  };
+}
+
 export function BucketAdminsClient({ bucketId, ownerId }: { bucketId: string; ownerId: string }) {
   const t = useTranslations('buckets');
+  const tRoles = useTranslations('roles');
   const tCommon = useTranslations('common');
   const locale = useLocale();
   const baseUrl = getManagementApiBaseUrl();
   const [admins, setAdmins] = useState<BucketAdminRow[]>([]);
   const [pendingInvitations, setPendingInvitations] = useState<BucketAdminInvitationRow[]>([]);
+  const [roles, setRoles] = useState<BucketAdminRoleOption[]>([]);
   const [loading, setLoading] = useState(true);
 
   const load = useCallback(async () => {
     setLoading(true);
-    const [adminsRes, invRes] = await Promise.all([
+    const [adminsRes, invRes, rolesRes] = await Promise.all([
       managementWebBucketAdmins.listBucketAdmins(baseUrl, bucketId, null),
       managementWebBucketAdmins.listBucketAdminInvitations(baseUrl, bucketId, null),
+      managementWebBucketRoles.listBucketRoles(baseUrl, bucketId, null),
     ]);
     if (adminsRes.ok && adminsRes.data !== undefined) {
       setAdmins(adminsRes.data.admins.map(toAdminRow));
@@ -63,8 +106,11 @@ export function BucketAdminsClient({ bucketId, ownerId }: { bucketId: string; ow
     if (invRes.ok && invRes.data !== undefined) {
       setPendingInvitations(invRes.data.invitations.map(toInvitationRow));
     }
+    if (rolesRes.ok && rolesRes.data !== undefined) {
+      setRoles(rolesRes.data.roles.map((r) => roleToOption(r, tRoles)));
+    }
     setLoading(false);
-  }, [baseUrl, bucketId]);
+  }, [baseUrl, bucketId, tRoles]);
 
   useEffect(() => {
     void load();
@@ -74,6 +120,7 @@ export function BucketAdminsClient({ bucketId, ownerId }: { bucketId: string; ow
     addAdmin: t('addAdmin'),
     addAdminDescription: t('addAdminDescription'),
     bucketPermissions: t('bucketPermissions'),
+    bucketPermissionsInfo: t('bucketPermissionsInfo'),
     messagePermissions: t('messagePermissions'),
     adminPermissionsLabel: t('adminPermissionsLabel'),
     crudCreate: t('crudCreate'),
@@ -180,6 +227,11 @@ export function BucketAdminsClient({ bucketId, ownerId }: { bucketId: string; ow
     return <Text variant="muted">{tCommon('loading')}</Text>;
   }
 
+  const createNewRoleHref = bucketSettingsRoleNewRoute(
+    bucketId,
+    bucketSettingsAdminsRoute(bucketId)
+  );
+
   return (
     <BucketAdminsView
       admins={admins}
@@ -192,6 +244,10 @@ export function BucketAdminsClient({ bucketId, ownerId }: { bucketId: string; ow
       getEditHref={(userId) => bucketSettingsAdminEditRoute(bucketId, userId)}
       getInviteLinkUrl={getInviteLinkUrl}
       locale={locale}
+      roleOptions={roles}
+      createNewRoleHref={createNewRoleHref}
+      roleSelectLabel={t('roles')}
+      createNewRoleOptionLabel={t('customRole')}
     />
   );
 }

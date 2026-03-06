@@ -45,7 +45,7 @@ export class BucketService {
       )
       .setParameter('userId', userId);
     if (orderBy === 'name') {
-      qb.orderBy('LOWER(bucket.name)', orderDir);
+      qb.addSelect('LOWER(bucket.name)', '_sort_name').orderBy('_sort_name', orderDir);
     } else {
       qb.orderBy(`bucket.${orderBy}`, orderDir);
     }
@@ -65,6 +65,25 @@ export class BucketService {
       where: { parentBucketId },
       order: { createdAt: 'DESC' },
     });
+  }
+
+  /**
+   * Return parent chain from root to immediate parent (not including the bucket itself).
+   * Order: root first, then each ancestor, so index 0 is the root bucket.
+   */
+  static async findAncestry(bucketId: string): Promise<Bucket[]> {
+    const bucket = await BucketService.findById(bucketId);
+    if (bucket === null || bucket.parentBucketId === null) return [];
+    const chain: Bucket[] = [];
+    let parentId: string | null = bucket.parentBucketId;
+    while (parentId !== null) {
+      const parent = await BucketService.findById(parentId);
+      if (parent === null) break;
+      chain.push(parent);
+      parentId = parent.parentBucketId;
+    }
+    chain.reverse();
+    return chain;
   }
 
   /** Allowed sort fields for listPaginated (entity property names). */
@@ -94,7 +113,7 @@ export class BucketService {
       .where('bucket.parent_bucket_id IS NULL');
     const countQb = repo.createQueryBuilder('bucket').where('bucket.parent_bucket_id IS NULL');
     if (orderBy === 'name') {
-      qb.orderBy('LOWER(bucket.name)', orderDir);
+      qb.addSelect('LOWER(bucket.name)', '_sort_name').orderBy('_sort_name', orderDir);
     } else {
       qb.orderBy(`bucket.${orderBy}`, orderDir);
     }

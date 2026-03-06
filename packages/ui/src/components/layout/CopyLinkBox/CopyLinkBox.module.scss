@@ -2,7 +2,7 @@
 
 .root {
   padding: $space-3;
-  background: var(--color-bg-muted, #f5f5f5);
+  background: var(--color-bg-muted);
   border-radius: $radius-sm;
 }
 
@@ -22,8 +22,8 @@
   padding: $space-2 $space-3;
   font-size: $font-size-sm;
   font-family: inherit;
-  border: $border-width solid var(--color-border, #{$color-border});
+  border: $border-width solid var(--color-border);
   border-radius: $radius-sm;
-  background: var(--color-bg, #{$color-bg});
-  color: var(--color-text, #{$color-text});
+  background: var(--color-bg);
+  color: var(--color-text);
 }

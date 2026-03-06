@@ -10,10 +10,12 @@ import {
   SectionWithHeading,
   Stack,
 } from '@boilerplate/ui';
+import type { BreadcrumbItem } from '@boilerplate/ui';
 import type { BucketMessageListItem } from '@boilerplate/ui';
 
 import { getServerApiBaseUrl } from '../../../../lib/server-request';
-import { publicBucketSubmitRoute } from '../../../../lib/routes';
+import { publicBucketRoute, publicBucketSubmitRoute } from '../../../../lib/routes';
+import { PublicBucketBreadcrumbs } from './PublicBucketBreadcrumbs';
 
 async function fetchPublicBucket(id: string): Promise<PublicBucket | null> {
   const baseUrl = getServerApiBaseUrl();
@@ -40,7 +42,6 @@ export default async function PublicBucketPage({ params }: { params: Promise<{ i
 
   const messages = await fetchPublicMessages(id);
   const t = await getTranslations('buckets');
-
   const listItems: BucketMessageListItem[] = messages.map((m) => ({
     id: m.id,
     senderName: m.senderName,
@@ -49,8 +50,23 @@ export default async function PublicBucketPage({ params }: { params: Promise<{ i
     createdAt: m.createdAt,
   }));
 
+  const ancestors = bucket.ancestors ?? [];
+  const showBreadcrumbs = ancestors.length > 0;
+  const breadcrumbItems: BreadcrumbItem[] = showBreadcrumbs
+    ? [
+        ...ancestors.map((a) => ({ label: a.name, href: publicBucketRoute(a.shortId) })),
+        { label: bucket.name, href: undefined },
+      ]
+    : [];
+
   return (
-    <ContentPageLayout title={bucket.name} contentMaxWidth="readable">
+    <ContentPageLayout
+      title={bucket.name}
+      breadcrumbs={
+        showBreadcrumbs ? <PublicBucketBreadcrumbs items={breadcrumbItems} /> : undefined
+      }
+      contentMaxWidth="readable"
+    >
       <Stack>
         <ButtonLink href={publicBucketSubmitRoute(id)} variant="primary">
           Submit a message

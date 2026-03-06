@@ -3,7 +3,7 @@ import type { Bucket } from '@boilerplate/orm';
 export type BucketResponseOverrides = {
   messageBodyMaxLength?: number | null;
   ownerId?: string;
-  /** When set (e.g. for topic list), include last message date (ISO string). */
+  /** When set (e.g. for child-bucket list), include last message date (ISO string). */
   lastMessageAt?: string | null;
 };
 
@@ -43,10 +43,13 @@ export function toBucketResponse(
   return base;
 }
 
+export type PublicBucketAncestor = { shortId: string; name: string };
+
 /** Shape bucket for public GET /buckets/public/:id. */
 export function toPublicBucketResponse(
   bucket: Bucket,
-  overrides?: Pick<BucketResponseOverrides, 'messageBodyMaxLength'>
+  overrides?: Pick<BucketResponseOverrides, 'messageBodyMaxLength'>,
+  ancestors: PublicBucketAncestor[] = []
 ): {
   id: string;
   shortId: string;
@@ -54,6 +57,7 @@ export function toPublicBucketResponse(
   isPublic: boolean;
   parentBucketId: string | null;
   messageBodyMaxLength: number | null;
+  ancestors: PublicBucketAncestor[];
 } {
   return {
     id: bucket.id,
@@ -65,5 +69,6 @@ export function toPublicBucketResponse(
       overrides?.messageBodyMaxLength !== undefined
         ? overrides.messageBodyMaxLength
         : (bucket.settings?.messageBodyMaxLength ?? null),
+    ancestors,
   };
 }

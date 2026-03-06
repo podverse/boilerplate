@@ -1,4 +1,4 @@
--- Combined migrations generated Wed Mar  4 13:30:55 CST 2026
+-- Combined migrations generated Thu Mar  5 16:39:53 CST 2026
 -- DO NOT EDIT - regenerate with scripts/database/combine-migrations.sh
 
 -- Including: 0000_init_helpers.sql
@@ -89,9 +89,9 @@ CREATE INDEX idx_refresh_token_user_id ON refresh_token(user_id);
 
 
 -- Including: 0003_bucket_schema.sql
--- 0003 migration: bucket (and topics as child buckets), bucket_admin, bucket_message, bucket_admin_invitation
+-- 0003 migration: bucket (and child buckets), bucket_admin, bucket_message, bucket_admin_invitation
 
--- Bucket: top-level have parent_bucket_id NULL; topics are rows with parent_bucket_id set.
+-- Bucket: top-level have parent_bucket_id NULL; child buckets are rows with parent_bucket_id set.
 -- short_id: URL-safe public id (app sets on insert via nanoid).
 CREATE TABLE bucket (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -134,6 +134,20 @@ CREATE TABLE bucket_admin (
 CREATE INDEX idx_bucket_admin_bucket_id ON bucket_admin(bucket_id);
 CREATE INDEX idx_bucket_admin_user_id ON bucket_admin(user_id);
 
+-- Bucket-scoped custom roles (name + CRUD bitmasks). Predefined roles exist only in code.
+CREATE TABLE bucket_role (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    bucket_id UUID NOT NULL REFERENCES bucket(id) ON DELETE CASCADE,
+    name varchar_short NOT NULL,
+    bucket_crud INTEGER NOT NULL,
+    message_crud INTEGER NOT NULL,
+    admin_crud INTEGER NOT NULL,
+    created_at server_time_with_default NOT NULL,
+    UNIQUE (bucket_id, name)
+);
+
+CREATE INDEX idx_bucket_role_bucket_id ON bucket_role(bucket_id);
+
 -- Messages in a bucket; is_public controls visibility on public bucket page.
 CREATE TABLE bucket_message (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -165,5 +179,11 @@ CREATE TABLE bucket_admin_invitation (
 CREATE INDEX idx_bucket_admin_invitation_bucket_id ON bucket_admin_invitation(bucket_id);
 CREATE INDEX idx_bucket_admin_invitation_token ON bucket_admin_invitation(token);
 CREATE INDEX idx_bucket_admin_invitation_status ON bucket_admin_invitation(status);
+
+
+-- Including: 0004_drop_profile_visibility.sql
+-- 0004 migration: drop profile_visibility from user (unused column)
+
+ALTER TABLE "user" DROP COLUMN IF EXISTS profile_visibility;
 
 

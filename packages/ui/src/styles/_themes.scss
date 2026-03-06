@@ -1,7 +1,8 @@
 // Theme variables for light, dark, and dracula. Use in app root (e.g. globals or layout).
 // Import once: @use '@boilerplate/ui/styles/themes'; then wrap app with [data-theme="light"], [data-theme="dark"], or [data-theme="dracula"].
 // Both apps/web and apps/management-web use these from the package.
-// When adding a new --color-* token used by shared components, add it to all three theme blocks below.
+// SCSS must never use fallbacks in var(); every variable used by components must be defined here.
+// When adding a new token (--color-* or --textarea-min-rows, etc.) used by shared components, add it to all three theme blocks below.
 
 @use 'variables' as *;
 
@@ -21,6 +22,7 @@
   --color-success: #16a34a;
   --color-overlay-backdrop: rgb(0 0 0 / 0.15);
   --color-overlay-backdrop-opaque: rgb(0 0 0 / 0.92);
+  --textarea-min-rows: 6;
 }
 
 // Dark theme
@@ -38,6 +40,7 @@
   --color-success: #22c55e;
   --color-overlay-backdrop: rgb(0 0 0 / 0.4);
   --color-overlay-backdrop-opaque: rgb(0 0 0 / 0.95);
+  --textarea-min-rows: 6;
 }
 
 // Dracula theme
@@ -55,6 +58,7 @@
   --color-success: #50fa7b;
   --color-overlay-backdrop: rgb(0 0 0 / 0.4);
   --color-overlay-backdrop-opaque: rgb(0 0 0 / 0.95);
+  --textarea-min-rows: 6;
 }
 
 // Theme wrapper fills viewport and applies background/text/font so all content inherits.

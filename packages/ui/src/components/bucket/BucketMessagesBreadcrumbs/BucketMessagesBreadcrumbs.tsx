@@ -4,6 +4,8 @@ import { Breadcrumbs, Link } from '@boilerplate/ui';
 import type { BreadcrumbItem } from '@boilerplate/ui';
 
 export type BucketMessagesBreadcrumbsProps = {
+  /** Optional parent buckets in hierarchy order (root first). When set, shown before the current bucket. */
+  ancestorItems?: BreadcrumbItem[];
   bucketName: string;
   bucketDetailHref: string;
   /** Title of the current page (last breadcrumb, text only). */
@@ -28,12 +30,14 @@ function LinkAdapter({
 }
 
 export function BucketMessagesBreadcrumbs({
+  ancestorItems = [],
   bucketName,
   bucketDetailHref,
   currentPageLabel,
   messagesAriaLabel,
 }: BucketMessagesBreadcrumbsProps) {
   const items: BreadcrumbItem[] = [
+    ...ancestorItems,
     { label: bucketName, href: bucketDetailHref },
     { label: currentPageLabel, href: undefined },
   ];

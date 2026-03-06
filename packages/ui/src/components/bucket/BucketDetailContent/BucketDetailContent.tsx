@@ -11,7 +11,6 @@ import { PageHeader } from '../../layout/PageHeader/PageHeader';
 import { Link } from '../../navigation/Link/Link';
 import { Row } from '../../layout/Row/Row';
 import { SectionWithHeading } from '../../layout/SectionWithHeading/SectionWithHeading';
-import { Text } from '../../layout/Text/Text';
 import { Table } from '../../table/Table/Table';
 
 import styles from './BucketDetailContent.module.scss';
@@ -26,6 +25,8 @@ export type BucketTopic = {
   createdAtDisplay: string;
   /** Formatted date string for the Last Message column; when null/undefined show "—". */
   lastMessageAtDisplay?: string | null;
+  /** Display value for the Public column (e.g. "Yes" / "No"). When undefined, show "—". */
+  isPublicDisplay?: ReactNode;
 };
 
 export type BucketDetailContentProps = {
@@ -64,8 +65,12 @@ export type BucketDetailContentProps = {
   topicsColumnLastMessage?: ReactNode;
   /** Column header for Created. Default: "Created". */
   topicsColumnCreated?: ReactNode;
+  /** Column header for Public. Default: "Public". */
+  topicsColumnPublic?: ReactNode;
   /** Column header for Actions. Default: "Actions". */
   topicsColumnActions?: ReactNode;
+  /** Empty state message when there are no items in the list. Default: "No buckets yet." */
+  topicsEmptyMessage?: ReactNode;
   /** When false, do not wrap content in Container (e.g. when the page already wraps in Container). Default: true. */
   wrapInContainer?: boolean;
 };
@@ -99,7 +104,9 @@ export function BucketDetailContent({
   topicsColumnName = 'Name',
   topicsColumnLastMessage = 'Last Message',
   topicsColumnCreated = 'Created',
+  topicsColumnPublic = 'Public',
   topicsColumnActions = 'Actions',
+  topicsEmptyMessage = 'No buckets yet.',
   wrapInContainer = true,
 }: BucketDetailContentProps) {
   const getTopicActions = (topic: BucketTopic): ReactNode => {
@@ -164,21 +171,24 @@ export function BucketDetailContent({
             ) : undefined
           }
         >
-          {topics.length === 0 ? (
-            <Text style={{ margin: 0 }}>No topics yet.</Text>
-          ) : (
-            <Table.ScrollContainer>
-              <Table className={styles.topicsTable}>
-                <Table.Head>
+          <Table.ScrollContainer>
+            <Table className={styles.topicsTable}>
+              <Table.Head>
+                <Table.Row>
+                  <Table.HeaderCell>{topicsColumnName}</Table.HeaderCell>
+                  <Table.HeaderCell>{topicsColumnLastMessage}</Table.HeaderCell>
+                  <Table.HeaderCell>{topicsColumnCreated}</Table.HeaderCell>
+                  <Table.HeaderCell>{topicsColumnPublic}</Table.HeaderCell>
+                  <Table.HeaderCell>{topicsColumnActions}</Table.HeaderCell>
+                </Table.Row>
+              </Table.Head>
+              <Table.Body>
+                {topics.length === 0 ? (
                   <Table.Row>
-                    <Table.HeaderCell>{topicsColumnName}</Table.HeaderCell>
-                    <Table.HeaderCell>{topicsColumnLastMessage}</Table.HeaderCell>
-                    <Table.HeaderCell>{topicsColumnCreated}</Table.HeaderCell>
-                    <Table.HeaderCell>{topicsColumnActions}</Table.HeaderCell>
+                    <Table.Cell colSpan={5}>{topicsEmptyMessage}</Table.Cell>
                   </Table.Row>
-                </Table.Head>
-                <Table.Body>
-                  {topics.map((topic) => (
+                ) : (
+                  topics.map((topic) => (
                     <Table.Row key={topic.id}>
                       <Table.Cell>
                         <Link href={topic.href} className={styles.nameCellLink} tabIndex={0}>
@@ -194,14 +204,19 @@ export function BucketDetailContent({
                       </Table.Cell>
                       <Table.Cell>{topic.createdAtDisplay}</Table.Cell>
                       <Table.Cell>
+                        {topic.isPublicDisplay !== undefined && topic.isPublicDisplay !== null
+                          ? topic.isPublicDisplay
+                          : '—'}
+                      </Table.Cell>
+                      <Table.Cell>
                         <div className={styles.actionsCell}>{getTopicActions(topic)}</div>
                       </Table.Cell>
                     </Table.Row>
-                  ))}
-                </Table.Body>
-              </Table>
-            </Table.ScrollContainer>
-          )}
+                  ))
+                )}
+              </Table.Body>
+            </Table>
+          </Table.ScrollContainer>
         </SectionWithHeading>
       )}
     </>

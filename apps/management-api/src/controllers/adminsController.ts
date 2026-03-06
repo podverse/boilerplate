@@ -10,6 +10,7 @@ import type { ChangePasswordBody, CreateAdminBody, UpdateAdminBody } from '../sc
 import { hashPassword } from '../lib/auth/hash.js';
 import { managementUserToJson } from '../lib/managementUserToJson.js';
 import { recordEvent } from '../lib/recordEvent.js';
+import { resolveManagementAdminRole } from './adminRolesController.js';
 
 /**
  * All admin responses use managementUserToJson only. Never return req.managementUser or
@@ -62,6 +63,12 @@ export async function createAdmin(req: Request, res: Response): Promise<void> {
     return;
   }
   const body = req.body as CreateAdminBody;
+  const rolePermissions =
+    body.roleId !== undefined ? await resolveManagementAdminRole(body.roleId) : null;
+  if (body.roleId !== undefined && rolePermissions === null) {
+    res.status(404).json({ message: 'Role not found' });
+    return;
+  }
 
   const existingByEmail = await ManagementUserService.findByEmail(body.email);
   if (existingByEmail !== null) {
@@ -83,12 +90,12 @@ export async function createAdmin(req: Request, res: Response): Promise<void> {
     passwordHash,
     displayName: body.displayName.trim(),
     createdBy: actor.id,
-    adminsCrud: body.adminsCrud,
-    usersCrud: body.usersCrud,
-    bucketsCrud: body.bucketsCrud,
-    bucketMessagesCrud: body.bucketMessagesCrud,
-    bucketAdminsCrud: body.bucketAdminsCrud,
-    eventVisibility: body.eventVisibility,
+    adminsCrud: rolePermissions?.adminsCrud ?? body.adminsCrud,
+    usersCrud: rolePermissions?.usersCrud ?? body.usersCrud,
+    bucketsCrud: rolePermissions?.bucketsCrud ?? body.bucketsCrud,
+    bucketMessagesCrud: rolePermissions?.bucketMessagesCrud ?? body.bucketMessagesCrud,
+    bucketAdminsCrud: rolePermissions?.bucketAdminsCrud ?? body.bucketAdminsCrud,
+    eventVisibility: rolePermissions?.eventVisibility ?? body.eventVisibility,
   });
   await recordEvent({
     actor,
@@ -119,6 +126,12 @@ export async function updateAdmin(req: Request, res: Response): Promise<void> {
   }
 
   const body = req.body as UpdateAdminBody;
+  const rolePermissions =
+    body.roleId !== undefined ? await resolveManagementAdminRole(body.roleId) : null;
+  if (body.roleId !== undefined && rolePermissions === null) {
+    res.status(404).json({ message: 'Role not found' });
+    return;
+  }
   if (body.displayName !== undefined) {
     const other = await ManagementUserService.findByDisplayName(body.displayName.trim());
     if (other !== null && other.id !== id) {
@@ -127,6 +140,7 @@ export async function updateAdmin(req: Request, res: Response): Promise<void> {
     }
   }
   const permissionKeys = [
+    'roleId',
     'adminsCrud',
     'usersCrud',
     'bucketsCrud',
@@ -153,12 +167,22 @@ export async function updateAdmin(req: Request, res: Response): Promise<void> {
   if (body.displayName !== undefined) updates.displayName = body.displayName.trim();
   if (body.password !== undefined) updates.passwordHash = await hashPassword(body.password);
   if (!isSuperAdminSelfUpdate) {
-    if (body.adminsCrud !== undefined) updates.adminsCrud = body.adminsCrud;
-    if (body.usersCrud !== undefined) updates.usersCrud = body.usersCrud;
-    if (body.bucketsCrud !== undefined) updates.bucketsCrud = body.bucketsCrud;
-    if (body.bucketMessagesCrud !== undefined) updates.bucketMessagesCrud = body.bucketMessagesCrud;
-    if (body.bucketAdminsCrud !== undefined) updates.bucketAdminsCrud = body.bucketAdminsCrud;
-    if (body.eventVisibility !== undefined) updates.eventVisibility = body.eventVisibility;
+    if (rolePermissions !== null) {
+      updates.adminsCrud = rolePermissions.adminsCrud;
+      updates.usersCrud = rolePermissions.usersCrud;
+      updates.bucketsCrud = rolePermissions.bucketsCrud;
+      updates.bucketMessagesCrud = rolePermissions.bucketMessagesCrud;
+      updates.bucketAdminsCrud = rolePermissions.bucketAdminsCrud;
+      updates.eventVisibility = rolePermissions.eventVisibility;
+    } else {
+      if (body.adminsCrud !== undefined) updates.adminsCrud = body.adminsCrud;
+      if (body.usersCrud !== undefined) updates.usersCrud = body.usersCrud;
+      if (body.bucketsCrud !== undefined) updates.bucketsCrud = body.bucketsCrud;
+      if (body.bucketMessagesCrud !== undefined)
+        updates.bucketMessagesCrud = body.bucketMessagesCrud;
+      if (body.bucketAdminsCrud !== undefined) updates.bucketAdminsCrud = body.bucketAdminsCrud;
+      if (body.eventVisibility !== undefined) updates.eventVisibility = body.eventVisibility;
+    }
   }
 
   if (Object.keys(updates).length === 0) {

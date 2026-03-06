@@ -3,7 +3,7 @@
 import { useRouter } from 'next/navigation';
 import { managementWebBucketMessages } from '@boilerplate/helpers-requests';
 import { BucketMessagesPageContent } from '@boilerplate/ui';
-import type { BucketMessageListItem } from '@boilerplate/ui';
+import type { BreadcrumbItem, BucketMessageListItem } from '@boilerplate/ui';
 
 import { getManagementApiBaseUrl } from '../../../../../config/env';
 import { bucketMessageEditRoute } from '../../../../../lib/routes';
@@ -12,6 +12,8 @@ export type BucketMessagesPageClientProps = {
   bucketId: string;
   bucketName: string;
   bucketDetailHref: string;
+  /** Parent buckets in hierarchy order (root first) for breadcrumbs. */
+  ancestorItems?: BreadcrumbItem[];
   messages: BucketMessageListItem[];
   messagesTitle: string;
   messagesAriaLabel: string;
@@ -22,6 +24,7 @@ export function BucketMessagesPageClient({
   bucketId,
   bucketName,
   bucketDetailHref,
+  ancestorItems = [],
   messages,
   messagesTitle,
   messagesAriaLabel,
@@ -43,6 +46,7 @@ export function BucketMessagesPageClient({
 
   return (
     <BucketMessagesPageContent
+      ancestorItems={ancestorItems}
       bucketName={bucketName}
       bucketDetailHref={bucketDetailHref}
       messagesAriaLabel={messagesAriaLabel}

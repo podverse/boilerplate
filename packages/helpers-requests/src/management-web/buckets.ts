@@ -52,10 +52,10 @@ export async function getBucket(
 }
 
 /**
- * GET /buckets/:id/buckets — list child buckets (topics) for a parent bucket.
+ * GET /buckets/:id/buckets — list child buckets for a parent bucket.
  * Use options.headers (e.g. Cookie) for server-side auth, or options.token for client.
  */
-export async function getBucketTopics(
+export async function getChildBuckets(
   baseUrl: string,
   bucketId: string,
   options?: RequestOptions
@@ -74,6 +74,8 @@ export type UpdateBucketBody = {
   messageBodyMaxLength?: number | null;
 };
 
+export type CreateChildBucketBody = { name: string; isPublic?: boolean };
+
 export async function createBucket(
   baseUrl: string,
   body: CreateBucketBody,
@@ -83,6 +85,19 @@ export async function createBucket(
     method: 'POST',
     body: JSON.stringify(body),
     token: token ?? undefined,
+  });
+}
+
+export async function createChildBucket(
+  baseUrl: string,
+  parentId: string,
+  body: CreateChildBucketBody,
+  options?: RequestOptions
+): Promise<ApiResponse<{ bucket: ManagementBucket }>> {
+  return request<{ bucket: ManagementBucket }>(baseUrl, `/buckets/${parentId}/buckets`, {
+    method: 'POST',
+    body: JSON.stringify(body),
+    ...options,
   });
 }
 

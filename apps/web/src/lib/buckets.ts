@@ -1,6 +1,6 @@
 import 'server-only';
 
-import type { Bucket, BucketMessage } from '@boilerplate/helpers-requests';
+import type { Bucket, BucketMessage, BucketRoleItem } from '@boilerplate/helpers-requests';
 import { request, webBuckets } from '@boilerplate/helpers-requests';
 
 import { getCookieHeader, getServerApiBaseUrl } from './server-request';
@@ -23,12 +23,28 @@ export async function fetchBucket(id: string): Promise<{ bucket: Bucket | null }
 }
 
 /**
- * Server-side: fetch topics (sub-buckets) for a bucket. Returns [] on error or invalid response.
+ * Server-side: fetch parent chain from root to immediate parent (root first). Returns [] for root bucket or on error.
  */
-export async function fetchTopics(bucketId: string): Promise<Bucket[]> {
+export async function fetchBucketAncestry(bucket: Bucket): Promise<Bucket[]> {
+  if (bucket.parentBucketId === null) return [];
+  const parents: Bucket[] = [];
+  let parentId: string | null = bucket.parentBucketId;
+  while (parentId !== null) {
+    const { bucket: parent } = await fetchBucket(parentId);
+    if (parent === null) break;
+    parents.unshift(parent);
+    parentId = parent.parentBucketId;
+  }
+  return parents;
+}
+
+/**
+ * Server-side: fetch child buckets for a bucket. Returns [] on error or invalid response.
+ */
+export async function fetchChildBuckets(bucketId: string): Promise<Bucket[]> {
   const cookieHeader = await getCookieHeader();
   const baseUrl = getServerApiBaseUrl();
-  const res = await webBuckets.reqFetchTopics(baseUrl, bucketId, cookieHeader);
+  const res = await webBuckets.reqFetchChildBuckets(baseUrl, bucketId, cookieHeader);
   if (!res.ok || res.data === undefined) {
     return [];
   }
@@ -105,4 +121,18 @@ export async function fetchPendingInvitations(
   }
   const data = res.data as { invitations?: BucketAdminInvitationRow[] };
   return Array.isArray(data.invitations) ? data.invitations : [];
+}
+
+/**
+ * Server-side: fetch bucket roles (predefined + custom). Returns [] on error or invalid response.
+ */
+export async function fetchBucketRoles(bucketId: string): Promise<BucketRoleItem[]> {
+  const cookieHeader = await getCookieHeader();
+  const baseUrl = getServerApiBaseUrl();
+  const res = await webBuckets.reqListBucketRoles(baseUrl, bucketId, cookieHeader);
+  if (!res.ok || res.data === undefined) {
+    return [];
+  }
+  const data = res.data;
+  return Array.isArray(data.roles) ? data.roles : [];
 }

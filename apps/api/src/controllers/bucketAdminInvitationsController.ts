@@ -7,6 +7,7 @@ import {
 } from '@boilerplate/helpers';
 import { BucketAdminService, BucketAdminInvitationService } from '@boilerplate/orm';
 import type { CreateBucketAdminInvitationBody } from '../schemas/buckets.js';
+import { normalizeBucketMessageCrud } from '../lib/bucket-admin-permissions.js';
 import { canManageBucketAdmins } from '../lib/bucket-policy.js';
 import { getBucketAndEffective } from '../lib/bucket-effective.js';
 
@@ -60,7 +61,13 @@ export async function createBucketAdminInvitation(req: Request, res: Response): 
     res.status(404).json({ message: 'Bucket not found' });
     return;
   }
-  const { effectiveBucket } = resolved;
+  const { effectiveBucket, isDescendant } = resolved;
+  if (isDescendant) {
+    res.status(400).json({
+      message: 'Admin invitations are managed on the root bucket only.',
+    });
+    return;
+  }
   const bucketAdmin = await BucketAdminService.findByBucketAndUser(effectiveBucket.id, user.id);
   if (!canManageBucketAdmins(user.id, effectiveBucket, bucketAdmin)) {
     res.status(403).json({ message: 'Forbidden' });
@@ -72,11 +79,15 @@ export async function createBucketAdminInvitation(req: Request, res: Response): 
     Date.now() + BUCKET_ADMIN_INVITATION_EXPIRY_DAYS * 24 * 60 * 60 * 1000
   );
   const adminCrud = (body.adminCrud ?? ADMIN_CRUD_READ) | ADMIN_CRUD_READ;
+  const { bucketCrud, messageCrud } = normalizeBucketMessageCrud(
+    body.bucketCrud ?? 0,
+    body.messageCrud ?? 0
+  );
   const inv = await BucketAdminInvitationService.create({
     bucketId: effectiveBucket.id,
     token,
-    bucketCrud: body.bucketCrud ?? 0,
-    messageCrud: body.messageCrud ?? 0,
+    bucketCrud,
+    messageCrud,
     adminCrud,
     expiresAt,
   });
@@ -152,7 +163,13 @@ export async function deleteBucketAdminInvitation(req: Request, res: Response): 
     res.status(404).json({ message: 'Bucket not found' });
     return;
   }
-  const { effectiveBucket } = resolved;
+  const { effectiveBucket, isDescendant } = resolved;
+  if (isDescendant) {
+    res.status(400).json({
+      message: 'Admin invitations are managed on the root bucket only.',
+    });
+    return;
+  }
   const bucketAdmin = await BucketAdminService.findByBucketAndUser(effectiveBucket.id, user.id);
   if (!canManageBucketAdmins(user.id, effectiveBucket, bucketAdmin)) {
     res.status(403).json({ message: 'Forbidden' });

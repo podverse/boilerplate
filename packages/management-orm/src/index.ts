@@ -2,6 +2,7 @@ export { managementDataSource } from './data-source.js';
 export { ManagementUser } from './entities/ManagementUser.js';
 export { ManagementUserCredentials } from './entities/ManagementUserCredentials.js';
 export { ManagementUserBio } from './entities/ManagementUserBio.js';
+export { ManagementAdminRole } from './entities/ManagementAdminRole.js';
 export {
   AdminPermissions,
   CrudMask,
@@ -16,6 +17,11 @@ export {
   type CreateAdminData,
   type UpdateAdminData,
 } from './services/ManagementUserService.js';
+export {
+  ManagementAdminRoleService,
+  type CreateManagementAdminRoleData,
+  type UpdateManagementAdminRoleData,
+} from './services/ManagementAdminRoleService.js';
 export { ManagementRefreshTokenService } from './services/ManagementRefreshTokenService.js';
 export {
   ManagementEventService,

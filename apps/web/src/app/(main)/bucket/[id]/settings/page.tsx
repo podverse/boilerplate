@@ -22,7 +22,8 @@ export default async function BucketSettingsPage({
   const { id } = await params;
   const resolvedSearch = searchParams !== undefined ? await searchParams : {};
   const tabParam = resolvedSearch.tab ?? 'general';
-  const activeTab: BucketSettingsTab = tabParam === 'admins' ? 'admins' : 'general';
+  const activeTab: BucketSettingsTab =
+    tabParam === 'admins' ? 'admins' : tabParam === 'roles' ? 'roles' : 'general';
 
   const { bucket } = await fetchBucket(id);
   if (bucket === null) {

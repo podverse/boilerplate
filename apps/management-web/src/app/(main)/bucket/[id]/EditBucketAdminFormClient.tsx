@@ -1,11 +1,51 @@
 'use client';
 
+import { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
-import { EditBucketAdminForm } from '@boilerplate/ui';
+import { EditBucketAdminForm, Text } from '@boilerplate/ui';
 import type { EditBucketAdminFormPayload } from '@boilerplate/ui';
-import { managementWebBucketAdmins } from '@boilerplate/helpers-requests';
+import type { BucketAdminRoleOption } from '@boilerplate/ui';
+import {
+  managementWebBucketAdmins,
+  managementWebBucketRoles,
+  type BucketRoleItem,
+} from '@boilerplate/helpers-requests';
 import { getManagementApiBaseUrl } from '../../../../config/env';
+import { bucketSettingsRoleNewRoute } from '../../../../lib/routes';
+
+function roleToOption(
+  role: BucketRoleItem,
+  tRoles: (key: string) => string
+): BucketAdminRoleOption {
+  const id = role.id;
+  const label =
+    role.isPredefined && 'nameKey' in role
+      ? (() => {
+          const key = role.nameKey.split('.').pop();
+          return key !== undefined ? tRoles(key) : role.nameKey;
+        })()
+      : 'name' in role
+        ? role.name
+        : id;
+  return {
+    id,
+    label,
+    description:
+      id === 'everything'
+        ? tRoles('descriptionEverything')
+        : id === 'bucket_full'
+          ? tRoles('descriptionBucketFull')
+          : id === 'read_everything'
+            ? tRoles('descriptionReadEverything')
+            : id === 'bucket_read'
+              ? tRoles('descriptionBucketRead')
+              : tRoles('descriptionCustomRole'),
+    bucketCrud: role.bucketCrud,
+    messageCrud: role.messageCrud,
+    adminCrud: role.adminCrud,
+  };
+}
 
 export function EditBucketAdminFormClient({
   bucketId,
@@ -25,11 +65,31 @@ export function EditBucketAdminFormClient({
   cancelHref: string;
 }) {
   const t = useTranslations('buckets');
+  const tRoles = useTranslations('roles');
+  const tCommon = useTranslations('common');
   const router = useRouter();
   const baseUrl = getManagementApiBaseUrl();
+  const [roleOptions, setRoleOptions] = useState<BucketAdminRoleOption[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const loadRoles = useCallback(async () => {
+    const res = await managementWebBucketRoles.listBucketRoles(baseUrl, bucketId, null);
+    if (res.ok && res.data !== undefined) {
+      setRoleOptions(res.data.roles.map((r) => roleToOption(r, tRoles)));
+    }
+    setLoading(false);
+  }, [baseUrl, bucketId, tRoles]);
+
+  useEffect(() => {
+    void loadRoles();
+  }, [loadRoles]);
 
   const labels = {
+    roleSelectLabel: t('roles'),
+    customRoleLabel: t('customRoleLabel'),
+    createRoleOptionLabel: t('customRole'),
     bucketPermissions: t('bucketPermissions'),
+    bucketPermissionsInfo: t('bucketPermissionsInfo'),
     messagePermissions: t('messagePermissions'),
     adminPermissionsLabel: t('adminPermissionsLabel'),
     crudCreate: t('crudCreate'),
@@ -53,11 +113,17 @@ export function EditBucketAdminFormClient({
     }
   };
 
+  if (loading) {
+    return <Text variant="muted">{tCommon('loading')}</Text>;
+  }
+
   return (
     <EditBucketAdminForm
       initialBucketCrud={initialBucketCrud}
       initialMessageCrud={initialMessageCrud}
       initialAdminCrud={initialAdminCrud}
+      roleOptions={roleOptions}
+      createNewRoleHref={bucketSettingsRoleNewRoute(bucketId, successHref)}
       labels={labels}
       onSubmit={handleSubmit}
       successHref={successHref}

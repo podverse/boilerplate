@@ -1,4 +1,4 @@
--- Combined migrations generated Wed Mar  4 13:30:55 CST 2026
+-- Combined migrations generated Thu Mar  5 16:39:53 CST 2026
 -- DO NOT EDIT - regenerate with scripts/database/combine-migrations.sh
 
 -- Including: 0000_management_helpers.sql
@@ -55,6 +55,20 @@ CREATE TABLE IF NOT EXISTS admin_permissions (
     bucket_messages_crud INTEGER NOT NULL DEFAULT 0 CHECK (bucket_messages_crud >= 0 AND bucket_messages_crud <= 15),
     bucket_admins_crud INTEGER NOT NULL DEFAULT 0 CHECK (bucket_admins_crud >= 0 AND bucket_admins_crud <= 15),
     event_visibility TEXT NOT NULL DEFAULT 'all_admins' CHECK(event_visibility IN ('own', 'all_admins', 'all'))
+);
+
+
+-- Custom management-admin roles. Predefined roles are in code; this stores user-defined roles.
+CREATE TABLE IF NOT EXISTS management_admin_role (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    name varchar_short NOT NULL UNIQUE,
+    admins_crud INTEGER NOT NULL CHECK (admins_crud >= 0 AND admins_crud <= 15),
+    users_crud INTEGER NOT NULL CHECK (users_crud >= 0 AND users_crud <= 15),
+    buckets_crud INTEGER NOT NULL CHECK (buckets_crud >= 0 AND buckets_crud <= 15),
+    bucket_messages_crud INTEGER NOT NULL CHECK (bucket_messages_crud >= 0 AND bucket_messages_crud <= 15),
+    bucket_admins_crud INTEGER NOT NULL CHECK (bucket_admins_crud >= 0 AND bucket_admins_crud <= 15),
+    event_visibility TEXT NOT NULL CHECK(event_visibility IN ('own', 'all_admins', 'all')),
+    created_at server_time_with_default NOT NULL
 );
 
 

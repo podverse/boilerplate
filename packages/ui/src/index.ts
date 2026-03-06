@@ -70,6 +70,8 @@ export { FilterTablePageLayout } from './components/layout/FilterTablePageLayout
 export type { FilterTablePageLayoutProps } from './components/layout/FilterTablePageLayout';
 export { ContentPageLayout } from './components/layout/ContentPageLayout';
 export type { ContentPageLayoutProps } from './components/layout/ContentPageLayout';
+export { BucketDetailPageLayout } from './components/layout/BucketDetailPageLayout';
+export type { BucketDetailPageLayoutProps } from './components/layout/BucketDetailPageLayout';
 export { Dropdown } from './components/navigation/Dropdown';
 export type { DropdownProps, DropdownItem } from './components/navigation/Dropdown';
 export { Input } from './components/form/Input';
@@ -112,9 +114,10 @@ export { BucketSettingsLayoutClient } from './components/bucket/BucketSettingsLa
 export type { BucketSettingsLayoutClientProps } from './components/bucket/BucketSettingsLayoutClient';
 export { BucketSettingsTabs } from './components/bucket/BucketSettingsTabs';
 export type { BucketSettingsTabsProps } from './components/bucket/BucketSettingsTabs';
-export { BucketAdminsView } from './components/bucket/BucketAdminsView';
+export { CREATE_NEW_ROLE_VALUE, BucketAdminsView } from './components/bucket/BucketAdminsView';
 export type {
   BucketAdminInvitationRow,
+  BucketAdminRoleOption,
   BucketAdminRow,
   BucketAdminsViewLabels,
   BucketAdminsViewProps,

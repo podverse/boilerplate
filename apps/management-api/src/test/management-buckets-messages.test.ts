@@ -5,7 +5,12 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import request from 'supertest';
 
-import { BucketAdminService, appDataSourceRead, appDataSourceReadWrite } from '@boilerplate/orm';
+import {
+  BucketAdminService,
+  BucketService,
+  appDataSourceRead,
+  appDataSourceReadWrite,
+} from '@boilerplate/orm';
 import { managementDataSource } from '@boilerplate/management-orm';
 import { createApp } from '../app.js';
 import { config } from '../config/index.js';
@@ -120,6 +125,141 @@ describe('management-api buckets and messages', () => {
 
     it('DELETE /buckets/:id returns 401 without auth', async () => {
       await request(app).delete(`${API}/buckets/${bucketId}`).expect(401);
+    });
+
+    it('PATCH /buckets/:id allows name-only updates for descendant buckets', async () => {
+      const parentRes = await superAdminAgent
+        .post(`${API}/buckets`)
+        .send({
+          name: 'Parent Bucket',
+          ownerId: ownerUserId,
+          isPublic: true,
+        })
+        .expect(201);
+      const parentBucketId = parentRes.body.bucket.id as string;
+      const childBucket = await BucketService.create({
+        ownerId: ownerUserId,
+        name: 'Child Bucket',
+        isPublic: true,
+        parentBucketId,
+      });
+
+      await superAdminAgent
+        .patch(`${API}/buckets/${childBucket.id}`)
+        .send({ isPublic: false })
+        .expect(400, {
+          message:
+            'Descendant buckets inherit settings from the root bucket. Only name can be updated.',
+        });
+
+      const renameRes = await superAdminAgent
+        .patch(`${API}/buckets/${childBucket.id}`)
+        .send({ name: 'Child Bucket Renamed' })
+        .expect(200);
+      expect(renameRes.body.bucket.name).toBe('Child Bucket Renamed');
+    });
+  });
+
+  describe('bucket roles', () => {
+    it('GET /buckets/:id/roles returns 401 without auth', async () => {
+      await request(app).get(`${API}/buckets/${bucketId}/roles`).expect(401);
+    });
+
+    it('GET /buckets/:id/roles returns 200 with predefined and custom roles', async () => {
+      const res = await superAdminAgent.get(`${API}/buckets/${bucketId}/roles`).expect(200);
+      expect(res.body).toHaveProperty('roles');
+      expect(Array.isArray(res.body.roles)).toBe(true);
+      const predefined = res.body.roles.filter((r: { isPredefined: boolean }) => r.isPredefined);
+      expect(predefined.length).toBeGreaterThanOrEqual(4);
+      expect(predefined.map((r: { id: string }) => r.id).sort()).toContain('everything');
+      expect(predefined.map((r: { id: string }) => r.id).sort()).toContain('bucket_read');
+    });
+
+    it('GET /buckets/:id/roles returns 404 for nonexistent bucket', async () => {
+      await superAdminAgent
+        .get(`${API}/buckets/00000000-0000-0000-0000-000000000000/roles`)
+        .expect(404, { message: 'Bucket not found' });
+    });
+
+    it('POST /buckets/:id/roles creates custom role', async () => {
+      const createRes = await superAdminAgent
+        .post(`${API}/buckets/${bucketId}/roles`)
+        .send({
+          name: 'Custom Role A',
+          bucketCrud: 7,
+          messageCrud: 7,
+          adminCrud: 7,
+        })
+        .expect(201);
+      expect(createRes.body.role).toHaveProperty('id');
+      expect(createRes.body.role.name).toBe('Custom Role A');
+      expect(createRes.body.role.isPredefined).toBe(false);
+      expect(createRes.body.role.bucketCrud).toBe(7);
+      expect(createRes.body.role.messageCrud).toBe(7);
+
+      const listRes = await superAdminAgent.get(`${API}/buckets/${bucketId}/roles`).expect(200);
+      const custom = listRes.body.roles.filter((r: { isPredefined: boolean }) => !r.isPredefined);
+      expect(custom.some((r: { name: string }) => r.name === 'Custom Role A')).toBe(true);
+    });
+
+    it('PATCH /buckets/:id/roles/:roleId updates custom role', async () => {
+      const listRes = await superAdminAgent.get(`${API}/buckets/${bucketId}/roles`).expect(200);
+      const custom = listRes.body.roles.find(
+        (r: { isPredefined: boolean; name: string }) =>
+          !r.isPredefined && r.name === 'Custom Role A'
+      );
+      expect(custom).toBeDefined();
+      const roleId = custom.id;
+
+      const res = await superAdminAgent
+        .patch(`${API}/buckets/${bucketId}/roles/${roleId}`)
+        .send({ name: 'Custom Role A Updated', bucketCrud: 15 })
+        .expect(200);
+      expect(res.body.role.name).toBe('Custom Role A Updated');
+      expect(res.body.role.bucketCrud).toBe(15);
+    });
+
+    it('PATCH /buckets/:id/roles/:roleId returns 404 for wrong role id', async () => {
+      await superAdminAgent
+        .patch(`${API}/buckets/${bucketId}/roles/00000000-0000-0000-0000-000000000000`)
+        .send({ name: 'X' })
+        .expect(404, { message: 'Role not found' });
+    });
+
+    it('POST /buckets/:id/roles validates name and crud 0-15', async () => {
+      await superAdminAgent
+        .post(`${API}/buckets/${bucketId}/roles`)
+        .send({
+          name: '',
+          bucketCrud: 0,
+          messageCrud: 0,
+          adminCrud: 0,
+        })
+        .expect(400);
+
+      await superAdminAgent
+        .post(`${API}/buckets/${bucketId}/roles`)
+        .send({
+          name: 'Bad Crud',
+          bucketCrud: 16,
+          messageCrud: 0,
+          adminCrud: 0,
+        })
+        .expect(400);
+    });
+
+    it('DELETE /buckets/:id/roles/:roleId deletes custom role', async () => {
+      const listRes = await superAdminAgent.get(`${API}/buckets/${bucketId}/roles`).expect(200);
+      const custom = listRes.body.roles.find(
+        (r: { isPredefined: boolean; name: string }) =>
+          !r.isPredefined && r.name === 'Custom Role A Updated'
+      );
+      expect(custom).toBeDefined();
+      const roleId = custom.id;
+
+      await superAdminAgent.delete(`${API}/buckets/${bucketId}/roles/${roleId}`).expect(204);
+      const afterRes = await superAdminAgent.get(`${API}/buckets/${bucketId}/roles`).expect(200);
+      expect(afterRes.body.roles.some((r: { id: string }) => r.id === roleId)).toBe(false);
     });
   });
 
@@ -409,6 +549,7 @@ describe('management-api buckets and messages', () => {
         .expect(201);
       expect(res.body.invitation).toHaveProperty('id');
       expect(res.body.invitation).toHaveProperty('token');
+      expect(res.body.invitation.bucketCrud).toBe(2);
       expect(res.body.invitation.messageCrud).toBe(2);
       invitationId = res.body.invitation.id;
     });
@@ -435,7 +576,7 @@ describe('management-api buckets and messages', () => {
       const res = await withBucketAdminsAgent
         .get(`${API}/buckets/${testBucketId}/admins/${adminUserId}`)
         .expect(200);
-      expect(res.body.admin.messageCrud).toBe(4);
+      expect(res.body.admin.messageCrud).toBe(6);
     });
 
     it('GET /buckets/:id/admins/:userId returns 403 when bucketAdminsCrud read is 0', async () => {

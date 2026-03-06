@@ -18,7 +18,7 @@ export function canReadBucket(
   return false;
 }
 
-/** Can create a child bucket (topic) under this bucket. Owner can; admin with create can. */
+/** Can create a child bucket under this bucket. Owner can; admin with create can. */
 export function canCreateBucket(
   userId: string,
   bucket: Bucket,
@@ -95,6 +95,17 @@ export function canDeleteMessage(
 
 /** Owner can manage admins; bucket admin can if they have update on bucket. */
 export function canManageBucketAdmins(
+  userId: string,
+  bucket: Bucket,
+  bucketAdmin: BucketAdmin | null
+): boolean {
+  if (bucket.ownerId === userId) return true;
+  if (bucketAdmin !== null) return (bucketAdmin.bucketCrud & CRUD_BITS.update) !== 0;
+  return false;
+}
+
+/** Owner can manage roles; bucket admin can if they have update on bucket. */
+export function canManageBucketRoles(
   userId: string,
   bucket: Bucket,
   bucketAdmin: BucketAdmin | null

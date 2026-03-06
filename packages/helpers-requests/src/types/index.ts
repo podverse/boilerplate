@@ -29,6 +29,7 @@ export type {
   Bucket,
   BucketMessage,
   PublicBucket,
+  PublicBucketAncestor,
   PublicBucketMessage,
   PublicSubmitMessageBody,
 } from './bucket-types.js';
