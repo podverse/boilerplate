@@ -20,7 +20,7 @@ local_postgres_wait:
 	echo "Error: Timeout waiting for Postgres (and read user). Is Postgres running? Run: make local_infra_up"; exit 1
 
 # Postgres + Valkey + pgAdmin + management DB (so API and Management API on host both have DBs).
-# Then prompts for super admin email and creates the super admin user (password generated and printed once).
+# Then prompts for super admin username and creates the super admin user (password generated and printed once).
 # pgAdmin is available at http://localhost:4050 — no login required; both databases pre-connected.
 local_infra_up: local_network_create
 	docker compose -f $(COMPOSE_LOCAL) --project-directory . up -d postgres valkey boilerplate_local_pgadmin
@@ -29,7 +29,7 @@ local_infra_up: local_network_create
 	$(MAKE) local_create_super_admin
 
 # Create super admin in management DB. When testSuperAdmin=1 (e.g. make local_reset_env_infra testSuperAdmin=1),
-# creates superadmin@example.com with password Test!1Aa (local-only). Otherwise interactive: prompts for email, prints generated password once.
+# creates username superadmin with password Test!1Aa (local-only). Otherwise interactive: prompts for username, prints generated password once.
 # Requires Postgres and management DB (e.g. after local_infra_up). Uses apps/management-api/.env.
 local_create_super_admin:
 	$(if $(testSuperAdmin),LOCAL_SUPERADMIN_PASSWORD='Test!1Aa',) node scripts/management-api/create-super-admin.mjs

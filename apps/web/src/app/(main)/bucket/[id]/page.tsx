@@ -1,7 +1,14 @@
 import { redirect, notFound } from 'next/navigation';
 import { getLocale, getTranslations } from 'next-intl/server';
+import { DEFAULT_PAGE_LIMIT, formatUserLabel } from '@boilerplate/helpers';
 import { formatDateTimeReadable } from '@boilerplate/helpers-i18n';
-import { Breadcrumbs, BucketDetailContent, BucketDetailPageLayout, Link } from '@boilerplate/ui';
+import {
+  Breadcrumbs,
+  BucketDetailContent,
+  BucketDetailPageLayout,
+  Link,
+  SectionWithHeading,
+} from '@boilerplate/ui';
 import type { BreadcrumbItem } from '@boilerplate/ui';
 
 import {
@@ -9,37 +16,40 @@ import {
   fetchBucket,
   fetchBucketAncestry,
   fetchChildBuckets,
+  fetchMessagesPaginated,
 } from '../../../../lib/buckets';
 import { getServerUser } from '../../../../lib/server-auth';
 import {
   ROUTES,
   bucketDetailRoute,
+  bucketDetailTabRoute,
   bucketEditRoute,
-  bucketMessagesRoute,
   bucketNewRouteFromAncestry,
   bucketSettingsRoute,
   publicBucketRoute,
 } from '../../../../lib/routes';
-
-function formatEmailDisplayName(email: string, displayName: string | null | undefined): string {
-  const trimmed =
-    displayName !== undefined && displayName !== null && displayName !== ''
-      ? displayName.trim()
-      : null;
-  return trimmed !== null ? `${email} (${trimmed})` : email;
-}
+import { BucketDetailTabsClient } from './BucketDetailTabsClient';
+import { BucketMessagesPanel } from './BucketMessagesPanel';
+import { MessagesSortSelect } from './MessagesSortSelect';
 
 function formatAdminLabel(
   admin: {
-    user: { displayName: string | null; email: string; shortId: string } | null;
+    user: {
+      username?: string | null;
+      email?: string | null;
+      displayName?: string | null;
+    } | null;
     userId: string;
   },
   isOwner: boolean
 ): string {
-  const email = admin.user?.email ?? admin.userId;
   const label =
     admin.user !== undefined && admin.user !== null
-      ? formatEmailDisplayName(email, admin.user.displayName)
+      ? formatUserLabel({
+          username: admin.user.username,
+          email: admin.user.email,
+          displayName: admin.user.displayName,
+        })
       : admin.userId;
   return isOwner ? `${label} (owner)` : label;
 }
@@ -60,22 +70,42 @@ function BreadcrumbLink({
   );
 }
 
-export default async function BucketDetailPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function BucketDetailPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ id: string }>;
+  searchParams: Promise<{ tab?: string; page?: string; sort?: string }>;
+}) {
   const user = await getServerUser();
   if (user === null) {
     redirect(ROUTES.LOGIN);
   }
 
   const { id } = await params;
+  const resolvedSearchParams = await searchParams;
+  const tab = resolvedSearchParams.tab === 'buckets' ? 'buckets' : 'messages';
+  const page = Math.max(1, parseInt(resolvedSearchParams.page ?? '1', 10) || 1);
+  const sort = resolvedSearchParams.sort === 'oldest' ? 'oldest' : 'recent';
+
   const { bucket } = await fetchBucket(id);
   if (bucket === null) {
     notFound();
   }
 
-  const [childBuckets, admins, ancestors] = await Promise.all([
+  const [childBuckets, admins, ancestors, messagesResult] = await Promise.all([
     fetchChildBuckets(id),
     fetchAdmins(id),
     fetchBucketAncestry(bucket),
+    tab === 'messages'
+      ? fetchMessagesPaginated(id, page, DEFAULT_PAGE_LIMIT, sort)
+      : Promise.resolve({
+          messages: [],
+          page: 1,
+          limit: DEFAULT_PAGE_LIMIT,
+          total: 0,
+          totalPages: 1,
+        }),
   ]);
 
   const t = await getTranslations('buckets');
@@ -84,13 +114,20 @@ export default async function BucketDetailPage({ params }: { params: Promise<{ i
   const ownerAdmin = admins.find((a) => a.userId === bucket.ownerId);
   const ownerLabel = (() => {
     if (isViewerOwner) {
-      const email = user.email ?? '';
-      if (email === '') return t('anonymous');
-      return formatEmailDisplayName(email, user.displayName);
+      const label = formatUserLabel({
+        username: user.username,
+        email: user.email,
+        displayName: user.displayName,
+      });
+      return label === '—' ? t('anonymous') : label;
     }
-    const ownerEmail = ownerAdmin?.user?.email;
-    if (ownerEmail === undefined || ownerEmail === '') return t('anonymous');
-    return formatEmailDisplayName(ownerEmail, ownerAdmin?.user?.displayName);
+    if (ownerAdmin?.user === undefined || ownerAdmin?.user === null) return t('anonymous');
+    const label = formatUserLabel({
+      username: ownerAdmin.user.username,
+      email: ownerAdmin.user.email,
+      displayName: ownerAdmin.user.displayName,
+    });
+    return label === '—' ? t('anonymous') : label;
   })();
   const detailItems = [
     { label: t('isPublic'), value: bucket.isPublic ? t('publicYes') : t('publicNo') },
@@ -123,6 +160,30 @@ export default async function BucketDetailPage({ params }: { params: Promise<{ i
   }));
   const currentBreadcrumb: BreadcrumbItem = { label: bucket.name, href: undefined };
 
+  const tabItems = [
+    { href: bucketDetailRoute(id), label: t('messages') },
+    { href: bucketDetailTabRoute(id, 'buckets'), label: t('topics') },
+    ...(bucket.isPublic
+      ? [{ href: publicBucketRoute(bucket.shortId), label: t('publicPage') }]
+      : []),
+    ...(bucket.parentBucketId === null
+      ? [{ href: bucketSettingsRoute(id), label: t('settings') }]
+      : []),
+  ];
+  const activeHref =
+    tab === 'buckets'
+      ? bucketDetailTabRoute(id, 'buckets')
+      : bucketDetailTabRoute(id, 'messages', page > 1 ? page : undefined, sort);
+
+  const messagesListItems = messagesResult.messages.map((m) => ({
+    id: m.id,
+    senderName: m.senderName,
+    body: m.body,
+    isPublic: m.isPublic,
+    createdAt: m.createdAt,
+    bucketId: m.bucketId,
+  }));
+
   return (
     <BucketDetailPageLayout
       breadcrumbs={
@@ -138,16 +199,50 @@ export default async function BucketDetailPage({ params }: { params: Promise<{ i
       <BucketDetailContent
         bucketName={bucket.name}
         detailItems={detailItems}
-        showMessagesLink={true}
-        messagesHref={bucketMessagesRoute(id)}
+        showMessagesLink={false}
+        messagesHref={undefined}
         messagesLabel={t('messages')}
-        showPublicLink={bucket.isPublic}
-        publicHref={bucket.isPublic ? publicBucketRoute(bucket.shortId) : undefined}
-        publicLabel="Public page"
-        showSettingsLink={bucket.parentBucketId === null}
-        settingsHref={bucket.parentBucketId === null ? bucketSettingsRoute(id) : undefined}
+        showPublicLink={false}
+        publicHref={undefined}
+        publicLabel={t('publicPage')}
+        showSettingsLink={false}
+        settingsHref={undefined}
         settingsLabel={t('settings')}
-        topics={childBucketsForContent}
+        actionArea={<BucketDetailTabsClient items={tabItems} activeHref={activeHref} />}
+        messagesSlot={
+          tab === 'messages' ? (
+            <SectionWithHeading
+              title={t('messages')}
+              headingAction={
+                <MessagesSortSelect
+                  sort={sort}
+                  basePath={bucketDetailRoute(id)}
+                  queryParams={{ tab: 'messages' }}
+                  label={t('messagesSort.label')}
+                  sortOptionLabels={{
+                    recent: t('messagesSortOptions.recent'),
+                    oldest: t('messagesSortOptions.oldest'),
+                  }}
+                />
+              }
+            >
+              <BucketMessagesPanel
+                bucketId={id}
+                messages={messagesListItems}
+                emptyMessage={t('noMessagesYet')}
+                page={messagesResult.page}
+                totalPages={messagesResult.totalPages}
+                limit={messagesResult.limit}
+                basePath={bucketDetailRoute(id)}
+                queryParams={{
+                  tab: 'messages',
+                  ...(sort === 'oldest' ? { sort: 'oldest' } : {}),
+                }}
+              />
+            </SectionWithHeading>
+          ) : undefined
+        }
+        topics={tab === 'buckets' ? childBucketsForContent : undefined}
         topicsTitle={t('topics')}
         topicViewLabel={t('view')}
         topicEditLabel={t('edit')}

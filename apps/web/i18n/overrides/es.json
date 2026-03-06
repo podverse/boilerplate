@@ -13,6 +13,11 @@
     "signup": {
       "title": "",
       "email": "",
+      "username": "",
+      "placeholderUsername": "",
+      "usernameRequired": "",
+      "usernameMaxLength": "",
+      "usernameAlreadyInUse": "",
       "displayName": "",
       "placeholderEmail": "",
       "placeholderDisplayName": "",
@@ -54,12 +59,20 @@
     "publicYes": "",
     "publicNo": "",
     "publicLabel": "",
+    "publicPage": "",
     "privateLabel": "",
     "topics": "",
     "lastMessage": "",
     "created": "",
     "actions": "",
     "messages": "",
+    "messagesSort": {
+      "label": ""
+    },
+    "messagesSortOptions": {
+      "recent": "",
+      "oldest": ""
+    },
     "noMessagesYet": "",
     "noPublicMessagesYet": "",
     "noBucketsYet": "",
@@ -209,8 +222,10 @@
       "login": {
         "title": "",
         "email": "",
+        "emailOrUsername": "",
         "password": "",
         "placeholderEmail": "",
+        "placeholderEmailOrUsername": "",
         "placeholderPassword": "",
         "submit": "",
         "signUp": "",
@@ -219,6 +234,11 @@
       "signup": {
         "title": "",
         "email": "",
+        "username": "",
+        "placeholderUsername": "",
+        "usernameRequired": "",
+        "usernameMaxLength": "",
+        "usernameAlreadyInUse": "",
         "displayName": "",
         "placeholderEmail": "",
         "placeholderDisplayName": "",

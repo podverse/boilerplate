@@ -140,7 +140,7 @@
       "funnelButtonLabel": ""
     },
     "adminsTable": {
-      "email": "",
+      "username": "",
       "displayName": "",
       "actions": "",
       "view": "",
@@ -161,7 +161,7 @@
       "customRoleOptionLabel": "",
       "customRoleLabel": "",
       "displayName": "",
-      "email": "",
+      "username": "",
       "password": "",
       "passwordEditHint": "",
       "permissions": "",
@@ -184,13 +184,12 @@
       "createFailed": "",
       "updateFailed": "",
       "displayNameRequired": "",
-      "emailRequired": "",
-      "emailInvalid": "",
+      "usernameRequired": "",
+      "usernameInvalid": "",
       "passwordRequired": "",
       "passwordMinLength": "",
       "passwordMaxLength": "",
-      "passwordInsecure": "",
-      "permissionsRequired": ""
+      "passwordInsecure": ""
     },
     "confirmDeleteAdmin": {
       "message": "",
@@ -307,7 +306,18 @@
       "cancel": "",
       "createFailed": "",
       "updateFailed": "",
-      "changePasswordFailed": ""
+      "changePasswordFailed": "",
+      "emailOptional": "",
+      "usernameOptional": "",
+      "emailOrUsernameRequired": "",
+      "emailOrUsernameHint": "",
+      "passwordOptional": "",
+      "initialBucketAdmins": "",
+      "setPasswordLinkLabel": "",
+      "copyLink": "",
+      "linkCopied": "",
+      "backToList": "",
+      "userCreatedWithLink": ""
     },
     "confirmDeleteUser": {
       "message": "",
@@ -332,8 +342,33 @@
     "hello": "",
     "signedInAs": ""
   },
+  "profile": {
+    "title": "",
+    "profileInformation": "",
+    "username": "",
+    "displayName": "",
+    "displayNamePlaceholder": "",
+    "email": "",
+    "placeholderPassword": "",
+    "changePassword": "",
+    "currentPassword": "",
+    "newPassword": "",
+    "confirmNewPassword": "",
+    "updateProfile": "",
+    "changePasswordSubmit": "",
+    "profileUpdated": "",
+    "passwordChanged": "",
+    "errors": {
+      "requestFailed": "",
+      "passwordsDoNotMatch": ""
+    }
+  },
   "settings": {
     "title": "",
+    "generalTab": "",
+    "profileTab": "",
+    "passwordTab": "",
+    "preferences": "",
     "theme": "",
     "currentTheme": "",
     "languages": {
@@ -359,6 +394,10 @@
       "login": {
         "title": "",
         "email": "",
+        "emailOrUsername": "",
+        "placeholderEmailOrUsername": "",
+        "username": "",
+        "placeholderUsername": "",
         "password": "",
         "placeholderEmail": "",
         "placeholderPassword": "",

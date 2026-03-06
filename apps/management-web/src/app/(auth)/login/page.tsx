@@ -12,7 +12,7 @@ export default function LoginPage() {
   const tErrors = useTranslations('errors');
   const { user, loading: authLoading, login } = useAuth();
   const router = useRouter();
-  const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -30,7 +30,7 @@ export default function LoginPage() {
     e.preventDefault();
     setSubmitError(null);
     setLoading(true);
-    const result = await login(email, password);
+    const result = await login(username, password);
     setLoading(false);
     if (result.ok) {
       // Full-page navigation so the next request includes the session cookie (same-origin after login).
@@ -54,13 +54,14 @@ export default function LoginPage() {
         retryAfterSeconds={rateLimitRetrySeconds}
       />
       <LoginForm
-        email={email}
+        email={username}
         password={password}
-        onEmailChange={setEmail}
+        onEmailChange={setUsername}
         onPasswordChange={setPassword}
         onSubmit={handleSubmit}
         loading={loading}
         submitError={submitError}
+        identifierType="usernameOnly"
       />
     </>
   );

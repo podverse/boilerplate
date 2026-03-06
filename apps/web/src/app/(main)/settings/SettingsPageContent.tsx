@@ -29,9 +29,9 @@ import { accountSettingsRoute } from '../../../lib/routes';
 
 function parseUserFromResponse(data: unknown): {
   id: string;
-  email: string;
+  email: string | null;
+  username: string | null;
   displayName: string | null;
-  profileVisibility: boolean;
 } | null {
   if (data === undefined || typeof data !== 'object' || data === null) return null;
   if (!('user' in data) || typeof (data as { user: unknown }).user !== 'object') return null;
@@ -39,18 +39,21 @@ function parseUserFromResponse(data: unknown): {
     data as {
       user: {
         id?: string;
-        email?: string;
+        email?: string | null;
+        username?: string | null;
         displayName?: string | null;
-        profileVisibility?: boolean;
       };
     }
   ).user;
-  if (typeof u.id !== 'string' || typeof u.email !== 'string') return null;
+  if (typeof u.id !== 'string') return null;
+  const hasEmail = u.email !== undefined && u.email !== null && u.email !== '';
+  const hasUsername = u.username !== undefined && u.username !== null && u.username !== '';
+  if (!hasEmail && !hasUsername) return null;
   return {
     id: u.id,
-    email: u.email,
+    email: hasEmail ? (u.email as string) : null,
+    username: hasUsername ? (u.username as string) : null,
     displayName: u.displayName ?? null,
-    profileVisibility: u.profileVisibility === true,
   };
 }
 
@@ -69,6 +72,8 @@ export function SettingsPageContent({ initialUser, activeTab }: SettingsPageCont
   const { user, setSession } = useAuth();
   const u = user ?? initialUser;
   const [displayName, setDisplayName] = useState(u.displayName ?? '');
+  const [username, setUsername] = useState(u.username ?? '');
+  const [usernameBlurError, setUsernameBlurError] = useState<string | null>(null);
   const [profileSaving, setProfileSaving] = useState(false);
   const [profileMessage, setProfileMessage] = useState<string | null>(null);
 
@@ -100,15 +105,31 @@ export function SettingsPageContent({ initialUser, activeTab }: SettingsPageCont
     label: tSettings(`languages.${loc}`),
   }));
 
+  const handleUsernameBlur = useCallback(async () => {
+    const value = username.trim();
+    if (value === '') {
+      setUsernameBlurError(null);
+      return;
+    }
+    setUsernameBlurError(null);
+    const baseUrl = getApiBaseUrl();
+    const res = await webAuth.usernameAvailable(baseUrl, value);
+    if (res.ok && res.data !== undefined && res.data.available === false) {
+      setUsernameBlurError(t('usernameNotAvailable'));
+    }
+  }, [username, t]);
+
   const handleUpdateProfile = useCallback(
     async (e: React.FormEvent) => {
       e.preventDefault();
       setProfileMessage(null);
+      setUsernameBlurError(null);
       setProfileSaving(true);
       try {
         const baseUrl = getApiBaseUrl();
         const res = await webAuth.updateProfile(baseUrl, {
           displayName: displayName.trim() === '' ? null : displayName.trim(),
+          username: username.trim() === '' ? null : username.trim(),
         });
         if (res.ok && res.data !== undefined) {
           const updated = parseUserFromResponse(res.data);
@@ -116,12 +137,18 @@ export function SettingsPageContent({ initialUser, activeTab }: SettingsPageCont
             setSession({
               id: updated.id,
               email: updated.email,
+              username: updated.username,
               displayName: updated.displayName,
             });
             setProfileMessage(t('profileUpdated'));
           }
         } else {
-          setProfileMessage(res.error?.message ?? t('errors.requestFailed'));
+          const msg = res.error?.message ?? t('errors.requestFailed');
+          setProfileMessage(
+            res.status === 409 && msg.toLowerCase().includes('username')
+              ? t('usernameNotAvailable')
+              : msg
+          );
         }
       } catch {
         setProfileMessage(t('errors.requestFailed'));
@@ -129,7 +156,7 @@ export function SettingsPageContent({ initialUser, activeTab }: SettingsPageCont
         setProfileSaving(false);
       }
     },
-    [displayName, setSession, t]
+    [displayName, username, setSession, t]
   );
 
   const handleChangePassword = useCallback(
@@ -224,9 +251,19 @@ export function SettingsPageContent({ initialUser, activeTab }: SettingsPageCont
               autoComplete="name"
             />
             <Input
+              label={t('username')}
+              type="text"
+              value={username}
+              onChange={(value) => setUsername(value)}
+              onBlur={() => void handleUsernameBlur()}
+              error={usernameBlurError}
+              disabled={profileSaving}
+              autoComplete="username"
+            />
+            <Input
               label={t('email')}
               type="email"
-              value={u.email}
+              value={u.email ?? ''}
               onChange={() => {}}
               disabled
               autoComplete="email"

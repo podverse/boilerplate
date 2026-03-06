@@ -1,4 +1,5 @@
 import type { Request, Response } from 'express';
+import { DEFAULT_PAGE_LIMIT, MAX_PAGE_SIZE } from '@boilerplate/helpers';
 import { BucketMessageService } from '@boilerplate/orm';
 
 import { resolveBucket } from './bucketsController.js';
@@ -12,15 +13,27 @@ export async function listMessages(req: Request, res: Response): Promise<void> {
     res.status(404).json({ message: 'Bucket not found' });
     return;
   }
-  const limit = Math.min(100, Math.max(1, Number(req.query.limit) || 50));
-  const offset = Math.max(0, Number(req.query.offset) || 0);
+  const page = Math.max(1, Number(req.query.page) || 1);
+  const limit = Math.min(MAX_PAGE_SIZE, Math.max(1, Number(req.query.limit) || DEFAULT_PAGE_LIMIT));
+  const offset = (page - 1) * limit;
+  const sortRaw = typeof req.query.sort === 'string' ? req.query.sort : undefined;
+  const order = sortRaw === 'oldest' ? 'ASC' : 'DESC';
 
   const messages = await BucketMessageService.findByBucketId(bucket.id, {
     limit,
     offset,
     publicOnly: false,
+    order,
   });
-  res.status(200).json({ messages: messages.map(messageToJson) });
+  const total = await BucketMessageService.countByBucketId(bucket.id, false);
+  const totalPages = Math.max(1, Math.ceil(total / limit));
+  res.status(200).json({
+    messages: messages.map(messageToJson),
+    page,
+    limit,
+    total,
+    totalPages,
+  });
 }
 
 export async function getMessage(req: Request, res: Response): Promise<void> {

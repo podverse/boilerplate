@@ -3,7 +3,8 @@
 .scrollWrap {
   overflow-x: auto;
   overflow-y: hidden;
-  padding: 0;
+  padding: ($focus-outline-width + $focus-outline-offset) 0;
+  margin: -($focus-outline-width + $focus-outline-offset) 0;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: thin;
 
@@ -44,10 +45,10 @@
   padding: $space-2 $space-4;
   font-size: $font-size-sm;
   font-weight: $font-weight-medium;
-  color: var(--color-text-muted);
+  color: var(--color-chip-text);
   text-decoration: none;
   border-radius: $radius-pill;
-  background: transparent;
+  background: var(--color-chip-bg);
   border: 1px solid var(--color-border);
   transition:
     color $transition-fast,

@@ -46,7 +46,7 @@ const ADMIN_FORM_CUSTOM_ROLE_ID = '__custom__';
 
 export type AdminFormInitialValues = {
   displayName: string;
-  email: string;
+  username: string;
   permissions: {
     adminsCrud: number;
     usersCrud: number;
@@ -61,16 +61,15 @@ export type AdminFormProps = {
   mode: 'create' | 'edit';
   adminId?: string;
   initialValues?: AdminFormInitialValues;
-  /** Current user is super admin (full access). */
-  isSuperAdmin: boolean;
   /** Current user can edit CRUD permissions (has create or update for admins). When false, permissions section is hidden. */
   canEditPermissions: boolean;
   /** When editing, the admin being edited is the super admin. No one can change super admin's permissions; section is hidden. */
   targetIsSuperAdmin?: boolean;
 };
 
-function isValidEmail(value: string): boolean {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+function isValidUsername(value: string): boolean {
+  const t = value.trim();
+  return t.length > 0 && t.length <= 50;
 }
 
 function roleDescription(roleId: string, tRoles: (key: string) => string): string {
@@ -121,19 +120,10 @@ function rolePermissionScore(role: ManagementAdminRoleOption): number {
   return crudScore * 10 + eventScore;
 }
 
-/** Total number of bits set across admins + users CRUD (used for "at least one permission" validation). */
-function totalAdminsUsersBits(admins: CrudFlags, users: CrudFlags): number {
-  return (
-    (Object.values(admins) as boolean[]).filter(Boolean).length +
-    (Object.values(users) as boolean[]).filter(Boolean).length
-  );
-}
-
 export function AdminForm({
   mode,
   adminId,
   initialValues,
-  isSuperAdmin,
   canEditPermissions,
   targetIsSuperAdmin = false,
 }: AdminFormProps) {
@@ -150,14 +140,13 @@ export function AdminForm({
   };
 
   const [displayName, setDisplayName] = useState(initialValues?.displayName ?? '');
-  const [email, setEmail] = useState(initialValues?.email ?? '');
+  const [username, setUsername] = useState(initialValues?.username ?? '');
   const [password, setPassword] = useState('');
 
   // Touched state: show field errors only after the user has interacted with the field
   const [displayNameTouched, setDisplayNameTouched] = useState(false);
-  const [emailTouched, setEmailTouched] = useState(false);
+  const [usernameTouched, setUsernameTouched] = useState(false);
   const [passwordTouched, setPasswordTouched] = useState(false);
-  const [permissionsTouched, setPermissionsTouched] = useState(false);
 
   const defaultPerms = initialValues?.permissions;
   // New admins: admins/users default to all on; buckets/messages default to 0 (all disabled).
@@ -244,11 +233,11 @@ export function AdminForm({
   const displayNameError =
     displayNameTouched && displayName.trim() === '' ? t('displayNameRequired') : null;
 
-  const emailError = emailTouched
-    ? email.trim() === ''
-      ? t('emailRequired')
-      : !isValidEmail(email.trim())
-        ? t('emailInvalid')
+  const usernameError = usernameTouched
+    ? username.trim() === ''
+      ? t('usernameRequired')
+      : !isValidUsername(username.trim())
+        ? t('usernameInvalid')
         : null
     : null;
 
@@ -268,14 +257,6 @@ export function AdminForm({
       : passwordValidation.message
     : null;
 
-  const permissionsRelevant = mode === 'create' || !targetIsSuperAdmin;
-  const permissionsError =
-    permissionsRelevant &&
-    isSuperAdmin &&
-    permissionsTouched &&
-    totalAdminsUsersBits(adminsCrudFlags, usersCrudFlags) === 0
-      ? t('permissionsRequired')
-      : null;
   const roleSelectOptions = [
     ...roleOptions.map((role) => ({ value: role.id, label: role.label })),
     { value: ADMIN_FORM_CREATE_ROLE_ID, label: t('customRoleOptionLabel') },
@@ -302,27 +283,22 @@ export function AdminForm({
 
   const handleAdminsCrudChange = (next: CrudFlags) => {
     setAdminsCrudFlags(next);
-    setPermissionsTouched(true);
   };
 
   const handleUsersCrudChange = (next: CrudFlags) => {
     setUsersCrudFlags(next);
-    setPermissionsTouched(true);
   };
 
   const handleBucketsCrudChange = (next: CrudFlags) => {
     setBucketsCrudFlags(next);
-    setPermissionsTouched(true);
   };
 
   const handleBucketMessagesCrudChange = (next: CrudFlags) => {
     setBucketMessagesCrudFlags(next);
-    setPermissionsTouched(true);
   };
 
   const handleBucketAdminsCrudChange = (next: CrudFlags) => {
     setBucketAdminsCrudFlags(next);
-    setPermissionsTouched(true);
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -330,22 +306,14 @@ export function AdminForm({
 
     // Touch all fields to surface any hidden errors
     setDisplayNameTouched(true);
-    setEmailTouched(true);
+    setUsernameTouched(true);
     setPasswordTouched(true);
-    setPermissionsTouched(true);
 
     // Guard: check validity before submitting
     if (displayName.trim() === '') return;
-    if (email.trim() === '' || !isValidEmail(email.trim())) return;
+    if (username.trim() === '' || !isValidUsername(username.trim())) return;
     if (mode === 'create' && !passwordValidation.valid) return;
     if (password !== '' && !passwordValidation.valid) return;
-    // Require at least one permission (admins or users) when creating, or when editing a non–super-admin
-    if (
-      isSuperAdmin &&
-      (mode === 'create' || !targetIsSuperAdmin) &&
-      totalAdminsUsersBits(adminsCrudFlags, usersCrudFlags) === 0
-    )
-      return;
 
     setSubmitError(null);
     if (selectedRoleId === ADMIN_FORM_CREATE_ROLE_ID) {
@@ -368,7 +336,7 @@ export function AdminForm({
       if (mode === 'create') {
         const body: CreateAdminBody = {
           displayName: displayName.trim(),
-          email: email.trim(),
+          username: username.trim(),
           password,
           roleId:
             selectedRoleId !== '' &&
@@ -396,8 +364,8 @@ export function AdminForm({
         if (displayName.trim() !== (initialValues?.displayName ?? '')) {
           body.displayName = displayName.trim();
         }
-        if (email.trim() !== (initialValues?.email ?? '')) {
-          body.email = email.trim();
+        if (username.trim() !== (initialValues?.username ?? '')) {
+          body.username = username.trim();
         }
         if (password !== '') {
           body.password = password;
@@ -448,12 +416,12 @@ export function AdminForm({
           autoComplete="off"
         />
         <Input
-          label={t('email')}
-          type="email"
-          value={email}
-          onChange={setEmail}
-          onBlur={() => setEmailTouched(true)}
-          error={emailError}
+          label={t('username')}
+          type="text"
+          value={username}
+          onChange={setUsername}
+          onBlur={() => setUsernameTouched(true)}
+          error={usernameError}
           autoComplete="off"
         />
         <Input
@@ -502,7 +470,7 @@ export function AdminForm({
               flags={adminsCrudFlags}
               onChange={handleAdminsCrudChange}
               disabled
-              error={permissionsError}
+              error={null}
             />
             <CrudCheckboxes
               label={t('usersCrud')}
@@ -550,20 +518,20 @@ export function AdminForm({
 
         <FormActions>
           <Button
-            type="submit"
-            variant="primary"
-            loading={loading}
-            disabled={isInvalidRoleSelection}
-          >
-            {mode === 'create' ? t('createAdmin') : t('saveChanges')}
-          </Button>
-          <Button
             type="button"
             variant="secondary"
             onClick={() => router.push(ROUTES.ADMINS)}
             disabled={loading}
           >
             {t('cancel')}
+          </Button>
+          <Button
+            type="submit"
+            variant="primary"
+            loading={loading}
+            disabled={isInvalidRoleSelection}
+          >
+            {mode === 'create' ? t('createAdmin') : t('saveChanges')}
           </Button>
         </FormActions>
       </Stack>

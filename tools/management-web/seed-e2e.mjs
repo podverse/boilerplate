@@ -16,7 +16,7 @@ const DB_PASSWORD =
   process.env.MANAGEMENT_DB_PASSWORD ?? process.env.DB_READ_WRITE_PASSWORD ?? 'test';
 
 const E2E_SUPER_ADMIN_ID = 'aaaaaaaa-aaaa-4aaa-aaaa-aaaaaaaaaaaa';
-const E2E_SUPER_ADMIN_EMAIL = 'e2e-superadmin@example.com';
+const E2E_SUPER_ADMIN_USERNAME = 'e2e-superadmin';
 const E2E_PASSWORD_PLAIN = 'Test!1Aa';
 const E2E_DISPLAY_NAME = 'E2E Super Admin';
 
@@ -39,9 +39,9 @@ async function main() {
       [E2E_SUPER_ADMIN_ID]
     );
     await client.query(
-      `INSERT INTO management_user_credentials (management_user_id, email, password_hash)
+      `INSERT INTO management_user_credentials (management_user_id, username, password_hash)
        VALUES ($1, $2, $3)`,
-      [E2E_SUPER_ADMIN_ID, E2E_SUPER_ADMIN_EMAIL, passwordHash]
+      [E2E_SUPER_ADMIN_ID, E2E_SUPER_ADMIN_USERNAME, passwordHash]
     );
     await client.query(
       `INSERT INTO management_user_bio (management_user_id, display_name) VALUES ($1, $2)`,
@@ -52,7 +52,7 @@ async function main() {
        VALUES ($1, 15, 15, 15, 15, 15, 'all')`,
       [E2E_SUPER_ADMIN_ID]
     );
-    console.log('E2E management-web seed done: 1 super admin (e2e-superadmin@example.com).');
+    console.log('E2E management-web seed done: 1 super admin (username e2e-superadmin).');
   } finally {
     await client.end();
   }

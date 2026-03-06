@@ -25,13 +25,13 @@ function getCookieOptions() {
  * user.credentials; passwordHash and raw tokens must not appear in any response.
  */
 export async function login(req: Request, res: Response): Promise<void> {
-  const { email, password } = req.body as { email?: string; password?: string };
-  if (email === undefined || password === undefined) {
-    res.status(400).json({ message: 'Email and password required' });
+  const { username, password } = req.body as { username?: string; password?: string };
+  if (username === undefined || password === undefined) {
+    res.status(400).json({ message: 'Username and password required' });
     return;
   }
 
-  const user = await ManagementUserService.findByEmail(email);
+  const user = await ManagementUserService.findByUsername(username);
   if (user === null) {
     res.status(401).json({ message: AUTH_MESSAGE_INVALID_CREDENTIALS });
     return;
@@ -125,7 +125,7 @@ export async function updateProfile(req: Request, res: Response): Promise<void> 
     res.status(401).json({ message: 'Authentication required' });
     return;
   }
-  const { displayName, email } = req.body as { displayName?: string; email?: string };
+  const { displayName } = req.body as { displayName?: string };
   if (displayName === undefined || typeof displayName !== 'string') {
     res.status(400).json({ message: 'Display name required' });
     return;
@@ -134,15 +134,6 @@ export async function updateProfile(req: Request, res: Response): Promise<void> 
   if (trimmed === '') {
     res.status(400).json({ message: 'Display name cannot be empty' });
     return;
-  }
-  if (email !== undefined && typeof email === 'string') {
-    const emailTrimmed = email.trim();
-    const existing = await ManagementUserService.findByEmail(emailTrimmed);
-    if (existing !== null && existing.id !== user.id) {
-      res.status(409).json({ message: 'That email is already in use' });
-      return;
-    }
-    await ManagementUserService.updateEmail(user.id, emailTrimmed);
   }
   await ManagementUserService.updateDisplayName(user.id, trimmed);
   const updated = await ManagementUserService.findById(user.id);

@@ -1,5 +1,6 @@
 import { redirect, notFound } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
+import { formatUserLabel } from '@boilerplate/helpers';
 import { request } from '@boilerplate/helpers-requests';
 import { PageHeader, Text } from '@boilerplate/ui';
 
@@ -14,7 +15,8 @@ import type { ManagementBucket } from '@boilerplate/helpers-requests';
 type AdminUser = {
   id: string;
   shortId: string;
-  email: string;
+  email: string | null;
+  username?: string | null;
   displayName: string | null;
 };
 
@@ -64,14 +66,6 @@ async function fetchAdmin(
   return { admin: { ...admin, adminCrud } };
 }
 
-function formatEmailDisplayName(email: string, displayName: string | null | undefined): string {
-  const trimmed =
-    displayName !== undefined && displayName !== null && displayName !== ''
-      ? displayName.trim()
-      : null;
-  return trimmed !== null ? `${email} (${trimmed})` : email;
-}
-
 export default async function EditBucketAdminPage({
   params,
 }: {
@@ -102,11 +96,20 @@ export default async function EditBucketAdminPage({
   return (
     <>
       <PageHeader title={t('editAdminTitle')} />
-      {admin.user !== undefined && admin.user !== null && (
-        <Text variant="muted" size="sm">
-          {formatEmailDisplayName(admin.user.email, admin.user.displayName)}
-        </Text>
-      )}
+      {admin.user !== undefined &&
+        admin.user !== null &&
+        (() => {
+          const line = formatUserLabel({
+            username: admin.user.username,
+            email: admin.user.email,
+            displayName: admin.user.displayName,
+          });
+          return line !== '—' ? (
+            <Text variant="muted" size="sm">
+              {line}
+            </Text>
+          ) : null;
+        })()}
       <EditBucketAdminFormClient
         bucketId={bucketId}
         userId={userId}

@@ -18,7 +18,7 @@ export const WithUser: Story = {
   args: {
     title: 'App name',
     homeHref: '#',
-    user: { displayName: 'Jane Doe', email: 'jane@example.com' },
+    user: { displayName: 'Jane Doe', email: 'jane@example.com', username: null },
     onLogout: () => {},
     navItems: [
       { href: '#dashboard', label: 'Dashboard' },
@@ -31,7 +31,7 @@ export const WithUserNoDisplayName: Story = {
   args: {
     title: 'App name',
     homeHref: '#',
-    user: { displayName: null, email: 'user@example.com' },
+    user: { displayName: null, email: 'user@example.com', username: null },
     onLogout: () => {},
     navItems: [{ href: '#dashboard', label: 'Dashboard' }],
   },

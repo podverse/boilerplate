@@ -52,16 +52,18 @@ export default async function EditUserPage({ params }: EditUserPageProps) {
 
   const mainUser = result.user;
   const initialValues: UserFormInitialValues = {
-    email: mainUser.email,
+    email: mainUser.email ?? '',
     displayName: mainUser.displayName ?? '',
   };
 
   const tCommon = await getTranslations('common');
 
+  const displayLabel = mainUser.displayName ?? mainUser.username ?? mainUser.email ?? id;
+
   return (
     <ResourcePageCard
       title={tCommon('editUserTitle', {
-        name: mainUser.displayName ?? mainUser.email,
+        name: displayLabel,
       })}
     >
       <UserForm mode="edit" userId={id} initialValues={initialValues} />

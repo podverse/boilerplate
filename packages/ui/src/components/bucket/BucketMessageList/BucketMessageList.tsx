@@ -74,7 +74,7 @@ export function BucketMessageList({
             body={m.body}
             showPublicPrivate={variant === 'management'}
             isPublic={m.isPublic}
-            bodyVariant={variant === 'public' ? 'full' : 'snippet'}
+            bodyVariant="full"
             className={styles.messageCardWrap}
           />
           {showActions && editHrefFn !== undefined && (

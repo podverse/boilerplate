@@ -22,6 +22,8 @@ export type BucketsTableWithFilterProps = {
   canDeleteBucket: boolean;
   apiBaseUrl: string;
   addBucketHref?: string;
+  sortPrefsCookieName?: string;
+  sortPrefsListKey?: string;
 };
 
 export function BucketsTableWithFilter({
@@ -38,6 +40,8 @@ export function BucketsTableWithFilter({
   canDeleteBucket,
   apiBaseUrl,
   addBucketHref,
+  sortPrefsCookieName,
+  sortPrefsListKey,
 }: BucketsTableWithFilterProps) {
   return (
     <ResourceTableWithFilter
@@ -49,6 +53,8 @@ export function BucketsTableWithFilter({
       basePath={basePath}
       currentQueryParams={currentQueryParams}
       filterableColumnIds={filterableColumnIds}
+      sortPrefsCookieName={sortPrefsCookieName}
+      sortPrefsListKey={sortPrefsListKey}
       viewRoute={bucketViewRoute}
       viewLabelKey="bucketsTable.view"
       canView={canViewBucket}

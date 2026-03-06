@@ -49,7 +49,7 @@ describe('no-mailer (admin-only)', () => {
     it('returns 403', async () => {
       await request(app)
         .post(`${API}/auth/signup`)
-        .send({ email: 'new@example.com', password: 'pass' })
+        .send({ email: 'new@example.com', username: 'newuser', password: 'pass' })
         .expect(403, { message: 'Registration is by admin only' });
     });
   });

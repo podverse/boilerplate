@@ -83,6 +83,28 @@ export function bucketDetailRoute(id: string): string {
   return bucketPathFromAncestry([id]);
 }
 
+/** Tab on bucket detail page: messages | buckets. Used for ?tab= query. */
+export type BucketDetailTab = 'messages' | 'buckets';
+
+/**
+ * Bucket detail URL with optional tab, page, and sort query params.
+ * Use for Messages tab (default), Buckets tab (?tab=buckets), and pagination (?tab=messages&page=2&sort=oldest).
+ */
+export function bucketDetailTabRoute(
+  id: string,
+  tab?: BucketDetailTab,
+  page?: number,
+  sort?: 'recent' | 'oldest'
+): string {
+  const base = bucketDetailRoute(id);
+  const params = new URLSearchParams();
+  if (tab !== undefined) params.set('tab', tab);
+  if (page !== undefined && page > 1) params.set('page', String(page));
+  if (sort === 'oldest') params.set('sort', 'oldest');
+  const q = params.toString();
+  return q !== '' ? `${base}?${q}` : base;
+}
+
 export function bucketEditRoute(id: string): string {
   return bucketPathFromAncestry([id]) + '/edit';
 }

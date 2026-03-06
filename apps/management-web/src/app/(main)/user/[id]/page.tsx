@@ -1,7 +1,7 @@
 import { notFound, redirect } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
 import { request } from '@boilerplate/helpers-requests';
-import { ButtonLink, Stack, Text } from '@boilerplate/ui';
+import { ButtonLink, FormActions, Stack, Text } from '@boilerplate/ui';
 
 import { ResourcePageCard } from '../../../../components/ResourcePageCard';
 
@@ -57,27 +57,34 @@ export default async function ViewUserPage({ params }: ViewUserPageProps) {
 
   const tCommon = await getTranslations('common');
 
+  const displayLabel = mainUser.displayName ?? mainUser.username ?? mainUser.email ?? id;
+
   return (
-    <ResourcePageCard
-      title={tCommon('viewUserTitle', { name: mainUser.displayName ?? mainUser.email })}
-    >
+    <ResourcePageCard title={tCommon('viewUserTitle', { name: displayLabel })}>
       <Stack>
         <Text>
-          <strong>{tCommon('usersTable.email')}:</strong> {mainUser.email}
+          <strong>{tCommon('usersTable.email')}:</strong> {mainUser.email ?? '—'}
         </Text>
+        {mainUser.username !== null &&
+          mainUser.username !== undefined &&
+          mainUser.username !== '' && (
+            <Text>
+              <strong>{tCommon('usersTable.username')}:</strong> {mainUser.username}
+            </Text>
+          )}
         <Text>
           <strong>{tCommon('usersTable.displayName')}:</strong> {mainUser.displayName ?? '—'}
         </Text>
-        <Stack>
+        <FormActions>
+          <ButtonLink href={ROUTES.USERS} variant="secondary">
+            {tCommon('adminForm.cancel')}
+          </ButtonLink>
           {crud.update && (
             <ButtonLink href={userEditRoute(id)} variant="primary">
               {tCommon('usersTable.edit')}
             </ButtonLink>
           )}
-          <ButtonLink href={ROUTES.USERS} variant="secondary">
-            {tCommon('adminForm.cancel')}
-          </ButtonLink>
-        </Stack>
+        </FormActions>
       </Stack>
     </ResourcePageCard>
   );

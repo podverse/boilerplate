@@ -94,14 +94,14 @@ export function TopicForm({ parentBucketId, successHref, cancelHref }: TopicForm
           </Text>
         )}
         <FormActions>
-          <Button type="submit" variant="primary" loading={loading} disabled={loading}>
-            {t('createTopic')}
-          </Button>
           <Link href={cancelHref}>
             <Button type="button" variant="secondary" disabled={loading}>
               {t('cancel')}
             </Button>
           </Link>
+          <Button type="submit" variant="primary" loading={loading} disabled={loading}>
+            {t('createTopic')}
+          </Button>
         </FormActions>
       </Stack>
     </FormContainer>

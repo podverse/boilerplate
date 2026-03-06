@@ -6,6 +6,9 @@ import { Input } from '../../Input';
 import { Form, FormLinks } from '../../Form';
 import type { FormLinkComponent } from '../../Form';
 
+/** Web: one field for email or username. Management-web: username only. */
+export type LoginIdentifierType = 'emailOrUsername' | 'usernameOnly';
+
 export type LoginFormProps = {
   email: string;
   password: string;
@@ -16,6 +19,8 @@ export type LoginFormProps = {
   emailError?: string | null;
   passwordError?: string | null;
   submitError?: string | null;
+  /** Web: "Email or username". Management-web: "Username" only. Defaults to emailOrUsername. */
+  identifierType?: LoginIdentifierType;
   /** When omitted, the sign-up link is not rendered. */
   signupHref?: string;
   /** When omitted, the forgot-password link is not rendered. */
@@ -34,11 +39,17 @@ export function LoginForm({
   emailError,
   passwordError,
   submitError,
+  identifierType = 'emailOrUsername',
   signupHref,
   forgotPasswordHref,
   LinkComponent,
 }: LoginFormProps) {
   const t = useTranslations('ui.auth.login');
+  const isUsernameOnly = identifierType === 'usernameOnly';
+  const identifierLabel = isUsernameOnly ? t('username') : t('emailOrUsername');
+  const identifierPlaceholder = isUsernameOnly
+    ? t('placeholderUsername')
+    : t('placeholderEmailOrUsername');
   const linkItems = [
     signupHref !== undefined ? { href: signupHref, children: t('signUp') } : null,
     forgotPasswordHref !== undefined
@@ -48,13 +59,13 @@ export function LoginForm({
   return (
     <Form title={t('title')} submitError={submitError} onSubmit={onSubmit}>
       <Input
-        label={t('email')}
-        type="email"
+        label={identifierLabel}
+        type="text"
         value={email}
         onChange={onEmailChange}
-        placeholder={t('placeholderEmail')}
+        placeholder={identifierPlaceholder}
         error={emailError}
-        autoComplete="email"
+        autoComplete="username"
         disabled={loading}
       />
       <Input

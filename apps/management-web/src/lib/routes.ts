@@ -17,6 +17,16 @@ export const ROUTES = {
   BUCKETS_NEW: '/buckets/new',
 } as const;
 
+/** Account settings tab; URL param ?tab= for profile, password. No email tab (management has no mailer). */
+export type AccountSettingsTab = 'general' | 'profile' | 'password';
+
+export function accountSettingsRoute(tab?: AccountSettingsTab): string {
+  const base = ROUTES.SETTINGS;
+  if (tab === 'profile') return `${base}?tab=profile`;
+  if (tab === 'password') return `${base}?tab=password`;
+  return base;
+}
+
 export function adminViewRoute(id: string): string {
   return `/admin/${id}`;
 }
@@ -69,6 +79,27 @@ export function parseBucketPath(pathname: string): string[] | null {
 
 export function bucketViewRoute(id: string): string {
   return bucketPathFromAncestry([id]);
+}
+
+/** Tab on bucket detail page: messages | buckets. Used for ?tab= query. */
+export type BucketDetailTab = 'messages' | 'buckets';
+
+/**
+ * Bucket detail URL with optional tab, page, and sort query params.
+ */
+export function bucketDetailTabRoute(
+  id: string,
+  tab?: BucketDetailTab,
+  page?: number,
+  sort?: 'recent' | 'oldest'
+): string {
+  const base = bucketViewRoute(id);
+  const params = new URLSearchParams();
+  if (tab !== undefined) params.set('tab', tab);
+  if (page !== undefined && page > 1) params.set('page', String(page));
+  if (sort === 'oldest') params.set('sort', 'oldest');
+  const q = params.toString();
+  return q !== '' ? `${base}?${q}` : base;
 }
 
 export function bucketEditRoute(id: string): string {

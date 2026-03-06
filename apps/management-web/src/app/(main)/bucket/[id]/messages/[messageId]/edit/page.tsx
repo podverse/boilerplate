@@ -8,7 +8,7 @@ import { getServerManagementApiBaseUrl } from '../../../../../../../config/env';
 import { getCrudFlags, hasReadPermission } from '../../../../../../../lib/main-nav';
 import { ROUTES } from '../../../../../../../lib/routes';
 import { getCookieHeader } from '../../../../../../../lib/server-request';
-import { bucketMessagesRoute, bucketViewRoute } from '../../../../../../../lib/routes';
+import { bucketViewRoute } from '../../../../../../../lib/routes';
 
 type PageProps = { params: Promise<{ id: string; messageId: string }> };
 
@@ -53,7 +53,7 @@ export default async function BucketMessageEditPage({ params }: PageProps) {
       initialBody={message.body}
       initialIsPublic={message.isPublic}
       senderName={message.senderName}
-      messagesRoute={bucketMessagesRoute(bucketId)}
+      messagesRoute={bucketViewRoute(bucketId)}
     />
   );
 }

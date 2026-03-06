@@ -5,6 +5,7 @@ import { request } from '@boilerplate/helpers-requests';
 import { FilterTablePageLayout, Stack } from '@boilerplate/ui';
 
 import { AdminsTableWithFilter } from '../../../components/AdminsTableWithFilter';
+import { TABLE_SORT_PREFS_COOKIE_NAME } from '../../../lib/cookies';
 import { getServerUser } from '../../../lib/server-auth';
 import { getManagementApiBaseUrl, getServerManagementApiBaseUrl } from '../../../config/env';
 import { getCrudFlags, hasReadPermission } from '../../../lib/main-nav';
@@ -117,15 +118,19 @@ export default async function AdminsPage({ searchParams }: PageProps) {
   const tableRows = admins.map((a) => ({
     id: a.id,
     cells: {
-      email: a.email,
+      username: a.username,
       displayName: a.displayName !== null && a.displayName !== '' ? a.displayName : '—',
     },
     isSuperAdmin: a.isSuperAdmin === true,
   }));
 
   const adminColumns = [
-    { id: 'email', label: tCommon('adminsTable.email') },
-    { id: 'displayName', label: tCommon('adminsTable.displayName') },
+    { id: 'username', label: tCommon('adminsTable.username'), defaultSortOrder: 'asc' as const },
+    {
+      id: 'displayName',
+      label: tCommon('adminsTable.displayName'),
+      defaultSortOrder: 'asc' as const,
+    },
   ];
 
   const currentQueryParams: Record<string, string> = {};
@@ -163,6 +168,8 @@ export default async function AdminsPage({ searchParams }: PageProps) {
             adminApiBaseUrl={apiBaseUrl}
             currentUserId={user.id}
             addAdminHref={crud.create ? ROUTES.ADMINS_NEW : undefined}
+            sortPrefsCookieName={TABLE_SORT_PREFS_COOKIE_NAME}
+            sortPrefsListKey="admins"
           />
         </Stack>
       )}

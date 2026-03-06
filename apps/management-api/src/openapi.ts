@@ -151,11 +151,17 @@ export const openApiDocument = {
       },
       CreateUserBody: {
         type: 'object',
-        required: ['email', 'password'],
+        description:
+          'At least one of email or username is required. If password is omitted, a set-password link is returned in the response.',
         properties: {
           email: { type: 'string', format: 'email' },
+          username: { type: 'string', minLength: 1, maxLength: 50 },
           password: { type: 'string', minLength: 8 },
           displayName: { type: 'string', maxLength: 50, nullable: true },
+          initialBucketAdminIds: {
+            type: 'array',
+            items: { type: 'string', format: 'uuid' },
+          },
         },
       },
       UpdateUserBody: {
@@ -780,7 +786,8 @@ export const openApiDocument = {
       },
       post: {
         summary: 'Create main-app user',
-        description: 'Create a new main-app user. Requires users create permission.',
+        description:
+          'Create a new main-app user. At least one of email or username required. If password omitted, setPasswordLink is returned. Requires users create permission.',
         operationId: 'createUser',
         security: [{ bearerAuth: [] }],
         requestBody: {
@@ -791,12 +798,20 @@ export const openApiDocument = {
         },
         responses: {
           '201': {
-            description: 'Created',
+            description: 'Created. Includes setPasswordLink when password was omitted.',
             content: {
               'application/json': {
                 schema: {
                   type: 'object',
-                  properties: { user: { $ref: '#/components/schemas/MainUser' } },
+                  required: ['user'],
+                  properties: {
+                    user: { $ref: '#/components/schemas/MainUser' },
+                    setPasswordLink: {
+                      type: 'string',
+                      description:
+                        'Present when password was omitted; share with user to set password.',
+                    },
+                  },
                 },
               },
             },
@@ -814,7 +829,7 @@ export const openApiDocument = {
             },
           },
           '409': {
-            description: 'Email already in use',
+            description: 'Email or username already in use',
             content: {
               'application/json': { schema: { $ref: '#/components/schemas/ErrorMessage' } },
             },

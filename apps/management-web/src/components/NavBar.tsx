@@ -28,11 +28,7 @@ export function NavBar({ mainNavItems }: { mainNavItems: NavBarMainNavItem[] }) 
     router.push(ROUTES.LOGIN);
   };
 
-  const navItems = [
-    ...mainNavItems,
-    { href: ROUTES.PROFILE, label: t('profile') },
-    { href: ROUTES.SETTINGS, label: t('settings') },
-  ];
+  const navItems = [...mainNavItems, { href: ROUTES.SETTINGS, label: t('settings') }];
 
   return (
     <UINavBar

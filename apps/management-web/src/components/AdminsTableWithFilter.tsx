@@ -33,6 +33,8 @@ export type AdminsTableWithFilterProps = {
   adminApiBaseUrl: string;
   addAdminHref?: string;
   currentUserId?: string;
+  sortPrefsCookieName?: string;
+  sortPrefsListKey?: string;
 };
 
 export function AdminsTableWithFilter({
@@ -54,6 +56,8 @@ export function AdminsTableWithFilter({
   adminApiBaseUrl,
   addAdminHref,
   currentUserId,
+  sortPrefsCookieName,
+  sortPrefsListKey,
 }: AdminsTableWithFilterProps) {
   const router = useRouter();
   const { logout } = useAuth();
@@ -92,6 +96,8 @@ export function AdminsTableWithFilter({
       initialSearch={initialSearch}
       basePath={basePath}
       currentQueryParams={currentQueryParams}
+      sortPrefsCookieName={sortPrefsCookieName}
+      sortPrefsListKey={sortPrefsListKey}
       viewRoute={adminViewRoute}
       viewLabelKey="adminsTable.view"
       canView={canViewAdmin}

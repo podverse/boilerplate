@@ -192,14 +192,6 @@ export function BucketForm({ mode, bucketId, initialValues, ownerOptions = [] }:
 
         <FormActions>
           <Button
-            type="submit"
-            variant="primary"
-            loading={loading}
-            disabled={noUsersForCreate || (mode === 'edit' && !messageBodyMaxLengthValid)}
-          >
-            {mode === 'create' ? t('createBucket') : t('saveChanges')}
-          </Button>
-          <Button
             type="button"
             variant="secondary"
             onClick={() =>
@@ -208,6 +200,14 @@ export function BucketForm({ mode, bucketId, initialValues, ownerOptions = [] }:
             disabled={loading}
           >
             {t('cancel')}
+          </Button>
+          <Button
+            type="submit"
+            variant="primary"
+            loading={loading}
+            disabled={noUsersForCreate || (mode === 'edit' && !messageBodyMaxLengthValid)}
+          >
+            {mode === 'create' ? t('createBucket') : t('saveChanges')}
           </Button>
         </FormActions>
       </Stack>

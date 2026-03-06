@@ -13,13 +13,14 @@ export default async function DashboardPage() {
   }
 
   const t = await getTranslations('dashboard');
-  const displayName = user.displayName ?? user.email;
+  const displayName = user.displayName ?? user.username ?? user.email ?? '—';
+  const signedInAsLabel = user.email ?? user.username ?? '—';
 
   return (
     <Container>
       <SectionWithHeading title={t('title')}>
         <Text>{t('hello', { name: displayName })}</Text>
-        <Text variant="muted">{t('signedInAs', { email: user.email })}</Text>
+        <Text variant="muted">{t('signedInAs', { email: signedInAsLabel })}</Text>
       </SectionWithHeading>
     </Container>
   );

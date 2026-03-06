@@ -5,7 +5,7 @@ import { Container, SectionWithHeading } from '@boilerplate/ui';
 
 import { getServerUser } from '../../../../../../../lib/server-auth';
 import { getCookieHeader, getServerApiBaseUrl } from '../../../../../../../lib/server-request';
-import { ROUTES, bucketMessagesRoute } from '../../../../../../../lib/routes';
+import { ROUTES, bucketDetailRoute } from '../../../../../../../lib/routes';
 import { EditMessageForm } from '../../../EditMessageForm';
 
 type Bucket = { id: string; name: string; messageBodyMaxLength?: number | null };
@@ -68,8 +68,8 @@ export default async function EditMessagePage({
           initialBody={message.body}
           initialIsPublic={message.isPublic}
           messageBodyMaxLength={bucket.messageBodyMaxLength ?? null}
-          successHref={bucketMessagesRoute(bucketId)}
-          cancelHref={bucketMessagesRoute(bucketId)}
+          successHref={bucketDetailRoute(bucketId)}
+          cancelHref={bucketDetailRoute(bucketId)}
         />
       </SectionWithHeading>
     </Container>

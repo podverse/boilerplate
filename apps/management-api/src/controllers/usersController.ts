@@ -1,17 +1,22 @@
+import crypto from 'crypto';
 import type { Request, Response } from 'express';
 import type { UserWithRelations } from '@boilerplate/orm';
-import { validatePassword } from '@boilerplate/helpers';
+import { flagsToBitmask, validatePassword } from '@boilerplate/helpers';
 import { getPasswordValidationMessages, resolveLocale } from '@boilerplate/helpers-i18n';
 import { EVENT_ACTIONS, EVENT_TARGET_TYPES } from '@boilerplate/management-orm';
 import {
+  BucketAdminService,
   UserService,
+  VerificationTokenService,
   appDataSourceRead,
   appDataSourceReadWrite,
   User,
   UserBio,
 } from '@boilerplate/orm';
 import type { CreateUserBody, UpdateUserBody, ChangeUserPasswordBody } from '../schemas/users.js';
+import { config } from '../config/index.js';
 import { hashPassword } from '../lib/auth/hash.js';
+import { generateToken, getSetPasswordExpiry, hashToken } from '../lib/set-password-token.js';
 import { recordEvent } from '../lib/recordEvent.js';
 
 /**
@@ -20,12 +25,16 @@ import { recordEvent } from '../lib/recordEvent.js';
  */
 function userToJson(user: UserWithRelations): {
   id: string;
-  email: string;
+  shortId: string;
+  email: string | null;
+  username: string | null;
   displayName: string | null;
 } {
   return {
     id: user.id,
-    email: user.credentials.email,
+    shortId: user.shortId,
+    email: user.credentials.email ?? null,
+    username: user.credentials.username ?? null,
     displayName: user.bio?.displayName ?? null,
   };
 }
@@ -62,7 +71,13 @@ export async function listUsers(req: Request, res: Response): Promise<void> {
       : 'email';
   const sortOrderRaw = req.query.sortOrder;
   const sortOrder: 'ASC' | 'DESC' =
-    sortOrderRaw === 'asc' ? 'ASC' : sortOrderRaw === 'desc' ? 'DESC' : 'DESC';
+    sortOrderRaw === 'asc'
+      ? 'ASC'
+      : sortOrderRaw === 'desc'
+        ? 'DESC'
+        : sortBy === 'createdAt'
+          ? 'DESC'
+          : 'ASC';
 
   const repo = appDataSourceRead.getRepository(User);
   const qb = repo
@@ -114,32 +129,114 @@ export async function createUser(req: Request, res: Response): Promise<void> {
     return;
   }
   const body = req.body as CreateUserBody;
-  const existing = await UserService.findByEmail(body.email);
-  if (existing !== null) {
-    res.status(409).json({ message: 'Email already in use' });
+
+  const email =
+    body.email !== undefined && body.email !== null && body.email.trim() !== ''
+      ? body.email.trim()
+      : null;
+  const username =
+    body.username !== undefined && body.username !== null && body.username.trim() !== ''
+      ? body.username.trim()
+      : null;
+  if (email === null && username === null) {
+    res.status(400).json({ message: 'At least one of email or username required' });
     return;
   }
-  const locale = resolveLocale(req.get('Accept-Language'));
-  const passwordCheck = validatePassword(body.password, getPasswordValidationMessages(locale));
-  if (!passwordCheck.valid) {
-    res.status(400).json({ message: passwordCheck.message });
-    return;
+
+  if (email !== null) {
+    const existing = await UserService.findByEmail(email);
+    if (existing !== null) {
+      res.status(409).json({ message: 'Email already in use' });
+      return;
+    }
   }
-  const hashed = await hashPassword(body.password);
+  if (username !== null) {
+    const existing = await UserService.findByUsername(username);
+    if (existing !== null) {
+      res.status(409).json({ message: 'Username already in use' });
+      return;
+    }
+  }
+
+  const passwordValue =
+    body.password !== undefined && body.password !== null && body.password.trim() !== ''
+      ? body.password.trim()
+      : null;
+  let hashed: string;
+  let useSetPasswordLink = false;
+
+  if (passwordValue !== null) {
+    const locale = resolveLocale(req.get('Accept-Language'));
+    const passwordCheck = validatePassword(passwordValue, getPasswordValidationMessages(locale));
+    if (!passwordCheck.valid) {
+      res.status(400).json({ message: passwordCheck.message });
+      return;
+    }
+    hashed = await hashPassword(passwordValue);
+  } else {
+    const placeholderPassword = crypto.randomBytes(32).toString('hex');
+    hashed = await hashPassword(placeholderPassword);
+    useSetPasswordLink = true;
+  }
+
   const user = await UserService.create({
-    email: body.email,
+    email: email ?? undefined,
+    username: username ?? undefined,
     password: hashed,
     displayName: body.displayName ?? null,
   });
-  await UserService.setEmailVerifiedAt(user.id);
+
+  let setPasswordLink: string | undefined;
+  if (useSetPasswordLink) {
+    const rawToken = generateToken();
+    const tokenHash = hashToken(rawToken);
+    await VerificationTokenService.createToken(
+      user.id,
+      'set_password',
+      tokenHash,
+      getSetPasswordExpiry(),
+      null
+    );
+    const baseUrl = config.webAppUrl?.replace(/\/$/, '') ?? '';
+    const setPasswordPath = `/auth/set-password?token=${rawToken}`;
+    setPasswordLink = baseUrl !== '' ? `${baseUrl}${setPasswordPath}` : setPasswordPath;
+  } else if (email !== null) {
+    await UserService.setEmailVerifiedAt(user.id);
+  }
+
+  const fullCrud = flagsToBitmask({
+    create: true,
+    read: true,
+    update: true,
+    delete: true,
+  });
+  const bucketCrud = fullCrud;
+  const messageCrud = fullCrud;
+  const adminCrud = fullCrud;
+  const bucketIds = body.initialBucketAdminIds ?? [];
+  for (const bucketId of bucketIds) {
+    await BucketAdminService.create({
+      bucketId,
+      userId: user.id,
+      bucketCrud,
+      messageCrud,
+      adminCrud,
+    });
+  }
+
   await recordEvent({
     actor,
     action: EVENT_ACTIONS.user.created,
     targetType: EVENT_TARGET_TYPES.user,
     targetId: user.id,
-    details: body.email,
+    details: [email, username].filter(Boolean).join(', ') || 'user',
   });
-  res.status(201).json({ user: userToJson(user) });
+
+  if (setPasswordLink !== undefined) {
+    res.status(201).json({ user: userToJson(user), setPasswordLink });
+  } else {
+    res.status(201).json({ user: userToJson(user) });
+  }
 }
 
 export async function updateUser(req: Request, res: Response): Promise<void> {

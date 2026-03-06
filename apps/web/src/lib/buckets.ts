@@ -54,6 +54,7 @@ export async function fetchChildBuckets(bucketId: string): Promise<Bucket[]> {
 
 /**
  * Server-side: fetch messages for a bucket (authenticated). Returns [] on error or invalid response.
+ * Uses first page only; for pagination use fetchMessagesPaginated.
  */
 export async function fetchMessages(bucketId: string): Promise<BucketMessage[]> {
   const cookieHeader = await getCookieHeader();
@@ -66,6 +67,50 @@ export async function fetchMessages(bucketId: string): Promise<BucketMessage[]> 
   return Array.isArray(data.messages) ? data.messages : [];
 }
 
+export type FetchMessagesPaginatedResult = {
+  messages: BucketMessage[];
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+};
+
+/**
+ * Server-side: fetch a page of messages for a bucket. Returns pagination meta and messages.
+ */
+export async function fetchMessagesPaginated(
+  bucketId: string,
+  page: number,
+  limit: number,
+  sort?: 'recent' | 'oldest'
+): Promise<FetchMessagesPaginatedResult> {
+  const cookieHeader = await getCookieHeader();
+  const baseUrl = getServerApiBaseUrl();
+  const res = await webBuckets.reqFetchBucketMessages(baseUrl, bucketId, cookieHeader, {
+    page,
+    limit,
+    sort,
+  });
+  if (!res.ok || res.data === undefined) {
+    return {
+      messages: [],
+      page: 1,
+      limit,
+      total: 0,
+      totalPages: 1,
+    };
+  }
+  const data = res.data;
+  const messages = Array.isArray(data.messages) ? data.messages : [];
+  return {
+    messages,
+    page: typeof data.page === 'number' ? data.page : 1,
+    limit: typeof data.limit === 'number' ? data.limit : limit,
+    total: typeof data.total === 'number' ? data.total : 0,
+    totalPages: typeof data.totalPages === 'number' ? data.totalPages : 1,
+  };
+}
+
 export type BucketAdminRow = {
   id: string;
   bucketId: string;
@@ -74,7 +119,13 @@ export type BucketAdminRow = {
   messageCrud: number;
   adminCrud?: number;
   createdAt: string;
-  user: { id: string; shortId: string; email: string; displayName: string | null } | null;
+  user: {
+    id: string;
+    shortId: string;
+    email: string | null;
+    username: string | null;
+    displayName: string | null;
+  } | null;
 };
 
 /**

@@ -45,15 +45,37 @@ export async function reqFetchChildBuckets(
   });
 }
 
+export type BucketMessagesListResponse = {
+  messages?: BucketMessage[];
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+};
+
 /**
- * GET /buckets/:bucketId/messages (authenticated). List messages for a bucket.
+ * GET /buckets/:bucketId/messages (authenticated). List messages for a bucket with optional pagination and sort.
  */
 export async function reqFetchBucketMessages(
   baseUrl: string,
   bucketId: string,
-  cookieHeader: string
-): Promise<ApiResponse<{ messages?: BucketMessage[] }>> {
-  return request<{ messages?: BucketMessage[] }>(baseUrl, `/buckets/${bucketId}/messages`, {
+  cookieHeader: string,
+  options?: { page?: number; limit?: number; sort?: 'recent' | 'oldest' }
+): Promise<ApiResponse<BucketMessagesListResponse>> {
+  const params = new URLSearchParams();
+  if (options?.page !== undefined && options.page > 1) {
+    params.set('page', String(options.page));
+  }
+  if (options?.limit !== undefined && options.limit > 0) {
+    params.set('limit', String(options.limit));
+  }
+  if (options?.sort === 'oldest') {
+    params.set('sort', 'oldest');
+  }
+  const query = params.toString();
+  const url =
+    query !== '' ? `/buckets/${bucketId}/messages?${query}` : `/buckets/${bucketId}/messages`;
+  return request<BucketMessagesListResponse>(baseUrl, url, {
     headers: { Cookie: cookieHeader },
     ...SERVER_OPTIONS,
   });
@@ -71,18 +93,40 @@ export async function reqFetchPublicBucket(
   });
 }
 
+export type PublicBucketMessagesListResponse = {
+  messages?: PublicBucketMessage[];
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+};
+
 /**
- * GET /buckets/public/:id/messages (unauthenticated). Public messages for a bucket.
+ * GET /buckets/public/:id/messages (unauthenticated). Public messages for a bucket with optional pagination and sort.
  */
 export async function reqFetchPublicBucketMessages(
   baseUrl: string,
-  bucketId: string
-): Promise<ApiResponse<{ messages?: PublicBucketMessage[] }>> {
-  return request<{ messages?: PublicBucketMessage[] }>(
-    baseUrl,
-    `/buckets/public/${bucketId}/messages`,
-    { ...SERVER_OPTIONS }
-  );
+  bucketId: string,
+  options?: { page?: number; limit?: number; sort?: 'recent' | 'oldest' }
+): Promise<ApiResponse<PublicBucketMessagesListResponse>> {
+  const params = new URLSearchParams();
+  if (options?.page !== undefined && options.page > 1) {
+    params.set('page', String(options.page));
+  }
+  if (options?.limit !== undefined && options.limit > 0) {
+    params.set('limit', String(options.limit));
+  }
+  if (options?.sort === 'oldest') {
+    params.set('sort', 'oldest');
+  }
+  const query = params.toString();
+  const url =
+    query !== ''
+      ? `/buckets/public/${bucketId}/messages?${query}`
+      : `/buckets/public/${bucketId}/messages`;
+  return request<PublicBucketMessagesListResponse>(baseUrl, url, {
+    ...SERVER_OPTIONS,
+  });
 }
 
 /**

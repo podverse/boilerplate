@@ -23,18 +23,21 @@ export const openApiDocument = {
       User: {
         type: 'object',
         description:
-          'User as returned in auth responses. Only id, email, and displayName are exposed; passwordHash and other credentials are never returned. Verification token hashes are not publicly reachable.',
+          'User as returned in auth responses. id, shortId, email (optional), username (optional), displayName. passwordHash and other credentials are never returned.',
         properties: {
           id: { type: 'string', format: 'uuid', description: 'User ID' },
-          email: { type: 'string', format: 'email' },
+          shortId: { type: 'string', description: 'URL-safe public id' },
+          email: { type: 'string', format: 'email', nullable: true },
+          username: { type: 'string', nullable: true },
           displayName: { type: 'string', nullable: true },
         },
       },
       LoginBody: {
         type: 'object',
         required: ['email', 'password'],
+        description: 'email field accepts either email or username (identifier).',
         properties: {
-          email: { type: 'string', format: 'email' },
+          email: { type: 'string', description: 'Email or username' },
           password: { type: 'string', minLength: 1 },
         },
       },
@@ -55,9 +58,10 @@ export const openApiDocument = {
       },
       SignupBody: {
         type: 'object',
-        required: ['email', 'password'],
+        required: ['email', 'username', 'password'],
         properties: {
           email: { type: 'string', format: 'email' },
+          username: { type: 'string', minLength: 1, maxLength: 50 },
           password: { type: 'string', minLength: 1 },
           displayName: { type: 'string', nullable: true },
         },
@@ -76,6 +80,15 @@ export const openApiDocument = {
       ResetPasswordBody: {
         type: 'object',
         required: ['token', 'newPassword'],
+        properties: {
+          token: { type: 'string' },
+          newPassword: { type: 'string', minLength: 1 },
+        },
+      },
+      SetPasswordBody: {
+        type: 'object',
+        required: ['token', 'newPassword'],
+        description: 'Set password using token from username-only invite link.',
         properties: {
           token: { type: 'string' },
           newPassword: { type: 'string', minLength: 1 },
@@ -147,7 +160,7 @@ export const openApiDocument = {
       post: {
         summary: 'Login',
         description:
-          'Authenticate with email and password; returns JWT and user. Use the token in Authorize for protected routes.',
+          'Authenticate with email or username and password; returns JWT and user. Use the token in Authorize for protected routes.',
         operationId: 'authLogin',
         requestBody: {
           required: true,
@@ -288,7 +301,13 @@ export const openApiDocument = {
             },
           },
           '400': {
-            description: 'Email and password required',
+            description: 'Validation error (e.g. email, username, password required)',
+            content: {
+              'application/json': { schema: { $ref: '#/components/schemas/ErrorMessage' } },
+            },
+          },
+          '409': {
+            description: 'Username already in use',
             content: {
               'application/json': { schema: { $ref: '#/components/schemas/ErrorMessage' } },
             },
@@ -405,6 +424,35 @@ export const openApiDocument = {
           },
           '403': {
             description: 'Email verification not enabled',
+            content: {
+              'application/json': { schema: { $ref: '#/components/schemas/ErrorMessage' } },
+            },
+          },
+          '429': {
+            description: 'Too many requests; rate limit exceeded.',
+            content: {
+              'application/json': { schema: { $ref: '#/components/schemas/ErrorMessage' } },
+            },
+          },
+        },
+      },
+    },
+    '/auth/set-password': {
+      post: {
+        summary: 'Set password',
+        description:
+          'Set password using token from username-only invite link (e.g. from management create user). No auth required.',
+        operationId: 'authSetPassword',
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': { schema: { $ref: '#/components/schemas/SetPasswordBody' } },
+          },
+        },
+        responses: {
+          '204': { description: 'Password set' },
+          '400': {
+            description: 'Invalid or expired token or validation error',
             content: {
               'application/json': { schema: { $ref: '#/components/schemas/ErrorMessage' } },
             },

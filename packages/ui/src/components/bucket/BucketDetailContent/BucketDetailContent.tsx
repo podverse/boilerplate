@@ -6,6 +6,7 @@ import { ButtonLink } from '../../form/ButtonLink/ButtonLink';
 import { CrudButtons } from '../../form/CrudButtons/CrudButtons';
 import { Container } from '../../layout/Container/Container';
 import { DataDetail } from '../../layout/DataDetail/DataDetail';
+import { Stack } from '../../layout/Stack/Stack';
 import type { DataDetailItem } from '../../layout/DataDetail/DataDetail';
 import { PageHeader } from '../../layout/PageHeader/PageHeader';
 import { Link } from '../../navigation/Link/Link';
@@ -73,6 +74,10 @@ export type BucketDetailContentProps = {
   topicsEmptyMessage?: ReactNode;
   /** When false, do not wrap content in Container (e.g. when the page already wraps in Container). Default: true. */
   wrapInContainer?: boolean;
+  /** When provided, render this instead of the default action buttons (Messages, Public, Settings). Use for tabbed layout. */
+  actionArea?: ReactNode;
+  /** When provided, render below action area and above topics. Use for Messages tab content. */
+  messagesSlot?: ReactNode;
 };
 
 /**
@@ -108,6 +113,8 @@ export function BucketDetailContent({
   topicsColumnActions = 'Actions',
   topicsEmptyMessage = 'No buckets yet.',
   wrapInContainer = true,
+  actionArea,
+  messagesSlot,
 }: BucketDetailContentProps) {
   const getTopicActions = (topic: BucketTopic): ReactNode => {
     if (renderTopicActions !== undefined) return renderTopicActions(topic);
@@ -137,29 +144,33 @@ export function BucketDetailContent({
     <>
       <PageHeader title={bucketName} />
       <DataDetail items={detailItems} />
-      <Row wrap>
-        {showMessagesLink && messagesHref !== undefined && (
-          <ButtonLink href={messagesHref} variant="secondary">
-            {messagesLabel}
-          </ButtonLink>
-        )}
-        {showPublicLink && publicHref !== undefined && (
-          <ButtonLink
-            href={publicHref}
-            variant="secondary"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            {publicLabel}
-          </ButtonLink>
-        )}
-        {showSettingsLink && settingsHref !== undefined && (
-          <ButtonLink href={settingsHref} variant="secondary">
-            {settingsLabel}
-          </ButtonLink>
-        )}
-      </Row>
-
+      {actionArea !== undefined ? (
+        actionArea
+      ) : (
+        <Row wrap>
+          {showMessagesLink && messagesHref !== undefined && (
+            <ButtonLink href={messagesHref} variant="secondary">
+              {messagesLabel}
+            </ButtonLink>
+          )}
+          {showPublicLink && publicHref !== undefined && (
+            <ButtonLink
+              href={publicHref}
+              variant="secondary"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              {publicLabel}
+            </ButtonLink>
+          )}
+          {showSettingsLink && settingsHref !== undefined && (
+            <ButtonLink href={settingsHref} variant="secondary">
+              {settingsLabel}
+            </ButtonLink>
+          )}
+        </Row>
+      )}
+      {messagesSlot !== undefined ? <Stack maxWidth="readable">{messagesSlot}</Stack> : null}
       {topics !== undefined && topicsTitle !== undefined && (
         <SectionWithHeading
           title={topicsTitle}

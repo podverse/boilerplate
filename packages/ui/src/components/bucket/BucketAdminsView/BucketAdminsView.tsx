@@ -14,7 +14,7 @@ import { Select } from '../../form/Select/Select';
 import { Stack } from '../../layout/Stack/Stack';
 import { Text } from '../../layout/Text/Text';
 import { UnorderedList } from '../../layout/UnorderedList/UnorderedList';
-import { CRUD_BITS, bitmaskToFlags, flagsToBitmask } from '@boilerplate/helpers';
+import { CRUD_BITS, formatUserLabel, bitmaskToFlags, flagsToBitmask } from '@boilerplate/helpers';
 
 import styles from './BucketAdminsView.module.scss';
 
@@ -37,7 +37,13 @@ export type BucketAdminRow = {
   messageCrud: number;
   adminCrud?: number;
   createdAt: string;
-  user: { id: string; shortId: string; email: string; displayName: string | null } | null;
+  user: {
+    id: string;
+    shortId: string;
+    email: string | null;
+    username?: string | null;
+    displayName: string | null;
+  } | null;
 };
 
 export type BucketAdminInvitationRow = {
@@ -85,14 +91,6 @@ const CRUD_ORDER: Array<'create' | 'read' | 'update' | 'delete'> = [
   'update',
   'delete',
 ];
-
-function formatEmailDisplayName(email: string, displayName: string | null | undefined): string {
-  const trimmed =
-    displayName !== undefined && displayName !== null && displayName !== ''
-      ? displayName.trim()
-      : null;
-  return trimmed !== null ? `${email} (${trimmed})` : email;
-}
 
 function formatCrudMask(
   mask: number,
@@ -453,7 +451,11 @@ export function BucketAdminsView({
                   <div>
                     <Text>
                       {a.user !== undefined && a.user !== null
-                        ? formatEmailDisplayName(a.user.email, a.user.displayName)
+                        ? formatUserLabel({
+                            username: a.user.username,
+                            email: a.user.email,
+                            displayName: a.user.displayName,
+                          })
                         : a.userId}
                     </Text>
                     <Text variant="muted" as="p" className={styles.adminCrudMeta}>

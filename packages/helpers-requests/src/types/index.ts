@@ -5,6 +5,7 @@ export type {
   LoginBody,
   RequestEmailChangeBody,
   ResetPasswordBody,
+  SetPasswordBody,
   SignupBody,
   UpdateProfileBody,
   VerifyEmailBody,

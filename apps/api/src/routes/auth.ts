@@ -10,6 +10,7 @@ import {
   changePasswordSchema,
   forgotPasswordSchema,
   resetPasswordSchema,
+  setPasswordSchema,
   requestEmailChangeSchema,
   updateProfileSchema,
 } from '../schemas/auth.js';
@@ -40,6 +41,9 @@ export function createAuthRouter(
   );
   router.get('/me', requireAuthMiddleware, (req, res) => {
     authController.me(req, res);
+  });
+  router.get('/username-available', moderateAuthRateLimiter, (req, res) => {
+    void authController.usernameAvailable(req, res);
   });
   router.patch(
     '/me',
@@ -91,6 +95,14 @@ export function createAuthRouter(
         return;
       }
       void authController.resetPassword(req, res);
+    }
+  );
+  router.post(
+    '/set-password',
+    strictAuthRateLimiter,
+    validateBody(setPasswordSchema),
+    (req, res) => {
+      void authController.setPassword(req, res);
     }
   );
   router.post(

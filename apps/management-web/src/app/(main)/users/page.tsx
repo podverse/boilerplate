@@ -4,6 +4,7 @@ import { request } from '@boilerplate/helpers-requests';
 import { FilterTablePageLayout, Stack } from '@boilerplate/ui';
 
 import { UsersTableWithFilter } from '../../../components/UsersTableWithFilter';
+import { TABLE_SORT_PREFS_COOKIE_NAME } from '../../../lib/cookies';
 import { getServerUser } from '../../../lib/server-auth';
 import { getManagementApiBaseUrl, getServerManagementApiBaseUrl } from '../../../config/env';
 import { getCrudFlags, hasReadPermission } from '../../../lib/main-nav';
@@ -96,14 +97,18 @@ export default async function UsersPage({ searchParams }: PageProps) {
   const tableRows = users.map((u) => ({
     id: u.id,
     cells: {
-      email: u.email,
+      email: u.email !== null && u.email !== '' ? u.email : '—',
       displayName: u.displayName !== null && u.displayName !== '' ? u.displayName : '—',
     },
   }));
 
   const userColumns = [
-    { id: 'email', label: tCommon('usersTable.email') },
-    { id: 'displayName', label: tCommon('usersTable.displayName') },
+    { id: 'email', label: tCommon('usersTable.email'), defaultSortOrder: 'asc' as const },
+    {
+      id: 'displayName',
+      label: tCommon('usersTable.displayName'),
+      defaultSortOrder: 'asc' as const,
+    },
   ];
 
   const currentQueryParams: Record<string, string> = {};
@@ -135,6 +140,8 @@ export default async function UsersPage({ searchParams }: PageProps) {
             canDeleteUser={crud.delete}
             userApiBaseUrl={apiBaseUrl}
             addUserHref={crud.create ? ROUTES.USERS_NEW : undefined}
+            sortPrefsCookieName={TABLE_SORT_PREFS_COOKIE_NAME}
+            sortPrefsListKey="users"
           />
         </Stack>
       )}

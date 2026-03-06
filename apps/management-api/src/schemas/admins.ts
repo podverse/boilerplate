@@ -1,5 +1,4 @@
 import {
-  EMAIL_MAX_LENGTH,
   PASSWORD_MAX_LENGTH,
   PASSWORD_MIN_LENGTH,
   SHORT_TEXT_MAX_LENGTH,
@@ -17,7 +16,7 @@ const eventVisibilitySchema = Joi.string().valid('own', 'all_admins', 'all');
 const roleIdSchema = Joi.string().max(50);
 
 export const createAdminSchema = Joi.object({
-  email: Joi.string().email().max(EMAIL_MAX_LENGTH).required(),
+  username: Joi.string().min(1).max(SHORT_TEXT_MAX_LENGTH).trim().required(),
   password: Joi.string().min(PASSWORD_MIN_LENGTH).max(PASSWORD_MAX_LENGTH).required(),
   displayName: Joi.string().max(SHORT_TEXT_MAX_LENGTH).min(1).required(),
   roleId: roleIdSchema,
@@ -30,7 +29,7 @@ export const createAdminSchema = Joi.object({
 });
 
 export const updateAdminSchema = Joi.object({
-  email: Joi.string().email().max(EMAIL_MAX_LENGTH),
+  username: Joi.string().min(1).max(SHORT_TEXT_MAX_LENGTH).trim(),
   displayName: Joi.string().max(SHORT_TEXT_MAX_LENGTH).min(1),
   password: Joi.string().min(PASSWORD_MIN_LENGTH).max(PASSWORD_MAX_LENGTH),
   roleId: roleIdSchema,

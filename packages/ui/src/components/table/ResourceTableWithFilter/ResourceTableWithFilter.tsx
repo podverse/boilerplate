@@ -12,6 +12,7 @@ import { Pagination } from '../../navigation/Pagination';
 import { ConfirmDeleteModal } from '../../modal/ConfirmDeleteModal/ConfirmDeleteModal';
 import { Table } from '../Table';
 import { TableFilterBar, type TableFilterBarColumn } from '../TableFilterBar';
+import { getSortPrefsFromCookie, setSortPrefInCookie } from '../sortPrefsCookie';
 import { useDeleteModal } from '../../../hooks/useDeleteModal';
 import { useTableFilterState } from '../../../hooks/useTableFilterState';
 
@@ -75,6 +76,10 @@ export type ResourceTableWithFilterProps = {
   filterableColumnIds?: string[];
   /** When set, only these column IDs have sortable headers. Omit to make all data columns sortable. */
   sortableColumnIds?: string[];
+  /** Cookie name for persisting sort preferences (e.g. table_sort_prefs). When set with sortPrefsListKey, sort is saved on change and restored when URL has no sort. */
+  sortPrefsCookieName?: string;
+  /** List key for this table (e.g. buckets, admins). Used with sortPrefsCookieName to scope preferences. */
+  sortPrefsListKey?: string;
 };
 
 export function ResourceTableWithFilter({
@@ -108,6 +113,8 @@ export function ResourceTableWithFilter({
   onSelfDelete,
   searchSyncParams,
   sortableColumnIds,
+  sortPrefsCookieName,
+  sortPrefsListKey,
 }: ResourceTableWithFilterProps) {
   const router = useRouter();
   const tFilterBar = useTranslations('ui.tableFilterBar');
@@ -201,10 +208,17 @@ export function ResourceTableWithFilter({
     [sortableColumnIds]
   );
 
-  const firstSortableColumnKey = useMemo(() => {
-    const col = columns.find((c) => isColumnSortable(c.id));
-    return col !== undefined ? (col.sortKey ?? col.id) : undefined;
-  }, [columns, isColumnSortable]);
+  const firstSortableColumn = useMemo(
+    () => columns.find((c) => isColumnSortable(c.id)),
+    [columns, isColumnSortable]
+  );
+  const firstSortableColumnKey = useMemo(
+    () =>
+      firstSortableColumn !== undefined
+        ? (firstSortableColumn.sortKey ?? firstSortableColumn.id)
+        : undefined,
+    [firstSortableColumn]
+  );
 
   useEffect(() => {
     if (firstSortableColumnKey === undefined) return;
@@ -212,16 +226,38 @@ export function ResourceTableWithFilter({
       currentQueryParams.sortBy !== undefined && currentQueryParams.sortBy.trim() !== '';
     if (hasSortBy) return;
     const params = new URLSearchParams(currentQueryParams);
+    if (
+      sortPrefsCookieName !== undefined &&
+      sortPrefsListKey !== undefined &&
+      sortPrefsCookieName.trim() !== '' &&
+      sortPrefsListKey.trim() !== ''
+    ) {
+      const pref = getSortPrefsFromCookie(sortPrefsCookieName, sortPrefsListKey);
+      if (pref !== null) {
+        params.set('sortBy', pref.sortBy);
+        params.set('sortOrder', pref.sortOrder);
+        router.replace(`${basePath}?${params.toString()}`);
+        return;
+      }
+    }
     params.set('sortBy', firstSortableColumnKey);
-    params.set('sortOrder', 'desc');
+    params.set('sortOrder', firstSortableColumn?.defaultSortOrder ?? 'desc');
     router.replace(`${basePath}?${params.toString()}`);
-  }, [basePath, currentQueryParams, firstSortableColumnKey, router]);
+  }, [
+    basePath,
+    currentQueryParams,
+    firstSortableColumn,
+    firstSortableColumnKey,
+    router,
+    sortPrefsCookieName,
+    sortPrefsListKey,
+  ]);
 
   const effectiveSortBy = currentQueryParams.sortBy?.trim() ?? firstSortableColumnKey;
   const effectiveSortOrder: 'asc' | 'desc' =
     currentQueryParams.sortOrder === 'asc' || currentQueryParams.sortOrder === 'desc'
       ? currentQueryParams.sortOrder
-      : 'desc';
+      : (columns.find((c) => (c.sortKey ?? c.id) === effectiveSortBy)?.defaultSortOrder ?? 'desc');
 
   const handleSortHeaderClick = useCallback(
     (sortKey: string) => {
@@ -232,8 +268,24 @@ export function ResourceTableWithFilter({
       params.set('sortOrder', nextOrder);
       params.set('page', '1');
       router.push(`${basePath}?${params.toString()}`);
+      if (
+        sortPrefsCookieName !== undefined &&
+        sortPrefsListKey !== undefined &&
+        sortPrefsCookieName.trim() !== '' &&
+        sortPrefsListKey.trim() !== ''
+      ) {
+        setSortPrefInCookie(sortPrefsCookieName, sortPrefsListKey, sortKey, nextOrder);
+      }
     },
-    [basePath, currentQueryParams, router, effectiveSortBy, effectiveSortOrder]
+    [
+      basePath,
+      currentQueryParams,
+      router,
+      effectiveSortBy,
+      effectiveSortOrder,
+      sortPrefsCookieName,
+      sortPrefsListKey,
+    ]
   );
 
   return (

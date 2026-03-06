@@ -140,7 +140,7 @@
       "funnelButtonLabel": "Elegir columnas para buscar"
     },
     "adminsTable": {
-      "email": "Correo electrónico",
+      "username": "Nombre de usuario",
       "displayName": "Nombre para mostrar",
       "actions": "Acciones",
       "view": "Ver",
@@ -161,7 +161,7 @@
       "customRoleOptionLabel": "Rol personalizado",
       "customRoleLabel": "Personalizado (sin rol coincidente)",
       "displayName": "Nombre para mostrar",
-      "email": "Correo electrónico",
+      "username": "Nombre de usuario",
       "password": "Contraseña",
       "passwordEditHint": "Contraseña (déjala en blanco para mantener la actual)",
       "permissions": "Permisos",
@@ -184,13 +184,12 @@
       "createFailed": "Error al crear administrador",
       "updateFailed": "Error al actualizar administrador",
       "displayNameRequired": "El nombre para mostrar es obligatorio",
-      "emailRequired": "El correo electrónico es obligatorio",
-      "emailInvalid": "Introduce una dirección de correo válida",
+      "usernameRequired": "El nombre de usuario es obligatorio",
+      "usernameInvalid": "El nombre de usuario debe tener entre 1 y 50 caracteres",
       "passwordRequired": "La contraseña es obligatoria",
       "passwordMinLength": "La contraseña debe tener al menos {count} caracteres",
       "passwordMaxLength": "La contraseña no puede tener más de {count} caracteres",
-      "passwordInsecure": "La contraseña debe incluir una combinación de letras, números y símbolos",
-      "permissionsRequired": "El administrador debe tener al menos un permiso"
+      "passwordInsecure": "La contraseña debe incluir una combinación de letras, números y símbolos"
     },
     "confirmDeleteAdmin": {
       "message": "¿Estás seguro de que quieres eliminar a {name}? Esta acción no se puede deshacer.",
@@ -307,7 +306,18 @@
       "cancel": "Cancelar",
       "createFailed": "Error al crear usuario",
       "updateFailed": "Error al actualizar usuario",
-      "changePasswordFailed": "Error al cambiar la contraseña"
+      "changePasswordFailed": "Error al cambiar la contraseña",
+      "emailOptional": "Correo electrónico (opcional)",
+      "usernameOptional": "Nombre de usuario (opcional)",
+      "emailOrUsernameRequired": "Introduce al menos uno: correo o nombre de usuario",
+      "emailOrUsernameHint": "Es obligatorio indicar al menos correo o nombre de usuario. Si dejas la contraseña en blanco, se generará un enlace para establecerla.",
+      "passwordOptional": "Contraseña (opcional)",
+      "initialBucketAdmins": "Añadir como administrador a buckets (opcional)",
+      "setPasswordLinkLabel": "Enlace para establecer contraseña (compartir con el usuario)",
+      "copyLink": "Copiar enlace",
+      "linkCopied": "Enlace copiado",
+      "backToList": "Volver a usuarios",
+      "userCreatedWithLink": "Usuario creado. Comparte con ellos el enlace para establecer la contraseña."
     },
     "confirmDeleteUser": {
       "message": "¿Estás seguro de que quieres eliminar a {name}? Esta acción no se puede deshacer.",
@@ -332,8 +342,33 @@
     "hello": "Hola, {name}.",
     "signedInAs": "Conectado como {email}"
   },
+  "profile": {
+    "title": "Perfil",
+    "profileInformation": "Info",
+    "username": "Nombre de usuario",
+    "displayName": "Nombre para mostrar",
+    "displayNamePlaceholder": "Tu nombre",
+    "email": "Correo electrónico",
+    "placeholderPassword": "••••••••",
+    "changePassword": "Cambiar contraseña",
+    "currentPassword": "Contraseña actual",
+    "newPassword": "Nueva contraseña",
+    "confirmNewPassword": "Confirmar nueva contraseña",
+    "updateProfile": "Actualizar perfil",
+    "changePasswordSubmit": "Cambiar contraseña",
+    "profileUpdated": "Perfil actualizado",
+    "passwordChanged": "Contraseña cambiada",
+    "errors": {
+      "requestFailed": "Error en la solicitud",
+      "passwordsDoNotMatch": "Las contraseñas no coinciden"
+    }
+  },
   "settings": {
     "title": "Ajustes",
+    "generalTab": "General",
+    "profileTab": "Perfil",
+    "passwordTab": "Cambiar contraseña",
+    "preferences": "Preferencias",
     "theme": "Tema",
     "currentTheme": "Tema actual: {theme}",
     "languages": {
@@ -359,6 +394,10 @@
       "login": {
         "title": "Iniciar sesión",
         "email": "Correo electrónico",
+        "emailOrUsername": "Nombre de usuario",
+        "placeholderEmailOrUsername": "nombre de usuario",
+        "username": "Nombre de usuario",
+        "placeholderUsername": "nombre de usuario",
         "password": "Contraseña",
         "placeholderEmail": "tú@ejemplo.com",
         "placeholderPassword": "••••••••",

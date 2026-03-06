@@ -24,11 +24,7 @@ export default async function NewAdminPage() {
 
   return (
     <ResourcePageCard title={tCommon('addAdminTitle')}>
-      <AdminForm
-        mode="create"
-        isSuperAdmin={user.isSuperAdmin}
-        canEditPermissions={canEditPermissions}
-      />
+      <AdminForm mode="create" canEditPermissions={canEditPermissions} />
     </ResourcePageCard>
   );
 }

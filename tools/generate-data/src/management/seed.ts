@@ -1,7 +1,7 @@
 /**
  * Seeds the management DB with management_user, credentials, bio, admin_permissions, and management_event.
  * Call only after loading apps/management-api .env so managementDataSource has MANAGEMENT_DB_*.
- * Conditionally creates a super admin (superadmin@example.com) only if one does not already exist
+ * Conditionally creates a super admin (username superadmin) only if one does not already exist
  * (e.g. create-super-admin.mjs may have run during local startup). Regular seeded users are
  * always non–super-admin admins.
  * For columns with multiple eligible values (e.g. enums, booleans, nullables), a value is chosen randomly per row.
@@ -24,7 +24,7 @@ import {
 import type { ActorType, EventVisibility } from '@boilerplate/management-orm';
 
 const TEST_PASSWORD_PLAIN = 'Test!1Aa';
-const SUPER_ADMIN_EMAIL = 'superadmin@example.com';
+const SUPER_ADMIN_USERNAME = 'superadmin';
 
 const EVENT_VISIBILITY_VALUES: EventVisibility[] = ['own', 'all_admins', 'all'];
 
@@ -95,7 +95,7 @@ async function seedManagementEvents(
   }
 }
 
-/** Create super admin (superadmin@example.com) only if none exists. User + credentials + bio in one transaction. */
+/** Create super admin (username superadmin) only if none exists. User + credentials + bio in one transaction. */
 async function ensureSuperAdmin(passwordHash: string): Promise<void> {
   const existing = await managementDataSource.getRepository(ManagementUser).findOne({
     where: { isSuperAdmin: true },
@@ -122,7 +122,7 @@ async function ensureSuperAdmin(passwordHash: string): Promise<void> {
 
     const credentials = credentialsRepo.create({
       managementUserId: id,
-      email: SUPER_ADMIN_EMAIL,
+      username: SUPER_ADMIN_USERNAME,
       passwordHash,
     });
     await credentialsRepo.save(credentials);
@@ -134,7 +134,7 @@ async function ensureSuperAdmin(passwordHash: string): Promise<void> {
     await bioRepo.save(bio);
   });
 
-  process.stdout.write(`Created super admin (${SUPER_ADMIN_EMAIL}).\n`);
+  process.stdout.write(`Created super admin (username ${SUPER_ADMIN_USERNAME}).\n`);
 }
 
 export async function seedManagement(rows: number): Promise<void> {
@@ -164,13 +164,10 @@ export async function seedManagement(rows: number): Promise<void> {
       });
       await uRepo.save(user);
 
-      const email =
-        i === 0
-          ? faker.internet.email()
-          : `${faker.string.alphanumeric(8)}-${i}-${faker.internet.email()}`;
+      const username = `admin-${faker.string.alphanumeric(8)}-${i}`;
       const credentials = cRepo.create({
         managementUserId: id,
-        email,
+        username,
         passwordHash,
       });
       await cRepo.save(credentials);

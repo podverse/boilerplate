@@ -1,5 +1,6 @@
 import { redirect, notFound } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
+import { formatUserLabel } from '@boilerplate/helpers';
 import { request } from '@boilerplate/helpers-requests';
 import { PageHeader, Text } from '@boilerplate/ui';
 
@@ -10,7 +11,8 @@ import { ROUTES, bucketSettingsAdminsRoute } from '../../../../../../../../lib/r
 import { EditBucketAdminFormClient } from '../../../../EditBucketAdminFormClient';
 
 type AdminUser = {
-  email: string;
+  email: string | null;
+  username?: string | null;
   displayName: string | null;
 };
 
@@ -49,19 +51,14 @@ async function fetchAdmin(
   return { admin: { ...admin, adminCrud } };
 }
 
-function formatEmailDisplayName(email: string, displayName: string | null | undefined): string {
-  const trimmed =
-    displayName !== undefined && displayName !== null && displayName !== ''
-      ? displayName.trim()
-      : null;
-  return trimmed !== null ? `${email} (${trimmed})` : email;
-}
-
 function AdminDisplayInfo({ user }: { user: AdminUser | null | undefined }) {
   if (user === undefined || user === null) return null;
-  const email = user.email ?? '';
-  if (email === '') return null;
-  const line = formatEmailDisplayName(email, user.displayName);
+  const line = formatUserLabel({
+    username: user.username,
+    email: user.email,
+    displayName: user.displayName,
+  });
+  if (line === '—') return null;
   return (
     <Text variant="muted" size="sm">
       {line}

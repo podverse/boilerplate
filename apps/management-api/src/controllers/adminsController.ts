@@ -70,9 +70,9 @@ export async function createAdmin(req: Request, res: Response): Promise<void> {
     return;
   }
 
-  const existingByEmail = await ManagementUserService.findByEmail(body.email);
-  if (existingByEmail !== null) {
-    res.status(409).json({ message: 'Email already in use' });
+  const existingByUsername = await ManagementUserService.findByUsername(body.username);
+  if (existingByUsername !== null) {
+    res.status(409).json({ message: 'Username already in use' });
     return;
   }
   const existingByDisplayName = await ManagementUserService.findByDisplayName(
@@ -86,7 +86,7 @@ export async function createAdmin(req: Request, res: Response): Promise<void> {
   const passwordHash = await hashPassword(body.password);
   // createAdmin always creates a non–super-admin; super admin cannot be created via API.
   const admin = await ManagementUserService.createAdmin({
-    email: body.email,
+    username: body.username,
     passwordHash,
     displayName: body.displayName.trim(),
     createdBy: actor.id,
@@ -102,7 +102,7 @@ export async function createAdmin(req: Request, res: Response): Promise<void> {
     action: EVENT_ACTIONS.admin.created,
     targetType: EVENT_TARGET_TYPES.admin,
     targetId: admin.id,
-    details: body.email,
+    details: body.username,
   });
   res.status(201).json({ admin: managementUserToJson(admin) });
 }
@@ -131,6 +131,13 @@ export async function updateAdmin(req: Request, res: Response): Promise<void> {
   if (body.roleId !== undefined && rolePermissions === null) {
     res.status(404).json({ message: 'Role not found' });
     return;
+  }
+  if (body.username !== undefined) {
+    const other = await ManagementUserService.findByUsername(body.username.trim());
+    if (other !== null && other.id !== id) {
+      res.status(409).json({ message: 'Username already in use' });
+      return;
+    }
   }
   if (body.displayName !== undefined) {
     const other = await ManagementUserService.findByDisplayName(body.displayName.trim());
@@ -163,7 +170,7 @@ export async function updateAdmin(req: Request, res: Response): Promise<void> {
     return;
   }
   const updates: Parameters<typeof ManagementUserService.updateAdmin>[1] = {};
-  if (body.email !== undefined) updates.email = body.email;
+  if (body.username !== undefined) updates.username = body.username.trim();
   if (body.displayName !== undefined) updates.displayName = body.displayName.trim();
   if (body.password !== undefined) updates.passwordHash = await hashPassword(body.password);
   if (!isSuperAdminSelfUpdate) {
@@ -232,7 +239,7 @@ export async function deleteAdmin(req: Request, res: Response): Promise<void> {
       action: EVENT_ACTIONS.admin.deleted,
       targetType: EVENT_TARGET_TYPES.admin,
       targetId: id,
-      details: admin.credentials.email,
+      details: admin.credentials.username,
     });
     res.status(204).send();
   } else {

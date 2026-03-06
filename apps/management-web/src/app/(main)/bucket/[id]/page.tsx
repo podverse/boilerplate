@@ -1,8 +1,16 @@
 import { redirect, notFound } from 'next/navigation';
 import { getLocale, getTranslations } from 'next-intl/server';
 import { formatDateTimeReadable } from '@boilerplate/helpers-i18n';
+import { DEFAULT_PAGE_LIMIT } from '@boilerplate/helpers';
+import type { ListBucketMessagesResponse } from '@boilerplate/helpers-requests';
 import { request, managementWebBuckets } from '@boilerplate/helpers-requests';
-import { Breadcrumbs, BucketDetailContent, BucketDetailPageLayout, Link } from '@boilerplate/ui';
+import {
+  Breadcrumbs,
+  BucketDetailContent,
+  BucketDetailPageLayout,
+  Link,
+  SectionWithHeading,
+} from '@boilerplate/ui';
 import type { BreadcrumbItem } from '@boilerplate/ui';
 
 import { getServerUser } from '../../../../lib/server-auth';
@@ -11,13 +19,16 @@ import { getCrudFlags, hasReadPermission } from '../../../../lib/main-nav';
 import { ROUTES } from '../../../../lib/routes';
 import { getCookieHeader } from '../../../../lib/server-request';
 import {
+  bucketDetailTabRoute,
   bucketEditRoute,
-  bucketMessagesRoute,
   bucketViewRoute,
   bucketSettingsRoute,
   bucketNewRouteFromAncestry,
 } from '../../../../lib/routes';
-import type { ManagementBucket } from '@boilerplate/helpers-requests';
+import type { ManagementBucket, ManagementBucketMessage } from '@boilerplate/helpers-requests';
+import { BucketDetailTabsClient } from './BucketDetailTabsClient';
+import { BucketMessagesPanel } from './BucketMessagesPanel';
+import { MessagesSortSelect } from './MessagesSortSelect';
 
 const requestOptions = { cache: 'no-store' as RequestCache } as const;
 
@@ -75,7 +86,58 @@ async function fetchBucketAncestry(bucket: ManagementBucket): Promise<Management
   return parents;
 }
 
-export default async function BucketDetailPage({ params }: { params: Promise<{ id: string }> }) {
+async function fetchMessagesPaginated(
+  bucketId: string,
+  page: number,
+  limit: number,
+  sort: 'recent' | 'oldest'
+): Promise<{
+  messages: ManagementBucketMessage[];
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+}> {
+  const cookieHeader = await getCookieHeader();
+  const baseUrl = getServerManagementApiBaseUrl();
+  const params = new URLSearchParams();
+  if (page > 1) params.set('page', String(page));
+  if (limit !== DEFAULT_PAGE_LIMIT) params.set('limit', String(limit));
+  if (sort === 'oldest') params.set('sort', 'oldest');
+  const query = params.toString();
+  const path =
+    query !== '' ? `/buckets/${bucketId}/messages?${query}` : `/buckets/${bucketId}/messages`;
+  const res = await request<ListBucketMessagesResponse>(baseUrl, path, {
+    headers: { Cookie: cookieHeader },
+    ...requestOptions,
+  });
+  if (!res.ok || res.data === undefined) {
+    return {
+      messages: [],
+      page: 1,
+      limit,
+      total: 0,
+      totalPages: 1,
+    };
+  }
+  const data = res.data;
+  const messages = Array.isArray(data.messages) ? data.messages : [];
+  return {
+    messages,
+    page: typeof data.page === 'number' ? data.page : 1,
+    limit: typeof data.limit === 'number' ? data.limit : limit,
+    total: typeof data.total === 'number' ? data.total : 0,
+    totalPages: typeof data.totalPages === 'number' ? data.totalPages : 1,
+  };
+}
+
+export default async function BucketDetailPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ id: string }>;
+  searchParams: Promise<{ tab?: string; page?: string; sort?: string }>;
+}) {
   const user = await getServerUser();
   if (user === null) redirect(ROUTES.LOGIN);
 
@@ -84,15 +146,33 @@ export default async function BucketDetailPage({ params }: { params: Promise<{ i
   if (!canReadBuckets) redirect(ROUTES.DASHBOARD);
 
   const { id } = await params;
+  const resolvedSearchParams = await searchParams;
+  const tab = resolvedSearchParams.tab === 'buckets' ? 'buckets' : 'messages';
+  const page = Math.max(1, parseInt(resolvedSearchParams.page ?? '1', 10) || 1);
+  const sort = resolvedSearchParams.sort === 'oldest' ? 'oldest' : 'recent';
+
   const bucket = await fetchBucket(id);
   if (bucket === null) notFound();
 
-  const childBuckets = await fetchChildBuckets(id);
-  const ancestors = await fetchBucketAncestry(bucket);
+  const canReadMessages =
+    user.isSuperAdmin === true || hasReadPermission(user.permissions, 'bucketMessagesCrud');
+  const [childBuckets, ancestors, messagesResult] = await Promise.all([
+    fetchChildBuckets(id),
+    fetchBucketAncestry(bucket),
+    tab === 'messages' && canReadMessages
+      ? fetchMessagesPaginated(id, page, DEFAULT_PAGE_LIMIT, sort)
+      : Promise.resolve({
+          messages: [],
+          page: 1,
+          limit: DEFAULT_PAGE_LIMIT,
+          total: 0,
+          totalPages: 1,
+        }),
+  ]);
   const locale = await getLocale();
 
   const tCommon = await getTranslations('common');
-  const showMessagesLink =
+  const showMessagesTab =
     user.isSuperAdmin === true || hasReadPermission(user.permissions, 'bucketMessagesCrud');
   const bucketsCrud = getCrudFlags(user.isSuperAdmin === true, user.permissions, 'bucketsCrud');
   const detailItems = [
@@ -133,6 +213,40 @@ export default async function BucketDetailPage({ params }: { params: Promise<{ i
   }));
   const currentBreadcrumb: BreadcrumbItem = { label: bucket.name, href: undefined };
 
+  const publicPageHref = bucket.isPublic
+    ? (() => {
+        const webUrl = getWebAppUrl();
+        const path = `/b/${bucket.shortId}`;
+        return webUrl !== undefined ? `${webUrl}${path}` : path;
+      })()
+    : undefined;
+
+  const tabItems = [
+    ...(showMessagesTab
+      ? [{ href: bucketViewRoute(id), label: tCommon('bucketDetail.messages') }]
+      : []),
+    { href: bucketDetailTabRoute(id, 'buckets'), label: tCommon('bucketDetail.topics') },
+    ...(bucket.isPublic && publicPageHref !== undefined
+      ? [{ href: publicPageHref, label: tCommon('bucketDetail.publicPage') }]
+      : []),
+    ...(bucketsCrud.update && bucket.parentBucketId === null
+      ? [{ href: bucketSettingsRoute(id), label: tCommon('bucketDetail.settings') }]
+      : []),
+  ];
+  const activeHref =
+    tab === 'buckets'
+      ? bucketDetailTabRoute(id, 'buckets')
+      : bucketDetailTabRoute(id, 'messages', page > 1 ? page : undefined, sort);
+
+  const messagesListItems = messagesResult.messages.map((m) => ({
+    id: m.id,
+    senderName: m.senderName,
+    body: m.body,
+    isPublic: m.isPublic,
+    createdAt: m.createdAt,
+    bucketId: m.bucketId,
+  }));
+
   return (
     <BucketDetailPageLayout
       breadcrumbs={
@@ -148,26 +262,50 @@ export default async function BucketDetailPage({ params }: { params: Promise<{ i
       <BucketDetailContent
         bucketName={bucket.name}
         detailItems={detailItems}
-        showMessagesLink={showMessagesLink}
-        messagesHref={showMessagesLink ? bucketMessagesRoute(id) : undefined}
+        showMessagesLink={false}
+        messagesHref={undefined}
         messagesLabel={tCommon('bucketDetail.messages')}
-        showPublicLink={bucket.isPublic}
-        publicHref={
-          bucket.isPublic
-            ? (() => {
-                const webUrl = getWebAppUrl();
-                const path = `/b/${bucket.shortId}`;
-                return webUrl !== undefined ? `${webUrl}${path}` : path;
-              })()
-            : undefined
-        }
+        showPublicLink={false}
+        publicHref={undefined}
         publicLabel={tCommon('bucketDetail.publicPage')}
-        showSettingsLink={bucketsCrud.update && bucket.parentBucketId === null}
-        settingsHref={
-          bucketsCrud.update && bucket.parentBucketId === null ? bucketSettingsRoute(id) : undefined
-        }
+        showSettingsLink={false}
+        settingsHref={undefined}
         settingsLabel={tCommon('bucketDetail.settings')}
-        topics={childBucketsForContent}
+        actionArea={<BucketDetailTabsClient items={tabItems} activeHref={activeHref} />}
+        messagesSlot={
+          tab === 'messages' && showMessagesTab ? (
+            <SectionWithHeading
+              title={tCommon('bucketDetail.messages')}
+              headingAction={
+                <MessagesSortSelect
+                  sort={sort}
+                  basePath={bucketViewRoute(id)}
+                  queryParams={{ tab: 'messages' }}
+                  label={tCommon('eventsSort.label')}
+                  sortOptionLabels={{
+                    recent: tCommon('eventsSortOptions.recent'),
+                    oldest: tCommon('eventsSortOptions.oldest'),
+                  }}
+                />
+              }
+            >
+              <BucketMessagesPanel
+                bucketId={id}
+                messages={messagesListItems}
+                emptyMessage={tCommon('bucketDetail.noMessagesYet')}
+                page={messagesResult.page}
+                totalPages={messagesResult.totalPages}
+                limit={messagesResult.limit}
+                basePath={bucketViewRoute(id)}
+                queryParams={{
+                  tab: 'messages',
+                  ...(sort === 'oldest' ? { sort: 'oldest' } : {}),
+                }}
+              />
+            </SectionWithHeading>
+          ) : undefined
+        }
+        topics={tab === 'buckets' ? childBucketsForContent : undefined}
         topicsTitle={tCommon('bucketDetail.topics')}
         topicViewLabel={tCommon('bucketDetail.view')}
         topicEditLabel={tCommon('bucketDetail.edit')}

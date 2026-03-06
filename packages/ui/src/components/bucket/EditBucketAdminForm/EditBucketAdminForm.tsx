@@ -324,6 +324,9 @@ export function EditBucketAdminForm({
           </Text>
         )}
         <FormActions>
+          <ButtonLink href={cancelHref} variant="secondary">
+            {labels.cancel}
+          </ButtonLink>
           <Button
             type="submit"
             variant="primary"
@@ -332,9 +335,6 @@ export function EditBucketAdminForm({
           >
             {labels.save}
           </Button>
-          <ButtonLink href={cancelHref} variant="secondary">
-            {labels.cancel}
-          </ButtonLink>
         </FormActions>
       </Stack>
     </FormContainer>

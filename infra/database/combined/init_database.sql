@@ -1,4 +1,4 @@
--- Combined migrations generated Thu Mar  5 16:39:53 CST 2026
+-- Combined migrations generated Fri Mar  6 15:24:17 CST 2026
 -- DO NOT EDIT - regenerate with scripts/database/combine-migrations.sh
 
 -- Including: 0000_init_helpers.sql
@@ -46,11 +46,13 @@ CREATE TRIGGER set_updated_at_user
 
 CREATE UNIQUE INDEX idx_user_short_id ON "user"(short_id);
 
--- Credentials: email and password hash (1:1 with user)
+-- Credentials: email, username (at least one required), and password hash (1:1 with user)
 CREATE TABLE user_credentials (
     user_id UUID PRIMARY KEY REFERENCES "user"(id) ON DELETE CASCADE,
-    email varchar_email UNIQUE NOT NULL,
-    password_hash varchar_password NOT NULL
+    email varchar_email UNIQUE NULL,
+    username VARCHAR(50) UNIQUE NULL,
+    password_hash varchar_password NOT NULL,
+    CONSTRAINT chk_user_credentials_email_or_username CHECK (email IS NOT NULL OR username IS NOT NULL)
 );
 
 -- Bio: display name (1:1 with user)
@@ -89,7 +91,7 @@ CREATE INDEX idx_refresh_token_user_id ON refresh_token(user_id);
 
 
 -- Including: 0003_bucket_schema.sql
--- 0003 migration: bucket (and child buckets), bucket_admin, bucket_message, bucket_admin_invitation
+-- 0003 migration: bucket (and child buckets), bucket_admin, bucket_role, bucket_message, bucket_admin_invitation
 
 -- Bucket: top-level have parent_bucket_id NULL; child buckets are rows with parent_bucket_id set.
 -- short_id: URL-safe public id (app sets on insert via nanoid).

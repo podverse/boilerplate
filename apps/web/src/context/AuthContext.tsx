@@ -32,7 +32,8 @@ function getRequiredSessionRefreshIntervalMs(): number {
 
 export type AuthUser = {
   id: string;
-  email: string;
+  email: string | null;
+  username: string | null;
   displayName: string | null;
 };
 
@@ -59,15 +60,20 @@ function parseUserFromMe(data: unknown): AuthUser | null {
     data as {
       user: {
         id?: string;
-        email?: string;
+        email?: string | null;
+        username?: string | null;
         displayName?: string | null;
       };
     }
   ).user;
-  if (typeof u.id !== 'string' || typeof u.email !== 'string') return null;
+  if (typeof u.id !== 'string') return null;
+  const hasEmail = u.email !== undefined && u.email !== null && u.email !== '';
+  const hasUsername = u.username !== undefined && u.username !== null && u.username !== '';
+  if (!hasEmail && !hasUsername) return null;
   return {
     id: u.id,
-    email: u.email,
+    email: hasEmail ? (u.email as string) : null,
+    username: hasUsername ? (u.username as string) : null,
     displayName: u.displayName ?? null,
   };
 }
@@ -79,15 +85,20 @@ function parseUserFromLoginOrRefresh(data: unknown): AuthUser | null {
     data as {
       user: {
         id?: string;
-        email?: string;
+        email?: string | null;
+        username?: string | null;
         displayName?: string | null;
       };
     }
   ).user;
-  if (typeof u.id !== 'string' || typeof u.email !== 'string') return null;
+  if (typeof u.id !== 'string') return null;
+  const hasEmail = u.email !== undefined && u.email !== null && u.email !== '';
+  const hasUsername = u.username !== undefined && u.username !== null && u.username !== '';
+  if (!hasEmail && !hasUsername) return null;
   return {
     id: u.id,
-    email: u.email,
+    email: hasEmail ? (u.email as string) : null,
+    username: hasUsername ? (u.username as string) : null,
     displayName: u.displayName ?? null,
   };
 }
@@ -188,11 +199,25 @@ export function AuthProvider({ children, initialUser }: AuthProviderProps) {
         };
       };
       const u = data?.user
-        ? {
-            id: data.user.id,
-            email: data.user.email,
-            displayName: data.user.displayName ?? null,
-          }
+        ? (() => {
+            const us = data.user as {
+              id?: string;
+              email?: string | null;
+              username?: string | null;
+              displayName?: string | null;
+            };
+            if (typeof us.id !== 'string') return null;
+            const hasEmail = us.email !== undefined && us.email !== null && us.email !== '';
+            const hasUsername =
+              us.username !== undefined && us.username !== null && us.username !== '';
+            if (!hasEmail && !hasUsername) return null;
+            return {
+              id: us.id,
+              email: hasEmail ? (us.email as string) : null,
+              username: hasUsername ? (us.username as string) : null,
+              displayName: us.displayName ?? null,
+            };
+          })()
         : null;
       if (u !== null) setUser(u);
       return { ok: true };

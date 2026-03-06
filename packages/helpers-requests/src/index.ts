@@ -21,6 +21,7 @@ export type {
   PublicManagementEvent,
   RequestEmailChangeBody,
   ResetPasswordBody,
+  SetPasswordBody,
   SignupBody,
   UpdateAdminBody,
   UpdateProfileBody,
@@ -64,6 +65,7 @@ export type {
 } from './management-web/buckets.js';
 export type {
   CreateMessageBody,
+  ListBucketMessagesResponse,
   ManagementBucketMessage,
   UpdateMessageBody,
 } from './management-web/bucketMessages.js';

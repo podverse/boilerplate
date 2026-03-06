@@ -113,9 +113,6 @@ export function AdminRoleForm({ returnUrl, cancelUrl }: { returnUrl: string; can
           </Text>
         )}
         <FormActions>
-          <Button type="submit" variant="primary" loading={loading}>
-            {t('createRole')}
-          </Button>
           <Button
             type="button"
             variant="secondary"
@@ -123,6 +120,9 @@ export function AdminRoleForm({ returnUrl, cancelUrl }: { returnUrl: string; can
             disabled={loading}
           >
             {t('cancel')}
+          </Button>
+          <Button type="submit" variant="primary" loading={loading}>
+            {t('createRole')}
           </Button>
         </FormActions>
       </Stack>

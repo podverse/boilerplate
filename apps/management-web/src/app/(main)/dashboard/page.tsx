@@ -13,7 +13,7 @@ export default async function DashboardPage() {
   }
 
   const t = await getTranslations('dashboard');
-  const displayName = user.displayName ?? user.email;
+  const displayName = user.displayName ?? user.username;
 
   return (
     <Container>

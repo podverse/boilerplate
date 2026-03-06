@@ -4,6 +4,7 @@ import { request } from '@boilerplate/helpers-requests';
 import { BucketsTableWithFilter } from '../../../components/BucketsTableWithFilter';
 import { FilterTablePageLayout } from '@boilerplate/ui';
 
+import { TABLE_SORT_PREFS_COOKIE_NAME } from '../../../lib/cookies';
 import { getServerUser } from '../../../lib/server-auth';
 import {
   getCookieHeader,
@@ -94,8 +95,8 @@ export default async function BucketsPage({ searchParams }: PageProps) {
   }));
 
   const columns = [
-    { id: 'name', label: t('name') },
-    { id: 'isPublic', label: t('isPublic') },
+    { id: 'name', label: t('name'), defaultSortOrder: 'asc' as const },
+    { id: 'isPublic', label: t('isPublic'), defaultSortOrder: 'asc' as const },
   ];
 
   const currentQueryParams: Record<string, string> = {};
@@ -121,6 +122,8 @@ export default async function BucketsPage({ searchParams }: PageProps) {
           currentQueryParams={currentQueryParams}
           addBucketHref={ROUTES.BUCKETS_NEW}
           filterableColumnIds={['name']}
+          sortPrefsCookieName={TABLE_SORT_PREFS_COOKIE_NAME}
+          sortPrefsListKey="buckets"
         />
       )}
     </FilterTablePageLayout>

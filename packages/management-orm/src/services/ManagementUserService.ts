@@ -8,7 +8,7 @@ import { ManagementUserCredentials } from '../entities/ManagementUserCredentials
 import type { EventVisibility } from '../entities/AdminPermissions.js';
 
 export type CreateAdminData = {
-  email: string;
+  username: string;
   passwordHash: string;
   displayName: string;
   createdBy: string;
@@ -21,7 +21,7 @@ export type CreateAdminData = {
 };
 
 export type UpdateAdminData = {
-  email?: string;
+  username?: string;
   displayName?: string;
   passwordHash?: string;
   adminsCrud?: number;
@@ -33,10 +33,10 @@ export type UpdateAdminData = {
 };
 
 export class ManagementUserService {
-  static async findByEmail(email: string): Promise<ManagementUser | null> {
+  static async findByUsername(username: string): Promise<ManagementUser | null> {
     const repo = managementDataSource.getRepository(ManagementUser);
     return repo.findOne({
-      where: { credentials: { email } },
+      where: { credentials: { username } },
       relations: ['credentials', 'bio', 'permissions'],
     });
   }
@@ -76,9 +76,9 @@ export class ManagementUserService {
   }
 
   /** Allowed sort fields for listAdminsPaginated. */
-  static readonly LIST_ADMINS_SORT_FIELDS = ['email', 'displayName', 'createdAt'] as const;
+  static readonly LIST_ADMINS_SORT_FIELDS = ['username', 'displayName', 'createdAt'] as const;
 
-  /** Paginated list of all management users (super admin and admins) and total count. Optional ILIKE search over email and display_name. */
+  /** Paginated list of all management users (super admin and admins) and total count. Optional ILIKE search over username and display_name. */
   static async listAdminsPaginated(
     limit: number,
     offset: number,
@@ -93,9 +93,15 @@ export class ManagementUserService {
       sortBy !== undefined &&
       (ManagementUserService.LIST_ADMINS_SORT_FIELDS as readonly string[]).includes(sortBy)
         ? sortBy
-        : 'email';
+        : 'username';
     const orderDir: 'ASC' | 'DESC' =
-      sortOrder === 'asc' ? 'ASC' : sortOrder === 'desc' ? 'DESC' : 'DESC';
+      sortOrder === 'asc'
+        ? 'ASC'
+        : sortOrder === 'desc'
+          ? 'DESC'
+          : orderBy === 'createdAt'
+            ? 'DESC'
+            : 'ASC';
 
     if (!hasSearch) {
       if (orderBy === 'createdAt') {
@@ -114,8 +120,8 @@ export class ManagementUserService {
         .leftJoinAndSelect('u.permissions', 'permissions')
         .take(limit)
         .skip(offset);
-      if (orderBy === 'email') {
-        qb.orderBy('credentials.email', orderDir);
+      if (orderBy === 'username') {
+        qb.orderBy('credentials.username', orderDir);
       } else if (orderBy === 'displayName') {
         qb.orderBy('bio.displayName', orderDir);
       } else {
@@ -129,13 +135,16 @@ export class ManagementUserService {
       .leftJoinAndSelect('u.credentials', 'credentials')
       .leftJoinAndSelect('u.bio', 'bio')
       .leftJoinAndSelect('u.permissions', 'permissions')
-      .where('(credentials.email ILIKE :searchPattern OR bio.display_name ILIKE :searchPattern)', {
-        searchPattern: `%${searchTrim}%`,
-      })
+      .where(
+        '(credentials.username ILIKE :searchPattern OR bio.display_name ILIKE :searchPattern)',
+        {
+          searchPattern: `%${searchTrim}%`,
+        }
+      )
       .take(limit)
       .skip(offset);
-    if (orderBy === 'email') {
-      qb.orderBy('credentials.email', orderDir);
+    if (orderBy === 'username') {
+      qb.orderBy('credentials.username', orderDir);
     } else if (orderBy === 'displayName') {
       qb.orderBy('bio.displayName', orderDir);
     } else {
@@ -172,7 +181,7 @@ export class ManagementUserService {
 
       const cred = credRepo.create({
         managementUserId: id,
-        email: data.email,
+        username: data.username,
         passwordHash: data.passwordHash,
       });
       await credRepo.save(cred);
@@ -214,10 +223,10 @@ export class ManagementUserService {
     await qr.connect();
     await qr.startTransaction();
     try {
-      if (data.email !== undefined) {
+      if (data.username !== undefined) {
         await qr.manager
           .getRepository(ManagementUserCredentials)
-          .update({ managementUserId: id }, { email: data.email });
+          .update({ managementUserId: id }, { username: data.username });
       }
       if (data.displayName !== undefined && data.displayName.trim() !== '') {
         await qr.manager
@@ -281,9 +290,9 @@ export class ManagementUserService {
     await repo.update({ managementUserId }, { displayName: displayName.trim() });
   }
 
-  /** Update the logged-in user's email (for profile page). Direct change; no verification email. */
-  static async updateEmail(managementUserId: string, email: string): Promise<void> {
+  /** Update the logged-in user's username (for profile page). */
+  static async updateUsername(managementUserId: string, username: string): Promise<void> {
     const repo = managementDataSource.getRepository(ManagementUserCredentials);
-    await repo.update({ managementUserId }, { email: email.trim() });
+    await repo.update({ managementUserId }, { username: username.trim() });
   }
 }

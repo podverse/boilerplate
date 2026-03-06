@@ -2,7 +2,7 @@ import { appDataSourceReadWrite } from '../data-source.js';
 import type { User } from '../entities/User.js';
 import { VerificationToken } from '../entities/VerificationToken.js';
 
-export type VerificationKind = 'email_verify' | 'password_reset' | 'email_change';
+export type VerificationKind = 'email_verify' | 'password_reset' | 'email_change' | 'set_password';
 
 export interface ConsumedToken {
   user: User;

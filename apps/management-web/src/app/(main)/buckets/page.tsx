@@ -4,6 +4,7 @@ import { request } from '@boilerplate/helpers-requests';
 import { FilterTablePageLayout, Stack } from '@boilerplate/ui';
 
 import { BucketsTableWithFilter } from '../../../components/BucketsTableWithFilter';
+import { TABLE_SORT_PREFS_COOKIE_NAME } from '../../../lib/cookies';
 import { getServerUser } from '../../../lib/server-auth';
 import { getManagementApiBaseUrl, getServerManagementApiBaseUrl } from '../../../config/env';
 import { getCrudFlags, hasReadPermission } from '../../../lib/main-nav';
@@ -86,8 +87,8 @@ export default async function BucketsPage({ searchParams }: PageProps) {
   }));
 
   const columns = [
-    { id: 'name', label: tCommon('bucketsTable.name') },
-    { id: 'isPublic', label: tCommon('bucketsTable.isPublic') },
+    { id: 'name', label: tCommon('bucketsTable.name'), defaultSortOrder: 'asc' as const },
+    { id: 'isPublic', label: tCommon('bucketsTable.isPublic'), defaultSortOrder: 'asc' as const },
   ];
 
   const currentQueryParams: Record<string, string> = {};
@@ -119,6 +120,8 @@ export default async function BucketsPage({ searchParams }: PageProps) {
             canDeleteBucket={crud.delete}
             apiBaseUrl={apiBaseUrl}
             addBucketHref={crud.create ? ROUTES.BUCKETS_NEW : undefined}
+            sortPrefsCookieName={TABLE_SORT_PREFS_COOKIE_NAME}
+            sortPrefsListKey="buckets"
           />
         </Stack>
       )}

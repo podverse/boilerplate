@@ -34,7 +34,7 @@ function getRequiredSessionRefreshIntervalMs(): number {
 
 export type AuthUser = {
   id: string;
-  email: string;
+  username: string;
   displayName: string | null;
 };
 
@@ -42,7 +42,7 @@ export type AuthContextValue = {
   user: AuthUser | null;
   loading: boolean;
   login: (
-    email: string,
+    username: string,
     password: string
   ) => Promise<
     { ok: true } | { ok: false; message: string; rateLimit?: { retryAfterSeconds: number } }
@@ -57,11 +57,12 @@ const AuthContext = createContext<AuthContextValue | null>(null);
 function parseUserFromMe(data: unknown): AuthUser | null {
   if (data === undefined || typeof data !== 'object' || data === null) return null;
   if (!('user' in data) || typeof (data as { user: unknown }).user !== 'object') return null;
-  const u = (data as { user: { id?: string; email?: string; displayName?: string | null } }).user;
-  if (typeof u.id !== 'string' || typeof u.email !== 'string') return null;
+  const u = (data as { user: { id?: string; username?: string; displayName?: string | null } })
+    .user;
+  if (typeof u.id !== 'string' || typeof u.username !== 'string') return null;
   return {
     id: u.id,
-    email: u.email,
+    username: u.username,
     displayName: u.displayName ?? null,
   };
 }
@@ -69,11 +70,12 @@ function parseUserFromMe(data: unknown): AuthUser | null {
 function parseUserFromLoginOrRefresh(data: unknown): AuthUser | null {
   if (data === undefined || typeof data !== 'object' || data === null) return null;
   if (!('user' in data) || typeof (data as { user: unknown }).user !== 'object') return null;
-  const u = (data as { user: { id?: string; email?: string; displayName?: string | null } }).user;
-  if (typeof u.id !== 'string' || typeof u.email !== 'string') return null;
+  const u = (data as { user: { id?: string; username?: string; displayName?: string | null } })
+    .user;
+  if (typeof u.id !== 'string' || typeof u.username !== 'string') return null;
   return {
     id: u.id,
-    email: u.email,
+    username: u.username,
     displayName: u.displayName ?? null,
   };
 }
@@ -146,13 +148,13 @@ export function AuthProvider({ children, initialUser }: AuthProviderProps) {
 
   const login = useCallback(
     async (
-      email: string,
+      username: string,
       password: string
     ): Promise<
       { ok: true } | { ok: false; message: string; rateLimit?: { retryAfterSeconds: number } }
     > => {
       const baseUrl = getApiBaseUrl();
-      const res = await managementWebAuth.login(baseUrl, email, password);
+      const res = await managementWebAuth.login(baseUrl, username, password);
       if (!res.ok) {
         const message = res.error?.message ?? AUTH_MESSAGE_LOGIN_FAILED;
         const rateLimit =
@@ -166,11 +168,13 @@ export function AuthProvider({ children, initialUser }: AuthProviderProps) {
             : undefined;
         return { ok: false, message, rateLimit };
       }
-      const data = res.data as { user?: { id: string; email: string; displayName: string | null } };
+      const data = res.data as {
+        user?: { id: string; username: string; displayName: string | null };
+      };
       const u = data?.user
         ? {
             id: data.user.id,
-            email: data.user.email,
+            username: data.user.username,
             displayName: data.user.displayName ?? null,
           }
         : null;

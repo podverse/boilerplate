@@ -7,7 +7,10 @@ import styles from './NavBar.module.scss';
 
 export type NavBarUser = {
   displayName: string | null;
-  email: string;
+  /** Optional; main app may use email, management app uses username only. */
+  email?: string | null;
+  /** Optional; management app uses username; display fallback is displayName ?? username ?? email. */
+  username?: string | null;
 };
 
 export type NavBarLinkComponentProps = {
@@ -57,7 +60,9 @@ export function NavBar({
             trigger={
               <>
                 <i className="fa-solid fa-user" aria-hidden />
-                <span className={styles.userLabel}>{user.displayName ?? user.email}</span>
+                <span className={styles.userLabel}>
+                  {user.displayName ?? user.username ?? user.email ?? '—'}
+                </span>
                 <i className={`${styles.chevron} fa-solid fa-chevron-down`} aria-hidden />
               </>
             }

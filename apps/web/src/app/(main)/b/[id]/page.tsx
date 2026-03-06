@@ -2,11 +2,13 @@ import { notFound } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
 import type { PublicBucket, PublicBucketMessage } from '@boilerplate/helpers-requests';
 import { webBuckets } from '@boilerplate/helpers-requests';
+import { DEFAULT_PAGE_LIMIT } from '@boilerplate/helpers';
 import {
   BucketMessageList,
   ButtonLink,
   ContentPageLayout,
   Divider,
+  Pagination,
   SectionWithHeading,
   Stack,
 } from '@boilerplate/ui';
@@ -15,6 +17,7 @@ import type { BucketMessageListItem } from '@boilerplate/ui';
 
 import { getServerApiBaseUrl } from '../../../../lib/server-request';
 import { publicBucketRoute, publicBucketSubmitRoute } from '../../../../lib/routes';
+import { MessagesSortSelect } from '../../bucket/[id]/MessagesSortSelect';
 import { PublicBucketBreadcrumbs } from './PublicBucketBreadcrumbs';
 
 async function fetchPublicBucket(id: string): Promise<PublicBucket | null> {
@@ -25,24 +28,64 @@ async function fetchPublicBucket(id: string): Promise<PublicBucket | null> {
   return bucket !== undefined && typeof bucket?.id === 'string' ? bucket : null;
 }
 
-async function fetchPublicMessages(id: string): Promise<PublicBucketMessage[]> {
+async function fetchPublicMessagesPaginated(
+  id: string,
+  page: number,
+  limit: number,
+  sort: 'recent' | 'oldest'
+): Promise<{
+  messages: PublicBucketMessage[];
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+}> {
   const baseUrl = getServerApiBaseUrl();
-  const res = await webBuckets.reqFetchPublicBucketMessages(baseUrl, id);
-  if (!res.ok || res.data === undefined) return [];
+  const res = await webBuckets.reqFetchPublicBucketMessages(baseUrl, id, {
+    page,
+    limit,
+    sort,
+  });
+  if (!res.ok || res.data === undefined) {
+    return {
+      messages: [],
+      page: 1,
+      limit,
+      total: 0,
+      totalPages: 1,
+    };
+  }
   const data = res.data;
-  return Array.isArray(data.messages) ? data.messages : [];
+  const messages = Array.isArray(data.messages) ? data.messages : [];
+  return {
+    messages,
+    page: typeof data.page === 'number' ? data.page : 1,
+    limit: typeof data.limit === 'number' ? data.limit : limit,
+    total: typeof data.total === 'number' ? data.total : 0,
+    totalPages: typeof data.totalPages === 'number' ? data.totalPages : 1,
+  };
 }
 
-export default async function PublicBucketPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function PublicBucketPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ id: string }>;
+  searchParams: Promise<{ page?: string; sort?: string }>;
+}) {
   const { id } = await params;
+  const resolvedSearchParams = await searchParams;
+  const page = Math.max(1, parseInt(resolvedSearchParams.page ?? '1', 10) || 1);
+  const sort = resolvedSearchParams.sort === 'oldest' ? 'oldest' : 'recent';
+
   const bucket = await fetchPublicBucket(id);
   if (bucket === null || !bucket.isPublic) {
     notFound();
   }
 
-  const messages = await fetchPublicMessages(id);
+  const messagesResult = await fetchPublicMessagesPaginated(id, page, DEFAULT_PAGE_LIMIT, sort);
   const t = await getTranslations('buckets');
-  const listItems: BucketMessageListItem[] = messages.map((m) => ({
+  const listItems: BucketMessageListItem[] = messagesResult.messages.map((m) => ({
     id: m.id,
     senderName: m.senderName,
     body: m.body,
@@ -59,6 +102,8 @@ export default async function PublicBucketPage({ params }: { params: Promise<{ i
       ]
     : [];
 
+  const basePath = publicBucketRoute(id);
+
   return (
     <ContentPageLayout
       title={bucket.name}
@@ -72,12 +117,35 @@ export default async function PublicBucketPage({ params }: { params: Promise<{ i
           Submit a message
         </ButtonLink>
         <Divider />
-        <SectionWithHeading title={t('messages')}>
+        <SectionWithHeading
+          title={t('messages')}
+          headingAction={
+            <MessagesSortSelect
+              sort={sort}
+              basePath={basePath}
+              label={t('messagesSort.label')}
+              sortOptionLabels={{
+                recent: t('messagesSortOptions.recent'),
+                oldest: t('messagesSortOptions.oldest'),
+              }}
+            />
+          }
+        >
           <BucketMessageList
             messages={listItems}
             variant="public"
             emptyMessage={t('noPublicMessagesYet')}
           />
+          {messagesResult.totalPages > 1 ? (
+            <Pagination
+              currentPage={messagesResult.page}
+              totalPages={messagesResult.totalPages}
+              basePath={basePath}
+              limit={messagesResult.limit}
+              defaultLimit={DEFAULT_PAGE_LIMIT}
+              queryParams={sort === 'oldest' ? { sort: 'oldest' } : undefined}
+            />
+          ) : null}
         </SectionWithHeading>
       </Stack>
     </ContentPageLayout>

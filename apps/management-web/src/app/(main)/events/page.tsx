@@ -7,6 +7,7 @@ import { Container, SectionWithHeading, Text } from '@boilerplate/ui';
 
 import { EventsSortSelect } from '../../../components/EventsSortSelect';
 import { EventsTableWithFilter } from '../../../components/EventsTableWithFilter';
+import { TABLE_SORT_PREFS_COOKIE_NAME } from '../../../lib/cookies';
 import { getServerUser } from '../../../lib/server-auth';
 import { getServerManagementApiBaseUrl } from '../../../config/env';
 import { ROUTES } from '../../../lib/routes';
@@ -153,11 +154,15 @@ export default async function EventsPage({ searchParams }: PageProps) {
   });
 
   const eventColumns = [
-    { id: 'timestamp', label: tCommon('eventsTable.timestamp') },
-    { id: 'actor', label: tCommon('eventsTable.actor') },
-    { id: 'action', label: tCommon('eventsTable.action') },
-    { id: 'target', label: tCommon('eventsTable.target') },
-    { id: 'details', label: tCommon('eventsTable.details') },
+    {
+      id: 'timestamp',
+      label: tCommon('eventsTable.timestamp'),
+      defaultSortOrder: 'desc' as const,
+    },
+    { id: 'actor', label: tCommon('eventsTable.actor'), defaultSortOrder: 'asc' as const },
+    { id: 'action', label: tCommon('eventsTable.action'), defaultSortOrder: 'asc' as const },
+    { id: 'target', label: tCommon('eventsTable.target'), defaultSortOrder: 'asc' as const },
+    { id: 'details', label: tCommon('eventsTable.details'), defaultSortOrder: 'asc' as const },
   ];
 
   const currentQueryParams: Record<string, string> = {};
@@ -192,6 +197,8 @@ export default async function EventsPage({ searchParams }: PageProps) {
             sort={sort}
             maxGoToPage={500}
             filterableColumnIds={['actor', 'action', 'target', 'details']}
+            sortPrefsCookieName={TABLE_SORT_PREFS_COOKIE_NAME}
+            sortPrefsListKey="events"
             trailingToolbar={
               <EventsSortSelect
                 sort={sort}

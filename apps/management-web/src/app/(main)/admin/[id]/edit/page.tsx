@@ -53,7 +53,7 @@ export default async function EditAdminPage({ params }: EditAdminPageProps) {
   }
   const initialValues: AdminFormInitialValues = {
     displayName: admin.displayName ?? '',
-    email: admin.email,
+    username: admin.username,
     permissions: admin.permissions ?? null,
   };
 
@@ -62,12 +62,13 @@ export default async function EditAdminPage({ params }: EditAdminPageProps) {
   const tCommon = await getTranslations('common');
 
   return (
-    <ResourcePageCard title={tCommon('editAdminTitle', { name: admin.displayName ?? admin.email })}>
+    <ResourcePageCard
+      title={tCommon('editAdminTitle', { name: admin.displayName ?? admin.username })}
+    >
       <AdminForm
         mode="edit"
         adminId={id}
         initialValues={initialValues}
-        isSuperAdmin={user.isSuperAdmin}
         canEditPermissions={canEditPermissions}
         targetIsSuperAdmin={admin.isSuperAdmin}
       />

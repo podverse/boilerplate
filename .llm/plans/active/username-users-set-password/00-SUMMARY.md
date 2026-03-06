@@ -45,7 +45,7 @@
 - Main API: `apps/api` (authController, auth routes, userToJson, verification-token).
 - Management API: `apps/management-api` (usersController, users schemas, buckets).
 - Management-web: `apps/management-web` (UserForm, users new page).
-- Web: `apps/web` (settings, signup, bucket/topic pages).
+- Web: `apps/web` (settings, signup, bucket pages).
 - UI: `packages/ui` (BucketAdminsView, NavBar).
 
 ## Decisions (recorded)

@@ -3,7 +3,8 @@ import type { UserWithRelations } from '@boilerplate/orm';
 
 export interface JwtPayload {
   sub: string;
-  email: string;
+  email?: string | null;
+  username?: string | null;
 }
 
 /** Sign a JWT. Caller must pass expiresInSeconds from config (e.g. config.accessTokenMaxAgeSeconds). */
@@ -13,7 +14,15 @@ export function signToken(
   expiresInSeconds: number
 ): string {
   const options = { expiresIn: expiresInSeconds } as SignOptions;
-  return jwt.sign({ sub: user.id, email: user.credentials.email } as JwtPayload, secret, options);
+  return jwt.sign(
+    {
+      sub: user.id,
+      email: user.credentials.email ?? null,
+      username: user.credentials.username ?? null,
+    } as JwtPayload,
+    secret,
+    options
+  );
 }
 
 /** Short-lived access token for cookie/Bearer auth. Expiry in seconds (from config.accessTokenMaxAgeSeconds). */
@@ -23,7 +32,15 @@ export function signAccessToken(
   expiresInSeconds: number
 ): string {
   const options = { expiresIn: expiresInSeconds } as SignOptions;
-  return jwt.sign({ sub: user.id, email: user.credentials.email } as JwtPayload, secret, options);
+  return jwt.sign(
+    {
+      sub: user.id,
+      email: user.credentials.email ?? null,
+      username: user.credentials.username ?? null,
+    } as JwtPayload,
+    secret,
+    options
+  );
 }
 
 export function verifyToken(token: string, secret: string): JwtPayload | null {

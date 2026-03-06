@@ -16,7 +16,7 @@ import {
 
 const SALT_ROUNDS = 10;
 
-export async function createSuperAdminForTest(email: string, password: string): Promise<void> {
+export async function createSuperAdminForTest(username: string, password: string): Promise<void> {
   const existing = await ManagementUserService.findSuperAdmin();
   if (existing !== null) {
     return;
@@ -38,7 +38,7 @@ export async function createSuperAdminForTest(email: string, password: string): 
       await userRepo.save(user);
       const cred = credRepo.create({
         managementUserId: id,
-        email,
+        username,
         passwordHash,
       });
       await credRepo.save(cred);

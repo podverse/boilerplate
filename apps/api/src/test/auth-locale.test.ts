@@ -77,12 +77,14 @@ describe('locale (mailer-enabled)', () => {
 
   describe('signup – verification email locale', () => {
     it('sends verification email with locale es when Accept-Language is es', async () => {
-      const email = `signup-es-${Date.now()}@example.com`;
+      const ts = Date.now();
+      const email = `signup-es-${ts}@example.com`;
+      const username = `signup-es-${ts}`;
       captured.verifyLocale = '';
       await request(app)
         .post(`${API}/auth/signup`)
         .set('Accept-Language', 'es')
-        .send({ email, password: signupPassword, displayName: 'Es User' })
+        .send({ email, username, password: signupPassword, displayName: 'Es User' })
         .expect(201);
       expect(captured.verifyEmail).not.toBe('');
       expect(captured.verifyLocale).toBe('es');
@@ -91,12 +93,14 @@ describe('locale (mailer-enabled)', () => {
     it('sends verification email with default locale when Accept-Language is missing', async () => {
       const prevDefault = process.env.DEFAULT_LOCALE;
       process.env.DEFAULT_LOCALE = 'en-US';
-      const email = `signup-default-${Date.now()}@example.com`;
+      const ts = Date.now();
+      const email = `signup-default-${ts}@example.com`;
+      const username = `signup-default-${ts}`;
       captured.verifyLocale = '';
       try {
         await request(app)
           .post(`${API}/auth/signup`)
-          .send({ email, password: signupPassword, displayName: 'Default User' })
+          .send({ email, username, password: signupPassword, displayName: 'Default User' })
           .expect(201);
         expect(captured.verifyEmail).not.toBe('');
         expect(captured.verifyLocale).toBe('en-US');
@@ -107,36 +111,42 @@ describe('locale (mailer-enabled)', () => {
     });
 
     it('sends verification email with locale en-US when Accept-Language is en-US', async () => {
-      const email = `signup-en-us-${Date.now()}@example.com`;
+      const ts = Date.now();
+      const email = `signup-en-us-${ts}@example.com`;
+      const username = `signup-en-us-${ts}`;
       captured.verifyLocale = '';
       await request(app)
         .post(`${API}/auth/signup`)
         .set('Accept-Language', 'en-US')
-        .send({ email, password: signupPassword, displayName: 'En-US User' })
+        .send({ email, username, password: signupPassword, displayName: 'En-US User' })
         .expect(201);
       expect(captured.verifyEmail).not.toBe('');
       expect(captured.verifyLocale).toBe('en-US');
     });
 
     it('sends verification email with locale en-US when Accept-Language is en (base)', async () => {
-      const email = `signup-en-${Date.now()}@example.com`;
+      const ts = Date.now();
+      const email = `signup-en-${ts}@example.com`;
+      const username = `signup-en-${ts}`;
       captured.verifyLocale = '';
       await request(app)
         .post(`${API}/auth/signup`)
         .set('Accept-Language', 'en')
-        .send({ email, password: signupPassword, displayName: 'En User' })
+        .send({ email, username, password: signupPassword, displayName: 'En User' })
         .expect(201);
       expect(captured.verifyEmail).not.toBe('');
       expect(captured.verifyLocale).toBe('en-US');
     });
 
     it('sends verification email with locale en-US when Accept-Language is en-GB', async () => {
-      const email = `signup-en-gb-${Date.now()}@example.com`;
+      const ts = Date.now();
+      const email = `signup-en-gb-${ts}@example.com`;
+      const username = `signup-en-gb-${ts}`;
       captured.verifyLocale = '';
       await request(app)
         .post(`${API}/auth/signup`)
         .set('Accept-Language', 'en-GB')
-        .send({ email, password: signupPassword, displayName: 'En-GB User' })
+        .send({ email, username, password: signupPassword, displayName: 'En-GB User' })
         .expect(201);
       expect(captured.verifyEmail).not.toBe('');
       expect(captured.verifyLocale).toBe('en-US');
@@ -145,12 +155,14 @@ describe('locale (mailer-enabled)', () => {
     it('sends verification email with locale es when Accept-Language is missing and DEFAULT_LOCALE is es', async () => {
       const prevDefault = process.env.DEFAULT_LOCALE;
       process.env.DEFAULT_LOCALE = 'es';
-      const email = `signup-default-es-${Date.now()}@example.com`;
+      const ts = Date.now();
+      const email = `signup-default-es-${ts}@example.com`;
+      const username = `signup-default-es-${ts}`;
       captured.verifyLocale = '';
       try {
         await request(app)
           .post(`${API}/auth/signup`)
-          .send({ email, password: signupPassword, displayName: 'Default Es User' })
+          .send({ email, username, password: signupPassword, displayName: 'Default Es User' })
           .expect(201);
         expect(captured.verifyEmail).not.toBe('');
         expect(captured.verifyLocale).toBe('es');
@@ -163,13 +175,15 @@ describe('locale (mailer-enabled)', () => {
     it('sends verification email with default locale when Accept-Language is unsupported (fr)', async () => {
       const prevDefault = process.env.DEFAULT_LOCALE;
       process.env.DEFAULT_LOCALE = 'en-US';
-      const email = `signup-fr-${Date.now()}@example.com`;
+      const ts = Date.now();
+      const email = `signup-fr-${ts}@example.com`;
+      const username = `signup-fr-${ts}`;
       captured.verifyLocale = '';
       try {
         await request(app)
           .post(`${API}/auth/signup`)
           .set('Accept-Language', 'fr')
-          .send({ email, password: signupPassword, displayName: 'Fr User' })
+          .send({ email, username, password: signupPassword, displayName: 'Fr User' })
           .expect(201);
         expect(captured.verifyEmail).not.toBe('');
         expect(captured.verifyLocale).toBe('en-US');
@@ -182,11 +196,13 @@ describe('locale (mailer-enabled)', () => {
 
   describe('signup – password validation locale', () => {
     it('returns 400 with Spanish password validation message when password too short and Accept-Language is es', async () => {
+      const ts = Date.now();
       const res = await request(app)
         .post(`${API}/auth/signup`)
         .set('Accept-Language', 'es')
         .send({
-          email: `weak-es-${Date.now()}@example.com`,
+          email: `weak-es-${ts}@example.com`,
+          username: `weak-es-${ts}`,
           password: 'short',
           displayName: 'Weak',
         })
@@ -198,10 +214,12 @@ describe('locale (mailer-enabled)', () => {
       const prevDefault = process.env.DEFAULT_LOCALE;
       process.env.DEFAULT_LOCALE = 'en-US';
       try {
+        const ts = Date.now();
         const res = await request(app)
           .post(`${API}/auth/signup`)
           .send({
-            email: `weak-default-${Date.now()}@example.com`,
+            email: `weak-default-${ts}@example.com`,
+            username: `weak-default-${ts}`,
             password: 'short',
             displayName: 'Weak',
           })
@@ -249,11 +267,14 @@ describe('locale (mailer-enabled)', () => {
   describe('request-email-change – verification email locale', () => {
     it('sends verification email with locale es when Accept-Language is es', async () => {
       const agent = request.agent(app);
-      const emailForLocaleTest = `email-change-locale-${Date.now()}@example.com`;
+      const ts = Date.now();
+      const emailForLocaleTest = `email-change-locale-${ts}@example.com`;
+      const usernameForLocaleTest = `email-change-locale-${ts}`;
       await agent
         .post(`${API}/auth/signup`)
         .send({
           email: emailForLocaleTest,
+          username: usernameForLocaleTest,
           password: signupPassword,
           displayName: 'Locale Test',
         })

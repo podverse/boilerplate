@@ -173,12 +173,12 @@ export function BucketRoleFormClient({
           </Text>
         )}
         <FormActions>
-          <Button type="submit" variant="primary" loading={loading}>
-            {labels.save}
-          </Button>
           <ButtonLink href={cancelHref} variant="secondary">
             {labels.cancel}
           </ButtonLink>
+          <Button type="submit" variant="primary" loading={loading}>
+            {labels.save}
+          </Button>
         </FormActions>
       </Stack>
     </FormContainer>

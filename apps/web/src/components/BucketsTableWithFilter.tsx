@@ -19,6 +19,10 @@ export type BucketsTableWithFilterProps = {
   addBucketHref: string;
   /** Column IDs that can be selected in the filter dropdown (default: all columns). */
   filterableColumnIds?: string[];
+  /** Cookie name for persisting sort preferences. When set with sortPrefsListKey, sort is saved and restored. */
+  sortPrefsCookieName?: string;
+  /** List key for this table (e.g. buckets). Used with sortPrefsCookieName. */
+  sortPrefsListKey?: string;
 };
 
 export function BucketsTableWithFilter({
@@ -31,6 +35,8 @@ export function BucketsTableWithFilter({
   currentQueryParams,
   addBucketHref,
   filterableColumnIds,
+  sortPrefsCookieName,
+  sortPrefsListKey,
 }: BucketsTableWithFilterProps) {
   return (
     <ResourceTableWithFilter
@@ -42,6 +48,8 @@ export function BucketsTableWithFilter({
       basePath={basePath}
       currentQueryParams={currentQueryParams}
       filterableColumnIds={filterableColumnIds}
+      sortPrefsCookieName={sortPrefsCookieName}
+      sortPrefsListKey={sortPrefsListKey}
       viewRoute={bucketDetailRoute}
       viewLabelKey="bucketsTable.view"
       viewLinkColumnId="name"

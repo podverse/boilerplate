@@ -24,7 +24,13 @@ type AdminRow = {
   messageCrud: number;
   adminCrud?: number;
   createdAt: string;
-  user: { id: string; shortId: string; email: string; displayName: string | null } | null;
+  user: {
+    id: string;
+    shortId: string;
+    email: string | null;
+    username?: string | null;
+    displayName: string | null;
+  } | null;
 };
 
 type PendingInvitationRow = {

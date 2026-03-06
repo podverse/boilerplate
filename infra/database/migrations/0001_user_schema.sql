@@ -17,11 +17,13 @@ CREATE TRIGGER set_updated_at_user
 
 CREATE UNIQUE INDEX idx_user_short_id ON "user"(short_id);
 
--- Credentials: email and password hash (1:1 with user)
+-- Credentials: email, username (at least one required), and password hash (1:1 with user)
 CREATE TABLE user_credentials (
     user_id UUID PRIMARY KEY REFERENCES "user"(id) ON DELETE CASCADE,
-    email varchar_email UNIQUE NOT NULL,
-    password_hash varchar_password NOT NULL
+    email varchar_email UNIQUE NULL,
+    username VARCHAR(50) UNIQUE NULL,
+    password_hash varchar_password NOT NULL,
+    CONSTRAINT chk_user_credentials_email_or_username CHECK (email IS NOT NULL OR username IS NOT NULL)
 );
 
 -- Bio: display name (1:1 with user)

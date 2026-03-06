@@ -23,6 +23,8 @@ export type UsersTableWithFilterProps = {
   canDeleteUser: boolean;
   userApiBaseUrl: string;
   addUserHref?: string;
+  sortPrefsCookieName?: string;
+  sortPrefsListKey?: string;
 };
 
 export function UsersTableWithFilter({
@@ -39,6 +41,8 @@ export function UsersTableWithFilter({
   canDeleteUser,
   userApiBaseUrl,
   addUserHref,
+  sortPrefsCookieName,
+  sortPrefsListKey,
 }: UsersTableWithFilterProps) {
   return (
     <ResourceTableWithFilter
@@ -50,6 +54,8 @@ export function UsersTableWithFilter({
       basePath={basePath}
       currentQueryParams={currentQueryParams}
       filterableColumnIds={filterableColumnIds}
+      sortPrefsCookieName={sortPrefsCookieName}
+      sortPrefsListKey={sortPrefsListKey}
       viewRoute={userViewRoute}
       viewLabelKey="usersTable.view"
       canView={canViewUser}

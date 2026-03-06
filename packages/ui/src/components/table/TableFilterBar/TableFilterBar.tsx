@@ -13,6 +13,8 @@ export type TableFilterBarColumn = {
   getHref?: (row: { id: string; cells: Record<string, string> }) => string | undefined;
   /** When set, used as the sortBy value in the URL/API instead of column id (e.g. when API expects a different field name). */
   sortKey?: string;
+  /** Default sort order when this column is the active sort and URL has no sortOrder. String columns typically 'asc', date columns 'desc', number 'asc'. Omit for legacy desc. */
+  defaultSortOrder?: 'asc' | 'desc';
 };
 
 export type TableFilterBarProps = {

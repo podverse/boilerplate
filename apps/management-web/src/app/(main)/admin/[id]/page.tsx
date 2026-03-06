@@ -1,7 +1,7 @@
 import { notFound, redirect } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
 import { request } from '@boilerplate/helpers-requests';
-import { ButtonLink, Stack, Text } from '@boilerplate/ui';
+import { ButtonLink, FormActions, Stack, Text } from '@boilerplate/ui';
 
 import { ResourcePageCard } from '../../../../components/ResourcePageCard';
 import { bitmaskToFlags } from '@boilerplate/helpers';
@@ -77,13 +77,15 @@ export default async function ViewAdminPage({ params }: ViewAdminPageProps) {
   }
 
   return (
-    <ResourcePageCard title={tCommon('viewAdminTitle', { name: admin.displayName ?? admin.email })}>
+    <ResourcePageCard
+      title={tCommon('viewAdminTitle', { name: admin.displayName ?? admin.username })}
+    >
       <Stack>
         <Text>
           <strong>{tCommon('adminsTable.displayName')}:</strong> {admin.displayName ?? '—'}
         </Text>
         <Text>
-          <strong>{tCommon('adminsTable.email')}:</strong> {admin.email}
+          <strong>{tCommon('adminsTable.username')}:</strong> {admin.username}
         </Text>
         {admin.isSuperAdmin !== true &&
           admin.permissions !== undefined &&
@@ -103,16 +105,16 @@ export default async function ViewAdminPage({ params }: ViewAdminPageProps) {
             </>
           )}
         {admin.isSuperAdmin === true && <Text>{tCommon('viewAdminSuperAdminNote')}</Text>}
-        <Stack>
+        <FormActions>
+          <ButtonLink href={ROUTES.ADMINS} variant="secondary">
+            {tCommon('adminForm.cancel')}
+          </ButtonLink>
           {canEdit && (
             <ButtonLink href={adminEditRoute(id)} variant="primary">
               {tCommon('adminsTable.edit')}
             </ButtonLink>
           )}
-          <ButtonLink href={ROUTES.ADMINS} variant="secondary">
-            {tCommon('adminForm.cancel')}
-          </ButtonLink>
-        </Stack>
+        </FormActions>
       </Stack>
     </ResourcePageCard>
   );

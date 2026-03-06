@@ -1,5 +1,5 @@
 import { request } from '../request.js';
-import type { ApiError } from '../request.js';
+import type { ApiError, ApiResponse } from '../request.js';
 
 export type AuthResponse = Promise<{
   ok: boolean;
@@ -31,7 +31,7 @@ export async function logout(baseUrl: string): AuthResponse {
 
 export async function signup(
   baseUrl: string,
-  body: { email: string; password: string; displayName?: string },
+  body: { email: string; username: string; password: string; displayName?: string | null },
   options?: { locale?: string }
 ): AuthResponse {
   return request(baseUrl, '/auth/signup', {
@@ -65,6 +65,19 @@ export async function resetPassword(
   });
 }
 
+/** Call POST /auth/set-password (set password via token from username-only invite). */
+export async function setPassword(
+  baseUrl: string,
+  body: { token: string; newPassword: string },
+  options?: { locale?: string }
+): AuthResponse {
+  return request(baseUrl, '/auth/set-password', {
+    method: 'POST',
+    body: JSON.stringify(body),
+    locale: options?.locale,
+  });
+}
+
 /** Call POST /auth/change-password (authenticated). Uses cookies by default. */
 export async function changePassword(
   baseUrl: string,
@@ -79,15 +92,29 @@ export async function changePassword(
   });
 }
 
-/** Call PATCH /auth/me to update profile (display name, profile visibility). Uses cookies by default. */
+/** Call PATCH /auth/me to update profile (display name, username). Uses cookies by default. */
 export async function updateProfile(
   baseUrl: string,
-  body: { displayName: string | null },
+  body: { displayName?: string | null; username?: string | null },
   options?: { token?: string | null }
 ): AuthResponse {
   return request(baseUrl, '/auth/me', {
     method: 'PATCH',
     body: JSON.stringify(body),
+    token: options?.token ?? undefined,
+  });
+}
+
+export type UsernameAvailableData = { available: boolean };
+
+/** Call GET /auth/username-available?username=... to check availability. Optional token for auth (own username then considered available). */
+export async function usernameAvailable(
+  baseUrl: string,
+  username: string,
+  options?: { token?: string | null }
+): Promise<ApiResponse<UsernameAvailableData>> {
+  const encoded = encodeURIComponent(username.trim());
+  return request<UsernameAvailableData>(baseUrl, `/auth/username-available?username=${encoded}`, {
     token: options?.token ?? undefined,
   });
 }

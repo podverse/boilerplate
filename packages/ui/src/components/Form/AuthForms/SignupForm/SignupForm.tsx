@@ -11,16 +11,19 @@ import type { FormLinkComponent } from '../../Form';
 
 export type SignupFormProps = {
   email: string;
+  username: string;
   password: string;
   confirmPassword: string;
   displayName: string;
   onEmailChange: (value: string) => void;
+  onUsernameChange: (value: string) => void;
   onPasswordChange: (value: string) => void;
   onConfirmPasswordChange: (value: string) => void;
   onDisplayNameChange: (value: string) => void;
   onSubmit: (e: React.SubmitEvent<HTMLFormElement>) => void;
   loading: boolean;
   emailError?: string | null;
+  usernameError?: string | null;
   passwordError?: string | null;
   confirmError?: string | null;
   submitError?: string | null;
@@ -31,16 +34,19 @@ export type SignupFormProps = {
 
 export function SignupForm({
   email,
+  username,
   password,
   confirmPassword,
   displayName,
   onEmailChange,
+  onUsernameChange,
   onPasswordChange,
   onConfirmPasswordChange,
   onDisplayNameChange,
   onSubmit,
   loading,
   emailError,
+  usernameError,
   passwordError,
   confirmError,
   submitError,
@@ -58,6 +64,16 @@ export function SignupForm({
         placeholder={t('placeholderEmail')}
         error={emailError}
         autoComplete="email"
+        disabled={loading}
+      />
+      <Input
+        label={t('username')}
+        type="text"
+        value={username}
+        onChange={onUsernameChange}
+        placeholder={t('placeholderUsername')}
+        error={usernameError}
+        autoComplete="username"
         disabled={loading}
       />
       <Input

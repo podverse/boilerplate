@@ -26,16 +26,20 @@ export type EventsTableWithFilterProps = {
   filterableColumnIds?: string[];
   /** Rendered on the same row as the filter (e.g. sort select). */
   trailingToolbar?: React.ReactNode;
+  sortPrefsCookieName?: string;
+  sortPrefsListKey?: string;
 };
 
 export function EventsTableWithFilter(props: EventsTableWithFilterProps) {
-  const { sort, trailingToolbar, ...rest } = props;
+  const { sort, trailingToolbar, sortPrefsCookieName, sortPrefsListKey, ...rest } = props;
   const extraPaginationParams = sort === 'oldest' ? { sort: 'oldest' } : undefined;
   return (
     <TableWithFilter
       {...rest}
       extraPaginationParams={extraPaginationParams}
       trailingToolbar={trailingToolbar}
+      sortPrefsCookieName={sortPrefsCookieName}
+      sortPrefsListKey={sortPrefsListKey}
     />
   );
 }

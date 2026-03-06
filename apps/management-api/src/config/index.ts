@@ -27,4 +27,6 @@ export const config = {
     getEnv('MANAGEMENT_COOKIE_SAME_SITE'),
     'MANAGEMENT_COOKIE_SAME_SITE'
   ),
+  /** Main web app base URL (optional). Used to build set-password link for username-only users. */
+  webAppUrl: getEnvOptional('WEB_APP_URL'),
 };

@@ -30,7 +30,13 @@ export class BucketService {
         ? options.sortBy
         : 'name';
     const orderDir: 'ASC' | 'DESC' =
-      options?.sortOrder === 'asc' ? 'ASC' : options?.sortOrder === 'desc' ? 'DESC' : 'DESC';
+      options?.sortOrder === 'asc'
+        ? 'ASC'
+        : options?.sortOrder === 'desc'
+          ? 'DESC'
+          : orderBy === 'createdAt'
+            ? 'DESC'
+            : 'ASC';
     const qb = repo
       .createQueryBuilder('bucket')
       .leftJoinAndSelect('bucket.settings', 'settings')
@@ -106,7 +112,13 @@ export class BucketService {
         ? sortBy
         : 'name';
     const orderDir: 'ASC' | 'DESC' =
-      sortOrder === 'asc' ? 'ASC' : sortOrder === 'desc' ? 'DESC' : 'DESC';
+      sortOrder === 'asc'
+        ? 'ASC'
+        : sortOrder === 'desc'
+          ? 'DESC'
+          : orderBy === 'createdAt'
+            ? 'DESC'
+            : 'ASC';
     const qb = repo
       .createQueryBuilder('bucket')
       .leftJoinAndSelect('bucket.settings', 'settings')

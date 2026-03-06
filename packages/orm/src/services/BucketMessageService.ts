@@ -10,17 +10,23 @@ export class BucketMessageService {
   /**
    * List messages in a bucket with optional pagination.
    * When publicOnly is true, only rows with is_public = true are returned.
+   * order: 'DESC' = recent first (default), 'ASC' = oldest first.
    */
   static async findByBucketId(
     bucketId: string,
-    options: { limit?: number; offset?: number; publicOnly?: boolean } = {}
+    options: {
+      limit?: number;
+      offset?: number;
+      publicOnly?: boolean;
+      order?: 'ASC' | 'DESC';
+    } = {}
   ): Promise<BucketMessage[]> {
     const repo = appDataSourceRead.getRepository(BucketMessage);
-    const { limit = 50, offset = 0, publicOnly = false } = options;
+    const { limit = 50, offset = 0, publicOnly = false, order = 'DESC' } = options;
     const qb = repo
       .createQueryBuilder('msg')
       .where('msg.bucket_id = :bucketId', { bucketId })
-      .orderBy('msg.created_at', 'DESC')
+      .orderBy('msg.created_at', order)
       .take(limit)
       .skip(offset);
     if (publicOnly) {

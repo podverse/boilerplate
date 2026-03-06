@@ -46,7 +46,7 @@ async function trySessionRestore(
   let body: {
     user?: {
       id?: string;
-      email?: string;
+      username?: string;
       displayName?: string | null;
       isSuperAdmin?: boolean;
       permissions?: unknown;
@@ -58,13 +58,13 @@ async function trySessionRestore(
     return { response: NextResponse.next(), hasRestoredSession: false };
   }
   const user = body?.user;
-  if (user === undefined || typeof user.id !== 'string' || typeof user.email !== 'string') {
+  if (user === undefined || typeof user.id !== 'string' || typeof user.username !== 'string') {
     return { response: NextResponse.next(), hasRestoredSession: false };
   }
 
   const authUser = JSON.stringify({
     id: user.id,
-    email: user.email,
+    username: user.username,
     displayName: user.displayName ?? null,
     isSuperAdmin: user.isSuperAdmin === true,
     permissions: user.permissions ?? null,

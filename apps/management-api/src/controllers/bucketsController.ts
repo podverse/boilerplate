@@ -1,5 +1,10 @@
 import type { Request, Response } from 'express';
-import { DEFAULT_PAGE_LIMIT, MAX_PAGE_SIZE, MAX_TOTAL_CAP } from '@boilerplate/helpers';
+import {
+  DEFAULT_PAGE_LIMIT,
+  formatUserLabel,
+  MAX_PAGE_SIZE,
+  MAX_TOTAL_CAP,
+} from '@boilerplate/helpers';
 import { BucketMessageService, BucketService, UserService } from '@boilerplate/orm';
 import type { Bucket } from '@boilerplate/orm';
 
@@ -44,14 +49,14 @@ export async function listBuckets(req: Request, res: Response): Promise<void> {
 }
 
 function formatOwnerDisplayName(owner: {
-  credentials?: { email?: string };
+  credentials?: { email?: string | null; username?: string | null };
   bio?: { displayName?: string | null } | null;
 }): string {
-  const email = owner.credentials?.email ?? '';
-  const displayName = owner.bio?.displayName?.trim();
-  return displayName !== undefined && displayName !== '' && displayName !== null
-    ? `${displayName} (${email})`
-    : email;
+  return formatUserLabel({
+    username: owner.credentials?.username ?? null,
+    email: owner.credentials?.email ?? null,
+    displayName: owner.bio?.displayName ?? null,
+  });
 }
 
 /** Resolve bucket by shortId or UUID. Use for all :id and :bucketId params so URLs can use short IDs. */

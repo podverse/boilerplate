@@ -94,12 +94,12 @@ export function BucketMessageEditClient({
             </Text>
           )}
           <FormActions>
-            <Button type="submit" variant="primary" loading={loading}>
-              {t('saveChanges')}
-            </Button>
             <ButtonLink href={messagesRoute} variant="secondary">
               {t('cancel')}
             </ButtonLink>
+            <Button type="submit" variant="primary" loading={loading}>
+              {t('saveChanges')}
+            </Button>
           </FormActions>
         </Stack>
       </FormContainer>

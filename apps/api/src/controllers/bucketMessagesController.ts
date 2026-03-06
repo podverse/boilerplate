@@ -37,10 +37,13 @@ export async function listMessages(req: Request, res: Response): Promise<void> {
   const page = Math.max(1, Number(req.query.page) || 1);
   const limit = Math.min(MAX_PAGE_SIZE, Math.max(1, Number(req.query.limit) || DEFAULT_PAGE_LIMIT));
   const offset = (page - 1) * limit;
+  const sortRaw = typeof req.query.sort === 'string' ? req.query.sort : undefined;
+  const order = sortRaw === 'oldest' ? 'ASC' : 'DESC';
   const messages = await BucketMessageService.findByBucketId(bucket.id, {
     limit,
     offset,
     publicOnly: false,
+    order,
   });
   const total = await BucketMessageService.countByBucketId(bucket.id, false);
   const totalPages = Math.max(1, Math.ceil(total / limit));
@@ -221,10 +224,13 @@ export async function listPublicMessages(req: Request, res: Response): Promise<v
   const page = Math.max(1, Number(req.query.page) || 1);
   const limit = Math.min(MAX_PAGE_SIZE, Math.max(1, Number(req.query.limit) || DEFAULT_PAGE_LIMIT));
   const offset = (page - 1) * limit;
+  const sortRaw = typeof req.query.sort === 'string' ? req.query.sort : undefined;
+  const order = sortRaw === 'oldest' ? 'ASC' : 'DESC';
   const messages = await BucketMessageService.findByBucketId(bucket.id, {
     limit,
     offset,
     publicOnly: true,
+    order,
   });
   const total = await BucketMessageService.countByBucketId(bucket.id, true);
   const totalPages = Math.max(1, Math.ceil(total / limit));

@@ -12,13 +12,15 @@ const ADMIN_CRUD_READ = CRUD_BITS.read;
 function mainAppUserToJson(user: UserWithRelations): {
   id: string;
   shortId: string;
-  email: string;
+  email: string | null;
+  username: string | null;
   displayName: string | null;
 } {
   return {
     id: user.id,
     shortId: user.shortId,
-    email: user.credentials.email,
+    email: user.credentials.email ?? null,
+    username: user.credentials.username ?? null,
     displayName: user.bio?.displayName ?? null,
   };
 }

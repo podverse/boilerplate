@@ -19,6 +19,8 @@ export type SelectProps = Omit<
   onChange: (value: string) => void;
   /** When true, select width is sized to the selected option (CSS field-sizing: content). */
   sizeToSelected?: boolean;
+  /** When "tab", styles the select to match navigation tabs (pill shape, chip colors, same size). "tabTransparent" is like tab but with transparent background (e.g. for sort dropdowns). */
+  variant?: 'default' | 'tab' | 'tabTransparent';
 };
 
 export function Select({
@@ -30,6 +32,7 @@ export function Select({
   className = '',
   disabled = false,
   sizeToSelected = false,
+  variant = 'default',
   'aria-label': ariaLabel,
   ...props
 }: SelectProps) {
@@ -39,10 +42,21 @@ export function Select({
   const wrapperClassName = [
     styles.wrapper,
     sizeToSelected ? styles.wrapperSizeToSelected : '',
+    variant === 'tab' ? styles.wrapperTab : '',
+    variant === 'tabTransparent' ? styles.wrapperTabTransparent : '',
     className,
   ]
     .filter(Boolean)
     .join(' ');
+
+  const selectClassName =
+    variant === 'tab'
+      ? styles.selectTab
+      : variant === 'tabTransparent'
+        ? styles.selectTabTransparent
+        : sizeToSelected
+          ? styles.selectSizeToSelected
+          : styles.select;
 
   return (
     <div className={wrapperClassName}>
@@ -56,7 +70,7 @@ export function Select({
         value={value}
         onChange={(e) => onChange(e.target.value)}
         disabled={disabled}
-        className={sizeToSelected ? styles.selectSizeToSelected : styles.select}
+        className={selectClassName}
         aria-label={ariaLabel ?? label}
         {...props}
       >

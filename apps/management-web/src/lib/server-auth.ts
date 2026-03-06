@@ -10,7 +10,7 @@ import { getCookieHeader } from './server-request';
 
 export type ServerUser = {
   id: string;
-  email: string;
+  username: string;
   displayName: string | null;
   isSuperAdmin: boolean;
   permissions?: ManagementUserPermissions | null;
@@ -27,17 +27,17 @@ function parseAuthUserHeader(value: string | null): ServerUser | null {
   try {
     const parsed = JSON.parse(value) as {
       id?: string;
-      email?: string;
+      username?: string;
       displayName?: string | null;
       isSuperAdmin?: boolean;
       permissions?: ManagementUserPermissions | null;
     };
-    if (typeof parsed.id !== 'string' || typeof parsed.email !== 'string') {
+    if (typeof parsed.id !== 'string' || typeof parsed.username !== 'string') {
       return null;
     }
     return {
       id: parsed.id,
-      email: parsed.email,
+      username: parsed.username,
       displayName: parsed.displayName ?? null,
       isSuperAdmin: parsed.isSuperAdmin === true,
       permissions: parsed.permissions ?? null,
@@ -82,7 +82,7 @@ export async function getServerUser(): Promise<ServerUser | null> {
     const data = res.data as {
       user?: {
         id: string;
-        email: string;
+        username: string;
         displayName?: string;
         isSuperAdmin?: boolean;
         permissions?: ManagementUserPermissions | null;
@@ -94,7 +94,7 @@ export async function getServerUser(): Promise<ServerUser | null> {
 
     return {
       id: data.user.id,
-      email: data.user.email,
+      username: data.user.username,
       displayName: data.user.displayName ?? null,
       isSuperAdmin: data.user.isSuperAdmin === true,
       permissions: data.user.permissions,

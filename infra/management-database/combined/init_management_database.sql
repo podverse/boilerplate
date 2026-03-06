@@ -1,10 +1,9 @@
--- Combined migrations generated Thu Mar  5 16:39:53 CST 2026
+-- Combined migrations generated Fri Mar  6 15:24:18 CST 2026
 -- DO NOT EDIT - regenerate with scripts/database/combine-migrations.sh
 
 -- Including: 0000_management_helpers.sql
 -- 0000 migration: domains for management_user_credentials and management_user_bio (lengths align with @boilerplate/helpers)
 
-CREATE DOMAIN varchar_email AS VARCHAR(255) CHECK (VALUE ~ '^.+@.+\..+$');
 CREATE DOMAIN varchar_password AS VARCHAR(60);
 CREATE DOMAIN varchar_short AS VARCHAR(50);
 CREATE DOMAIN server_time_with_default AS TIMESTAMP DEFAULT NOW();
@@ -24,10 +23,10 @@ CREATE TABLE IF NOT EXISTS management_user (
 -- At most one row with is_super_admin = true
 CREATE UNIQUE INDEX IF NOT EXISTS idx_one_super_admin ON management_user(is_super_admin) WHERE is_super_admin = true;
 
--- Credentials: email and password (1:1 with management_user)
+-- Credentials: username and password (1:1 with management_user); management-web auth is username-only
 CREATE TABLE IF NOT EXISTS management_user_credentials (
     management_user_id UUID PRIMARY KEY REFERENCES management_user(id) ON DELETE CASCADE,
-    email varchar_email UNIQUE NOT NULL,
+    username varchar_short UNIQUE NOT NULL,
     password_hash varchar_password NOT NULL
 );
 
@@ -55,20 +54,6 @@ CREATE TABLE IF NOT EXISTS admin_permissions (
     bucket_messages_crud INTEGER NOT NULL DEFAULT 0 CHECK (bucket_messages_crud >= 0 AND bucket_messages_crud <= 15),
     bucket_admins_crud INTEGER NOT NULL DEFAULT 0 CHECK (bucket_admins_crud >= 0 AND bucket_admins_crud <= 15),
     event_visibility TEXT NOT NULL DEFAULT 'all_admins' CHECK(event_visibility IN ('own', 'all_admins', 'all'))
-);
-
-
--- Custom management-admin roles. Predefined roles are in code; this stores user-defined roles.
-CREATE TABLE IF NOT EXISTS management_admin_role (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    name varchar_short NOT NULL UNIQUE,
-    admins_crud INTEGER NOT NULL CHECK (admins_crud >= 0 AND admins_crud <= 15),
-    users_crud INTEGER NOT NULL CHECK (users_crud >= 0 AND users_crud <= 15),
-    buckets_crud INTEGER NOT NULL CHECK (buckets_crud >= 0 AND buckets_crud <= 15),
-    bucket_messages_crud INTEGER NOT NULL CHECK (bucket_messages_crud >= 0 AND bucket_messages_crud <= 15),
-    bucket_admins_crud INTEGER NOT NULL CHECK (bucket_admins_crud >= 0 AND bucket_admins_crud <= 15),
-    event_visibility TEXT NOT NULL CHECK(event_visibility IN ('own', 'all_admins', 'all')),
-    created_at server_time_with_default NOT NULL
 );
 
 
@@ -108,5 +93,22 @@ CREATE TABLE management_refresh_token (
 CREATE UNIQUE INDEX idx_management_refresh_token_hash ON management_refresh_token(token_hash);
 CREATE INDEX idx_management_refresh_token_expires_at ON management_refresh_token(expires_at);
 CREATE INDEX idx_management_refresh_token_user_id ON management_refresh_token(management_user_id);
+
+
+-- Including: 0005_management_admin_role.sql
+-- 0005 migration: management_admin_role - custom role templates for management admins
+
+-- Custom management-admin roles. Predefined roles are in code; this stores user-defined roles.
+CREATE TABLE management_admin_role (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    name varchar_short NOT NULL UNIQUE,
+    admins_crud INTEGER NOT NULL CHECK (admins_crud >= 0 AND admins_crud <= 15),
+    users_crud INTEGER NOT NULL CHECK (users_crud >= 0 AND users_crud <= 15),
+    buckets_crud INTEGER NOT NULL CHECK (buckets_crud >= 0 AND buckets_crud <= 15),
+    bucket_messages_crud INTEGER NOT NULL CHECK (bucket_messages_crud >= 0 AND bucket_messages_crud <= 15),
+    bucket_admins_crud INTEGER NOT NULL CHECK (bucket_admins_crud >= 0 AND bucket_admins_crud <= 15),
+    event_visibility TEXT NOT NULL CHECK(event_visibility IN ('own', 'all_admins', 'all')),
+    created_at server_time_with_default NOT NULL
+);
 
 

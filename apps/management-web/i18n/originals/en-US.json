@@ -141,7 +141,7 @@
       "funnelButtonLabel": "Choose which columns to search"
     },
     "adminsTable": {
-      "email": "Email",
+      "username": "Username",
       "displayName": "Display name",
       "actions": "Actions",
       "view": "View",
@@ -162,7 +162,7 @@
       "customRoleOptionLabel": "Custom Role",
       "customRoleLabel": "Custom (no matching role)",
       "displayName": "Display name",
-      "email": "Email",
+      "username": "Username",
       "password": "Password",
       "passwordEditHint": "Password (leave blank to keep current)",
       "permissions": "Permissions",
@@ -185,13 +185,12 @@
       "createFailed": "Failed to create admin",
       "updateFailed": "Failed to update admin",
       "displayNameRequired": "Display name is required",
-      "emailRequired": "Email is required",
-      "emailInvalid": "Enter a valid email address",
+      "usernameRequired": "Username is required",
+      "usernameInvalid": "Username must be 1–50 characters",
       "passwordRequired": "Password is required",
       "passwordMinLength": "Password must be at least {count} characters",
       "passwordMaxLength": "Password must be no more than {count} characters",
-      "passwordInsecure": "Password must include a mix of letters, numbers, and symbols",
-      "permissionsRequired": "Admin must have at least one permission"
+      "passwordInsecure": "Password must include a mix of letters, numbers, and symbols"
     },
     "confirmDeleteAdmin": {
       "message": "Are you sure you want to delete {name}? This cannot be undone.",
@@ -278,6 +277,7 @@
     "failedToLoadUsers": "Failed to load users",
     "usersTable": {
       "email": "Email",
+      "username": "Username",
       "displayName": "Display name",
       "visibilityYes": "Yes",
       "visibilityNo": "No",
@@ -308,7 +308,23 @@
       "cancel": "Cancel",
       "createFailed": "Failed to create user",
       "updateFailed": "Failed to update user",
-      "changePasswordFailed": "Failed to change password"
+      "changePasswordFailed": "Failed to change password",
+      "createUserWith": "Create user with",
+      "createModeEmailPassword": "Email and password",
+      "createModeUsernameOnly": "Username only (set-password link)",
+      "emailOptional": "Email (optional)",
+      "usernameOptional": "Username (optional)",
+      "emailOrUsernameRequired": "Enter at least one: email or username",
+      "emailOrUsernameHint": "At least one of email or username is required. If you leave password blank, a set-password link will be generated.",
+      "passwordOptional": "Password (optional)",
+      "username": "Username",
+      "usernameRequired": "Username is required",
+      "initialBucketAdmins": "Add as admin to buckets (optional)",
+      "setPasswordLinkLabel": "Set-password link (share with user)",
+      "copyLink": "Copy link",
+      "linkCopied": "Link copied",
+      "backToList": "Back to users",
+      "userCreatedWithLink": "User created. Share the set-password link with them."
     },
     "confirmDeleteUser": {
       "message": "Are you sure you want to delete {name}? This cannot be undone.",
@@ -336,9 +352,11 @@
   "profile": {
     "title": "Profile",
     "profileInformation": "Info",
+    "username": "Username",
     "displayName": "Display name",
     "displayNamePlaceholder": "Your name",
     "email": "Email",
+    "placeholderPassword": "••••••••",
     "changePassword": "Change password",
     "currentPassword": "Current password",
     "newPassword": "New password",
@@ -354,6 +372,10 @@
   },
   "settings": {
     "title": "Settings",
+    "generalTab": "General",
+    "profileTab": "Profile",
+    "passwordTab": "Change password",
+    "preferences": "Preferences",
     "theme": "Theme",
     "currentTheme": "Current theme: {theme}",
     "languages": {
@@ -379,6 +401,10 @@
       "login": {
         "title": "Log in",
         "email": "Email",
+        "emailOrUsername": "Username",
+        "placeholderEmailOrUsername": "username",
+        "username": "Username",
+        "placeholderUsername": "username",
         "password": "Password",
         "placeholderEmail": "you@example.com",
         "placeholderPassword": "••••••••",

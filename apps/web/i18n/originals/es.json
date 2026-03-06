@@ -13,6 +13,11 @@
     "signup": {
       "title": "Registrarse",
       "email": "Correo electrónico",
+      "username": "Nombre de usuario",
+      "placeholderUsername": "johndoe",
+      "usernameRequired": "El nombre de usuario es obligatorio",
+      "usernameMaxLength": "El nombre de usuario debe tener como máximo {max} caracteres",
+      "usernameAlreadyInUse": "Nombre de usuario ya en uso",
       "displayName": "Nombre para mostrar (opcional)",
       "placeholderEmail": "tú@ejemplo.com",
       "placeholderDisplayName": "Tu nombre",
@@ -54,12 +59,20 @@
     "publicYes": "Sí",
     "publicNo": "No",
     "publicLabel": "Público",
+    "publicPage": "Página pública",
     "privateLabel": "Privado",
     "topics": "Cubos",
     "lastMessage": "Último mensaje",
     "created": "Creado",
     "actions": "Acciones",
     "messages": "Mensajes",
+    "messagesSort": {
+      "label": "Ordenar mensajes"
+    },
+    "messagesSortOptions": {
+      "recent": "Recientes",
+      "oldest": "Antiguos"
+    },
     "noMessagesYet": "Aún no hay mensajes.",
     "noPublicMessagesYet": "Aún no hay mensajes públicos.",
     "noBucketsYet": "Aún no hay cubos.",
@@ -209,8 +222,10 @@
       "login": {
         "title": "Iniciar sesión",
         "email": "Correo electrónico",
+        "emailOrUsername": "Correo o nombre de usuario",
         "password": "Contraseña",
         "placeholderEmail": "tú@ejemplo.com",
+        "placeholderEmailOrUsername": "tú@ejemplo.com o nombre de usuario",
         "placeholderPassword": "••••••••",
         "submit": "Iniciar sesión",
         "signUp": "Registrarse",
@@ -219,6 +234,11 @@
       "signup": {
         "title": "Registrarse",
         "email": "Correo electrónico",
+        "username": "Nombre de usuario",
+        "placeholderUsername": "johndoe",
+        "usernameRequired": "El nombre de usuario es obligatorio",
+        "usernameMaxLength": "El nombre de usuario debe tener como máximo {max} caracteres",
+        "usernameAlreadyInUse": "Nombre de usuario ya en uso",
         "displayName": "Nombre para mostrar (opcional)",
         "placeholderEmail": "tú@ejemplo.com",
         "placeholderDisplayName": "Tu nombre",

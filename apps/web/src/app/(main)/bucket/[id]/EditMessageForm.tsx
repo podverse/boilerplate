@@ -109,12 +109,12 @@ export function EditMessageForm({
           </Text>
         )}
         <FormActions>
-          <Button type="submit" variant="primary" loading={loading} disabled={!canSubmit}>
-            {t('save')}
-          </Button>
           <ButtonLink href={cancelHref} variant="secondary">
             {t('cancel')}
           </ButtonLink>
+          <Button type="submit" variant="primary" loading={loading} disabled={!canSubmit}>
+            {t('save')}
+          </Button>
         </FormActions>
       </Stack>
     </FormContainer>

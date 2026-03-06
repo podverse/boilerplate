@@ -69,7 +69,8 @@ async function trySessionRestore(request: NextRequest): Promise<{
     user?: {
       id?: string;
       shortId?: string;
-      email?: string;
+      email?: string | null;
+      username?: string | null;
       displayName?: string | null;
     };
   };
@@ -81,7 +82,14 @@ async function trySessionRestore(request: NextRequest): Promise<{
     return { response: res, hasRestoredSession: false, sessionInvalidated: true };
   }
   const user = body?.user;
-  if (user === undefined || typeof user.id !== 'string' || typeof user.email !== 'string') {
+  if (user === undefined || typeof user.id !== 'string') {
+    const res = NextResponse.next();
+    appendClearSessionCookies(res);
+    return { response: res, hasRestoredSession: false, sessionInvalidated: true };
+  }
+  const hasEmail = user.email !== undefined && user.email !== null && user.email !== '';
+  const hasUsername = user.username !== undefined && user.username !== null && user.username !== '';
+  if (!hasEmail && !hasUsername) {
     const res = NextResponse.next();
     appendClearSessionCookies(res);
     return { response: res, hasRestoredSession: false, sessionInvalidated: true };
@@ -90,7 +98,8 @@ async function trySessionRestore(request: NextRequest): Promise<{
   const authUser = JSON.stringify({
     id: user.id,
     shortId: typeof user.shortId === 'string' ? user.shortId : user.id,
-    email: user.email,
+    email: hasEmail ? user.email : null,
+    username: hasUsername ? user.username : null,
     displayName: user.displayName ?? null,
   });
   const newHeaders = new Headers(request.headers);

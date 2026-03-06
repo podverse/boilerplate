@@ -21,10 +21,10 @@ export type ManagementUserPermissions = {
   eventVisibility: EventVisibility;
 };
 
-/** User returned from GET /auth/me and POST /auth/login (and related admin endpoints). */
+/** User returned from GET /auth/me and POST /auth/login (and related admin endpoints). Management auth is username-only. */
 export type ManagementUser = {
   id: string;
-  email: string;
+  username: string;
   /** Required and unique for admins. */
   displayName: string;
   isSuperAdmin?: boolean;

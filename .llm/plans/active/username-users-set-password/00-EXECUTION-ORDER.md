@@ -41,6 +41,6 @@
 
 - **06** – Everywhere owner/admins are displayed: use “username (displayName)” or
   “username” (no displayName) instead of email. Update management-api
-  formatOwnerDisplayName; apps/web bucket and topic detail pages; packages/ui
+  formatOwnerDisplayName; apps/web bucket detail (and related) pages; packages/ui
   BucketAdminsView; NavBar user label; ensure API responses (userToJson, bucket admins
   list) include username so clients can render consistently.

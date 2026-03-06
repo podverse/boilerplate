@@ -5,7 +5,7 @@
 Everywhere bucket owners and admins are displayed, show **username** and in parentheses
 **display name** when set (i.e. “username (displayName)” or just “username”). For users
 without a username (legacy), fall back to email-based display. Update management-api
-formatOwnerDisplayName; web bucket and topic detail pages; packages/ui BucketAdminsView;
+formatOwnerDisplayName; web bucket detail (and related) pages; packages/ui BucketAdminsView;
 NavBar user label. Ensure API responses (userToJson, bucket admins list) include username
 so clients can render consistently (already in 02).
 
@@ -36,10 +36,10 @@ so clients can render consistently (already in 02).
   userToJson already returns username and email (from 02). No change needed here if
   clients use a shared formatUserLabel with that shape.
 
-### 4. Web bucket and topic detail pages
+### 4. Web bucket detail pages
 
-- In `apps/web/src/app/(main)/bucket/[id]/page.tsx` and
-  `apps/web/src/app/(main)/bucket/[id]/topic/[topicId]/page.tsx`:
+- In `apps/web/src/app/(main)/bucket/[id]/page.tsx` and any other bucket pages where
+  owner/admins are shown (e.g. messages, settings):
   - Replace formatEmailDisplayName / formatAdminLabel usage with the new convention:
     show username (displayName) or username; fallback to email (displayName) or email when
     username is missing. Use the shared formatUserLabel helper or inline the same logic.
@@ -79,7 +79,6 @@ so clients can render consistently (already in 02).
 
 - `apps/management-api/src/controllers/bucketsController.ts` (formatOwnerDisplayName)
 - `apps/web/src/app/(main)/bucket/[id]/page.tsx`
-- `apps/web/src/app/(main)/bucket/[id]/topic/[topicId]/page.tsx`
 - `packages/ui/src/components/bucket/BucketAdminsView/BucketAdminsView.tsx`
 - `packages/ui` (formatUserLabel export if shared)
 - `apps/web/src/app/(main)/bucket/[id]/BucketAdminsClient.tsx`
@@ -89,7 +88,7 @@ so clients can render consistently (already in 02).
 
 ## Verification
 
-- Bucket detail and topic detail: Owner and Admins show “username (displayName)” or
+- Bucket detail (and related pages): Owner and Admins show “username (displayName)” or
   “username”; for users without username, “email (displayName)” or “email”.
 - Management-api bucket list/detail: ownerDisplayName uses same convention.
 - BucketAdminsView in web and any management-web bucket settings: admin list shows

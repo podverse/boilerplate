@@ -9,6 +9,7 @@ import type {
   LoginBody,
   RequestEmailChangeBody,
   ResetPasswordBody,
+  SetPasswordBody,
   SignupBody,
   UpdateProfileBody,
   WithOptionalToken,
@@ -43,9 +44,9 @@ function getCookieOptions() {
 }
 
 export async function login(req: Request, res: Response): Promise<void> {
-  const { email, password } = req.body as LoginBody;
+  const { email: identifier, password } = req.body as LoginBody;
 
-  const user = await UserService.findByEmail(email);
+  const user = await UserService.findByEmailOrUsername(identifier);
   if (user === null) {
     res.status(401).json({ message: AUTH_MESSAGE_INVALID_CREDENTIALS });
     return;
@@ -141,15 +142,22 @@ export async function signup(req: Request, res: Response): Promise<void> {
     return;
   }
 
-  const existing = await UserService.findByEmail(body.email);
-  if (existing !== null) {
+  const existingEmail = await UserService.findByEmail(body.email);
+  if (existingEmail !== null) {
     res.status(201).json({ message: 'Registration complete.' });
+    return;
+  }
+
+  const existingUsername = await UserService.findByUsername(body.username);
+  if (existingUsername !== null) {
+    res.status(409).json({ message: 'Username already in use' });
     return;
   }
 
   const hashed = await hashPassword(body.password);
   const user = await UserService.create({
     email: body.email,
+    username: body.username,
     password: hashed,
     displayName: body.displayName ?? null,
   });
@@ -165,7 +173,10 @@ export async function signup(req: Request, res: Response): Promise<void> {
         getEmailVerifyExpiry(),
         null
       );
-      await sendVerificationEmail(user.credentials.email, rawToken, locale);
+      const email = user.credentials.email;
+      if (email !== null && email !== undefined && email !== '') {
+        await sendVerificationEmail(email, rawToken, locale);
+      }
     } catch {
       // Continue; user is created, verification email best-effort
     }
@@ -212,7 +223,10 @@ export async function forgotPassword(req: Request, res: Response): Promise<void>
         getPasswordResetExpiry(),
         null
       );
-      await sendPasswordResetEmail(user.credentials.email, rawToken, locale);
+      const email = user.credentials.email;
+      if (email !== null && email !== undefined && email !== '') {
+        await sendPasswordResetEmail(email, rawToken, locale);
+      }
     } catch {
       // No enumeration: still return success
     }
@@ -226,6 +240,25 @@ export async function resetPassword(req: Request, res: Response): Promise<void> 
   const { token, newPassword } = req.body as ResetPasswordBody;
   const tokenHash = hashToken(token);
   const consumed = await VerificationTokenService.consumeToken(tokenHash, 'password_reset');
+  if (consumed === null) {
+    res.status(400).json({ message: 'Invalid or expired link' });
+    return;
+  }
+  const locale = resolveLocale(req.get('Accept-Language'));
+  const passwordCheck = validatePassword(newPassword, getPasswordValidationMessages(locale));
+  if (!passwordCheck.valid) {
+    res.status(400).json({ message: passwordCheck.message });
+    return;
+  }
+  const hashed = await hashPassword(newPassword);
+  await UserService.updatePassword(consumed.user.id, hashed);
+  res.status(204).send();
+}
+
+export async function setPassword(req: Request, res: Response): Promise<void> {
+  const { token, newPassword } = req.body as SetPasswordBody;
+  const tokenHash = hashToken(token);
+  const consumed = await VerificationTokenService.consumeToken(tokenHash, 'set_password');
   if (consumed === null) {
     res.status(400).json({ message: 'Invalid or expired link' });
     return;
@@ -307,8 +340,31 @@ export async function updateProfile(req: Request, res: Response): Promise<void> 
     res.status(401).json({ message: 'Authentication required' });
     return;
   }
-  const { displayName } = req.body as UpdateProfileBody;
-  await UserService.updateDisplayName(user.id, displayName ?? null);
+  const body = req.body as UpdateProfileBody;
+  if (body.username !== undefined) {
+    const normalizedUsername =
+      body.username === null || body.username === '' ? null : body.username.trim();
+    if (normalizedUsername === null) {
+      const current = await UserService.findById(user.id);
+      if (
+        current !== null &&
+        (current.credentials.email === null || current.credentials.email === '')
+      ) {
+        res.status(400).json({ message: 'Must have email or username' });
+        return;
+      }
+    } else {
+      const existing = await UserService.findByUsername(normalizedUsername);
+      if (existing !== null && existing.id !== user.id) {
+        res.status(409).json({ message: 'Username already in use' });
+        return;
+      }
+    }
+    await UserService.updateUsername(user.id, normalizedUsername);
+  }
+  if (body.displayName !== undefined) {
+    await UserService.updateDisplayName(user.id, body.displayName ?? null);
+  }
   const updated = await UserService.findById(user.id);
   if (updated !== null) {
     res.status(200).json({ user: userToJson(updated) });
@@ -324,4 +380,21 @@ export function me(req: Request, res: Response): void {
     return;
   }
   res.status(200).json({ user: userToJson(user) });
+}
+
+/**
+ * GET /auth/username-available?username=... — check if username is available.
+ * If authenticated, current user's own username is considered available.
+ */
+export async function usernameAvailable(req: Request, res: Response): Promise<void> {
+  const raw = typeof req.query.username === 'string' ? req.query.username.trim() : '';
+  if (raw === '') {
+    res.status(200).json({ available: false });
+    return;
+  }
+  const existing = await UserService.findByUsername(raw);
+  const currentUserId = req.user?.id;
+  const available =
+    existing === null || (currentUserId !== undefined && existing.id === currentUserId);
+  res.status(200).json({ available });
 }

@@ -148,9 +148,6 @@ export function BucketMessagesClient({
                   </Text>
                 )}
                 <FormActions>
-                  <Button type="submit" variant="primary" loading={loading}>
-                    {t('createMessage')}
-                  </Button>
                   <Button
                     type="button"
                     variant="secondary"
@@ -161,6 +158,9 @@ export function BucketMessagesClient({
                     disabled={loading}
                   >
                     {t('cancel')}
+                  </Button>
+                  <Button type="submit" variant="primary" loading={loading}>
+                    {t('createMessage')}
                   </Button>
                 </FormActions>
               </Stack>

@@ -57,5 +57,5 @@ username to signup (API schema and controller, web form, i18n). Depends on 02.
 **Prompt:** Execute the plan in
 `.llm/plans/active/username-users-set-password/06-bucket-display-username.md`. Use
 username (displayName) instead of email everywhere owners/admins are shown:
-formatUserLabel helper, management-api formatOwnerDisplayName, web bucket/topic pages,
+formatUserLabel helper, management-api formatOwnerDisplayName, web bucket pages,
 BucketAdminsView, NavBar. Depends on 02.
