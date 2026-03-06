@@ -29,12 +29,18 @@
   }
 }
 
+// Single focus ring (consistent with Button, Tabs). Padding + negative margin for breathing room without moving position. Rounded to match dropdown and tabs.
+$brand-focus-padding: $space-2;
+
 .brandWrapper {
   display: flex;
   align-items: center;
   text-decoration: none;
   color: var(--color-text);
   cursor: pointer;
+  padding: $brand-focus-padding;
+  margin: -$brand-focus-padding;
+  border-radius: $radius-md;
 
   &:hover,
   .navBar &:hover {
@@ -42,6 +48,12 @@
     color: var(--color-text);
     opacity: $opacity-hover;
   }
+
+  &:focus {
+    outline: none;
+  }
+
+  @include focus-ring;
 }
 
 .brand {

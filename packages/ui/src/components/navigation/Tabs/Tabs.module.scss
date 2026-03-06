@@ -1,10 +1,12 @@
 @use '../../../styles/variables' as *;
 
+$focus-ring-space: $focus-outline-width + $focus-outline-offset;
+
 .scrollWrap {
   overflow-x: auto;
   overflow-y: hidden;
-  padding: ($focus-outline-width + $focus-outline-offset) 0;
-  margin: -($focus-outline-width + $focus-outline-offset) 0;
+  padding: $focus-ring-space;
+  margin: -$focus-ring-space;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: thin;
 
