@@ -1,5 +1,7 @@
 # Bucket roles – summary
 
+**Completed:** 2026-03-05. All phases (01–05) implemented: predefined and custom roles, bucket_role table and ORM, management-api roles CRUD, Roles tab and role new/edit pages, role dropdown on add/edit admin, helpers-requests, roles-schema-sync skill, API tests, OWNER-AND-ADMINS.md.
+
 ## Scope
 
 Introduce **roles** (predefined and bucket-scoped custom) for bucket admin permissions. Admins
