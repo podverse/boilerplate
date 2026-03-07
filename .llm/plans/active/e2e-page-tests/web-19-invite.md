@@ -1,56 +1,91 @@
-# E2E: Web – Invite acceptance
+# E2E: Web – Invite acceptance – Detailed Plan
 
-## Route
+## Route and objective
 
-(main)/invite/[token].
+- **Route:** `(main)/invite/[token]`.
+- **Objective:** Verify invitation load (bucket name, permissions), accept and reject flows, valid/invalid/expired token handling, unauthenticated login then accept; no token/password leak in UI.
 
-## Layout conditions to test
+## Selector strategy
 
-- When token valid and not expired: invitation details (bucket name, permissions summary); Accept and Reject buttons; or login form if unauthenticated.
-- When invalid/expired: error message (e.g. "Invitation not found or no longer valid"); no accept/reject.
-- Loading state while fetching invitation; no flash of wrong content.
-- Rate limit modal (if shown) when too many requests.
+- Invitation details: bucket name, permissions summary.
+- Accept: `getByRole('button', { name: /accept/i })`.
+- Reject: `getByRole('button', { name: /reject|decline/i })`.
+- Login form (when unauthenticated): email, password, submit.
+- Error message: "Invitation not found or no longer valid" or equivalent.
+- Rate limit modal: when 429.
+
+## Assertion matrix
+
+### Layout
+
+- Valid token: invitation details (bucket name, permissions); Accept and Reject buttons; or login form if unauthenticated.
+- Invalid/expired: error message; no accept/reject.
+- Loading state while fetching; no flash of wrong content.
 - Main nav when logged in; minimal when not.
 
-## Auth / redirect conditions
+### Auth / redirect conditions
 
-- **Valid token, unauthenticated:** Invitation details and login form or prompt to log in; after login, accept/reject available.
-- **Valid token, authenticated (invitee):** Accept and Reject visible; accept adds user as bucket admin and redirects or shows success; reject declines and redirects or shows message.
-- **Invalid token (malformed, wrong format):** Error message (e.g. "Invalid link"); no accept/reject.
-- **Expired or already-used token (404/410):** Error message (e.g. "not found or no longer valid"); no accept/reject.
-- **Authenticated as different user:** Invitation for another user; accept/reject applies to that invitation for current user or appropriate error.
+| Condition | Action | Expected result |
+| --------- |--------|-----------------|
+| Valid token, unauthenticated | Load invite | Details and login prompt; after login accept/reject available. |
+| Valid token, authenticated (invitee) | Load invite | Accept and Reject visible; accept adds user as bucket admin and redirect/success; reject declines and redirect/message. |
+| Invalid token (malformed) | Load invite | Error "Invalid link" or equivalent; no accept/reject. |
+| Expired or already-used token | Load invite | Error "not found or no longer valid"; no accept/reject. |
+| Authenticated as different user | Load invite for another | Accept/reject applies to invitation for current user or appropriate error. |
 
-## Values / display conditions
+### Values / display
 
 - Bucket name and short_id (if shown) match invitation.
-- Permission summary (bucket CRUD, message CRUD) matches invitation payload.
-- After accept: success message or redirect to bucket; user appears as admin in bucket settings.
-- After reject: success message or redirect; invitation invalidated.
-- After accept: user can perform actions per granted CRUD (e.g. open bucket settings, view/edit messages) without extra prompts.
-- No password or invite token echoed in DOM or error messages; token only in URL path where required.
+- Permission summary matches invitation.
+- After accept: success or redirect to bucket; user appears as admin in bucket settings.
+- After reject: success or redirect; invitation invalidated.
+- No token or password in DOM or error message; token only in URL path.
+
+### Interaction
+
+- Accept: assert button disabled or shows loading during request; re-enables after success or error; success → redirect to bucket or success message; failure → error.
+- Reject: assert button disabled or shows loading during request; re-enables after success or error; success → message or redirect; invitation no longer usable.
+- Login (when shown): email/password; success → accept/reject available or auto-continue.
+- Rate limit (429): modal with retry-after; no infinite retry.
+- Link to bucket after accept → bucket detail with correct id.
+- Accessibility: primary actions (Accept, Reject, login submit) focusable; tab order reasonable.
 
 ## CRUD
 
-- **Read:** Invitation fetched by token; displayed data matches API.
-- **Update (accept):** POST accept creates/updates bucket_admin; redirect or success.
-- **Update (reject):** POST reject invalidates invitation; no admin created.
-
-## Functionality / interactions
-
-- Accept: loading state; API success → redirect to bucket or success message; failure → error message.
-- Reject: loading state; API success → message or redirect; invitation no longer usable.
-- Login (when shown): email/password; success → then accept/reject available or auto-continue.
-- Rate limit: modal with retry-after when API returns 429; no infinite retry loop.
-- Link to bucket (after accept): navigates to bucket detail with correct id.
+- **Read:** Invitation by token; displayed data matches API.
+- **Update (accept):** Creates/updates bucket_admin; redirect or success.
+- **Update (reject):** Invalidates invitation; no admin created.
 
 ## Edge / error states
 
-- 404/410 from API: clear "not found or no longer valid" (or translated) message.
+- 404/410: "not found or no longer valid".
 - Network error: "Failed to load invitation" or equivalent; retry possible.
-- Empty token in URL: "Invalid link" or equivalent.
-- Double accept: second request fails gracefully; UI reflects already accepted.
-- Expired token: same as 404/410 handling.
+- Empty token: "Invalid link".
+- Double accept: second request fails; UI reflects already accepted.
+- After accept or reject completes, revisiting the same invite URL shows the invalid/used-link state and does not render accept/reject actions again.
+- Expired token: same as 404/410.
 
-## Data
+## Test data mapping
 
-Use E2E deterministic seed (see [docs/testing/E2E-PAGE-TESTING.md](../../../../docs/testing/E2E-PAGE-TESTING.md)). Create an invitation via API or seed; use valid token for accept/reject flow; use invalid and expired tokens for error states.
+- **Valid token:** Create invitation via API or seed; use token for accept/reject.
+- **Invalid/expired:** Use malformed token or expired/used token for error states.
+- **Invitee:** e2e@example.com; after accept assert user in bucket admins.
+
+## Screenshot and trace checkpoints
+
+- Valid invite loaded: "invite-details-loaded".
+- After accept: "invite-accept-success".
+- After reject: "invite-reject-success".
+- Invalid/expired: "invite-invalid-or-expired".
+- On failure: trace and screenshot.
+
+## Verification commands
+
+- `make e2e_test_web`; invite spec.
+- Requires way to create invitation (API or seed).
+
+## Implementation notes
+
+- Spec: `apps/web/e2e/invite.spec.ts`.
+- Page: `apps/web/src/app/(main)/invite/[token]/page.tsx`.
+- Test: valid accept; valid reject; invalid token; expired token; unauthenticated login then accept; double accept.

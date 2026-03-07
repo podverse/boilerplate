@@ -1,44 +1,61 @@
-# E2E: Management-web – Profile
+# E2E: Management-web – Profile – Detailed Plan
 
-## Route
+## Route and objective
 
-(main)/profile.
+- **Route:** `(main)/profile`.
+- **Objective:** Verify `/profile` performs a single redirect to `/settings`; unauthenticated access redirects to `/login`; no dedicated standalone profile content is asserted.
 
-## Layout conditions to test
+## Selector strategy
 
-- Profile content: display name, email (read-only or editable); or redirect to settings.
-- If profile is separate from settings: form to update display name; main nav visible.
-- If profile redirects to settings: same as mgmt-25 (redirect only; no infinite loop).
+- Redirect target URL (`/settings`) and one stable settings-page element after redirect.
 
-## Auth / redirect conditions
+## Assertion matrix
 
-- **Authenticated admin:** Profile loads or redirects to settings with profile tab.
-- **Unauthenticated:** Redirect to login.
-- **If redirect:** Single redirect to settings (or settings?tab=profile); no loop.
+### Layout
 
-## Values / display conditions
+- Single redirect to `/settings` (or `/login` when unauthenticated); no loop.
+- No dedicated `/profile` content should be asserted before or after redirect.
 
-- Display name and email match current management admin (e.g. e2e-superadmin@example.com, E2E Super Admin).
-- After update (if editable): values persist; next load shows updated data.
+### Auth / redirect conditions
+
+| Condition | Action | Expected result |
+| --------- |--------|-----------------|
+| Authenticated | Visit /profile | Single redirect to `/settings`; settings page loads. |
+| Unauthenticated | Visit /profile | Redirect to /login. |
+
+### Values / display
+
+- Redirect target belongs to the logged-in admin context.
+
+### Interaction
+
+- Single navigation; no loop.
+- Redirect target is `/settings`; further profile edits are covered by the settings plan.
+- Accessibility: primary links (e.g. Settings) focusable; tab order reasonable.
 
 ## CRUD
 
-- **Read:** Current admin data from API.
-- **Update (if editable):** Display name or email change; save persists.
-
-## Functionality / interactions
-
-- If profile page: edit display name; save with loading state; success feedback. Double-click save: only one update.
-- If redirect: navigate to profile → land on settings; profile tab or section visible.
-- Link to settings (if separate): navigates to settings.
-- No password or token exposure.
+- N/A for `/profile`; updates occur on `/settings`.
 
 ## Edge / error states
 
-- API error on save: message; form retained.
-- Session expired: redirect to login.
-- Duplicate display name (if unique): error message.
+- Session expiry: redirect to login.
 
-## Data
+## Test data mapping
 
-Use E2E deterministic seed (see [docs/testing/E2E-PAGE-TESTING.md](../../../../docs/testing/E2E-PAGE-TESTING.md)). Login as e2e-superadmin; assert profile shows correct identity; if editable, test one update.
+- Seeded super admin for authenticated case.
+
+## Screenshot and trace checkpoints
+
+- After redirect to settings: "mgmt-profile-redirected-to-settings".
+- On failure: trace and screenshot.
+
+## Verification commands
+
+- `make e2e_test_management_web`; profile spec.
+
+## Implementation notes
+
+- Spec: `apps/management-web/e2e/profile.spec.ts`.
+- Page: `apps/management-web/src/app/(main)/profile/page.tsx`.
+- This route should be treated as redirect-only; the dedicated settings plan covers the rendered form.

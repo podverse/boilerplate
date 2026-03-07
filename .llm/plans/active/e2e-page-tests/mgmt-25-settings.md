@@ -1,50 +1,77 @@
-# E2E: Management-web – Settings
+# E2E: Management-web – Settings – Detailed Plan
 
-## Route
+## Route and objective
 
-(main)/settings; optional tab or section (e.g. profile, password).
+- **Route:** `(main)/settings`; optional tab param (e.g. profile, password).
+- **Objective:** Verify settings tabs load, profile/password updates persist, validation, and tab state in URL; unauthenticated redirect; super admin vs non–super admin if settings differ by permission.
 
-## Layout conditions to test
+## Selector strategy
 
-- Tabs or sections: Profile, Password (and optionally API tokens, sessions).
-- Active tab content: profile (display name, email), password (current, new, confirm).
-- Save/update buttons per section; main nav visible.
+- Tabs: `getByRole('tab')` or links with tab semantics (Profile, Password, etc.).
+- Profile: display name, username (read-only or editable).
+- Password: current, new, confirm; save button.
+- Save: `getByRole('button', { name: /save|update/i })`.
+- Success/error: `getByRole('alert')` or status region.
 
-## Auth / redirect conditions
+## Assertion matrix
 
-- **Authenticated admin:** Settings load; all tabs accessible.
-- **Unauthenticated:** Redirect to login.
-- **Tab param:** Correct tab shown; invalid tab falls back to default.
+### Layout
 
-## Values / display conditions
+- Tabs or sections (Profile, Password, etc.); active tab content visible.
+- Form fields per tab; save buttons; main nav; settings heading.
 
-- Profile: display name and email match current admin; after update, values persist.
-- Password: no pre-filled passwords; email read-only or editable per design.
-- After update: success feedback; displayed values update.
+### Auth / redirect conditions
+
+| Condition | Action | Expected result |
+| --------- |--------|-----------------|
+| Authenticated | Load /settings | Tabs accessible; forms load. |
+| Unauthenticated | Load /settings | Redirect to /login. |
+| Tab param | ?tab=password | Correct tab active. |
+
+### Values / display
+
+- Profile: display name and username match current admin (seed).
+- Password: no pre-filled passwords.
+- After update: success message; displayed values update.
+
+### Interaction
+
+- Tab switch: URL updates; correct content; no data loss.
+- Profile save: assert submit disabled or shows loading during request; re-enables after success or error; validation; success or error.
+- Password save: current required; new password validation and confirm match; confirm password different from new password: validation error shown, submit blocked; assert submit disabled or shows loading during request; re-enables after success or error; success; re-login with new password works.
+- Double-click save: only one update.
+- Accessibility: primary actions (save buttons, tab links) focusable; tab order reasonable.
 
 ## CRUD
 
 - **Read:** Admin profile from API.
-- **Update (profile):** Display name; save persists.
-- **Update (password):** Current password validated; new password meets policy; save persists; re-login with new password works.
-- **Update (email if supported):** New email with verification or immediate update; no duplicate.
-
-## Functionality / interactions
-
-- Tab switch: URL updates; correct content visible.
-- Profile save: validation; loading state; success or error message. Double-click save: only one update. No password echoed in DOM or error message.
-- Password save: current required; new password policy and confirm; success; re-login works.
-- Links (tokens, sessions): navigate correctly if present.
-- Cancel or back: no unintended save.
+- **Update (profile):** Change display name; save persists.
+- **Update (password):** Current validated; new meets rules; save persists; re-login works.
 
 ## Edge / error states
 
-- Invalid current password: error message; no update.
-- New password policy not met: validation errors.
-- API error: message; form retained.
-- Session expired: redirect to login on save or next action.
-- Duplicate email: error message.
+- Invalid current password: error; no update.
+- New password fails policy: validation errors.
+- API error: error; form retained.
+- Session expired: redirect on save or next action.
 
-## Data
+## Test data mapping
 
-Use E2E deterministic seed (see [docs/testing/E2E-PAGE-TESTING.md](../../../../docs/testing/E2E-PAGE-TESTING.md)). Login as e2e-superadmin; assert profile tab; test one profile and one password update round-trip.
+- **Seeded admin:** e2e-superadmin@example.com; assert profile tab shows correct name/username.
+- **Password update:** New password meeting policy; assert login with new password.
+
+## Screenshot and trace checkpoints
+
+- Settings loaded: "mgmt-settings-tabs".
+- After profile save: "mgmt-settings-profile-saved".
+- On failure: trace and screenshot.
+
+## Verification commands
+
+- `make e2e_test_management_web`; settings spec.
+
+## Implementation notes
+
+- Spec: `apps/management-web/e2e/settings.spec.ts`.
+- Page: `apps/management-web/src/app/(main)/settings/page.tsx` (and SettingsContent).
+- Test: unauthenticated redirect; tab switching; one profile and one password update round-trip.

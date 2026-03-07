@@ -1,53 +1,90 @@
-# E2E: Web – Settings
+# E2E: Web – Settings – Detailed Plan
 
-## Route
+## Route and objective
 
-(main)/settings; optional query tab=general|profile|password|email.
+- **Route:** `(main)/settings`; optional `?tab=general|profile|password|email` (or app equivalents).
+- **Objective:** Verify all tabs load, profile/password/email updates persist, validation, and tab state in URL; unauthenticated redirect.
 
-## Layout conditions to test
+## Selector strategy
 
-- Tabs or sections: General, Profile, Password, Email (or equivalent).
-- Active tab content visible; other tabs switch without full page reload when applicable.
-- Form fields per tab: e.g. display name (profile), current password + new password (password), email change (email).
-- Save/update buttons per section; main nav visible.
-- Title or heading indicates settings.
+- Tabs: `getByRole('tab', { name: /general|profile|password|email/i })` or links with tab semantics.
+- Profile: display name input, email (read-only or editable).
+- Password: current password, new password, confirm; save button.
+- Email: current password, new email; save or "Send verification".
+- Save buttons: `getByRole('button', { name: /save|update/i })`.
+- Success/error: `getByRole('alert')` or status region.
 
-## Auth / redirect conditions
+## Assertion matrix
 
-- **Authenticated user:** Settings load; all tabs accessible.
-- **Unauthenticated user:** Redirect to login; settings not visible.
-- **Tab param:** ?tab=profile|password|email|general shows correct tab; invalid tab falls back to default (e.g. general).
+### Layout
 
-## Values / display conditions
+- Initial load: optionally assert loading or placeholder until settings/tabs load; then assert content replaces it (no permanent loading).
+- Tabs or sections: General, Profile, Password, Email (or equivalents).
+- General tab (if present): locale/language selector visible.
+- Active tab content visible; switching tab updates content without full reload when applicable.
+- Form fields per tab; save/update buttons per section; main nav; settings title/heading.
+- Profile tab: email field read-only (disabled) when not in email-change flow; assert no accidental edit of email from profile tab.
 
-- Profile: display name and email (if shown) match current user from seed or API.
-- General: any app preferences or locale reflect current user.
-- Password/email: no pre-filled passwords; email shown read-only or in form per design.
-- After update: success message or inline feedback; displayed values update.
+### Auth / redirect conditions
+
+| Condition | Action | Expected result |
+| --------- |--------|-----------------|
+| Authenticated | Load /settings | All tabs accessible; forms load. |
+| Unauthenticated | Load /settings | Redirect to login. |
+| Tab param | ?tab=profile | Correct tab active; invalid tab → default. |
+
+### Values / display
+
+- Profile: display name and email match current user (seed).
+- Password/email: no pre-filled passwords; email shown per design.
+- Changing locale (General tab): persists (e.g. cookie); optional: reload or switch tab and assert labels reflect locale where applicable.
+- After update: success message or feedback; displayed values update.
+
+### Interaction
+
+- Tab switch: URL updates (tab param); correct content; no data loss.
+- Profile save: assert submit disabled or shows loading during request; re-enables after success or error; validation (e.g. display name length); success or error.
+- Password save: current password required; new password validation and confirm match; confirm password different from new password: validation error shown, submit blocked; assert submit disabled or shows loading during request; re-enables after success or error; success; re-login with new password works.
+- Email change: current password; new email validation and uniqueness; verification or success message.
+- Links (API tokens, sessions) if present: navigate correctly.
+- Accessibility: primary actions (save buttons, tab links) focusable; tab order reasonable; optional: Enter submits form, Escape closes modal/cancel.
 
 ## CRUD
 
-- **Read:** User profile and preferences loaded from API.
+- **Read:** User profile/preferences from API.
 - **Update (profile):** Change display name; save persists; next load shows new name.
-- **Update (password):** Current password validated; new password meets rules; save persists; re-login with new password works.
-- **Update (email):** Request email change; verification flow or success message; no duplicate email.
-
-## Functionality / interactions
-
-- Tab switch: URL updates (tab param); correct content visible; no data loss.
-- Profile save: validation (e.g. display name length); loading state; success or error message.
-- Password save: current password required; new password validation (length, rules); confirm password match; success and optional redirect to re-login.
-- Email change: current password; new email validation and uniqueness; verification email or success message.
-- Links (e.g. API tokens, sessions) if present: navigate correctly.
+- **Update (password):** Current validated; new meets rules; save persists; re-login works.
+- **Update (email):** Request change; verification or success; no duplicate email.
 
 ## Edge / error states
 
-- Invalid current password: error message; no update.
-- New password does not meet policy: validation errors shown.
+- Invalid current password: error; no update.
+- New password fails policy: validation errors.
 - Email already in use: error message.
-- API error on save: error message; form retained.
-- Session expired during edit: redirect to login on save or next action.
+- API error on save: error; form retained.
+- Session expired: redirect to login on save or next action.
 
-## Data
+## Test data mapping
 
-Use E2E deterministic seed (see [docs/testing/E2E-PAGE-TESTING.md](../../../../docs/testing/E2E-PAGE-TESTING.md)). Login as e2e@example.com; assert profile tab shows correct name/email; test one profile and one password update round-trip.
+- **Seeded user:** e2e@example.com / Test!1Aa; display name from seed.
+- **Profile update:** New display name; assert on reload.
+- **Password update:** New password meeting policy; assert login with new password.
+- **Email:** Use unique email for change; or assert duplicate error with e2e@example.com.
+
+## Screenshot and trace checkpoints
+
+- Settings loaded: "settings-tabs-visible".
+- Profile tab: "settings-profile-tab".
+- After profile save: "settings-profile-saved".
+- Password tab validation: "settings-password-validation".
+- On failure: trace and screenshot.
+
+## Verification commands
+
+- `make e2e_test_web`; settings spec after seed.
+
+## Implementation notes
+
+- Spec: `apps/web/e2e/settings.spec.ts`.
+- Page: `apps/web/src/app/(main)/settings/page.tsx` (and tab content components).
+- Test: unauthenticated redirect; tab switching and URL; one profile save; one password update round-trip; optional email and edge cases.

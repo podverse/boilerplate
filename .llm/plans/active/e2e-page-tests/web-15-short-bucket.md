@@ -1,47 +1,83 @@
-# E2E: Web – Short URL bucket (public)
+# E2E: Web – Short URL bucket (public) – Detailed Plan
 
-## Route
+## Route and objective
 
-(main)/b/[id] — id is bucket short_id (public bucket view).
+- **Route:** `(main)/b/[id]` — id is bucket short_id (public view).
+- **Objective:** Verify public bucket view shows bucket name and public messages only; private bucket redirect or 404; invalid short_id 404; send-message link when allowed; no internal UUID leak.
 
-## Layout conditions to test
+## Selector strategy
+
+- Bucket name/title: heading or prominent text.
+- Messages list: public messages only (or empty state).
+- Send message: `getByRole('link', { name: /send message/i })`.
+- No main app nav for anonymous (or minimal); nav when logged in.
+- Use shortId in URL (e.g. from seed e2ebucket00001).
+
+## Assertion matrix
+
+### Layout
 
 - Bucket name or title visible.
-- Public bucket content: e.g. messages list or placeholder when public; or read-only view.
-- Link to send message (e.g. "Send message") when allowed.
-- No main app nav (or minimal) for anonymous public view; or nav when logged in.
+- Public bucket content: messages list or placeholder when public; read-only view.
+- Link "Send message" when allowed (public bucket).
+- No full app nav for anonymous; or nav when logged in.
 - No infinite redirect.
 
-## Auth / redirect conditions
+### Auth / redirect conditions
 
-- **Valid public bucket short_id:** Page loads; content visible (messages or empty state).
-- **Valid private bucket short_id:** Redirect to login or 403/404; private content not exposed.
-- **Invalid or non-existent short_id:** notFound (404).
-- **Authenticated user on public bucket:** Same content; possibly additional actions (e.g. send message) or nav.
+| Condition | Action | Expected result |
+| --------- |--------|-----------------|
+| Valid public bucket short_id | Load /b/[shortId] | Page loads; content visible (messages or empty). |
+| Valid private bucket short_id | Load /b/[shortId] | Redirect to login or 403/404; private content not exposed. |
+| Invalid or non-existent short_id | Load /b/invalid | notFound (404). |
+| Authenticated on public bucket | Load /b/[shortId] | Same content; possibly send message or nav. |
 
-## Values / display conditions
+### Values / display
 
 - Bucket name matches seed for that short_id.
-- Public messages (isPublic true) visible; non-public messages hidden from anonymous.
-- Dates and sender names formatted correctly.
-- Empty state when no public messages.
+- Only public messages (isPublic true) visible; non-public hidden from anonymous.
+- Dates and sender names formatted; empty state when no public messages.
+- Public messages respect selected sort order and pagination state.
+
+### Interaction
+
+- Send message link → /b/[id]/send-message (or login then send).
+- No write/edit/delete for anonymous (or clear CTA to log in).
+- Links do not expose internal UUIDs.
+- Sort and pagination (if present): changing sort updates URL and rendered order; pagination preserves selected sort.
+- When no sort param is present and a saved public-message sort preference exists, the page restores the saved sort on first load.
+- Accessibility: primary actions (Send message link) focusable; tab order reasonable.
 
 ## CRUD
 
-- **Read:** Only public data visible; no write without auth (or write via send-message page).
-
-## Functionality / interactions
-
-- Send message link → /b/[id]/send-message (or login then send).
-- No write/edit/delete for anonymous on public view (or clear CTA to log in).
-- Links do not expose internal UUIDs unnecessarily.
+- **Read:** Only public data visible; no write without auth.
 
 ## Edge / error states
 
-- Invalid short_id: notFound; no 500. Invalid short_id format (wrong length, invalid chars): 404 or validation error; no 500.
+- Invalid short_id: notFound; no 500.
+- Wrong length or invalid chars: 404 or validation error.
 - Private bucket: notFound or redirect to login; no content leak.
 - Deleted bucket: notFound.
 
-## Data
+## Test data mapping
 
-Use E2E deterministic seed (see [docs/testing/E2E-PAGE-TESTING.md](../../../../docs/testing/E2E-PAGE-TESTING.md)). Use seeded public bucket short_id (e2ebucket00001); assert name and public message visibility; use private bucket short_id and assert no content or redirect.
+- **Public bucket:** Seeded bucket with short_id (e.g. e2ebucket00001); isPublic true; assert name and public messages.
+- **Private bucket:** Seeded private bucket short_id; assert no content or redirect.
+- **Invalid:** Non-existent short_id → 404.
+
+## Screenshot and trace checkpoints
+
+- Public bucket: "short-bucket-public-view".
+- Empty public messages: "short-bucket-empty-public".
+- Private redirect: "short-bucket-private-redirect".
+- On failure: trace and screenshot.
+
+## Verification commands
+
+- `make e2e_test_web`; short bucket spec.
+
+## Implementation notes
+
+- Spec: `apps/web/e2e/short-bucket.spec.ts` or b.spec.ts.
+- Page: `apps/web/src/app/(main)/b/[id]/page.tsx`.
+- Test: public load; private redirect/404; invalid 404; optional authenticated view.

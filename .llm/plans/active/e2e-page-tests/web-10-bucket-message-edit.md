@@ -1,48 +1,81 @@
-# E2E: Web – Edit bucket message
+# E2E: Web – Edit bucket message – Detailed Plan
 
-## Route
+## Route and objective
 
-(main)/bucket/[id]/messages/[messageId]/edit.
+- **Route:** `(main)/bucket/[id]/messages/[messageId]/edit`.
+- **Objective:** Verify form pre-fill, update persistence, validation (required fields, body max length), cancel and double-submit behavior; 404 for invalid bucket/message; permission (only users with update can edit).
 
-## Layout conditions to test
+## Selector strategy
 
-- Form with fields for sender name, body, isPublic (or equivalent).
-- Save and cancel/back buttons visible.
-- Page title or heading indicates edit message.
-- Main nav visible.
+- Sender name: `getByLabel(/sender|name/i)` or first textbox.
+- Body: `getByLabel(/body|message/i)` or textarea.
+- isPublic: `getByRole('checkbox', { name: /public/i })` or toggle.
+- Save: `getByRole('button', { name: /save|update/i })`.
+- Cancel/back: link to messages list.
+- Validation: `getByRole('alert')` or inline errors.
 
-## Auth / redirect conditions
+## Assertion matrix
 
-- **Authenticated user with update permission:** Form loads; save allowed.
-- **Unauthenticated user:** Redirect to login.
-- **Invalid bucket id or messageId:** notFound (404).
-- **Message not found:** notFound.
-- **No permission:** 403 or redirect; form not editable.
+### Layout
 
-## Values / display conditions
+- Initial load: optionally assert loading or placeholder until message data loads; then assert form pre-filled (no permanent loading).
+- Form: sender name, body, isPublic (or equivalents).
+- Save and cancel/back visible; heading indicates edit message.
+- Bucket context (name or breadcrumb) visible; main nav visible.
 
-- Form pre-filled with current message: sender name, body, isPublic match stored message.
-- Bucket context visible (name or breadcrumb).
+### Auth / redirect conditions
+
+| Condition | Action | Expected result |
+| --------- |--------|-----------------|
+| Authenticated with update permission | Load edit | Form loads; save allowed. |
+| Unauthenticated | Load edit | Redirect to login. |
+| Invalid bucket id or messageId | Load with invalid ids | notFound (404). |
+| No permission | Load edit | 403 or redirect; form not editable. |
+
+### Values / display
+
+- Form pre-filled: sender name, body, isPublic match stored message.
+- Bucket context visible.
+
+### Interaction
+
+- Required fields: body and sender name (if required) validated; empty submit shows errors.
+- Save: assert primary button is disabled or shows loading during request; assert it re-enables after success or error (no stuck loading); success redirect to messages list or detail.
+- Double-click save: only one update; browser back after save: no duplicate submit.
+- Cancel/back → messages list without saving.
+- Body max length (if enforced): when body exceeds bucket max length, submit button disabled or validation error shown; no submit until body within limit.
+- Accessibility: primary actions (save, cancel) focusable; tab order reasonable.
 
 ## CRUD
 
 - **Read:** Pre-fill from API for this message.
-- **Update:** Changing fields and saving persists; message list and detail show updated content; no duplicate message.
-
-## Functionality / interactions
-
-- Required fields: body and sender name (if required) validated; empty submit shows errors.
-- Save: loading state; success redirect to messages list or detail.
-- Double-click save: only one update. Browser back after save: no duplicate submit.
-- Cancel/back → bucket messages list without saving.
-- Body max length (if enforced): validation error when exceeded.
+- **Update:** Change fields and save; message list and detail show updated content; no duplicate.
 
 ## Edge / error states
 
-- API error on save: error message; form data retained.
+- API error on save: error message; form retained.
 - Message deleted elsewhere: 404 or conflict on save; clear message.
 - Invalid messageId: notFound on page load.
 
-## Data
+## Test data mapping
 
-Use E2E deterministic seed (see [docs/testing/E2E-PAGE-TESTING.md](../../../../docs/testing/E2E-PAGE-TESTING.md)). Seed a bucket message or create one; open edit; assert pre-fill and one update round-trip.
+- **Seeded or created message:** Use bucket + message from seed or create in test.
+- **Edit:** Change body and/or isPublic; assert list shows updated content on return.
+- **Invalid messageId:** Non-existent or wrong bucket → 404.
+
+## Screenshot and trace checkpoints
+
+- Form pre-filled: "bucket-message-edit-form".
+- Validation error: "bucket-message-edit-validation".
+- After save: "bucket-message-edit-saved".
+- On failure: trace and screenshot.
+
+## Verification commands
+
+- `make e2e_test_web`; message edit spec.
+
+## Implementation notes
+
+- Spec: `apps/web/e2e/bucket-message-edit.spec.ts`.
+- Page: `apps/web/src/app/(main)/bucket/[id]/messages/[messageId]/edit/page.tsx`.
+- Test: unauthenticated redirect; pre-fill and one update round-trip; validation; invalid id 404.

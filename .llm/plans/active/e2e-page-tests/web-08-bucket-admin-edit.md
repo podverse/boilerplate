@@ -1,48 +1,78 @@
-# E2E: Web – Edit bucket admin
+# E2E: Web – Bucket admin edit – Detailed Plan
 
-## Route
+## Route and objective
 
-(main)/bucket/[id]/settings/admins/[userId]/edit.
+- **Route:** `(main)/bucket/[id]/settings/admins/[userId]/edit`.
+- **Objective:** Verify edit admin form (role select, optional expiry), save and cancel, permission (only bucket admins with update can access), invalid ids 404.
 
-## Layout conditions to test
+## Selector strategy
 
-- Form to edit admin permissions (e.g. bucket CRUD, message CRUD, admin CRUD bitmasks or toggles).
-- Admin identity shown (email or user id); read-only.
-- Save and cancel/back buttons visible.
-- Main nav visible.
+- Role select: `getByLabel(/role/i)` or `getByRole('combobox', { name: /role/i })`.
+- Optional fields: expiry, notes (if present).
+- Save: `getByRole('button', { name: /save|update/i })`.
+- Cancel/back: link to bucket settings or admins list.
+- Error: `getByRole('alert')` or inline.
 
-## Auth / redirect conditions
+## Assertion matrix
 
-- **Authenticated user with admin-management permission:** Form loads; save allowed.
-- **Unauthenticated user:** Redirect to login.
-- **Invalid bucket id or userId:** notFound (404).
-- **No permission to edit this admin:** 403 or redirect; form not editable.
+### Layout
 
-## Values / display conditions
+- Form may not render until roles are loaded from API; assert role dropdown populated before relying on save button.
+- Form: role dropdown (everything, bucket_full, read_everything, bucket_read or app equivalents), optional expiry.
+- Save and cancel visible; heading indicates edit admin.
+- Bucket context (breadcrumb or bucket name) visible.
 
-- Admin email/display name matches userId from seed or API.
-- Current permission toggles/values match stored admin_permissions for this bucket and user.
-- Bucket context (name or breadcrumb) visible.
+### Auth / redirect conditions
+
+| Condition | Action | Expected result |
+| --------- |--------|-----------------|
+| Authenticated, bucket admin with update | Load edit | Form loads; save allowed. |
+| Unauthenticated | Load edit | Redirect to login. |
+| Invalid bucket id or userId | Load with invalid ids | notFound (404). |
+| No permission | Load edit | 403 or redirect. |
+
+### Values / display
+
+- Form pre-filled: selected role and optional expiry match current bucket admin record.
+- Role options from API (predefined + custom); labels/descriptions correct (e.g. Everything, Bucket full, Read everything, Bucket read).
+
+### Interaction
+
+- Change role and save: assert submit button disabled or shows loading during request; assert it re-enables after success or error; bucket admins list shows updated role.
+- Cancel/back → bucket settings or admins without saving.
+- Double-click save: only one update.
+- Validation: required role selected; invalid expiry (if present) shows error.
+- Accessibility: primary actions (save, cancel) focusable; tab order reasonable.
 
 ## CRUD
 
-- **Read:** Form pre-filled with current permissions.
-- **Update:** Changing permissions and saving persists; bucket admin list and next edit load show new values.
-- **Remove admin (if supported):** Delete/remove action; admin no longer in list.
-
-## Functionality / interactions
-
-- Toggle or select each permission; save → success and persisted.
-- Save button: loading state; disable double submit. Double-click save: only one update. Browser back after save: no duplicate submit.
-- Cancel/back → bucket settings or admins list without saving.
-- Validation: at least read on admins or required bits enforced; error shown if invalid.
+- **Read:** Pre-fill from API for this bucket admin.
+- **Update:** Change role (and optional expiry); save persists; list reflects change.
 
 ## Edge / error states
 
-- API error on save: error message; form state retained.
-- Editing own permissions (when restricted): blocked or clear message.
+- API error on save: error message; form retained.
+- User no longer admin: 404 or conflict on save.
 - Invalid userId: notFound.
 
-## Data
+## Test data mapping
 
-Use E2E deterministic seed (see [docs/testing/E2E-PAGE-TESTING.md](../../../../docs/testing/E2E-PAGE-TESTING.md)). Seed a bucket with an admin; open edit for that admin; assert displayed permissions and one update round-trip.
+- **Seeded bucket:** E2E Bucket One with at least one admin (or add in test).
+- **Edit:** Change role from e.g. bucket_read to bucket_full; assert list and re-load form show new role.
+- **Invalid userId:** Non-existent or not in bucket → 404.
+
+## Screenshot and trace checkpoints
+
+- Form loaded: "bucket-admin-edit-form".
+- After save: "bucket-admin-edit-saved".
+- On failure: trace and screenshot.
+
+## Verification commands
+
+- `make e2e_test_web`; bucket admin edit spec.
+
+## Implementation notes
+
+- Spec: `apps/web/e2e/bucket-admin-edit.spec.ts`.
+- Page: `apps/web/src/app/(main)/bucket/[id]/settings/admins/[userId]/edit/page.tsx`.
+- Test: unauthenticated redirect; valid edit and save; invalid ids 404; permission denied.

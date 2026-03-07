@@ -1,36 +1,70 @@
-# E2E: Web – Home (redirect)
+# E2E: Web – Home (redirect) – Detailed Plan
 
-## Route
+## Route and objective
 
-(main)/ — root path.
+- **Route:** `(main)/` — root path.
+- **Objective:** Ensure unauthenticated users are redirected to login and authenticated users to dashboard with no flash of wrong content or redirect loops.
 
-## Layout conditions to test
+## Selector strategy
 
-- No dedicated layout; page performs redirect only. No infinite redirect loop (max one redirect per load).
+- Prefer URL assertions (`toHaveURL`) and optional role/text for final destination (e.g. login form or dashboard heading).
+- Avoid asserting on transient root content; assert only final route and one stable element on destination page.
+- Use `page.goto('/')` then wait for navigation to settle (e.g. `waitForURL` or `expect.toHaveURL` with timeout).
 
-## Auth / redirect conditions
+## Assertion matrix
 
-- **Authenticated user:** Visiting `/` redirects to dashboard (e.g. `/dashboard`) without showing home content.
-- **Unauthenticated user:** Visiting `/` redirects to login (e.g. `/login`) without showing home content.
-- **Redirect target:** Final URL is either dashboard or login; no intermediate flash of wrong content.
+### Layout
 
-## Values / display conditions
+- No dedicated layout for `/`; redirect occurs without rendering persistent root content.
+- After redirect: either login page (form, "Log in" or equivalent) or dashboard (e.g. heading "Dashboard") is visible.
+- No infinite redirect: at most one client-side redirect; no oscillation between routes.
 
-- N/A (redirect-only page; no persistent displayed values).
+### Auth / redirect conditions
+
+| Condition | Action | Expected result |
+| --------- |--------|-----------------|
+| Unauthenticated | Visit `/` | Redirect to `/login` (or path containing `/login`); login form or submit button visible. |
+| Authenticated (seeded user) | Visit `/` | Redirect to `/dashboard` (or path containing `/dashboard`); dashboard heading or main content visible. |
+| Session expired / invalid cookie | Visit `/` | Redirect to login. |
+| Already on login/dashboard | N/A | Covered by above; no double redirect when coming from `/`. |
+
+### Values / display
+
+- N/A for root; assert only destination page shows expected one element (login CTA or dashboard title).
+
+### Interaction
+
+- Single navigation to `/`; no user interaction required for redirect.
+- Browser back after redirect: back goes to previous history entry (e.g. external or login); no loop.
+- Accessibility: primary links focusable; tab order reasonable.
 
 ## CRUD
 
 - N/A.
 
-## Functionality / interactions
-
-- Single navigation to `/` results in exactly one redirect; browser does not oscillate between routes.
-
 ## Edge / error states
 
-- Session expiry or invalid cookie: redirect to login.
-- Network failure during redirect: appropriate error or retry; no infinite loop.
+- Network failure during redirect: appropriate error or retry; no uncaught exception in test.
+- Slow auth check: redirect still completes within test timeout; no intermediate flash of dashboard for unauthenticated user.
 
-## Data
+## Test data mapping
 
-Use E2E deterministic seed (see [docs/testing/E2E-PAGE-TESTING.md](../../../../docs/testing/E2E-PAGE-TESTING.md)). Test both with seeded logged-in user and with no session.
+- **Seeded user:** `e2e@example.com` / `Test!1Aa` (see [E2E-PAGE-TESTING.md](../../../../docs/testing/E2E-PAGE-TESTING.md)).
+- **Unauthenticated:** No session cookie; clear storage or use incognito context.
+- **Authenticated:** Log in via login page or set session cookie before `goto('/')` if supported.
+
+## Screenshot and trace checkpoints
+
+- After redirect: one screenshot for "login-page-after-root-redirect" (unauthenticated) and one for "dashboard-after-root-redirect" (authenticated).
+- On failure: capture trace; assert final URL and one visible element on destination.
+
+## Verification commands
+
+- `make e2e_test_web_home` (includes home spec).
+- Run with E2E seed; no additional fixtures required for home redirect.
+
+## Implementation notes
+
+- Spec file: `apps/web/e2e/home.spec.ts`.
+- Page under test: `apps/web/src/app/(main)/page.tsx` (redirect logic).
+- Test both branches: one test unauthenticated redirect to login; one test authenticated redirect to dashboard (login first, then visit `/`).

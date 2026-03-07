@@ -1,42 +1,75 @@
-# E2E: Management-web – Create bucket
+# E2E: Management-web – Create bucket – Detailed Plan
 
-## Route
+## Route and objective
 
-(main)/buckets/new.
+- **Route:** `(main)/buckets/new`.
+- **Objective:** Verify create-bucket form (name, owner/parent, isPublic as applicable), validation, save and redirect, cancel, double-submit protection; permission (bucketsCrud create); unauthenticated redirect.
 
-## Layout conditions to test
+## Selector strategy
 
-- Form: bucket name, owner (if selectable), isPublic or other options.
-- Submit and cancel/back buttons; main nav visible.
+- Bucket name: `getByLabel(/name|bucket name/i)`.
+- Owner/parent or options: per app (main DB bucket creation may have different fields).
+- Submit: `getByRole('button', { name: /create|save/i })`.
+- Cancel/back: link to buckets list.
+- Validation: `getByRole('alert')` or inline.
 
-## Auth / redirect conditions
+## Assertion matrix
 
-- **Authenticated admin with buckets create:** Form loads; submit allowed.
-- **Unauthenticated:** Redirect to login.
-- **No create permission:** 403 or redirect; form not shown.
+### Layout
 
-## Values / display conditions
+- Form: bucket name and any required options; heading indicates create bucket.
+- Breadcrumbs: present (e.g. Buckets > New bucket); links navigate correctly.
+- Submit and cancel; main nav visible.
 
-- Defaults (e.g. isPublic) match app.
-- After create: redirect to bucket list or detail; new bucket appears with submitted values and correct owner.
+### Auth / redirect conditions
+
+| Condition | Action | Expected result |
+| --------- |--------|-----------------|
+| Authenticated with buckets create | Load /buckets/new | Form loads; submit allowed. |
+| Unauthenticated | Load | Redirect to /login. |
+| No create permission | Load | Redirect back to `/buckets`; create form not shown. |
+
+### Values / display
+
+- After success: redirect to buckets list or bucket detail; new bucket in list with correct name/owner.
+
+### Interaction
+
+- Required name: empty → validation; no submit.
+- Submit: assert primary button is disabled or shows loading during request; assert it re-enables after success or error (no stuck loading); one create on double-click; redirect; new bucket visible.
+- Cancel → buckets list without creating.
+- Browser back after success: no duplicate create.
+- Accessibility: primary actions (submit, cancel) focusable; tab order reasonable.
 
 ## CRUD
 
-- **Create:** Valid submit → bucket created in main DB via management API; redirect; new bucket in list.
-
-## Functionality / interactions
-
-- Required field (name) validated; owner selection if present.
-- Submit: loading state; success redirect; no double submit. Double-click submit: only one bucket created. Browser back after submit: no duplicate create.
-- Cancel → buckets list.
-- Validation errors shown; form retained on error.
+- **Create:** Valid data → bucket created; visible in list.
+- **Validation:** Invalid or empty required → error; no create.
 
 ## Edge / error states
 
-- API error: message; form retained.
-- Duplicate or validation failure: error message.
-- Permission denied: 403 or redirect.
+- API error: error message; form retained.
+- Duplicate name (if enforced): error.
+- Session lost: redirect or error.
 
-## Data
+## Test data mapping
 
-Use E2E deterministic seed (see [docs/testing/E2E-PAGE-TESTING.md](../../../../docs/testing/E2E-PAGE-TESTING.md)). Create bucket with known name; assert it appears in list and has correct owner.
+- **New bucket name:** Unique; assert in list after create.
+- **Permission:** Only when bucketsCrud create (or super admin).
+- **Invalid:** No create permission → 403.
+
+## Screenshot and trace checkpoints
+
+- Form: "mgmt-buckets-new-form".
+- Success: "mgmt-buckets-new-success".
+- On failure: trace and screenshot.
+
+## Verification commands
+
+- `make e2e_test_management_web`; buckets new spec.
+
+## Implementation notes
+
+- Spec: `apps/management-web/e2e/buckets-new.spec.ts`.
+- Page: `apps/management-web/src/app/(main)/buckets/new/page.tsx`.
+- Test: auth redirect; valid create; validation; cancel; permission denied.

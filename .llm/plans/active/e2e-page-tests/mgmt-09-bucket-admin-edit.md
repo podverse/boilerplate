@@ -1,46 +1,75 @@
-# E2E: Management-web – Edit bucket admin
+# E2E: Management-web – Bucket admin edit – Detailed Plan
 
-## Route
+## Route and objective
 
-(main)/bucket/[id]/settings/admins/[userId]/edit.
+- **Route:** `(main)/bucket/[id]/settings/admins/[userId]/edit`.
+- **Objective:** Verify edit bucket-admin form (role select, etc.), save and cancel, permission-based access; 404 for invalid bucket or userId.
 
-## Layout conditions to test
+## Selector strategy
 
-- Form: permission toggles or bitmasks (bucket CRUD, message CRUD, admin CRUD).
-- Admin identity (email/user) read-only; save and cancel.
+- Role select: `getByLabel(/role/i)` or combobox.
+- Save: `getByRole('button', { name: /save|update/i })`.
+- Cancel/back: link to bucket settings or admins list.
+- Error: `getByRole('alert')` or inline.
+
+## Assertion matrix
+
+### Layout
+
+- Form: role dropdown (and any other fields); bucket context visible.
+- Save and cancel; heading edit admin.
 - Main nav visible.
 
-## Auth / redirect conditions
+### Auth / redirect conditions
 
-- **Authenticated admin with admin_crud update:** Form loads; save allowed.
-- **Unauthenticated:** Redirect to login.
-- **Invalid bucket or userId:** notFound (404).
-- **No permission:** 403 or redirect.
+| Condition | Action | Expected result |
+| --------- |--------|-----------------|
+| Authenticated with permission | Load edit | Form loads; save allowed. |
+| Unauthenticated | Load | Redirect to /login. |
+| Invalid bucket id or userId | Load with invalid ids | notFound (404). |
+| Target admin is bucket owner | Load owner edit route | Redirect back to the bucket admins/settings list; owner permissions are not editable. |
+| No permission | Load | 403 or redirect. |
 
-## Values / display conditions
+### Values / display
 
-- Admin email/name matches userId; current permissions pre-filled.
-- After save: permissions persist; bucket admins list shows updated role.
+- Form pre-filled: role and options match current bucket admin.
+- After save: admins list shows updated role.
+
+### Interaction
+
+- Change role and save: assert primary button is disabled or shows loading during request; assert it re-enables after success or error; success; list reflects change.
+- Cancel/back → bucket settings or admins without saving.
+- Double-click save: only one update.
+- Accessibility: primary actions (save, cancel) focusable; tab order reasonable.
 
 ## CRUD
 
 - **Read:** Pre-fill from API.
-- **Update:** Save persists admin_permissions; list and next edit show new values.
-- **Remove (if supported):** Delete admin; admin removed from list.
-
-## Functionality / interactions
-
-- Toggle permissions; save with loading state; success or error message. Double-click save: only one update. Browser back after save: no duplicate submit.
-- Remove admin (if supported): confirmation dialog; cancel leaves admin; confirm removes admin from list.
-- Cancel → bucket settings or admins list.
-- Validation: e.g. at least read on admins; error if invalid.
+- **Update:** Change role; save persists; list reflects.
 
 ## Edge / error states
 
-- API error: message; form retained.
+- API error: error; form retained.
+- User no longer admin: 404 or conflict on save.
 - Invalid userId: notFound.
-- Editing own permissions (when restricted): blocked or clear message.
 
-## Data
+## Test data mapping
 
-Use E2E deterministic seed (see [docs/testing/E2E-PAGE-TESTING.md](../../../../docs/testing/E2E-PAGE-TESTING.md)). Seed bucket with admin; open edit; assert pre-fill and one update round-trip.
+- **Bucket and admin:** Seeded bucket with at least one admin (or add in test).
+- **Edit:** Change role; assert list and re-load show new role.
+- **Invalid ids:** Non-existent → 404.
+
+## Screenshot and trace checkpoints
+
+- Form: "mgmt-bucket-admin-edit-form".
+- After save: "mgmt-bucket-admin-edit-saved".
+- On failure: trace and screenshot.
+
+## Verification commands
+
+- `make e2e_test_management_web`; bucket admin edit spec.
+
+## Implementation notes
+
+- Spec: `apps/management-web/e2e/bucket-admin-edit.spec.ts`.
+- Page: `apps/management-web/src/app/(main)/bucket/[id]/settings/admins/[userId]/edit/page.tsx`.

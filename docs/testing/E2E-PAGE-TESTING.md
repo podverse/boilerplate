@@ -114,14 +114,59 @@ These artifacts are git-ignored (`.artifacts/e2e-reports/`) and should not be co
   - post-action screenshots for user-visible steps (e.g. fill, click, navigation)
 - Screenshots are stored in each test's Playwright output directory and attached to the HTML report for in-context review.
 - Normal targets (`e2e_test_home`, `e2e_test_web`, `e2e_test_management_web`, etc.) do **not** enable this toggle, so runs stay lightweight by default.
+- Screenshot filenames should be deliberately long and human-readable so QA can
+  infer the expected visible state from the filename alone.
 
 ## Deterministic data
 
-- Seed scripts live in `tools/web/` (web E2E) and `tools/management-web/` (management-web
-  E2E). E2E must not rely on faker without a fixed seed; use dedicated E2E seed scripts
-  that insert a fixed set of rows (e.g. one user, two buckets, one child bucket).
-- Same rows and IDs every run so assertions (e.g. “dashboard shows bucket X”) are
-  stable.
+- Seed scripts live in `tools/web/` (web E2E) and `tools/management-web/`
+  (management-web E2E).
+- E2E must not rely on faker without a fixed seed; use dedicated E2E seed
+  scripts plus helper-created fixtures with deterministic names/IDs when the
+  default seed is insufficient.
+- Same rows and IDs every run so assertions remain stable.
+
+### Current canonical seed contents
+
+#### Web seed
+
+- One user:
+  - email: `e2e@example.com`
+  - password: `Test!1Aa`
+  - display name: `E2E User`
+- Two top-level buckets:
+  - `E2E Bucket One` (`isPublic: true`)
+  - `E2E Bucket Two` (`isPublic: false`)
+- No child bucket is created by default.
+
+#### Management-web seed
+
+- One management super admin:
+  - username: `e2e-superadmin`
+  - password: `Test!1Aa`
+  - display name: `E2E Super Admin`
+- No scoped/non-super-admin fixtures are created by default.
+- No extra permission-matrix admins or prebuilt `event_visibility` variants are
+  created by default.
+
+### Fixture policy
+
+- Prefer default seeded rows for read-only happy-path assertions.
+- Use helper-created fixtures for:
+  - child-bucket scenarios
+  - scoped admin / permission-matrix scenarios
+  - extra bucket admins or custom bucket roles
+  - destructive specs that would otherwise mutate shared seed rows
+- If a spec creates mutable data, use a unique naming pattern per test and do
+  not leave later specs dependent on prior mutations.
+
+### Token and one-time-link policy
+
+- Do not seed invite tokens, reset-password tokens, or other one-time tokens.
+- Obtain them via setup helpers, captured mail/test output, or deterministic
+  test-only creation flows.
+- Specs and plans should document the exact acquisition method instead of saying
+  “via seed or API” ambiguously.
 
 ## Ports
 
@@ -162,14 +207,42 @@ Recommended Playwright settings (both web and management-web configs):
 - `screenshot: 'only-on-failure'`
 - `video: 'retain-on-failure'`
 
+### Full-suite report-mode guidance
+
+- The current built-in report-focused Make command is `make e2e_test_home_report`.
+- Future route-cluster or full-suite report-focused commands should follow the
+  same model:
+  - set `E2E_STEP_SCREENSHOTS=true`
+  - write reports under `.artifacts/e2e-reports/<datetime>/<app>/`
+  - keep traces/screenshots attached inside the Playwright report context
+  - rely on `.artifacts/e2e-reports/latest` for the newest run
+  - preserve the 10-run rotation policy
+- When running a single page or route cluster in report mode, keep the artifact
+  layout consistent with the same timestamped bundle structure so QA can review
+  small-scope and full-suite runs the same way.
+
 Reviewer flow:
 
-1. Run `make e2e_test_home_report` (or another report-focused command that sets `E2E_STEP_SCREENSHOTS=true`).
+1. Run `make e2e_test_home_report` (or another report-focused command that sets `E2E_STEP_SCREENSHOTS=true` and writes to the same timestamped report layout).
 2. Open the app-specific HTML report (auto-open is attempted by the command).
 3. Inspect each test's attachments for ordered step screenshots.
 4. Use trace + failure artifacts for debugging when needed.
 5. Verify screenshot content matches expected layout/values/behavior notes from
    the corresponding page test plan.
+
+## Management auth note
+
+- Management-web login uses `username`, not email.
+- Management E2E setup, helpers, and page plans should always call this out
+  explicitly so auth coverage uses the correct identifier field.
+
+## Mutation/isolation rules
+
+- Prefer seeded rows for read-only specs.
+- Create/update/delete specs should use helper-created fixtures or a reseed
+  boundary, not mutate shared seed rows that later specs require.
+- If a destructive flow must touch a seeded row, document the cleanup or reseed
+  boundary in the spec/plan before implementation.
 
 Optional later enhancement: add Allure only if cross-run historical dashboards
 are needed beyond Playwright's default report UX.
