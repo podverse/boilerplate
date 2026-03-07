@@ -30,13 +30,15 @@ export type UserFormProps = {
   mode: 'create' | 'edit';
   userId?: string;
   initialValues?: UserFormInitialValues;
+  /** When set in edit mode, only the profile section or only the change-password section is rendered (for tabbed layout). */
+  activeEditTab?: 'profile' | 'password';
 };
 
 function isValidEmail(value: string): boolean {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
 }
 
-export function UserForm({ mode, userId, initialValues }: UserFormProps) {
+export function UserForm({ mode, userId, initialValues, activeEditTab }: UserFormProps) {
   const router = useRouter();
   const t = useTranslations('common.userForm');
   const apiBaseUrl = getManagementApiBaseUrl();
@@ -303,7 +305,7 @@ export function UserForm({ mode, userId, initialValues }: UserFormProps) {
             )}
           </>
         )}
-        {mode === 'edit' && (
+        {mode === 'edit' && (activeEditTab === undefined || activeEditTab === 'profile') && (
           <>
             <Input
               label={t('email')}
@@ -323,54 +325,58 @@ export function UserForm({ mode, userId, initialValues }: UserFormProps) {
           </>
         )}
 
-        {submitError !== null && (
+        {submitError !== null && (activeEditTab === undefined || activeEditTab === 'profile') && (
           <Text variant="error" role="alert">
             {submitError}
           </Text>
         )}
 
-        <FormActions>
-          <Button
-            type="button"
-            variant="secondary"
-            onClick={() => router.push(ROUTES.USERS)}
-            disabled={loading}
-          >
-            {t('cancel')}
-          </Button>
-          <Button type="submit" variant="primary" loading={loading}>
-            {mode === 'create' ? t('createUser') : t('saveChanges')}
-          </Button>
-        </FormActions>
-
-        {mode === 'edit' && userId !== undefined && (
-          <FormSection title={t('changePassword')}>
-            <Input
-              label={t('newPassword')}
-              type="password"
-              value={newPassword}
-              onChange={setNewPassword}
-              onBlur={() => setNewPasswordTouched(true)}
-              error={newPasswordError}
-              autoComplete="new-password"
-            />
-            {newPassword !== '' && <PasswordStrengthMeter password={newPassword} />}
-            {changePasswordError !== null && (
-              <Text variant="error" role="alert">
-                {changePasswordError}
-              </Text>
-            )}
+        {(activeEditTab === undefined || activeEditTab === 'profile') && (
+          <FormActions>
             <Button
               type="button"
               variant="secondary"
-              onClick={handleChangePassword}
-              loading={changePasswordLoading}
-              disabled={newPassword === '' || !newPasswordValidation.valid}
+              onClick={() => router.push(ROUTES.USERS)}
+              disabled={loading}
             >
-              {t('changePasswordButton')}
+              {t('cancel')}
             </Button>
-          </FormSection>
+            <Button type="submit" variant="primary" loading={loading}>
+              {mode === 'create' ? t('createUser') : t('saveChanges')}
+            </Button>
+          </FormActions>
         )}
+
+        {mode === 'edit' &&
+          userId !== undefined &&
+          (activeEditTab === undefined || activeEditTab === 'password') && (
+            <FormSection title={t('changePassword')}>
+              <Input
+                label={t('newPassword')}
+                type="password"
+                value={newPassword}
+                onChange={setNewPassword}
+                onBlur={() => setNewPasswordTouched(true)}
+                error={newPasswordError}
+                autoComplete="new-password"
+              />
+              {newPassword !== '' && <PasswordStrengthMeter password={newPassword} />}
+              {changePasswordError !== null && (
+                <Text variant="error" role="alert">
+                  {changePasswordError}
+                </Text>
+              )}
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={handleChangePassword}
+                loading={changePasswordLoading}
+                disabled={newPassword === '' || !newPasswordValidation.valid}
+              >
+                {t('changePasswordButton')}
+              </Button>
+            </FormSection>
+          )}
       </Stack>
     </FormContainer>
   );

@@ -1,18 +1,22 @@
 import { notFound, redirect } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
 import { request } from '@boilerplate/helpers-requests';
+import { Breadcrumbs, ContentPageLayout, Link } from '@boilerplate/ui';
+import type { BreadcrumbItem } from '@boilerplate/ui';
+
+import { EditUserPageContent } from './EditUserPageContent';
 import { ResourcePageCard } from '../../../../../components/ResourcePageCard';
-import { UserForm } from '../../../../../components/users/UserForm';
 import type { UserFormInitialValues } from '../../../../../components/users/UserForm';
 import { getServerUser } from '../../../../../lib/server-auth';
 import { getServerManagementApiBaseUrl } from '../../../../../config/env';
 import { getCrudFlags } from '../../../../../lib/main-nav';
-import { ROUTES } from '../../../../../lib/routes';
+import { ROUTES, userViewRoute } from '../../../../../lib/routes';
 import { getCookieHeader } from '../../../../../lib/server-request';
 import type { MainAppUser } from '../../../../../types/management-api';
 
 type EditUserPageProps = {
   params: Promise<{ id: string }>;
+  searchParams?: Promise<{ tab?: string }>;
 };
 
 async function fetchUser(id: string): Promise<{ user: MainAppUser } | null> {
@@ -32,7 +36,23 @@ async function fetchUser(id: string): Promise<{ user: MainAppUser } | null> {
   }
 }
 
-export default async function EditUserPage({ params }: EditUserPageProps) {
+function BreadcrumbLink({
+  href,
+  children,
+  className,
+}: {
+  href: string;
+  children: React.ReactNode;
+  className?: string;
+}) {
+  return (
+    <Link href={href} className={className}>
+      {children}
+    </Link>
+  );
+}
+
+export default async function EditUserPage({ params, searchParams }: EditUserPageProps) {
   const user = await getServerUser();
 
   if (user === null) {
@@ -50,6 +70,10 @@ export default async function EditUserPage({ params }: EditUserPageProps) {
     notFound();
   }
 
+  const resolvedSearch = searchParams !== undefined ? await searchParams : {};
+  const tabParam = resolvedSearch.tab;
+  const activeTab: 'profile' | 'password' = tabParam === 'password' ? 'password' : 'profile';
+
   const mainUser = result.user;
   const initialValues: UserFormInitialValues = {
     email: mainUser.email ?? '',
@@ -59,14 +83,25 @@ export default async function EditUserPage({ params }: EditUserPageProps) {
   const tCommon = await getTranslations('common');
 
   const displayLabel = mainUser.displayName ?? mainUser.username ?? mainUser.email ?? id;
+  const breadcrumbItems: BreadcrumbItem[] = [
+    { label: tCommon('users'), href: ROUTES.USERS },
+    { label: displayLabel, href: userViewRoute(id) },
+    { label: tCommon('edit'), href: undefined },
+  ];
 
   return (
-    <ResourcePageCard
-      title={tCommon('editUserTitle', {
-        name: displayLabel,
-      })}
+    <ContentPageLayout
+      breadcrumbs={<Breadcrumbs items={breadcrumbItems} LinkComponent={BreadcrumbLink} />}
+      contentMaxWidth="form"
     >
-      <UserForm mode="edit" userId={id} initialValues={initialValues} />
-    </ResourcePageCard>
+      <ResourcePageCard
+        title={tCommon('editUserTitle', {
+          name: displayLabel,
+        })}
+        skipContainer
+      >
+        <EditUserPageContent userId={id} initialValues={initialValues} activeTab={activeTab} />
+      </ResourcePageCard>
+    </ContentPageLayout>
   );
 }

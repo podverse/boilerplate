@@ -46,8 +46,13 @@ export function userViewRoute(id: string): string {
   return `/user/${id}`;
 }
 
-export function userEditRoute(id: string): string {
-  return `/user/${id}/edit`;
+/** Edit user page tab; URL param ?tab= for password. Default (no param) = profile. */
+export type EditUserTab = 'profile' | 'password';
+
+export function userEditRoute(id: string, tab?: EditUserTab): string {
+  const base = `/user/${id}/edit`;
+  if (tab === 'password') return `${base}?tab=password`;
+  return base;
 }
 
 /** Build private bucket path from root-to-leaf ancestry. e.g. [a,b,c] -> /bucket/a/bucket/b/bucket/c */

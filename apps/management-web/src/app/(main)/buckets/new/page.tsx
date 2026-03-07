@@ -1,6 +1,9 @@
 import { redirect } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
 import { request } from '@boilerplate/helpers-requests';
+import { Breadcrumbs, ContentPageLayout, Link } from '@boilerplate/ui';
+import type { BreadcrumbItem } from '@boilerplate/ui';
+
 import { ResourcePageCard } from '../../../../components/ResourcePageCard';
 import { BucketForm } from '../../../../components/buckets/BucketForm';
 import { getServerUser } from '../../../../lib/server-auth';
@@ -48,9 +51,35 @@ export default async function NewBucketPage() {
     label: (u.displayName !== null && u.displayName !== '' ? u.displayName : u.email) ?? u.id,
   }));
 
+  const breadcrumbItems: BreadcrumbItem[] = [
+    { label: tCommon('buckets'), href: ROUTES.BUCKETS },
+    { label: tCommon('addBucketTitle'), href: undefined },
+  ];
+
+  function BreadcrumbLink({
+    href,
+    children,
+    className,
+  }: {
+    href: string;
+    children: React.ReactNode;
+    className?: string;
+  }) {
+    return (
+      <Link href={href} className={className}>
+        {children}
+      </Link>
+    );
+  }
+
   return (
-    <ResourcePageCard title={tCommon('addBucketTitle')}>
-      <BucketForm mode="create" ownerOptions={ownerOptions} />
-    </ResourcePageCard>
+    <ContentPageLayout
+      breadcrumbs={<Breadcrumbs items={breadcrumbItems} LinkComponent={BreadcrumbLink} />}
+      contentMaxWidth="form"
+    >
+      <ResourcePageCard title={tCommon('addBucketTitle')} skipContainer>
+        <BucketForm mode="create" ownerOptions={ownerOptions} />
+      </ResourcePageCard>
+    </ContentPageLayout>
   );
 }

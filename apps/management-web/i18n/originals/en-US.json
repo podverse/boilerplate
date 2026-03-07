@@ -112,6 +112,7 @@
     "backToLogin": "Back to log in",
     "appTitle": "boilerplate-management-web",
     "admins": "Admins",
+    "edit": "Edit",
     "events": "Events",
     "loadingAdmins": "Loading admins…",
     "noAdmins": "No admins found.",
@@ -236,7 +237,8 @@
       "view": "View",
       "edit": "Edit",
       "createTopic": "Add bucket",
-      "noBucketsYet": "No buckets yet."
+      "noBucketsYet": "No buckets yet.",
+      "noMessagesYet": "No messages yet."
     },
     "bucketForm": {
       "name": "Name",
@@ -291,6 +293,7 @@
     "viewUserTitle": "View User: {name}",
     "editUserTitle": "Edit User: {name}",
     "userForm": {
+      "profileTab": "Profile",
       "email": "Email",
       "displayNameOptional": "Display name (optional)",
       "password": "Password",

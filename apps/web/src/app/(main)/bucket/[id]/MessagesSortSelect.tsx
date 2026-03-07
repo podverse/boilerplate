@@ -1,7 +1,8 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
-import { Select } from '@boilerplate/ui';
+import { useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { getMessagesSortFromCookie, Select, setMessagesSortInCookie } from '@boilerplate/ui';
 
 function buildMessagesUrl(params: {
   basePath: string;
@@ -26,6 +27,8 @@ export type MessagesSortSelectProps = {
   queryParams?: Record<string, string>;
   label: string;
   sortOptionLabels: { recent: string; oldest: string };
+  /** When set, messages sort (recent/oldest) is persisted and restored when URL has no sort. */
+  sortPrefsCookieName?: string;
 };
 
 export function MessagesSortSelect({
@@ -34,15 +37,34 @@ export function MessagesSortSelect({
   queryParams,
   label,
   sortOptionLabels,
+  sortPrefsCookieName,
 }: MessagesSortSelectProps) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const value = sort === 'oldest' ? 'oldest' : 'recent';
   const options = [
     { value: 'recent', label: sortOptionLabels.recent },
     { value: 'oldest', label: sortOptionLabels.oldest },
   ];
 
+  useEffect(() => {
+    if (
+      sortPrefsCookieName === undefined ||
+      sortPrefsCookieName.trim() === '' ||
+      searchParams.get('sort') !== null
+    ) {
+      return;
+    }
+    const saved = getMessagesSortFromCookie(sortPrefsCookieName);
+    if (saved === 'oldest') {
+      router.replace(buildMessagesUrl({ basePath, sort: 'oldest', queryParams }));
+    }
+  }, [sortPrefsCookieName, basePath, queryParams, searchParams, router]);
+
   const handleChange = (newValue: string) => {
+    if (sortPrefsCookieName !== undefined && sortPrefsCookieName.trim() !== '') {
+      setMessagesSortInCookie(sortPrefsCookieName, newValue === 'oldest' ? 'oldest' : 'recent');
+    }
     const url = buildMessagesUrl({
       basePath,
       sort: newValue,

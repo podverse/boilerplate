@@ -235,7 +235,8 @@
       "view": "",
       "edit": "",
       "createTopic": "",
-      "noBucketsYet": ""
+      "noBucketsYet": "",
+      "noMessagesYet": ""
     },
     "bucketForm": {
       "name": "",
@@ -289,6 +290,7 @@
     "viewUserTitle": "",
     "editUserTitle": "",
     "userForm": {
+      "profileTab": "",
       "email": "",
       "displayNameOptional": "",
       "password": "",

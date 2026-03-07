@@ -235,7 +235,8 @@
       "view": "Ver",
       "edit": "Editar",
       "createTopic": "Añadir cubo",
-      "noBucketsYet": "Aún no hay cubos."
+      "noBucketsYet": "Aún no hay cubos.",
+      "noMessagesYet": "Aún no hay mensajes."
     },
     "bucketForm": {
       "name": "Nombre",
@@ -289,6 +290,7 @@
     "viewUserTitle": "Ver usuario: {name}",
     "editUserTitle": "Editar usuario: {name}",
     "userForm": {
+      "profileTab": "Perfil",
       "email": "Correo electrónico",
       "displayNameOptional": "Nombre para mostrar (opcional)",
       "password": "Contraseña",

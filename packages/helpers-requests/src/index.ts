@@ -83,3 +83,8 @@ export type {
   PredefinedBucketRoleItem,
   UpdateBucketRoleBody,
 } from './management-web/bucketRoles.js';
+export {
+  buildBucketAdminRoleOptions,
+  type BucketAdminRoleOptionShape,
+  type BuildBucketAdminRoleOptionsI18n,
+} from './bucketAdminRoleOptions.js';

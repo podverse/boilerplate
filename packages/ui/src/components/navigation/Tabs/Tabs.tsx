@@ -20,7 +20,12 @@ export type TabsProps = {
   items: TabItem[];
   /** Link component for client-side navigation (e.g. Next.js Link from @boilerplate/ui). */
   LinkComponent: React.ComponentType<TabsLinkComponentProps>;
-  /** Optional: current path for active state. If omitted, uses usePathname() (Next.js). */
+  /**
+   * Current location used for active state. Must equal the href of the tab item for the current tab.
+   * When using exactMatch with URLs that have query params (e.g. ?tab=messages&sort=oldest), pass
+   * the canonical tab href (same as the tab item's href), not the full URL, or no tab will match.
+   * If omitted, uses usePathname() (pathname only, no search).
+   */
   activeHref?: string;
   /** When true, only exact path match is active (no prefix match). Use for sibling tabs under the same base path. */
   exactMatch?: boolean;

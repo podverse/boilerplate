@@ -1,4 +1,5 @@
-import { notFound } from 'next/navigation';
+import { cookies } from 'next/headers';
+import { notFound, redirect } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
 import type { PublicBucket, PublicBucketMessage } from '@boilerplate/helpers-requests';
 import { webBuckets } from '@boilerplate/helpers-requests';
@@ -8,6 +9,7 @@ import {
   ButtonLink,
   ContentPageLayout,
   Divider,
+  getMessagesSortFromCookieValue,
   Pagination,
   SectionWithHeading,
   Stack,
@@ -15,6 +17,7 @@ import {
 import type { BreadcrumbItem } from '@boilerplate/ui';
 import type { BucketMessageListItem } from '@boilerplate/ui';
 
+import { TABLE_SORT_PREFS_COOKIE_NAME } from '../../../../lib/cookies';
 import { getServerApiBaseUrl } from '../../../../lib/server-request';
 import { publicBucketRoute, publicBucketSubmitRoute } from '../../../../lib/routes';
 import { MessagesSortSelect } from '../../bucket/[id]/MessagesSortSelect';
@@ -78,6 +81,19 @@ export default async function PublicBucketPage({
   const page = Math.max(1, parseInt(resolvedSearchParams.page ?? '1', 10) || 1);
   const sort = resolvedSearchParams.sort === 'oldest' ? 'oldest' : 'recent';
 
+  // Server redirect from cookie so first paint has correct sort (no flash).
+  if (resolvedSearchParams.sort === undefined) {
+    const cookieStore = await cookies();
+    const sortPrefsCookieValue = cookieStore.get(TABLE_SORT_PREFS_COOKIE_NAME)?.value;
+    const savedSort = getMessagesSortFromCookieValue(sortPrefsCookieValue);
+    if (savedSort === 'oldest') {
+      const queryParams = new URLSearchParams();
+      queryParams.set('sort', 'oldest');
+      if (page > 1) queryParams.set('page', String(page));
+      redirect(`${publicBucketRoute(id)}?${queryParams.toString()}`);
+    }
+  }
+
   const bucket = await fetchPublicBucket(id);
   if (bucket === null || !bucket.isPublic) {
     notFound();
@@ -128,6 +144,7 @@ export default async function PublicBucketPage({
                 recent: t('messagesSortOptions.recent'),
                 oldest: t('messagesSortOptions.oldest'),
               }}
+              sortPrefsCookieName={TABLE_SORT_PREFS_COOKIE_NAME}
             />
           }
         >

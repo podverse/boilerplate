@@ -1,13 +1,16 @@
 import { notFound, redirect } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
 import { request } from '@boilerplate/helpers-requests';
+import { Breadcrumbs, ContentPageLayout, Link } from '@boilerplate/ui';
+import type { BreadcrumbItem } from '@boilerplate/ui';
+
 import { AdminForm } from '../../../../../components/admins/AdminForm';
 import { ResourcePageCard } from '../../../../../components/ResourcePageCard';
 import type { AdminFormInitialValues } from '../../../../../components/admins/AdminForm';
 import { getServerUser } from '../../../../../lib/server-auth';
 import { getServerManagementApiBaseUrl } from '../../../../../config/env';
 import { getCrudFlags } from '../../../../../lib/main-nav';
-import { ROUTES } from '../../../../../lib/routes';
+import { ROUTES, adminViewRoute } from '../../../../../lib/routes';
 import { getCookieHeader } from '../../../../../lib/server-request';
 import type { ManagementUser } from '../../../../../types/management-api';
 
@@ -60,18 +63,43 @@ export default async function EditAdminPage({ params }: EditAdminPageProps) {
   const canEditPermissions = crud.create || crud.update;
 
   const tCommon = await getTranslations('common');
+  const adminLabel = admin.displayName ?? admin.username;
+  const breadcrumbItems: BreadcrumbItem[] = [
+    { label: tCommon('admins'), href: ROUTES.ADMINS },
+    { label: adminLabel, href: adminViewRoute(id) },
+    { label: tCommon('edit'), href: undefined },
+  ];
+
+  function BreadcrumbLink({
+    href,
+    children,
+    className,
+  }: {
+    href: string;
+    children: React.ReactNode;
+    className?: string;
+  }) {
+    return (
+      <Link href={href} className={className}>
+        {children}
+      </Link>
+    );
+  }
 
   return (
-    <ResourcePageCard
-      title={tCommon('editAdminTitle', { name: admin.displayName ?? admin.username })}
+    <ContentPageLayout
+      breadcrumbs={<Breadcrumbs items={breadcrumbItems} LinkComponent={BreadcrumbLink} />}
+      contentMaxWidth="form"
     >
-      <AdminForm
-        mode="edit"
-        adminId={id}
-        initialValues={initialValues}
-        canEditPermissions={canEditPermissions}
-        targetIsSuperAdmin={admin.isSuperAdmin}
-      />
-    </ResourcePageCard>
+      <ResourcePageCard title={tCommon('editAdminTitle', { name: adminLabel })} skipContainer>
+        <AdminForm
+          mode="edit"
+          adminId={id}
+          initialValues={initialValues}
+          canEditPermissions={canEditPermissions}
+          targetIsSuperAdmin={admin.isSuperAdmin}
+        />
+      </ResourcePageCard>
+    </ContentPageLayout>
   );
 }

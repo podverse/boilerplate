@@ -167,6 +167,16 @@ export type {
   TableHeaderCellProps,
   TableCellProps,
 } from './components/table/Table';
+export { TableWithSort } from './components/table/TableWithSort';
+export type { TableWithSortColumn, TableWithSortProps } from './components/table/TableWithSort';
+export {
+  BUCKET_DETAIL_MESSAGES_KEY,
+  BUCKET_DETAIL_TOPICS_LIST_KEY,
+  getMessagesSortFromCookie,
+  getMessagesSortFromCookieValue,
+  getSortPrefsFromCookieValue,
+  setMessagesSortInCookie,
+} from './components/table/sortPrefsCookie';
 export { TableFilterBar } from './components/table/TableFilterBar';
 export type { TableFilterBarColumn, TableFilterBarProps } from './components/table/TableFilterBar';
 export { TableWithFilter } from './components/table/TableWithFilter';

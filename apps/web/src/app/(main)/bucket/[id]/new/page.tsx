@@ -5,7 +5,7 @@ import type { BreadcrumbItem } from '@boilerplate/ui';
 
 import { fetchBucket } from '../../../../../lib/buckets';
 import { getServerUser } from '../../../../../lib/server-auth';
-import { ROUTES, bucketDetailRoute } from '../../../../../lib/routes';
+import { ROUTES, bucketDetailTabRoute } from '../../../../../lib/routes';
 import { TopicForm } from '../../../buckets/TopicForm';
 
 function BreadcrumbLink({
@@ -37,9 +37,9 @@ export default async function NewChildBucketPage({ params }: { params: Promise<{
   }
 
   const t = await getTranslations('buckets');
-  const bucketHref = bucketDetailRoute(bucketId);
+  const bucketHref = bucketDetailTabRoute(bucketId, 'buckets');
   const breadcrumbItems: BreadcrumbItem[] = [
-    { label: bucket.name, href: bucketHref },
+    { label: bucket.name, href: bucketDetailTabRoute(bucketId) },
     { label: t('createTopic'), href: undefined },
   ];
 

@@ -8,7 +8,7 @@ import type { ManagementBucket } from '@boilerplate/helpers-requests';
 import { getServerUser } from '../../../../../lib/server-auth';
 import { getServerManagementApiBaseUrl } from '../../../../../config/env';
 import { getCrudFlags, hasReadPermission } from '../../../../../lib/main-nav';
-import { ROUTES, bucketViewRoute } from '../../../../../lib/routes';
+import { ROUTES, bucketDetailTabRoute, bucketViewRoute } from '../../../../../lib/routes';
 import { getCookieHeader } from '../../../../../lib/server-request';
 import { NewChildBucketFormClient } from './NewChildBucketFormClient';
 
@@ -71,10 +71,10 @@ export default async function NewChildBucketPage({ params }: { params: Promise<{
 
   const ancestors = await fetchBucketAncestry(bucket);
   const tCommon = await getTranslations('common');
-  const parentHref = bucketViewRoute(bucket.shortId);
+  const parentHref = bucketDetailTabRoute(bucket.shortId, 'buckets');
   const breadcrumbItems: BreadcrumbItem[] = [
     ...ancestors.map((a) => ({ label: a.name, href: bucketViewRoute(a.shortId) })),
-    { label: bucket.name, href: parentHref },
+    { label: bucket.name, href: bucketViewRoute(bucket.shortId) },
     { label: tCommon('bucketDetail.createTopic'), href: undefined },
   ];
 

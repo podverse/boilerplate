@@ -10,11 +10,11 @@ import {
   type BucketAdminRow,
 } from '@boilerplate/ui';
 import {
+  buildBucketAdminRoleOptions,
   managementWebBucketAdmins,
   managementWebBucketRoles,
   type ManagementBucketAdmin,
   type ManagementBucketAdminInvitation,
-  type BucketRoleItem,
 } from '@boilerplate/helpers-requests';
 import { getManagementApiBaseUrl } from '../../../../../config/env';
 import { getWebAppUrl } from '../../../../../config/env';
@@ -49,37 +49,12 @@ function toInvitationRow(inv: ManagementBucketAdminInvitation): BucketAdminInvit
   };
 }
 
-function roleToOption(
-  role: BucketRoleItem,
-  tRoles: (key: string) => string
-): BucketAdminRoleOption {
-  const id = role.id;
-  const label =
-    role.isPredefined && 'nameKey' in role
-      ? (() => {
-          const key = role.nameKey.split('.').pop();
-          return key !== undefined ? tRoles(key) : role.nameKey;
-        })()
-      : 'name' in role
-        ? role.name
-        : id;
-  return {
-    id,
-    label,
-    description:
-      id === 'everything'
-        ? tRoles('descriptionEverything')
-        : id === 'bucket_full'
-          ? tRoles('descriptionBucketFull')
-          : id === 'read_everything'
-            ? tRoles('descriptionReadEverything')
-            : id === 'bucket_read'
-              ? tRoles('descriptionBucketRead')
-              : tRoles('descriptionCustomRole'),
-    bucketCrud: role.bucketCrud,
-    messageCrud: role.messageCrud,
-    adminCrud: role.adminCrud,
-  };
+function getDescriptionForRoleId(roleId: string, tRoles: (key: string) => string): string {
+  if (roleId === 'everything') return tRoles('descriptionEverything');
+  if (roleId === 'bucket_full') return tRoles('descriptionBucketFull');
+  if (roleId === 'read_everything') return tRoles('descriptionReadEverything');
+  if (roleId === 'bucket_read') return tRoles('descriptionBucketRead');
+  return tRoles('descriptionCustomRole');
 }
 
 export function BucketAdminsClient({ bucketId, ownerId }: { bucketId: string; ownerId: string }) {
@@ -107,7 +82,21 @@ export function BucketAdminsClient({ bucketId, ownerId }: { bucketId: string; ow
       setPendingInvitations(invRes.data.invitations.map(toInvitationRow));
     }
     if (rolesRes.ok && rolesRes.data !== undefined) {
-      setRoles(rolesRes.data.roles.map((r) => roleToOption(r, tRoles)));
+      const apiRoles = rolesRes.data.roles;
+      setRoles(
+        buildBucketAdminRoleOptions(apiRoles, {
+          getLabel(role) {
+            if (role.isPredefined && 'nameKey' in role) {
+              const key = role.nameKey.split('.').pop();
+              return key !== undefined ? tRoles(key) : role.nameKey;
+            }
+            return role.name;
+          },
+          getDescription(roleId) {
+            return getDescriptionForRoleId(roleId, tRoles);
+          },
+        })
+      );
     }
     setLoading(false);
   }, [baseUrl, bucketId, tRoles]);

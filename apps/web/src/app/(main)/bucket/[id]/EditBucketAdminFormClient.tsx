@@ -6,46 +6,16 @@ import { useTranslations } from 'next-intl';
 import { EditBucketAdminForm } from '@boilerplate/ui';
 import type { EditBucketAdminFormPayload } from '@boilerplate/ui';
 import type { BucketAdminRoleOption } from '@boilerplate/ui';
-import type { BucketRoleItem } from '@boilerplate/helpers-requests';
+import { buildBucketAdminRoleOptions, type BucketRoleItem } from '@boilerplate/helpers-requests';
 import { getApiBaseUrl } from '../../../../lib/api-client';
 import { bucketSettingsAdminsRoute, bucketSettingsRoleNewRoute } from '../../../../lib/routes';
 
-function roleDescription(roleId: string, t: (key: string) => string): string {
-  if (roleId === 'bucket_full') return t('roleDescriptionBucketFull');
-  if (roleId === 'bucket_read') return t('roleDescriptionBucketRead');
-  return t('roleDescriptionCustomRole');
-}
-
-function roleToOption(
-  role: BucketRoleItem,
-  tRoles: (key: string) => string,
-  tBuckets: (key: string) => string
-): BucketAdminRoleOption | null {
-  if (role.isPredefined && 'nameKey' in role) {
-    if (role.id !== 'bucket_full' && role.id !== 'bucket_read') {
-      return null;
-    }
-    const key = role.nameKey.split('.').pop();
-    const label = key !== undefined ? tRoles(key) : role.id;
-    return {
-      id: role.id,
-      label,
-      description: roleDescription(role.id, tBuckets),
-      bucketCrud: role.bucketCrud,
-      messageCrud: role.messageCrud,
-      adminCrud: role.adminCrud,
-    };
-  }
-
-  const name = role.name;
-  return {
-    id: role.id,
-    label: name,
-    description: tBuckets('roleDescriptionCustomRole'),
-    bucketCrud: role.bucketCrud,
-    messageCrud: role.messageCrud,
-    adminCrud: role.adminCrud,
-  };
+function getDescriptionForRoleId(roleId: string, tRoles: (key: string) => string): string {
+  if (roleId === 'everything') return tRoles('descriptionEverything');
+  if (roleId === 'bucket_full') return tRoles('descriptionBucketFull');
+  if (roleId === 'read_everything') return tRoles('descriptionReadEverything');
+  if (roleId === 'bucket_read') return tRoles('descriptionBucketRead');
+  return tRoles('descriptionCustomRole');
 }
 
 export function EditBucketAdminFormClient({
@@ -84,12 +54,22 @@ export function EditBucketAdminFormClient({
     }
     const data = await res.json().catch(() => ({}));
     const roleList = Array.isArray(data?.roles) ? (data.roles as BucketRoleItem[]) : [];
-    const mapped = roleList
-      .map((role) => roleToOption(role, tRoles, t))
-      .filter((item): item is BucketAdminRoleOption => item !== null);
-    setRoleOptions(mapped);
+    setRoleOptions(
+      buildBucketAdminRoleOptions(roleList, {
+        getLabel(role) {
+          if (role.isPredefined && 'nameKey' in role) {
+            const key = role.nameKey.split('.').pop();
+            return key !== undefined ? tRoles(key) : role.nameKey;
+          }
+          return role.name;
+        },
+        getDescription(roleId) {
+          return getDescriptionForRoleId(roleId, tRoles);
+        },
+      })
+    );
     setLoading(false);
-  }, [bucketId, t, tRoles]);
+  }, [bucketId, tRoles]);
 
   useEffect(() => {
     void loadRoles();

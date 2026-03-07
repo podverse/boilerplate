@@ -1,11 +1,15 @@
+import { cookies } from 'next/headers';
 import { redirect, notFound } from 'next/navigation';
 import { getLocale, getTranslations } from 'next-intl/server';
 import { DEFAULT_PAGE_LIMIT, formatUserLabel } from '@boilerplate/helpers';
 import { formatDateTimeReadable } from '@boilerplate/helpers-i18n';
 import {
+  BUCKET_DETAIL_TOPICS_LIST_KEY,
   Breadcrumbs,
   BucketDetailContent,
   BucketDetailPageLayout,
+  getMessagesSortFromCookieValue,
+  getSortPrefsFromCookieValue,
   Link,
   SectionWithHeading,
 } from '@boilerplate/ui';
@@ -18,6 +22,7 @@ import {
   fetchChildBuckets,
   fetchMessagesPaginated,
 } from '../../../../lib/buckets';
+import { TABLE_SORT_PREFS_COOKIE_NAME } from '../../../../lib/cookies';
 import { getServerUser } from '../../../../lib/server-auth';
 import {
   ROUTES,
@@ -70,12 +75,45 @@ function BreadcrumbLink({
   );
 }
 
+const TOPICS_DEFAULT_SORT_BY = 'name';
+
+function sortChildBuckets<
+  T extends { name: string; lastMessageAt?: string | null; createdAt: string },
+>(buckets: T[], sortBy: string, sortOrder: 'asc' | 'desc'): T[] {
+  const sorted = [...buckets];
+  const dir = sortOrder === 'asc' ? 1 : -1;
+  sorted.sort((a, b) => {
+    if (sortBy === 'name') {
+      return dir * a.name.localeCompare(b.name, undefined, { sensitivity: 'base' });
+    }
+    if (sortBy === 'lastMessage') {
+      const aVal = a.lastMessageAt ?? '';
+      const bVal = b.lastMessageAt ?? '';
+      if (aVal === '' && bVal === '') return 0;
+      if (aVal === '') return 1;
+      if (bVal === '') return -1;
+      return dir * (aVal < bVal ? -1 : aVal > bVal ? 1 : 0);
+    }
+    if (sortBy === 'created') {
+      return dir * (a.createdAt < b.createdAt ? -1 : a.createdAt > b.createdAt ? 1 : 0);
+    }
+    return 0;
+  });
+  return sorted;
+}
+
 export default async function BucketDetailPage({
   params,
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ tab?: string; page?: string; sort?: string }>;
+  searchParams: Promise<{
+    tab?: string;
+    page?: string;
+    sort?: string;
+    sortBy?: string;
+    sortOrder?: string;
+  }>;
 }) {
   const user = await getServerUser();
   if (user === null) {
@@ -86,7 +124,33 @@ export default async function BucketDetailPage({
   const resolvedSearchParams = await searchParams;
   const tab = resolvedSearchParams.tab === 'buckets' ? 'buckets' : 'messages';
   const page = Math.max(1, parseInt(resolvedSearchParams.page ?? '1', 10) || 1);
-  const sort = resolvedSearchParams.sort === 'oldest' ? 'oldest' : 'recent';
+
+  const cookieStore = await cookies();
+  const sortPrefsCookieValue = cookieStore.get(TABLE_SORT_PREFS_COOKIE_NAME)?.value;
+
+  const sort =
+    resolvedSearchParams.sort !== undefined
+      ? resolvedSearchParams.sort === 'oldest'
+        ? 'oldest'
+        : 'recent'
+      : (getMessagesSortFromCookieValue(sortPrefsCookieValue) ?? 'recent');
+
+  const topicsSortBy =
+    tab === 'buckets'
+      ? resolvedSearchParams.sortBy === 'name' ||
+        resolvedSearchParams.sortBy === 'lastMessage' ||
+        resolvedSearchParams.sortBy === 'created'
+        ? resolvedSearchParams.sortBy
+        : (getSortPrefsFromCookieValue(sortPrefsCookieValue, BUCKET_DETAIL_TOPICS_LIST_KEY)
+            ?.sortBy ?? TOPICS_DEFAULT_SORT_BY)
+      : undefined;
+  const topicsSortOrder =
+    tab === 'buckets'
+      ? resolvedSearchParams.sortOrder === 'desc' || resolvedSearchParams.sortOrder === 'asc'
+        ? resolvedSearchParams.sortOrder
+        : (getSortPrefsFromCookieValue(sortPrefsCookieValue, BUCKET_DETAIL_TOPICS_LIST_KEY)
+            ?.sortOrder ?? 'asc')
+      : undefined;
 
   const { bucket } = await fetchBucket(id);
   if (bucket === null) {
@@ -142,7 +206,11 @@ export default async function BucketDetailPage({
       : []),
   ];
 
-  const childBucketsForContent = childBuckets.map((childBucket) => ({
+  const sortedChildBuckets =
+    tab === 'buckets' && topicsSortBy !== undefined && topicsSortOrder !== undefined
+      ? sortChildBuckets(childBuckets, topicsSortBy, topicsSortOrder)
+      : childBuckets;
+  const childBucketsForContent = sortedChildBuckets.map((childBucket) => ({
     id: childBucket.id,
     name: childBucket.name,
     href: bucketDetailRoute(childBucket.shortId),
@@ -171,9 +239,7 @@ export default async function BucketDetailPage({
       : []),
   ];
   const activeHref =
-    tab === 'buckets'
-      ? bucketDetailTabRoute(id, 'buckets')
-      : bucketDetailTabRoute(id, 'messages', page > 1 ? page : undefined, sort);
+    tab === 'buckets' ? bucketDetailTabRoute(id, 'buckets') : bucketDetailRoute(id);
 
   const messagesListItems = messagesResult.messages.map((m) => ({
     id: m.id,
@@ -223,6 +289,7 @@ export default async function BucketDetailPage({
                     recent: t('messagesSortOptions.recent'),
                     oldest: t('messagesSortOptions.oldest'),
                   }}
+                  sortPrefsCookieName={TABLE_SORT_PREFS_COOKIE_NAME}
                 />
               }
             >
@@ -255,6 +322,10 @@ export default async function BucketDetailPage({
         topicsColumnPublic={t('isPublic')}
         topicsColumnActions={t('actions')}
         topicsEmptyMessage={t('noBucketsYet')}
+        topicsSortBy={tab === 'buckets' ? topicsSortBy : undefined}
+        topicsSortOrder={tab === 'buckets' ? topicsSortOrder : undefined}
+        topicsSortBasePath={tab === 'buckets' ? bucketDetailTabRoute(id, 'buckets') : undefined}
+        topicsSortPrefsCookieName={TABLE_SORT_PREFS_COOKIE_NAME}
         wrapInContainer={false}
       />
     </BucketDetailPageLayout>

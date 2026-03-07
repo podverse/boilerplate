@@ -12,6 +12,7 @@ import {
   SectionWithHeading,
   Input,
   Button,
+  PasswordStrengthMeter,
   Text,
   Link,
   Tabs,
@@ -231,6 +232,7 @@ export function SettingsContent({
               disabled={passwordSaving}
               autoComplete="new-password"
             />
+            <PasswordStrengthMeter password={newPassword} />
             <Input
               label={t('confirmNewPassword')}
               type="password"

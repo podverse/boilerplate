@@ -1,16 +1,45 @@
 import { notFound, redirect } from 'next/navigation';
+import { getTranslations } from 'next-intl/server';
 import { request } from '@boilerplate/helpers-requests';
-import type { ManagementBucketMessage } from '@boilerplate/helpers-requests';
+import type { ManagementBucket, ManagementBucketMessage } from '@boilerplate/helpers-requests';
+import { Breadcrumbs, ContentPageLayout, Link } from '@boilerplate/ui';
+import type { BreadcrumbItem } from '@boilerplate/ui';
 
 import { BucketMessageEditClient } from '../../../../../../../components/buckets/BucketMessageEditClient';
 import { getServerUser } from '../../../../../../../lib/server-auth';
 import { getServerManagementApiBaseUrl } from '../../../../../../../config/env';
 import { getCrudFlags, hasReadPermission } from '../../../../../../../lib/main-nav';
 import { ROUTES } from '../../../../../../../lib/routes';
-import { getCookieHeader } from '../../../../../../../lib/server-request';
 import { bucketViewRoute } from '../../../../../../../lib/routes';
+import { getCookieHeader } from '../../../../../../../lib/server-request';
 
 type PageProps = { params: Promise<{ id: string; messageId: string }> };
+
+const requestOptions = { cache: 'no-store' as RequestCache } as const;
+
+async function fetchBucket(id: string): Promise<ManagementBucket | null> {
+  const cookieHeader = await getCookieHeader();
+  const baseUrl = getServerManagementApiBaseUrl();
+  const res = await request(baseUrl, `/buckets/${id}`, {
+    headers: { Cookie: cookieHeader },
+    ...requestOptions,
+  });
+  if (!res.ok || res.data === undefined) return null;
+  const data = res.data as { bucket?: ManagementBucket };
+  return data.bucket ?? null;
+}
+
+async function fetchBucketAncestry(bucket: ManagementBucket): Promise<ManagementBucket[]> {
+  const parents: ManagementBucket[] = [];
+  let parentId = bucket.parentBucketId;
+  while (parentId !== null) {
+    const parent = await fetchBucket(parentId);
+    if (parent === null) break;
+    parents.unshift(parent);
+    parentId = parent.parentBucketId;
+  }
+  return parents;
+}
 
 async function fetchMessage(
   bucketId: string,
@@ -20,11 +49,27 @@ async function fetchMessage(
   const baseUrl = getServerManagementApiBaseUrl();
   const res = await request(baseUrl, `/buckets/${bucketId}/messages/${messageId}`, {
     headers: { Cookie: cookieHeader },
-    cache: 'no-store',
+    ...requestOptions,
   });
   if (!res.ok || res.data === undefined) return null;
   const data = res.data as { message?: ManagementBucketMessage };
   return data.message ?? null;
+}
+
+function BreadcrumbLink({
+  href,
+  children,
+  className,
+}: {
+  href: string;
+  children: React.ReactNode;
+  className?: string;
+}) {
+  return (
+    <Link href={href} className={className}>
+      {children}
+    </Link>
+  );
 }
 
 export default async function BucketMessageEditPage({ params }: PageProps) {
@@ -43,17 +88,33 @@ export default async function BucketMessageEditPage({ params }: PageProps) {
   const { id: bucketId, messageId } = await params;
   if (!canReadMessages) redirect(bucketViewRoute(bucketId));
 
-  const message = await fetchMessage(bucketId, messageId);
-  if (message === null) notFound();
+  const [bucket, message] = await Promise.all([
+    fetchBucket(bucketId),
+    fetchMessage(bucketId, messageId),
+  ]);
+  if (bucket === null || message === null) notFound();
+
+  const ancestors = await fetchBucketAncestry(bucket);
+  const tMessages = await getTranslations('common.bucketMessages');
+  const breadcrumbItems: BreadcrumbItem[] = [
+    ...ancestors.map((a) => ({ label: a.name, href: bucketViewRoute(a.shortId) })),
+    { label: bucket.name, href: bucketViewRoute(bucketId) },
+    { label: tMessages('edit'), href: undefined },
+  ];
 
   return (
-    <BucketMessageEditClient
-      bucketId={bucketId}
-      messageId={messageId}
-      initialBody={message.body}
-      initialIsPublic={message.isPublic}
-      senderName={message.senderName}
-      messagesRoute={bucketViewRoute(bucketId)}
-    />
+    <ContentPageLayout
+      breadcrumbs={<Breadcrumbs items={breadcrumbItems} LinkComponent={BreadcrumbLink} />}
+      contentMaxWidth="form"
+    >
+      <BucketMessageEditClient
+        bucketId={bucketId}
+        messageId={messageId}
+        initialBody={message.body}
+        initialIsPublic={message.isPublic}
+        senderName={message.senderName}
+        messagesRoute={bucketViewRoute(bucketId)}
+      />
+    </ContentPageLayout>
   );
 }
