@@ -433,7 +433,7 @@ export function AdminForm({
           error={passwordError}
           autoComplete="new-password"
         />
-        {(mode === 'create' || password !== '') && <PasswordStrengthMeter password={password} />}
+        <PasswordStrengthMeter password={password} />
 
         {canEditPermissions && (mode === 'create' || !targetIsSuperAdmin) && (
           <FormSection title={t('permissions')}>

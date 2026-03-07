@@ -360,7 +360,7 @@ export function UserForm({ mode, userId, initialValues, activeEditTab }: UserFor
                 error={newPasswordError}
                 autoComplete="new-password"
               />
-              {newPassword !== '' && <PasswordStrengthMeter password={newPassword} />}
+              <PasswordStrengthMeter password={newPassword} />
               {changePasswordError !== null && (
                 <Text variant="error" role="alert">
                   {changePasswordError}

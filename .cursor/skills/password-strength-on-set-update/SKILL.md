@@ -13,7 +13,7 @@ Include the **PasswordStrengthMeter** component (from `@boilerplate/ui`) on ever
 
 - Place it directly after the **new password** input field (the field that is being set or changed). For "change password" flows with current + new + confirm, the meter goes after the new-password field and before the confirm field.
 - Pass the current value of the new-password field: `<PasswordStrengthMeter password={newPassword} />`.
-- Optional: show the meter only when the user has typed something (e.g. `{newPassword !== '' && <PasswordStrengthMeter password={newPassword} />}`) to avoid an empty bar on load; either always visible or conditional is acceptable.
+- **Always render the meter** (do not condition on `password !== ''`). When empty, the component still shows requirements and an empty bar so the user sees it is present; when they type, the strength updates. Hiding the meter when the field is empty makes the page look like it has no strength indicator.
 
 ## Where it applies
 
