@@ -17,20 +17,25 @@ outcomes via fixed seed data.
 
 - Node.js 24+, npm, Docker (Postgres, Valkey).
 - Nix users: run commands via `./scripts/nix/with-env <command>` from repo root.
+- Playwright browser binaries installed locally (e.g. `./scripts/nix/with-env npx playwright install chromium`).
 
 ## Make targets
 
-| Target                    | Description                                                                |
-| ------------------------- | -------------------------------------------------------------------------- |
-| `e2e_deps`                | Start Postgres (5532), Valkey (6479), create test DBs and schema.          |
-| `e2e_seed`                | Load deterministic seed for both web and management-web.                   |
-| `e2e_seed_web`            | Load deterministic seed for web E2E only (main DB).                        |
-| `e2e_seed_management_web` | Load deterministic seed for management-web E2E only.                       |
-| `e2e_test_api`            | Run API integration tests only (api + management-api).                     |
-| `e2e_test`                | Run API tests first (fail fast), then E2E for both web and management-web. |
-| `e2e_test_web`            | Run API tests first (fail fast), then E2E for web only.                    |
-| `e2e_test_management_web` | Run API tests first (fail fast), then E2E for management-web only.         |
-| `e2e_teardown`            | Stop processes started for E2E (dev servers, API, sidecar).                |
+| Target                         | Description                                                                                            |
+| ------------------------------ | ------------------------------------------------------------------------------------------------------ |
+| `e2e_deps`                     | Start Postgres (5532), Valkey (6479), create test DBs and schema.                                      |
+| `e2e_seed`                     | Load deterministic seed for both web and management-web.                                               |
+| `e2e_seed_web`                 | Load deterministic seed for web E2E only (main DB).                                                    |
+| `e2e_seed_management_web`      | Load deterministic seed for management-web E2E only.                                                   |
+| `e2e_test_api`                 | Run API integration tests only (api + management-api).                                                 |
+| `e2e_test`                     | Run API tests first (fail fast), then E2E for both web and management-web.                             |
+| `e2e_test_web`                 | Run API tests first (fail fast), then E2E for web only.                                                |
+| `e2e_test_management_web`      | Run API tests first (fail fast), then E2E for management-web only.                                     |
+| `e2e_test_home`                | Run API tests first (fail fast), then only home smoke specs for both apps.                             |
+| `e2e_test_home_report`         | Run home smoke for both apps with step screenshots, save timestamped HTML reports, and auto-open them. |
+| `e2e_test_web_home`            | Run API tests first, then only `apps/web/e2e/home.spec.ts`.                                            |
+| `e2e_test_management_web_home` | Run API tests first, then only `apps/management-web/e2e/home.spec.ts`.                                 |
+| `e2e_teardown`                 | Stop processes started for E2E (dev servers, API, sidecar).                                            |
 
 **API gate**: `e2e_test`, `e2e_test_web`, and `e2e_test_management_web` all run API
 integration tests first. On first failure, Make exits and Playwright is not run.
@@ -40,12 +45,75 @@ integration tests first. On first failure, Make exits and Playwright is not run.
 1. **`make e2e_deps`** — Test DBs and schema (same as `test_deps`: Postgres 5532,
    Valkey 6479, `boilerplate_test`, `boilerplate_management_test`).
 2. **`make e2e_seed`** — Load deterministic fixtures (idempotent: truncate + insert).
-3. Start API (and sidecar for web) and the app(s) under test (manually or via script).
-4. **Run API integration tests** — `npm run test` (api + management-api). **If any fail,
+3. **Run API integration tests** — `npm run test` (api + management-api). **If any fail,
    stop and do not run Playwright.**
-5. Run Playwright (e.g. `make e2e_test_web` or `make e2e_test_management_web`).
-6. **`make e2e_teardown`** — Stop services. For full cleanup (remove test containers),
+4. Run Playwright (e.g. `make e2e_test_web` or `make e2e_test_management_web`).
+   - Web E2E auto-starts API (`4010`), sidecar (`4011`), and web (`4012`) in production-like mode (`build` + `start`).
+   - Management-web E2E auto-starts management-api (`4110`) and management-web (`4112`) in production-like mode (`build` + `start`).
+5. **`make e2e_teardown`** — Stop any manually started services. For full cleanup (remove test containers),
    run `make test_clean`.
+
+Stability mode is now the default for all E2E commands. Startup is usually slower than dev mode because app builds run before servers start, but this reduces dev-only overlay noise and false positives.
+
+## Quick start: single home smoke test
+
+Use this to bootstrap the E2E toolchain with one simple test per app.
+
+1. `make e2e_deps`
+2. Run one of:
+   - `make e2e_test_home` (both home smoke specs)
+   - `make e2e_test_home_report` (both home smoke specs + step screenshots + open HTML reports)
+   - `make e2e_test_web_home` (web only)
+   - `make e2e_test_management_web_home` (management-web only)
+3. Cleanup:
+   - `make e2e_teardown`
+   - `make test_clean` (full dependency container cleanup)
+
+Home smoke uses isolated E2E-only app ports:
+
+- Web stack: API (`4010`), sidecar (`4011`), web (`4012`)
+- Management stack: management-api (`4110`), management-web (`4112`)
+
+These do not use the normal dev ports (`4000/4001/4002` and `4100/4101/4102`), so running dev apps will not conflict with E2E home smoke.
+
+Nix wrapper variants:
+
+- `./scripts/nix/with-env make e2e_deps`
+- `./scripts/nix/with-env make e2e_test_home`
+- `./scripts/nix/with-env make e2e_test_home_report`
+- `./scripts/nix/with-env make e2e_test_web_home`
+- `./scripts/nix/with-env make e2e_test_management_web_home`
+- `./scripts/nix/with-env make e2e_teardown`
+- `./scripts/nix/with-env make test_clean`
+
+### Timestamped HTML report output
+
+`make e2e_test_home_report` writes report bundles to:
+
+- `.artifacts/e2e-reports/<datetime>/web/`
+- `.artifacts/e2e-reports/<datetime>/management-web/`
+
+Where `<datetime>` is `YYYYMMDD-HHmmss` (for example `20260306-231045`).
+
+It also updates:
+
+- `.artifacts/e2e-reports/latest` (symlink to the latest timestamped run directory)
+
+Retention policy for report directories:
+
+- Keep at most 10 timestamped run directories under `.artifacts/e2e-reports/`.
+- On each `make e2e_test_home_report` run, oldest timestamped directories are automatically removed when count exceeds 10.
+- The `latest` symlink is always updated to the newest run and is not part of the rotation count.
+
+These artifacts are git-ignored (`.artifacts/e2e-reports/`) and should not be committed.
+
+### Step screenshot policy (report mode vs normal mode)
+
+- `make e2e_test_home_report` enables `E2E_STEP_SCREENSHOTS=true`, which captures:
+  - initial page-load screenshots
+  - post-action screenshots for user-visible steps (e.g. fill, click, navigation)
+- Screenshots are stored in each test's Playwright output directory and attached to the HTML report for in-context review.
+- Normal targets (`e2e_test_home`, `e2e_test_web`, `e2e_test_management_web`, etc.) do **not** enable this toggle, so runs stay lightweight by default.
 
 ## Deterministic data
 
@@ -57,14 +125,15 @@ integration tests first. On first failure, Make exits and Playwright is not run.
 
 ## Ports
 
-| Service        | Port |
-| -------------- | ---- |
-| Test Postgres  | 5532 |
-| Test Valkey    | 6479 |
-| API            | 4000 |
-| Web            | 4002 |
-| Management-web | 4102 |
-| Sidecar (web)  | 4001 |
+| Service              | Port |
+| -------------------- | ---- |
+| Test Postgres        | 5532 |
+| Test Valkey          | 6479 |
+| API (E2E web)        | 4010 |
+| Sidecar (E2E web)    | 4011 |
+| Web (E2E)            | 4012 |
+| Management-api (E2E) | 4110 |
+| Management-web (E2E) | 4112 |
 
 See apps’ `.env.example` for `NEXT_PUBLIC_*` and `RUNTIME_CONFIG_URL`.
 
@@ -76,3 +145,31 @@ See apps’ `.env.example` for `NEXT_PUBLIC_*` and `RUNTIME_CONFIG_URL`.
 
 Do not run API tests and E2E concurrently against the same DB; run one or the other,
 or use separate DB names for E2E if you prefer isolation.
+
+## Reporting and visual review
+
+Recommended open-source workflow is Playwright native reporting + artifacts:
+
+- Use Playwright HTML report for human-readable pass/fail test summaries.
+- Use Trace Viewer for step-level context when debugging failures.
+- Use report-mode step screenshots when QA needs full visual walk-throughs.
+- Retain screenshots/videos for failed tests in normal runs.
+
+Recommended Playwright settings (both web and management-web configs):
+
+- `reporter: [['list'], ['html', { open: 'never' }]]`
+- `trace: 'retain-on-failure'`
+- `screenshot: 'only-on-failure'`
+- `video: 'retain-on-failure'`
+
+Reviewer flow:
+
+1. Run `make e2e_test_home_report` (or another report-focused command that sets `E2E_STEP_SCREENSHOTS=true`).
+2. Open the app-specific HTML report (auto-open is attempted by the command).
+3. Inspect each test's attachments for ordered step screenshots.
+4. Use trace + failure artifacts for debugging when needed.
+5. Verify screenshot content matches expected layout/values/behavior notes from
+   the corresponding page test plan.
+
+Optional later enhancement: add Allure only if cross-run historical dashboards
+are needed beyond Playwright's default report UX.

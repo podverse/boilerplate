@@ -13,7 +13,7 @@ import { config } from '../config/index.js';
 import { createSuperAdminForTest } from './createSuperAdminForTest.js';
 
 const API = config.apiVersionPath;
-const superAdminEmail = 'test-super-admin@example.com';
+const superAdminUsername = 'test-super-admin';
 const superAdminPassword = 'test-super-admin-password-1';
 
 describe('management-api users permissions', () => {
@@ -24,12 +24,12 @@ describe('management-api users permissions', () => {
     await appDataSourceRead.initialize();
     await appDataSourceReadWrite.initialize();
     await managementDataSource.initialize();
-    await createSuperAdminForTest(superAdminEmail, superAdminPassword);
+    await createSuperAdminForTest(superAdminUsername, superAdminPassword);
     app = createApp();
     superAdminAgent = request.agent(app);
     await superAdminAgent
       .post(`${API}/auth/login`)
-      .send({ email: superAdminEmail, password: superAdminPassword })
+      .send({ username: superAdminUsername, password: superAdminPassword })
       .expect(200);
   });
 
@@ -58,7 +58,7 @@ describe('management-api users permissions', () => {
       const adminRes = await superAdminAgent
         .post(`${API}/admins`)
         .send({
-          email: readOnlyEmail,
+          username: readOnlyEmail,
           password: readOnlyPassword,
           displayName: `Users Read Admin ${ts}`,
           adminsCrud: 0,
@@ -71,7 +71,7 @@ describe('management-api users permissions', () => {
       readOnlyAgent = request.agent(app);
       await readOnlyAgent
         .post(`${API}/auth/login`)
-        .send({ email: readOnlyEmail, password: readOnlyPassword })
+        .send({ username: readOnlyEmail, password: readOnlyPassword })
         .expect(200);
 
       // Create a target user to act on
@@ -141,7 +141,7 @@ describe('management-api users permissions', () => {
       const res = await superAdminAgent
         .post(`${API}/admins`)
         .send({
-          email: noPermEmail,
+          username: noPermEmail,
           password: noPermPassword,
           displayName: `Users No Perm Admin ${ts2}`,
           adminsCrud: 0,
@@ -154,7 +154,7 @@ describe('management-api users permissions', () => {
       noPermAgent = request.agent(app);
       await noPermAgent
         .post(`${API}/auth/login`)
-        .send({ email: noPermEmail, password: noPermPassword })
+        .send({ username: noPermEmail, password: noPermPassword })
         .expect(200);
     });
 
@@ -183,7 +183,7 @@ describe('management-api users permissions', () => {
       const adminRes = await superAdminAgent
         .post(`${API}/admins`)
         .send({
-          email: changePassEmail,
+          username: changePassEmail,
           password: changePassPassword,
           displayName: `Change PW Admin ${ts3}`,
           adminsCrud: 0,
@@ -196,7 +196,7 @@ describe('management-api users permissions', () => {
       changePassAgent = request.agent(app);
       await changePassAgent
         .post(`${API}/auth/login`)
-        .send({ email: changePassEmail, password: changePassPassword })
+        .send({ username: changePassEmail, password: changePassPassword })
         .expect(200);
 
       const userRes = await superAdminAgent

@@ -18,6 +18,7 @@ import { config } from '../config/index.js';
 import { hashPassword, comparePassword } from '../lib/auth/hash.js';
 import { signAccessToken } from '../lib/auth/jwt.js';
 import { setSessionCookies, clearSessionCookies } from '../lib/auth/cookies.js';
+import { verifyToken } from '../lib/auth/jwt.js';
 import {
   generateToken,
   hashToken,
@@ -392,8 +393,20 @@ export async function usernameAvailable(req: Request, res: Response): Promise<vo
     res.status(200).json({ available: false });
     return;
   }
+
+  const cookieToken =
+    typeof req.cookies?.[config.sessionCookieName] === 'string' &&
+    req.cookies[config.sessionCookieName] !== ''
+      ? req.cookies[config.sessionCookieName]
+      : undefined;
+  const authHeader = req.headers.authorization;
+  const bearerToken = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : undefined;
+  const token =
+    cookieToken ?? (bearerToken !== undefined && bearerToken !== '' ? bearerToken : undefined);
+  const tokenPayload = token !== undefined ? verifyToken(token, config.jwtSecret) : null;
+
   const existing = await UserService.findByUsername(raw);
-  const currentUserId = req.user?.id;
+  const currentUserId = req.user?.id ?? tokenPayload?.sub;
   const available =
     existing === null || (currentUserId !== undefined && existing.id === currentUserId);
   res.status(200).json({ available });

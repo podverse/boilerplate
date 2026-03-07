@@ -12,6 +12,7 @@ out/
 .direnv/
 TODOS
 infra/config/local/
+.artifacts/e2e-reports/
 
 # i18n compiled output (generated at build)
 apps/web/i18n/compiled/

@@ -495,7 +495,7 @@ describe('management-api', () => {
       const res = await superAdminAgent
         .post(`${API}/admins`)
         .send({
-          email: actorEmail,
+          username: actorEmail,
           password: actorPassword,
           displayName: 'ActorOriginalName',
           adminsCrud: 0,
@@ -507,7 +507,7 @@ describe('management-api', () => {
       actorAgent = request.agent(app);
       await actorAgent
         .post(`${API}/auth/login`)
-        .send({ email: actorEmail, password: actorPassword })
+        .send({ username: actorEmail, password: actorPassword })
         .expect(200);
     });
 

@@ -3,6 +3,8 @@
  * Covers login by username, POST /auth/set-password, signup 409 for duplicate username,
  * PATCH /auth/me (username), GET /auth/username-available.
  */
+process.env.MAILER_ENABLED = 'true';
+
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import request from 'supertest';
 

@@ -17,8 +17,8 @@ import { config } from '../config/index.js';
 import { createSuperAdminForTest } from './createSuperAdminForTest.js';
 
 const API = config.apiVersionPath;
-const superAdminEmail = 'test-buckets-super@example.com';
-const superAdminPassword = 'test-buckets-super-password-1';
+const superAdminUsername = 'test-super-admin';
+const superAdminPassword = 'test-super-admin-password-1';
 
 describe('management-api buckets and messages', () => {
   let app: ReturnType<typeof createApp>;
@@ -31,12 +31,12 @@ describe('management-api buckets and messages', () => {
     await appDataSourceRead.initialize();
     await appDataSourceReadWrite.initialize();
     await managementDataSource.initialize();
-    await createSuperAdminForTest(superAdminEmail, superAdminPassword);
+    await createSuperAdminForTest(superAdminUsername, superAdminPassword);
     app = createApp();
     superAdminAgent = request.agent(app);
     await superAdminAgent
       .post(`${API}/auth/login`)
-      .send({ email: superAdminEmail, password: superAdminPassword })
+      .send({ username: superAdminUsername, password: superAdminPassword })
       .expect(200);
 
     const userRes = await superAdminAgent
@@ -149,7 +149,7 @@ describe('management-api buckets and messages', () => {
         .send({ isPublic: false })
         .expect(400, {
           message:
-            'Descendant buckets inherit settings from the root bucket. Only name can be updated.',
+            'Descendant buckets inherit settings from the root bucket; only name can be updated.',
         });
 
       const renameRes = await superAdminAgent
@@ -332,7 +332,7 @@ describe('management-api buckets and messages', () => {
       await superAdminAgent
         .post(`${API}/admins`)
         .send({
-          email: noBucketsEmail,
+          username: noBucketsEmail,
           password: noBucketsPassword,
           displayName: `No Buckets Admin ${ts}`,
           adminsCrud: 0,
@@ -347,7 +347,7 @@ describe('management-api buckets and messages', () => {
       noBucketsAgent = request.agent(app);
       await noBucketsAgent
         .post(`${API}/auth/login`)
-        .send({ email: noBucketsEmail, password: noBucketsPassword })
+        .send({ username: noBucketsEmail, password: noBucketsPassword })
         .expect(200);
 
       const bucketRes = await superAdminAgent
@@ -387,7 +387,7 @@ describe('management-api buckets and messages', () => {
       await superAdminAgent
         .post(`${API}/admins`)
         .send({
-          email: bucketsReadOnlyEmail,
+          username: bucketsReadOnlyEmail,
           password: bucketsReadOnlyPassword,
           displayName: `Buckets Read Only ${ts}`,
           adminsCrud: 0,
@@ -402,7 +402,7 @@ describe('management-api buckets and messages', () => {
       bucketsReadOnlyAgent = request.agent(app);
       await bucketsReadOnlyAgent
         .post(`${API}/auth/login`)
-        .send({ email: bucketsReadOnlyEmail, password: bucketsReadOnlyPassword })
+        .send({ username: bucketsReadOnlyEmail, password: bucketsReadOnlyPassword })
         .expect(200);
 
       const bucketRes = await superAdminAgent
@@ -444,7 +444,7 @@ describe('management-api buckets and messages', () => {
       await superAdminAgent
         .post(`${API}/admins`)
         .send({
-          email: noBucketAdminsEmail,
+          username: noBucketAdminsEmail,
           password: noBucketAdminsPassword,
           displayName: `No Bucket Admins ${ts}`,
           adminsCrud: 0,
@@ -459,7 +459,7 @@ describe('management-api buckets and messages', () => {
       await superAdminAgent
         .post(`${API}/admins`)
         .send({
-          email: withBucketAdminsEmail,
+          username: withBucketAdminsEmail,
           password: withBucketAdminsPassword,
           displayName: `With Bucket Admins ${ts}`,
           adminsCrud: 0,
@@ -474,13 +474,13 @@ describe('management-api buckets and messages', () => {
       noBucketAdminsAgent = request.agent(app);
       await noBucketAdminsAgent
         .post(`${API}/auth/login`)
-        .send({ email: noBucketAdminsEmail, password: noBucketAdminsPassword })
+        .send({ username: noBucketAdminsEmail, password: noBucketAdminsPassword })
         .expect(200);
 
       withBucketAdminsAgent = request.agent(app);
       await withBucketAdminsAgent
         .post(`${API}/auth/login`)
-        .send({ email: withBucketAdminsEmail, password: withBucketAdminsPassword })
+        .send({ username: withBucketAdminsEmail, password: withBucketAdminsPassword })
         .expect(200);
 
       const bucketRes = await superAdminAgent

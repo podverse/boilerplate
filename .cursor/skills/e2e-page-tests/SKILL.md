@@ -1,7 +1,7 @@
 ---
 name: e2e-page-tests
 description: When layout, functionality, or conditions change in apps/web or apps/management-web, add or update the corresponding E2E (Playwright) test so page behavior stays covered.
-version: 1.0.0
+version: 1.1.0
 ---
 
 # E2E Page Tests (Web and Management-Web)
@@ -24,7 +24,8 @@ If the change is in **web**, add or update a spec in `apps/web/e2e/`. If it is i
 | apps/management-web | `apps/management-web/e2e/` | `apps/management-web/playwright.config.ts` |
 
 - Use the **deterministic E2E seed** for data (e.g. `e2e@example.com` / `Test!1Aa` for web; `e2e-superadmin@example.com` for management-web). See [docs/testing/E2E-PAGE-TESTING.md](../../../docs/testing/E2E-PAGE-TESTING.md).
-- **API gate**: E2E Make targets run API integration tests first; if they fail, Playwright does not run. Run `make e2e_test_web` or `make e2e_test_management_web` (or `make e2e_test` for both) after `make e2e_deps` and `make e2e_seed`; start the app and API (and sidecar for web) before Playwright.
+- **API gate**: E2E Make targets run API integration tests first; if they fail, Playwright does not run.
+- **Current startup model**: Playwright `webServer` now auto-starts the required API + web apps on dedicated E2E ports in production-like mode (`build` + `start`), so manual app startup is not part of normal E2E runs.
 
 ## Placeholder plans
 
@@ -32,7 +33,27 @@ Page-level coverage is tracked in `.llm/plans/active/e2e-page-tests/` (e.g. `web
 
 ## Quick reference
 
-- **Run E2E (web only):** `make e2e_test_web` (after deps, seed, and with API + web running).
+- **Run E2E (web only):** `make e2e_test_web`
 - **Run E2E (management-web only):** `make e2e_test_management_web`.
 - **Run E2E (both):** `make e2e_test`.
+- **Run report-focused home smoke (auto-opens HTML reports, captures step screenshots):** `make e2e_test_home_report`.
 - **Docs:** [docs/testing/E2E-PAGE-TESTING.md](../../../docs/testing/E2E-PAGE-TESTING.md).
+
+## Screenshot naming policy (QA-readable)
+
+When adding or updating screenshot steps in E2E specs:
+
+- Use `actionAndCapture` / `capturePageLoad` from `e2e/helpers/stepScreenshots`.
+- Keep screenshot capture report-focused (`E2E_STEP_SCREENSHOTS=true` runs such as `e2e_test_home_report`).
+- **Use very descriptive step labels** that explain expected visible UI outcome, not short action codes.
+- Prefer long, explicit labels over short ambiguous labels so QA can infer expected state from filename alone.
+
+Good label examples:
+
+- `navigate-to-home-route-and-expect-redirect-to-login-page-for-unauthenticated-user`
+- `dashboard-screen-is-visible-with-primary-heading-after-successful-login`
+
+Avoid labels like:
+
+- `goto-home`
+- `click-login`

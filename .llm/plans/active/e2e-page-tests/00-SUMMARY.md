@@ -2,36 +2,87 @@
 
 ## Scope
 
-End-to-end tests for every page in apps/web and apps/management-web: layout and key interactions (without infinite loops), with deterministic outcomes via E2E seed data. API integration tests must pass before any web/management-web E2E run.
+Keep active E2E page-test plans aligned with the current App Router surface in
+`apps/web` and `apps/management-web`. Placeholder page plans stay concise now.
+Before implementation, each page will get a dedicated detailed plan covering
+layout, values, functionality, permissions, and CRUD behavior in depth.
+
+## Current route baseline
+
+### Web routes (`apps/web/src/app/**/page.tsx`)
+
+- Auth: `/login`, `/signup`, `/forgot-password`, `/reset-password`
+- Main: `/`, `/dashboard`, `/buckets`, `/buckets/new`, `/profile`, `/settings`
+- Dynamic: `/invite/[token]`, `/bucket/[id]`, `/bucket/[id]/new`,
+  `/bucket/[id]/bucket/new`, `/bucket/[id]/messages`,
+  `/bucket/[id]/messages/[messageId]/edit`, `/bucket/[id]/settings`,
+  `/bucket/[id]/settings/admins/[userId]/edit`,
+  `/bucket/[id]/settings/roles/new`,
+  `/bucket/[id]/settings/roles/[roleId]/edit`
+- Short/public: `/b/[id]`, `/b/[id]/send-message`
+
+### Management-web routes (`apps/management-web/src/app/**/page.tsx`)
+
+- Auth/entry: `/login`, `/`, `/dashboard`
+- Admin/account: `/profile`, `/settings`, `/events`, `/admins`, `/admins/new`,
+  `/admins/roles/new`, `/admin/[id]`, `/admin/[id]/edit`
+- Users: `/users`, `/users/new`, `/user/[id]`, `/user/[id]/edit`
+- Buckets/messages/settings: `/buckets`, `/buckets/new`, `/bucket/[id]`,
+  `/bucket/[id]/edit`, `/bucket/[id]/new`, `/bucket/[id]/messages`,
+  `/bucket/[id]/messages/[messageId]/edit`, `/bucket/[id]/settings`,
+  `/bucket/[id]/settings/admins/[userId]/edit`,
+  `/bucket/[id]/settings/roles/new`,
+  `/bucket/[id]/settings/roles/[roleId]/edit`
 
 ## Plan files
 
 | File | Purpose |
-|------|--------|
-| 00-EXECUTION-ORDER.md | Phase order and pointers |
-| 00-SUMMARY.md | This file |
-| 01-foundation.md | Foundation: docs, Make, seed, Playwright, one test per app |
-| web-02-home.md … web-25-reset-password.md | Web app page placeholders (24 pages) |
-| mgmt-02-home.md … mgmt-26-login.md | Management-web page placeholders (25 pages) |
+| ---- | ------- |
+| 00-EXECUTION-ORDER.md | Phase order and sequencing |
+| 00-SUMMARY.md | Scope, route baseline, and mapping notes |
+| 01-foundation.md | Foundation: runbook, Make targets, deterministic data, reporting baseline |
+| 02-detailed-plan-generation.md | Template/process for generating implementation-grade page plans later |
+| 03-route-to-plan-map.md | Canonical mapping of current routes to active placeholder plans |
+| COPY-PASTA.md | Copy-paste prompts for parallel page-plan detailing and implementation |
+| `web-*.md` | Web placeholder plans for each current route |
+| `mgmt-*.md` | Management-web placeholder plans for each current route |
 
-Each placeholder will be expanded later with concrete steps, selectors, and assertions.
+## Deprecated route tracking
 
-## Cross-cutting considerations (gaps to cover in plans)
+Topic-era placeholders were removed from the active plan set in this refresh and
+must not be reintroduced unless those routes return to App Router.
 
-When expanding each page plan into concrete steps, consider adding coverage for:
+## Placeholder policy
 
-- **Initial load / timing:** For pages that fetch data, assert after load completes (wait for loading indicator/skeleton to disappear or for content to appear) to avoid flaky assertions; document any loading UI (spinner/skeleton) to test.
-- **URL and refresh:** For list/detail pages with search, filter, or pagination: refreshing the page preserves query params and list state; deep links (direct URL to a page with params) work.
-- **Double submit / idempotency:** On create/edit forms, double-click or rapid double submit results in only one create/update (button disabled or request deduplicated); no duplicate record.
-- **Browser back:** After opening a form, browser back does not crash; after successful submit, browser back has expected behavior (e.g. no duplicate submit; confirm form or redirect).
-- **Delete flows:** Where delete exists: confirmation dialog shown; cancel leaves entity unchanged; confirm performs delete and list/detail updates (entity removed or redirect).
-- **Accessibility:** Primary actions (submit, primary links) focusable and activatable via keyboard; form inputs have associated labels; modal/dialog focus management where applicable.
-- **Responsive / viewport (optional):** Key breakpoints (e.g. mobile, tablet) for nav, tables, and forms so layout does not break; or document desktop-only if that is product scope.
-- **Localization (optional):** When the app supports multiple locales, test critical pages (login, errors, invite) with an alternate locale and assert labels/errors are translated.
-- **Sensitive data:** No password or token echoed in DOM, in URL (except where required, e.g. invite/reset token in path), or in error message text; session cookie attributes (e.g. HttpOnly) are app responsibility but avoid asserting on raw tokens in UI.
-- **Invalid IDs:** For routes using short_id or numeric id: invalid format (wrong length, invalid chars) yields 404 or validation error, not 500.
-- **Role / permission scope (management):** As super admin vs non–super admin: nav and list data scoped by admin_permissions and event_visibility; document expected visibility per role where relevant.
+For this refresh, per-page files remain concise and should include:
+
+- Route + page intent
+- Key scenario buckets (layout, auth/permission, core interactions, CRUD if any)
+- Primary files to touch later (page, components, spec path)
+- Verification notes
+- `Detailed plan to be generated before implementation` section
+
+## Cross-cutting requirements for future detailed plans
+
+- Deterministic value assertions from seeded data
+- Layout structure assertions (headings, sections, key controls, empty/loading states)
+- Permission and redirect branches
+- CRUD matrix (create/read/update/delete + validation + cancel/confirm flows)
+- Flake-resistance checks (load timing, idempotent submit, refresh/back behavior)
+- Accessibility smoke checks (keyboard path + focusable primary actions)
+- Screenshot/trace expectations for failures and targeted visual checkpoints
+
+## Reporting + visual review baseline
+
+Primary recommended stack is Playwright native reporting:
+
+- HTML report for human-readable pass/fail plus per-test context
+- Trace Viewer for step-level inspection
+- Retained screenshots/videos on failures for QA visual confirmation
+
+Optional future extension: Allure if cross-run dashboarding/analytics becomes
+necessary.
 
 ## Reference
 
-- [docs/testing/E2E-PAGE-TESTING.md](../../../../docs/testing/E2E-PAGE-TESTING.md) – Flow, Make targets, ports, seed.
+- [docs/testing/E2E-PAGE-TESTING.md](../../../../docs/testing/E2E-PAGE-TESTING.md)

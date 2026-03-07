@@ -18,6 +18,17 @@ const STRICT_LIMIT_IN_TEST = 100;
 describe('management-api rate limiting', () => {
   let app: ReturnType<typeof createApp>;
 
+  const postLoginWithRetry = async (username: string, password: string) => {
+    try {
+      return await request(app).post(`${API}/auth/login`).send({ username, password });
+    } catch (error) {
+      if (error instanceof Error && error.message.includes('socket hang up')) {
+        return request(app).post(`${API}/auth/login`).send({ username, password });
+      }
+      throw error;
+    }
+  };
+
   beforeAll(async () => {
     await appDataSourceRead.initialize();
     await appDataSourceReadWrite.initialize();
@@ -39,14 +50,10 @@ describe('management-api rate limiting', () => {
 
   it('returns 429 after exceeding strict limit on POST /auth/login', async () => {
     for (let i = 0; i < STRICT_LIMIT_IN_TEST; i++) {
-      const res = await request(app)
-        .post(`${API}/auth/login`)
-        .send({ email: `rate-${i}@example.com`, password: 'any' });
+      const res = await postLoginWithRetry(`rate-${i}@example.com`, 'any');
       expect([400, 401]).toContain(res.status);
     }
-    const res = await request(app)
-      .post(`${API}/auth/login`)
-      .send({ email: 'over-limit@example.com', password: 'any' });
+    const res = await postLoginWithRetry('over-limit@example.com', 'any');
     expect(res.status).toBe(429);
     expect(res.body.message).toBe(RATE_LIMIT_MESSAGE);
     // Body is the single source of truth: exact seconds remaining from backend in-memory store.
