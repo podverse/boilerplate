@@ -26,7 +26,7 @@ test.describe('Dashboard', () => {
       testInfo,
       'populate-management-username-field-with-seeded-super-admin-identity',
       async () => {
-        await page.getByLabel(/email/i).fill('e2e-superadmin@example.com');
+        await page.getByRole('textbox', { name: /username|email/i }).fill('e2e-superadmin');
       }
     );
     await actionAndCapture(

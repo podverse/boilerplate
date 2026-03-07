@@ -27,6 +27,11 @@ If the change is in **web**, add or update a spec in `apps/web/e2e/`. If it is i
 - **API gate**: E2E Make targets run API integration tests first; if they fail, Playwright does not run.
 - **Current startup model**: Playwright `webServer` now auto-starts the required API + web apps on dedicated E2E ports in production-like mode (`build` + `start`), so manual app startup is not part of normal E2E runs.
 
+## Rate limiting and auth in E2E
+
+- **E2E runs get a clean API each time**: Each `make e2e_test*` (or Playwright run) starts fresh API/management-api processes, so rate-limit state is not carried over from previous runs. In test, default limits are very high (100k) unless `RATE_LIMIT_STRICT_FOR_TEST` is set, so E2E specs that log in a few times will not hit 429.
+- **Avoid hitting 429 in E2E**: Do not add E2E flows that repeatedly submit login/signup/forgot-password (e.g. hundreds of requests in a loop). To assert 429 or rate-limit UI, use API integration tests (see api-testing skill; the dedicated rate-limit test files set the env and use dynamic import so real limits apply).
+
 ## Placeholder plans
 
 Page-level coverage is tracked in `.llm/plans/active/e2e-page-tests/` (e.g. `web-03-dashboard.md`, `mgmt-06-bucket-detail.md`). When you add or expand a test for a page, consider updating the corresponding placeholder with the new scenarios or marking it as implemented.
@@ -38,6 +43,10 @@ Page-level coverage is tracked in `.llm/plans/active/e2e-page-tests/` (e.g. `web
 - **Run E2E (both):** `make e2e_test`.
 - **Run report-focused home smoke (auto-opens HTML reports, captures step screenshots):** `make e2e_test_home_report`.
 - **Docs:** [docs/testing/E2E-PAGE-TESTING.md](../../../docs/testing/E2E-PAGE-TESTING.md).
+
+Report mode uses a custom reporter (`scripts/e2e-html-steps-reporter.ts`) so each
+step screenshot is shown with its full "Step description" in an expandable block
+directly below the image.
 
 ## Screenshot naming policy (QA-readable)
 

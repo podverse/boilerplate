@@ -1,27 +1,32 @@
 /**
  * Rate limiting on auth endpoints: strict endpoints return 429 when limit exceeded.
  * GET /me and POST /logout are not rate limited (see plan).
+ *
+ * Uses RATE_LIMIT_STRICT_FOR_TEST and RATE_LIMIT_MODERATE_FOR_TEST so real limits (100) apply.
+ * Must set env before loading the app (dynamic import in beforeAll).
  */
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import request from 'supertest';
 
 import { appDataSourceRead, appDataSourceReadWrite } from '@boilerplate/orm';
-import { createApp } from '../app.js';
 import { config } from '../config/index.js';
 
 const API = config.apiVersionPath;
 const RATE_LIMIT_MESSAGE = 'Too many requests. Please try again later.';
-/** In test env both strict and moderate limits are 100; send one more to trigger 429. */
+/** In test env when RATE_LIMIT_*_FOR_TEST=true the limit is 100; send one more to trigger 429. */
 const STRICT_LIMIT_IN_TEST = 100;
 const MODERATE_LIMIT_IN_TEST = 100;
 
 describe('auth rate limiting', () => {
-  let app: ReturnType<typeof createApp>;
+  let app: ReturnType<Awaited<typeof import('../app.js')>['createApp']>;
 
   beforeAll(async () => {
+    process.env.RATE_LIMIT_STRICT_FOR_TEST = 'true';
+    process.env.RATE_LIMIT_MODERATE_FOR_TEST = 'true';
     await appDataSourceRead.initialize();
     await appDataSourceReadWrite.initialize();
-    app = createApp();
+    const { createApp: createAppFn } = await import('../app.js');
+    app = createAppFn();
   });
 
   afterAll(async () => {

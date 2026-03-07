@@ -10,17 +10,13 @@ test.describe('Home', () => {
     await actionAndCapture(
       page,
       testInfo,
-      'navigate-to-home-route-and-expect-redirect-to-login-page-for-unauthenticated-user',
+      'Home redirects unauthenticated users to login',
       async () => {
         await page.goto('/');
       }
     );
     await expect(page).toHaveURL(/\/login/);
     await expect(page.getByRole('button', { name: /log in|sign in|submit/i })).toBeVisible();
-    await capturePageLoad(
-      page,
-      testInfo,
-      'login-page-is-fully-visible-with-authentication-call-to-action-for-unauthenticated-user'
-    );
+    await capturePageLoad(page, testInfo, 'Login page visible for unauthenticated user');
   });
 });

@@ -21,21 +21,22 @@ outcomes via fixed seed data.
 
 ## Make targets
 
-| Target                         | Description                                                                                            |
-| ------------------------------ | ------------------------------------------------------------------------------------------------------ |
-| `e2e_deps`                     | Start Postgres (5532), Valkey (6479), create test DBs and schema.                                      |
-| `e2e_seed`                     | Load deterministic seed for both web and management-web.                                               |
-| `e2e_seed_web`                 | Load deterministic seed for web E2E only (main DB).                                                    |
-| `e2e_seed_management_web`      | Load deterministic seed for management-web E2E only.                                                   |
-| `e2e_test_api`                 | Run API integration tests only (api + management-api).                                                 |
-| `e2e_test`                     | Run API tests first (fail fast), then E2E for both web and management-web.                             |
-| `e2e_test_web`                 | Run API tests first (fail fast), then E2E for web only.                                                |
-| `e2e_test_management_web`      | Run API tests first (fail fast), then E2E for management-web only.                                     |
-| `e2e_test_home`                | Run API tests first (fail fast), then only home smoke specs for both apps.                             |
-| `e2e_test_home_report`         | Run home smoke for both apps with step screenshots, save timestamped HTML reports, and auto-open them. |
-| `e2e_test_web_home`            | Run API tests first, then only `apps/web/e2e/home.spec.ts`.                                            |
-| `e2e_test_management_web_home` | Run API tests first, then only `apps/management-web/e2e/home.spec.ts`.                                 |
-| `e2e_teardown`                 | Stop processes started for E2E (dev servers, API, sidecar).                                            |
+| Target                         | Description                                                                                                |
+| ------------------------------ | ---------------------------------------------------------------------------------------------------------- |
+| `e2e_deps`                     | Start Postgres (5532), Valkey (6479), create test DBs and schema.                                          |
+| `e2e_seed`                     | Load deterministic seed for both web and management-web.                                                   |
+| `e2e_seed_web`                 | Load deterministic seed for web E2E only (main DB).                                                        |
+| `e2e_seed_management_web`      | Load deterministic seed for management-web E2E only.                                                       |
+| `e2e_test_api`                 | Run API integration tests only (api + management-api).                                                     |
+| `e2e_test`                     | Run API tests first (fail fast), then E2E for both web and management-web.                                 |
+| `e2e_test_web`                 | Run API tests first (fail fast), then E2E for web only.                                                    |
+| `e2e_test_management_web`      | Run API tests first (fail fast), then E2E for management-web only.                                         |
+| `e2e_test_home`                | Run API tests first (fail fast), then only home smoke specs for both apps.                                 |
+| `e2e_test_home_report`         | Run home smoke for both apps with step screenshots, save timestamped HTML reports, and auto-open them.     |
+| `e2e_test_report`              | Run full E2E suite for both apps with step screenshots, save timestamped HTML reports, and auto-open them. |
+| `e2e_test_web_home`            | Run API tests first, then only `apps/web/e2e/home.spec.ts`.                                                |
+| `e2e_test_management_web_home` | Run API tests first, then only `apps/management-web/e2e/home.spec.ts`.                                     |
+| `e2e_teardown`                 | Stop processes started for E2E (dev servers, API, sidecar).                                                |
 
 **API gate**: `e2e_test`, `e2e_test_web`, and `e2e_test_management_web` all run API
 integration tests first. On first failure, Make exits and Playwright is not run.
@@ -63,6 +64,7 @@ Use this to bootstrap the E2E toolchain with one simple test per app.
 2. Run one of:
    - `make e2e_test_home` (both home smoke specs)
    - `make e2e_test_home_report` (both home smoke specs + step screenshots + open HTML reports)
+   - `make e2e_test_report` (full E2E suite for both apps + step screenshots + open HTML reports)
    - `make e2e_test_web_home` (web only)
    - `make e2e_test_management_web_home` (management-web only)
 3. Cleanup:
@@ -116,6 +118,17 @@ These artifacts are git-ignored (`.artifacts/e2e-reports/`) and should not be co
 - Normal targets (`e2e_test_home`, `e2e_test_web`, `e2e_test_management_web`, etc.) do **not** enable this toggle, so runs stay lightweight by default.
 - Screenshot filenames should be deliberately long and human-readable so QA can
   infer the expected visible state from the filename alone.
+
+### Step report layout (custom reporter)
+
+`make e2e_test_home_report` uses a custom Playwright reporter
+(`scripts/e2e-html-steps-reporter.ts`) instead of the built-in HTML reporter. The
+generated report shows each step screenshot with its full **Step description**
+directly below it in an expandable block, so you can match descriptions to
+screenshots without a separate Attachments section. The reporter reads
+`PLAYWRIGHT_HTML_OUTPUT_DIR` for the output folder (same as the Make target).
+If the run is aborted (e.g. Ctrl+C), the generated report is partial and shows a
+notice at the top: "Run aborted during execution; this report is incomplete."
 
 ## Deterministic data
 
@@ -209,8 +222,8 @@ Recommended Playwright settings (both web and management-web configs):
 
 ### Full-suite report-mode guidance
 
-- The current built-in report-focused Make command is `make e2e_test_home_report`.
-- Future route-cluster or full-suite report-focused commands should follow the
+- Built-in report-focused Make commands: `make e2e_test_home_report` (home smoke only) and `make e2e_test_report` (full E2E suite).
+- Future route-cluster or other report-focused commands should follow the
   same model:
   - set `E2E_STEP_SCREENSHOTS=true`
   - write reports under `.artifacts/e2e-reports/<datetime>/<app>/`
@@ -223,7 +236,7 @@ Recommended Playwright settings (both web and management-web configs):
 
 Reviewer flow:
 
-1. Run `make e2e_test_home_report` (or another report-focused command that sets `E2E_STEP_SCREENSHOTS=true` and writes to the same timestamped report layout).
+1. Run `make e2e_test_home_report` or `make e2e_test_report` (or another report-focused command that sets `E2E_STEP_SCREENSHOTS=true` and writes to the same timestamped report layout).
 2. Open the app-specific HTML report (auto-open is attempted by the command).
 3. Inspect each test's attachments for ordered step screenshots.
 4. Use trace + failure artifacts for debugging when needed.

@@ -1,22 +1,22 @@
 /**
  * Management API – rate limiting on auth endpoints.
- * Isolated from other test files so no prior login calls pollute the MemoryStore counter.
+ * Sets RATE_LIMIT_STRICT_FOR_TEST=true and loads the app via dynamic import so real limit (100)
+ * applies; other test files never set this and get a very high limit, so no cross-file flakiness.
  */
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import request from 'supertest';
 
 import { appDataSourceRead, appDataSourceReadWrite } from '@boilerplate/orm';
 import { managementDataSource } from '@boilerplate/management-orm';
-import { createApp } from '../app.js';
 import { config } from '../config/index.js';
 
 const API = config.apiVersionPath;
 const RATE_LIMIT_MESSAGE = 'Too many requests. Please try again later.';
-/** In test env the strict limit is 100; send one more to trigger 429. */
+/** In test env when RATE_LIMIT_STRICT_FOR_TEST=true the limit is 100; send one more to trigger 429. */
 const STRICT_LIMIT_IN_TEST = 100;
 
 describe('management-api rate limiting', () => {
-  let app: ReturnType<typeof createApp>;
+  let app: ReturnType<Awaited<typeof import('../app.js')>['createApp']>;
 
   const postLoginWithRetry = async (username: string, password: string) => {
     try {
@@ -30,10 +30,12 @@ describe('management-api rate limiting', () => {
   };
 
   beforeAll(async () => {
+    process.env.RATE_LIMIT_STRICT_FOR_TEST = 'true';
     await appDataSourceRead.initialize();
     await appDataSourceReadWrite.initialize();
     await managementDataSource.initialize();
-    app = createApp();
+    const { createApp: createAppFn } = await import('../app.js');
+    app = createAppFn();
   });
 
   afterAll(async () => {

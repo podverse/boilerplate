@@ -21,6 +21,7 @@ Use this skill when adding or changing auth endpoints, versioned routes, or any 
 ## Clean slate and requirements
 
 - **Clean slate**: Each test run truncates app tables once via Vitest `globalSetup` (`apps/api/src/test/global-setup.mjs`). No manual DB wipe needed between runs.
+- **Rate limiting in tests**: In test, rate limits are **very high by default** (100k) so normal tests never hit 429. Only the dedicated rate-limit test files enable real limits: they set `RATE_LIMIT_STRICT_FOR_TEST=true` (and `RATE_LIMIT_MODERATE_FOR_TEST=true` for api) and use a **dynamic import** for the app so the limit is read after the env is set. Other test files never set these env vars, so repeated `make e2e_test*` runs stay reliable. See `packages/helpers-backend-api` rateLimit.ts and `auth-rate-limit.test.ts` / `management-api-rate-limit.test.ts`.
 - **Requirements**: Before tests, Postgres and Valkey must be up and the test DB created. Root `npm run test` runs `scripts/check-test-requirements.mjs` first; if ports are unreachable, it exits with instructions. From repo root: `make test_deps` (note underscore) starts containers (ports 5532, 6479), creates `boilerplate_test`, applies schema, and grants read/read_write (including TRUNCATE for globalSetup). Make targets use **underscores**: `test_deps`, `help_test`, `test_clean`.
 
 ## What to update when the API changes

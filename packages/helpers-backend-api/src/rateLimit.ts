@@ -129,19 +129,32 @@ export function ipAndPathKeyGenerator(req: {
   return `${ip}:${path}`;
 }
 
-/** In test environments use a high limit so test suites don't hit 429. */
+/**
+ * In test: by default use a very high limit so normal tests never hit 429.
+ * Set RATE_LIMIT_STRICT_FOR_TEST=true (or RATE_LIMIT_MODERATE_FOR_TEST=true) only in
+ * the dedicated rate-limit test file(s) so they can assert 429 with a real limit of 100.
+ */
 const isTest = process.env.NODE_ENV === 'test';
-const TEST_LIMIT = 100;
+const TEST_LIMIT_REAL = 100;
+const TEST_LIMIT_HIGH = 100_000;
+
+function strictLimitInTest(): number {
+  return process.env.RATE_LIMIT_STRICT_FOR_TEST === 'true' ? TEST_LIMIT_REAL : TEST_LIMIT_HIGH;
+}
+
+function moderateLimitInTest(): number {
+  return process.env.RATE_LIMIT_MODERATE_FOR_TEST === 'true' ? TEST_LIMIT_REAL : TEST_LIMIT_HIGH;
+}
 
 /**
- * Pre-configured strict auth rate limiter: 10 req / 15 min per IP+path (100 in test).
- * Suitable for login, signup, and password-reset flows. Pass overrides to customise.
+ * Pre-configured strict auth rate limiter: 10 req / 15 min per IP+path (100 in test when
+ * RATE_LIMIT_STRICT_FOR_TEST=true; otherwise 100k in test so other tests don't hit 429).
  */
 export function createStrictAuthRateLimiter(
   overrides: Partial<RateLimiterOptions> = {}
 ): ReturnType<typeof rateLimit> {
   return createStrictRateLimiter({
-    limit: isTest ? TEST_LIMIT : STRICT_DEFAULT_MAX,
+    limit: isTest ? strictLimitInTest() : STRICT_DEFAULT_MAX,
     windowMs: STRICT_DEFAULT_WINDOW_MS,
     keyGenerator: ipAndPathKeyGenerator,
     ...overrides,
@@ -149,14 +162,14 @@ export function createStrictAuthRateLimiter(
 }
 
 /**
- * Pre-configured moderate auth rate limiter: 30 req / 15 min per IP+path (100 in test).
- * Suitable for change-password and similar flows. Pass overrides to customise.
+ * Pre-configured moderate auth rate limiter: 30 req / 15 min per IP+path (100 in test when
+ * RATE_LIMIT_MODERATE_FOR_TEST=true; otherwise 100k in test).
  */
 export function createModerateAuthRateLimiter(
   overrides: Partial<RateLimiterOptions> = {}
 ): ReturnType<typeof rateLimit> {
   return createModerateRateLimiter({
-    limit: isTest ? TEST_LIMIT : MODERATE_DEFAULT_MAX,
+    limit: isTest ? moderateLimitInTest() : MODERATE_DEFAULT_MAX,
     windowMs: MODERATE_DEFAULT_WINDOW_MS,
     keyGenerator: ipAndPathKeyGenerator,
     ...overrides,
