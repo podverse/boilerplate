@@ -349,7 +349,35 @@ export function UserForm({ mode, userId, initialValues, activeEditTab }: UserFor
 
         {mode === 'edit' &&
           userId !== undefined &&
-          (activeEditTab === undefined || activeEditTab === 'password') && (
+          (activeEditTab === undefined || activeEditTab === 'password') &&
+          (activeEditTab === 'password' ? (
+            <Stack>
+              <Input
+                label={t('newPassword')}
+                type="password"
+                value={newPassword}
+                onChange={setNewPassword}
+                onBlur={() => setNewPasswordTouched(true)}
+                error={newPasswordError}
+                autoComplete="new-password"
+              />
+              <PasswordStrengthMeter password={newPassword} />
+              {changePasswordError !== null && (
+                <Text variant="error" role="alert">
+                  {changePasswordError}
+                </Text>
+              )}
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={handleChangePassword}
+                loading={changePasswordLoading}
+                disabled={newPassword === '' || !newPasswordValidation.valid}
+              >
+                {t('changePasswordButton')}
+              </Button>
+            </Stack>
+          ) : (
             <FormSection title={t('changePassword')}>
               <Input
                 label={t('newPassword')}
@@ -376,7 +404,7 @@ export function UserForm({ mode, userId, initialValues, activeEditTab }: UserFor
                 {t('changePasswordButton')}
               </Button>
             </FormSection>
-          )}
+          ))}
       </Stack>
     </FormContainer>
   );

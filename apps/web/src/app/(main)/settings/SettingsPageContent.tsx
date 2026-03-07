@@ -8,6 +8,7 @@ import {
   ContentPageLayout,
   FormContainer,
   SectionWithHeading,
+  Stack,
   Input,
   Button,
   PasswordStrengthMeter,
@@ -240,7 +241,7 @@ export function SettingsPageContent({ initialUser, activeTab }: SettingsPageCont
         </SectionWithHeading>
       )}
       {activeTab === 'profile' && (
-        <SectionWithHeading title={tSettings('profileTab')}>
+        <Stack>
           <FormContainer onSubmit={handleUpdateProfile}>
             <Input
               label={t('displayName')}
@@ -281,10 +282,10 @@ export function SettingsPageContent({ initialUser, activeTab }: SettingsPageCont
               {t('updateProfile')}
             </Button>
           </FormContainer>
-        </SectionWithHeading>
+        </Stack>
       )}
       {activeTab === 'password' && (
-        <SectionWithHeading title={t('changePassword')}>
+        <Stack>
           <FormContainer onSubmit={handleChangePassword}>
             <Input
               label={t('currentPassword')}
@@ -326,10 +327,10 @@ export function SettingsPageContent({ initialUser, activeTab }: SettingsPageCont
               {t('changePasswordSubmit')}
             </Button>
           </FormContainer>
-        </SectionWithHeading>
+        </Stack>
       )}
       {activeTab === 'email' && (
-        <SectionWithHeading title={t('requestEmailChange')}>
+        <Stack>
           <FormContainer onSubmit={handleRequestEmailChange}>
             <Input
               label={t('newEmail')}
@@ -352,7 +353,7 @@ export function SettingsPageContent({ initialUser, activeTab }: SettingsPageCont
               {t('requestEmailChangeSubmit')}
             </Button>
           </FormContainer>
-        </SectionWithHeading>
+        </Stack>
       )}
     </ContentPageLayout>
   );

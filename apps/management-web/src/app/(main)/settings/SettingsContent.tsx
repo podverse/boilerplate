@@ -10,6 +10,7 @@ import {
   ContentPageLayout,
   FormContainer,
   SectionWithHeading,
+  Stack,
   Input,
   Button,
   PasswordStrengthMeter,
@@ -178,7 +179,7 @@ export function SettingsContent({
         </SectionWithHeading>
       )}
       {activeTab === 'profile' && (
-        <SectionWithHeading title={tSettings('profileTab')}>
+        <Stack>
           <FormContainer onSubmit={handleUpdateProfile}>
             <Input
               label={t('username')}
@@ -209,10 +210,10 @@ export function SettingsContent({
               {t('updateProfile')}
             </Button>
           </FormContainer>
-        </SectionWithHeading>
+        </Stack>
       )}
       {activeTab === 'password' && (
-        <SectionWithHeading title={t('changePassword')}>
+        <Stack>
           <FormContainer onSubmit={handleChangePassword}>
             <Input
               label={t('currentPassword')}
@@ -254,7 +255,7 @@ export function SettingsContent({
               {t('changePasswordSubmit')}
             </Button>
           </FormContainer>
-        </SectionWithHeading>
+        </Stack>
       )}
     </ContentPageLayout>
   );
