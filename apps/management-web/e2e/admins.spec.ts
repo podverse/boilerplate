@@ -37,11 +37,26 @@ test.describe('Admins list', () => {
       }
     );
     await expect(page).toHaveURL(/\/admins/);
-    await expect(
-      page
-        .getByRole('link', { name: /add admin|new admin|create/i })
-        .or(page.getByRole('heading', { name: /admins/i }))
-    ).toBeVisible();
+    await expect(page.getByRole('heading', { name: /admins/i })).toBeVisible();
+    await expect(page.getByRole('link', { name: /add admin|new admin|create/i })).toBeVisible();
     await capturePageLoad(page, testInfo, 'management-admins-page-visible-with-list-or-add-cta');
+  });
+
+  test('add admin CTA navigates to new admin form', async ({ page }, testInfo) => {
+    await login(page);
+    await page.goto('/admins');
+    await actionAndCapture(
+      page,
+      testInfo,
+      'click-add-admin-cta-and-expect-navigation-to-management-admins-new-route',
+      async () => {
+        await page
+          .getByRole('link', { name: /add admin|new admin|create/i })
+          .first()
+          .click();
+      }
+    );
+    await expect(page).toHaveURL(/\/admins\/new/);
+    await expect(page.getByRole('heading', { name: /add admin/i })).toBeVisible();
   });
 });

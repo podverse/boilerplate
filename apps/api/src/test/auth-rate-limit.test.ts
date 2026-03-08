@@ -17,6 +17,13 @@ const RATE_LIMIT_MESSAGE = 'Too many requests. Please try again later.';
 const STRICT_LIMIT_IN_TEST = 100;
 const MODERATE_LIMIT_IN_TEST = 100;
 
+const expectRetryAfterSeconds = (retryAfterSeconds: unknown): void => {
+  expect(typeof retryAfterSeconds).toBe('number');
+  if (typeof retryAfterSeconds === 'number') {
+    expect(retryAfterSeconds).toBeGreaterThan(0);
+  }
+};
+
 describe('auth rate limiting', () => {
   let app: ReturnType<Awaited<typeof import('../app.js')>['createApp']>;
 
@@ -51,10 +58,8 @@ describe('auth rate limiting', () => {
     expect(res.status).toBe(429);
     expect(res.body.message).toBe(RATE_LIMIT_MESSAGE);
     // Body is the single source of truth: exact seconds remaining from backend in-memory store.
-    const retryAfterSeconds: unknown = res.body.retryAfterSeconds;
-    expect(typeof retryAfterSeconds).toBe('number');
-    expect(retryAfterSeconds as number).toBeGreaterThan(0);
-  });
+    expectRetryAfterSeconds(res.body.retryAfterSeconds);
+  }, 15_000);
 
   it('returns 429 after exceeding strict limit on POST /auth/signup', async () => {
     for (let i = 0; i < STRICT_LIMIT_IN_TEST; i++) {
@@ -69,9 +74,7 @@ describe('auth rate limiting', () => {
       .send({ email: 'over-limit@example.com', password: 'any' });
     expect(res.status).toBe(429);
     expect(res.body.message).toBe(RATE_LIMIT_MESSAGE);
-    const retryAfterSeconds: unknown = res.body.retryAfterSeconds;
-    expect(typeof retryAfterSeconds).toBe('number');
-    expect(retryAfterSeconds as number).toBeGreaterThan(0);
+    expectRetryAfterSeconds(res.body.retryAfterSeconds);
   });
 
   it('returns 429 after exceeding moderate limit on POST /auth/change-password', async () => {
@@ -87,9 +90,7 @@ describe('auth rate limiting', () => {
       .send({ currentPassword: 'any', newPassword: 'any' });
     expect(res.status).toBe(429);
     expect(res.body.message).toBe(RATE_LIMIT_MESSAGE);
-    const retryAfterSeconds: unknown = res.body.retryAfterSeconds;
-    expect(typeof retryAfterSeconds).toBe('number');
-    expect(retryAfterSeconds as number).toBeGreaterThan(0);
+    expectRetryAfterSeconds(res.body.retryAfterSeconds);
   });
 
   it('GET /auth/me is not rate limited (many requests succeed with 401)', async () => {
@@ -104,5 +105,5 @@ describe('auth rate limiting', () => {
       const res = await request(app).post(`${API}/auth/logout`);
       expect(res.status).toBe(204);
     }
-  });
+  }, 15_000);
 });

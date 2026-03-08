@@ -100,6 +100,8 @@ export default class HtmlStepsReporter implements Reporter {
     .summary-list .prefix-pass { color: #4ec9b0; }
     .summary-list .prefix-error { color: #f48771; }
     .summary-list .prefix-timeout { color: #dcdcaa; }
+    .summary-list .summary-group-header { list-style: none; margin-top: 1rem; margin-bottom: 0.25rem; font-weight: 600; font-size: 0.95rem; color: #d4d4d4; }
+    .summary-list .summary-group-header:first-child { margin-top: 0; }
     section.test { margin-bottom: 2rem; border: 1px solid #444; border-radius: 6px; padding: 1rem; scroll-margin-top: 0.5rem; }
     section.test h2 { font-size: 1rem; margin: 0 0 0.5rem; font-weight: 600; }
     .status { font-size: 0.875rem; margin-bottom: 0.75rem; }
@@ -124,8 +126,17 @@ ${isInterrupted ? '  <div class="incomplete-banner">Run aborted during execution
     <div class="summary-stats">${total} test${total === 1 ? '' : 's'}: ${passed} passed, ${failed} failed${timedOut > 0 ? `, ${timedOut} timed out` : ''}</div>
     <ul class="summary-list">
 `);
+    let lastGroupName: string | null = null;
     for (let testIndex = 0; testIndex < this.runs.length; testIndex++) {
       const { test, result } = this.runs[testIndex];
+      const path = test.titlePath();
+      const groupName =
+        path.length >= 2 ? path[path.length - 2] : path.length >= 1 ? path[0] : 'Tests';
+      if (groupName !== lastGroupName) {
+        lastGroupName = groupName;
+        parts.push(`      <li class="summary-group-header">${escapeHtml(groupName)}</li>
+`);
+      }
       const status = result.status ?? 'unknown';
       const prefixClass =
         status === 'passed'

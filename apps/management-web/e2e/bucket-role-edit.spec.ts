@@ -1,10 +1,9 @@
 import { expect, test } from '@playwright/test';
 
-import { actionAndCapture, capturePageLoad } from './helpers/stepScreenshots';
+import { actionAndCapture } from './helpers/stepScreenshots';
 
 const E2E_USERNAME = 'e2e-superadmin';
 const E2E_PASSWORD = 'Test!1Aa';
-/** UUID from tools/web/seed-e2e.mjs E2E_BUCKET1_ID (main DB; management E2E runs after full seed). */
 const E2E_BUCKET1_ID = '22222222-2222-4222-a222-222222222222';
 
 async function login(page: import('@playwright/test').Page) {
@@ -15,33 +14,29 @@ async function login(page: import('@playwright/test').Page) {
   await expect(page).toHaveURL(/\/dashboard/);
 }
 
-test.describe('Bucket detail', () => {
+test.describe('Management bucket role edit', () => {
   test('unauthenticated user is redirected to login', async ({ page }, testInfo) => {
     await actionAndCapture(
       page,
       testInfo,
-      'navigate-to-management-bucket-detail-while-unauthenticated-expect-redirect-to-login',
+      'navigate-to-management-bucket-role-edit-while-unauthenticated-expect-redirect-to-login',
       async () => {
-        await page.goto(`/bucket/${E2E_BUCKET1_ID}`);
+        await page.goto(`/bucket/${E2E_BUCKET1_ID}/settings/roles/invalid-role-99999/edit`);
       }
     );
     await expect(page).toHaveURL(/\/login/);
   });
 
-  test('authenticated user sees bucket detail with tabs or messages', async ({
-    page,
-  }, testInfo) => {
+  test('invalid role id shows not found', async ({ page }, testInfo) => {
     await login(page);
     await actionAndCapture(
       page,
       testInfo,
-      'navigate-to-management-bucket-detail-expect-tabs-or-messages',
+      'navigate-to-management-bucket-role-edit-with-invalid-role-id-and-expect-not-found',
       async () => {
-        await page.goto(`/bucket/${E2E_BUCKET1_ID}`);
+        await page.goto(`/bucket/${E2E_BUCKET1_ID}/settings/roles/invalid-role-99999/edit`);
       }
     );
-    await expect(page).toHaveURL(new RegExp(`/bucket/${E2E_BUCKET1_ID}`));
-    await expect(page.getByText(/E2E Bucket One/)).toBeVisible();
-    await capturePageLoad(page, testInfo, 'management-bucket-detail-visible-with-name-or-tabs');
+    await expect(page.getByText(/not found|404/i)).toBeVisible();
   });
 });

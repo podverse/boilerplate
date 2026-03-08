@@ -37,11 +37,26 @@ test.describe('Users list', () => {
       }
     );
     await expect(page).toHaveURL(/\/users/);
-    await expect(
-      page
-        .getByRole('link', { name: /add user|new user|create/i })
-        .or(page.getByRole('heading', { name: /users/i }))
-    ).toBeVisible();
+    await expect(page.getByRole('heading', { name: /users/i })).toBeVisible();
+    await expect(page.getByRole('link', { name: /add user|new user|create/i })).toBeVisible();
     await capturePageLoad(page, testInfo, 'management-users-page-visible-with-list-or-add-cta');
+  });
+
+  test('add user CTA navigates to new user form', async ({ page }, testInfo) => {
+    await login(page);
+    await page.goto('/users');
+    await actionAndCapture(
+      page,
+      testInfo,
+      'click-add-user-cta-and-expect-navigation-to-management-users-new-route',
+      async () => {
+        await page
+          .getByRole('link', { name: /add user|new user|create/i })
+          .first()
+          .click();
+      }
+    );
+    await expect(page).toHaveURL(/\/users\/new/);
+    await expect(page.getByRole('heading', { name: /add user/i })).toBeVisible();
   });
 });

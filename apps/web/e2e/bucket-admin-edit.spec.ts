@@ -5,6 +5,7 @@ import { actionAndCapture, capturePageLoad } from './helpers/stepScreenshots';
 const E2E_EMAIL = 'e2e@example.com';
 const E2E_PASSWORD = 'Test!1Aa';
 const E2E_BUCKET1_SHORT_ID = 'e2ebkt000001';
+const E2E_USER_SHORT_ID = 'e2eusr000001';
 
 async function login(page: import('@playwright/test').Page) {
   await page.goto('/login');
@@ -14,50 +15,53 @@ async function login(page: import('@playwright/test').Page) {
   await expect(page).toHaveURL(/\/dashboard/);
 }
 
-test.describe('Bucket detail', () => {
+test.describe('Bucket admin edit', () => {
   test('unauthenticated user is redirected to login', async ({ page }, testInfo) => {
     await actionAndCapture(
       page,
       testInfo,
-      'navigate-to-bucket-detail-while-unauthenticated-expect-redirect-to-login',
+      'navigate-to-bucket-admin-edit-while-unauthenticated-expect-redirect-to-login',
       async () => {
-        await page.goto(`/bucket/${E2E_BUCKET1_SHORT_ID}`);
+        await page.goto(
+          `/bucket/${E2E_BUCKET1_SHORT_ID}/settings/admins/${E2E_USER_SHORT_ID}/edit`
+        );
       }
     );
     await expect(page).toHaveURL(/\/login/);
   });
 
-  test('authenticated user sees bucket detail for seeded bucket', async ({ page }, testInfo) => {
+  test('seeded owner user id on admin edit route resolves to not found', async ({
+    page,
+  }, testInfo) => {
     await login(page);
     await actionAndCapture(
       page,
       testInfo,
-      'navigate-to-bucket-detail-by-short-id-expect-bucket-name-and-content',
+      'navigate-to-bucket-admin-edit-route-for-seeded-owner-user-id-and-expect-not-found',
       async () => {
-        await page.goto(`/bucket/${E2E_BUCKET1_SHORT_ID}`);
+        await page.goto(
+          `/bucket/${E2E_BUCKET1_SHORT_ID}/settings/admins/${E2E_USER_SHORT_ID}/edit`
+        );
       }
     );
-    await expect(page).toHaveURL(new RegExp(`/bucket/${E2E_BUCKET1_SHORT_ID}`));
-    await expect(page.getByText('E2E Bucket One')).toBeVisible();
-    await expect(page.getByRole('link', { name: /messages/i })).toBeVisible();
-    await expect(page.getByRole('link', { name: /settings/i })).toBeVisible();
+    await expect(page.getByText(/not found|404/i)).toBeVisible();
     await capturePageLoad(
       page,
       testInfo,
-      'bucket-detail-page-shows-bucket-name-E2E-Bucket-One-and-settings-or-messages-links'
+      'bucket-admin-edit-route-with-seeded-owner-user-id-shows-not-found'
     );
   });
 
-  test('invalid bucket id shows 404', async ({ page }, testInfo) => {
+  test('invalid user id shows not found', async ({ page }, testInfo) => {
     await login(page);
     await actionAndCapture(
       page,
       testInfo,
-      'navigate-to-bucket-with-invalid-id-expect-not-found',
+      'navigate-to-bucket-admin-edit-with-invalid-user-id-and-expect-not-found',
       async () => {
-        await page.goto('/bucket/nonexistent-bucket-id-99999');
+        await page.goto(`/bucket/${E2E_BUCKET1_SHORT_ID}/settings/admins/invalid-user-99999/edit`);
       }
     );
-    await expect(page.getByText(/not found|404|does not exist/i).first()).toBeVisible();
+    await expect(page.getByText(/not found|404/i)).toBeVisible();
   });
 });

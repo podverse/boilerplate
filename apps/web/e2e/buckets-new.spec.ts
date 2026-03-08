@@ -37,10 +37,8 @@ test.describe('Buckets new', () => {
       }
     );
     await expect(page).toHaveURL(/\/buckets\/new/);
-    await expect(
-      page.getByRole('textbox', { name: /name|bucket name/i }).or(page.getByLabel(/name/i))
-    ).toBeVisible();
-    await expect(page.getByRole('button', { name: /create|save/i })).toBeVisible();
+    await expect(page.getByRole('textbox', { name: /name|bucket name/i })).toBeVisible();
+    await expect(page.getByRole('button', { name: /create|save|add bucket/i })).toBeVisible();
     await capturePageLoad(page, testInfo, 'create-bucket-form-visible-with-name-and-submit-button');
   });
 
@@ -59,5 +57,20 @@ test.describe('Buckets new', () => {
       );
       await expect(page).toHaveURL(/\/buckets/);
     }
+  });
+
+  test('empty submit shows validation and does not navigate away', async ({ page }, testInfo) => {
+    await login(page);
+    await page.goto('/buckets/new');
+    await actionAndCapture(
+      page,
+      testInfo,
+      'submit-empty-create-bucket-form-and-expect-validation-message-on-page',
+      async () => {
+        await page.getByRole('button', { name: /create|save|add bucket/i }).click();
+      }
+    );
+    await expect(page).toHaveURL(/\/buckets\/new/);
+    await expect(page.getByText(/required|name/i).first()).toBeVisible();
   });
 });

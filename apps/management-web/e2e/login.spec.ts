@@ -58,8 +58,6 @@ test.describe('Login', () => {
       }
     );
     await expect(page).toHaveURL(/\/login/);
-    await expect(
-      page.getByRole('alert').or(page.getByText(/invalid|incorrect|wrong|error/i))
-    ).toBeVisible();
+    await expect(page.getByText(/invalid|incorrect|wrong|error/i)).toBeVisible();
   });
 });

@@ -2,13 +2,9 @@
 
 ## Scope
 
-Keep active E2E page-test plans aligned with the current App Router surface in
-`apps/web` and `apps/management-web`. Every current route has a corresponding
-plan file; each has been expanded into a **detailed plan** with selector
-strategy, assertion matrix (layout, auth/redirect, values, interaction),
-CRUD where applicable, test data mapping, screenshot/trace checkpoints, and
-verification commands so implementation can proceed without additional
-product-guessing.
+Active E2E plan files now hold cross-cutting guidance, sequencing, and route
+mapping. Route-level detailed plans (`web-*.md`, `mgmt-*.md`) have been
+completed and moved to `.llm/plans/completed/e2e-page-tests`.
 
 ## Current route baseline
 
@@ -47,8 +43,8 @@ product-guessing.
 | 02-detailed-plan-generation.md | Guidance for refining and maintaining the current implementation-grade page plans |
 | 03-route-to-plan-map.md | Canonical mapping of current routes to active placeholder plans |
 | COPY-PASTA.md | Copy-paste prompts for parallel page-plan detailing and implementation |
-| `web-*.md` | Web detailed plans for each current route (layout, auth, CRUD, selectors, test data) |
-| `mgmt-*.md` | Management-web detailed plans for each current route (layout, auth, permissions, CRUD, selectors, test data) |
+| `.llm/plans/completed/e2e-page-tests/web-*.md` | Completed web detailed plans for each current route |
+| `.llm/plans/completed/e2e-page-tests/mgmt-*.md` | Completed management-web detailed plans for each current route |
 
 ## Deprecated route tracking
 
@@ -57,7 +53,9 @@ must not be reintroduced unless those routes return to App Router.
 
 ## Detailed plan content (per page)
 
-Each `web-*.md` and `mgmt-*.md` file is a **detailed plan** (not a stub or lightweight placeholder) and includes:
+Each completed `web-*.md` and `mgmt-*.md` file in
+`.llm/plans/completed/e2e-page-tests` is a **detailed plan** (not a stub or
+lightweight placeholder) and includes:
 
 - Route and objective
 - Selector strategy (roles, labels, stable selectors)

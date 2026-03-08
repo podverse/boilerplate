@@ -38,13 +38,30 @@ test.describe('Bucket settings', () => {
       }
     );
     await expect(page).toHaveURL(new RegExp(`/bucket/${E2E_BUCKET1_SHORT_ID}/settings`));
-    await expect(
-      page.getByRole('button', { name: /save|update/i }).or(page.getByText(/settings|bucket/i))
-    ).toBeVisible();
+    await expect(page.getByRole('heading', { name: /settings|bucket/i })).toBeVisible();
+    await expect(page.getByRole('link', { name: /general/i })).toBeVisible();
+    await expect(page.getByRole('link', { name: /admins/i })).toBeVisible();
+    await expect(page.getByRole('link', { name: /roles/i })).toBeVisible();
     await capturePageLoad(
       page,
       testInfo,
       'bucket-settings-page-visible-with-save-button-or-settings-heading'
     );
+  });
+
+  test('bucket settings admins tab url is reachable', async ({ page }, testInfo) => {
+    await login(page);
+    await actionAndCapture(
+      page,
+      testInfo,
+      'navigate-to-bucket-settings-admins-tab-and-expect-admins-context-visible',
+      async () => {
+        await page.goto(`/bucket/${E2E_BUCKET1_SHORT_ID}/settings?tab=admins`);
+      }
+    );
+    await expect(page).toHaveURL(
+      new RegExp(`/bucket/${E2E_BUCKET1_SHORT_ID}/settings\\?tab=admins`)
+    );
+    await expect(page.getByText(/admins/i).first()).toBeVisible();
   });
 });

@@ -36,11 +36,7 @@ test.describe('Profile', () => {
         await page.goto('/profile');
       }
     );
-    await expect(
-      page
-        .getByText(/E2E User|profile|e2e@example.com/i)
-        .or(page.getByRole('heading', { name: /profile/i }))
-    ).toBeVisible();
+    await expect(page.getByText(/e2e user/i)).toBeVisible();
     await capturePageLoad(page, testInfo, 'profile-page-visible-with-user-identity-or-heading');
   });
 });

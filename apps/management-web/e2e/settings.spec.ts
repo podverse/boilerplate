@@ -37,11 +37,21 @@ test.describe('Settings', () => {
       }
     );
     await expect(page).toHaveURL(/\/settings/);
-    await expect(
-      page
-        .getByRole('tab', { name: /profile|password|account/i })
-        .or(page.getByRole('heading', { name: /settings|account/i }))
-    ).toBeVisible();
+    await expect(page.getByRole('heading', { name: /settings|account/i })).toBeVisible();
     await capturePageLoad(page, testInfo, 'management-settings-page-visible-with-tabs-or-heading');
+  });
+
+  test('settings password tab url loads password form context', async ({ page }, testInfo) => {
+    await login(page);
+    await actionAndCapture(
+      page,
+      testInfo,
+      'navigate-to-management-settings-password-tab-and-expect-password-fields-visible',
+      async () => {
+        await page.goto('/settings?tab=password');
+      }
+    );
+    await expect(page).toHaveURL(/\/settings\?tab=password/);
+    await expect(page.getByLabel(/current password|new password|password/i).first()).toBeVisible();
   });
 });

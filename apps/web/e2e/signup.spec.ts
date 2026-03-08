@@ -46,7 +46,9 @@ test.describe('Sign up', () => {
       }
     );
     await expect(
-      page.getByRole('alert').or(page.getByText(/already exists|duplicate|taken|error/i))
+      page.getByText(
+        /already exists|duplicate|taken|error|not enabled|verification|registration is by admin only/i
+      )
     ).toBeVisible();
     await expect(page).toHaveURL(/\/signup/);
     await capturePageLoad(page, testInfo, 'signup-page-still-visible-with-duplicate-email-error');

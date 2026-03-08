@@ -37,14 +37,8 @@ test.describe('Buckets list', () => {
       }
     );
     await expect(page).toHaveURL(/\/buckets/);
-    await expect(
-      page
-        .getByRole('link', { name: /add bucket|new bucket/i })
-        .or(page.getByRole('button', { name: /new bucket|add bucket/i }))
-    ).toBeVisible();
-    await expect(
-      page.getByRole('table').or(page.getByText(/E2E Bucket One|E2E Bucket Two|No buckets/i))
-    ).toBeVisible();
+    await expect(page.getByRole('link', { name: /add bucket|new bucket/i })).toBeVisible();
+    await expect(page.getByRole('table')).toBeVisible();
     await capturePageLoad(
       page,
       testInfo,
@@ -54,9 +48,8 @@ test.describe('Buckets list', () => {
 
   test('bucket names from seed are visible', async ({ page }, testInfo) => {
     await page.goto('/buckets');
-    await expect(
-      page.getByText('E2E Bucket One').or(page.getByText('E2E Bucket Two'))
-    ).toBeVisible();
+    await expect(page.getByText('E2E Bucket One')).toBeVisible();
+    await expect(page.getByText('E2E Bucket Two')).toBeVisible();
     await capturePageLoad(
       page,
       testInfo,
@@ -73,7 +66,6 @@ test.describe('Buckets list', () => {
       async () => {
         await page
           .getByRole('link', { name: /add bucket|new bucket/i })
-          .or(page.getByRole('button', { name: /new bucket|add bucket/i }))
           .first()
           .click();
       }

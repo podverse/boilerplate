@@ -1,11 +1,11 @@
 import { expect, test } from '@playwright/test';
 
-import { actionAndCapture, capturePageLoad } from './helpers/stepScreenshots';
+import { actionAndCapture } from './helpers/stepScreenshots';
 
 const E2E_USERNAME = 'e2e-superadmin';
 const E2E_PASSWORD = 'Test!1Aa';
-/** UUID from tools/web/seed-e2e.mjs E2E_BUCKET1_ID (main DB; management E2E runs after full seed). */
 const E2E_BUCKET1_ID = '22222222-2222-4222-a222-222222222222';
+const E2E_MAIN_USER_ID = '11111111-1111-4111-a111-111111111111';
 
 async function login(page: import('@playwright/test').Page) {
   await page.goto('/login');
@@ -15,33 +15,31 @@ async function login(page: import('@playwright/test').Page) {
   await expect(page).toHaveURL(/\/dashboard/);
 }
 
-test.describe('Bucket detail', () => {
+test.describe('Management bucket admin edit', () => {
   test('unauthenticated user is redirected to login', async ({ page }, testInfo) => {
     await actionAndCapture(
       page,
       testInfo,
-      'navigate-to-management-bucket-detail-while-unauthenticated-expect-redirect-to-login',
+      'navigate-to-management-bucket-admin-edit-while-unauthenticated-expect-redirect-to-login',
       async () => {
-        await page.goto(`/bucket/${E2E_BUCKET1_ID}`);
+        await page.goto(`/bucket/${E2E_BUCKET1_ID}/settings/admins/${E2E_MAIN_USER_ID}/edit`);
       }
     );
     await expect(page).toHaveURL(/\/login/);
   });
 
-  test('authenticated user sees bucket detail with tabs or messages', async ({
-    page,
-  }, testInfo) => {
+  test('invalid admin user id shows not found', async ({ page }, testInfo) => {
     await login(page);
     await actionAndCapture(
       page,
       testInfo,
-      'navigate-to-management-bucket-detail-expect-tabs-or-messages',
+      'navigate-to-management-bucket-admin-edit-with-invalid-user-id-and-expect-not-found',
       async () => {
-        await page.goto(`/bucket/${E2E_BUCKET1_ID}`);
+        await page.goto(
+          `/bucket/${E2E_BUCKET1_ID}/settings/admins/99999999-9999-4999-a999-999999999999/edit`
+        );
       }
     );
-    await expect(page).toHaveURL(new RegExp(`/bucket/${E2E_BUCKET1_ID}`));
-    await expect(page.getByText(/E2E Bucket One/)).toBeVisible();
-    await capturePageLoad(page, testInfo, 'management-bucket-detail-visible-with-name-or-tabs');
+    await expect(page.getByText(/not found|404/i)).toBeVisible();
   });
 });

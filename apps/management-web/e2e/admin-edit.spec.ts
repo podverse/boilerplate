@@ -4,6 +4,7 @@ import { actionAndCapture, capturePageLoad } from './helpers/stepScreenshots';
 
 const E2E_USERNAME = 'e2e-superadmin';
 const E2E_PASSWORD = 'Test!1Aa';
+const E2E_SUPER_ADMIN_ID = 'aaaaaaaa-aaaa-4aaa-aaaa-aaaaaaaaaaaa';
 
 async function login(page: import('@playwright/test').Page) {
   await page.goto('/login');
@@ -13,35 +14,37 @@ async function login(page: import('@playwright/test').Page) {
   await expect(page).toHaveURL(/\/dashboard/);
 }
 
-test.describe('Profile', () => {
+test.describe('Management admin edit', () => {
   test('unauthenticated user is redirected to login', async ({ page }, testInfo) => {
     await actionAndCapture(
       page,
       testInfo,
-      'navigate-to-management-profile-while-unauthenticated-expect-redirect-to-login',
+      'navigate-to-management-admin-edit-while-unauthenticated-expect-redirect-to-login',
       async () => {
-        await page.goto('/profile');
+        await page.goto(`/admin/${E2E_SUPER_ADMIN_ID}/edit`);
       }
     );
     await expect(page).toHaveURL(/\/login/);
   });
 
-  test('authenticated user sees profile or identity', async ({ page }, testInfo) => {
+  test('authenticated user sees edit admin form', async ({ page }, testInfo) => {
     await login(page);
     await actionAndCapture(
       page,
       testInfo,
-      'navigate-to-management-profile-and-expect-single-redirect-to-settings',
+      'navigate-to-management-admin-edit-route-and-expect-edit-admin-form-visible',
       async () => {
-        await page.goto('/profile');
+        await page.goto(`/admin/${E2E_SUPER_ADMIN_ID}/edit`);
       }
     );
-    await expect(page).toHaveURL(/\/settings/);
-    await expect(page.getByRole('heading', { name: /settings|account/i })).toBeVisible();
+    await expect(page).toHaveURL(new RegExp(`/admin/${E2E_SUPER_ADMIN_ID}/edit`));
+    await expect(page.getByRole('textbox', { name: /display name/i })).toBeVisible();
+    await expect(page.getByRole('textbox', { name: /^username$/i })).toBeVisible();
+    await expect(page.getByRole('button', { name: /save|update/i })).toBeVisible();
     await capturePageLoad(
       page,
       testInfo,
-      'management-profile-route-redirects-to-settings-page-for-authenticated-user'
+      'management-admin-edit-form-visible-with-fields-and-save'
     );
   });
 });

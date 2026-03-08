@@ -14,9 +14,10 @@ test.describe('Send message (public)', () => {
         await page.goto(`/b/${E2E_BUCKET1_SHORT_ID}/send-message`);
       }
     );
-    await expect(
-      page.getByRole('textbox').or(page.getByRole('button', { name: /send|submit/i }))
-    ).toBeVisible();
+    await expect(page.getByRole('heading', { name: /send a message/i })).toBeVisible();
+    await expect(page.getByRole('textbox', { name: /your name/i })).toBeVisible();
+    await expect(page.getByRole('textbox', { name: /message/i })).toBeVisible();
+    await expect(page.getByRole('button', { name: /send|submit/i })).toBeVisible();
     await capturePageLoad(page, testInfo, 'public-send-message-page-shows-form-or-send-button');
   });
 
@@ -29,10 +30,25 @@ test.describe('Send message (public)', () => {
         await page.goto('/b/invalid-short-99999/send-message');
       }
     );
-    await expect(
-      page
-        .getByText(/not found|404|invalid/i)
-        .or(page.getByRole('heading', { name: /not found|404/i }))
-    ).toBeVisible();
+    await expect(page.getByText(/not found|404|invalid/i).first()).toBeVisible();
+  });
+
+  test('empty send-message form keeps submit disabled until required fields are filled', async ({
+    page,
+  }, testInfo) => {
+    await page.goto(`/b/${E2E_BUCKET1_SHORT_ID}/send-message`);
+    const submitButton = page.getByRole('button', { name: /send|submit/i });
+    await expect(submitButton).toBeDisabled();
+    await actionAndCapture(
+      page,
+      testInfo,
+      'fill-required-public-send-message-fields-and-expect-submit-button-enabled',
+      async () => {
+        await page.getByRole('textbox', { name: /your name/i }).fill('E2E Sender');
+        await page.getByRole('textbox', { name: /message/i }).fill('E2E public message body');
+      }
+    );
+    await expect(page).toHaveURL(new RegExp(`/b/${E2E_BUCKET1_SHORT_ID}/send-message`));
+    await expect(submitButton).toBeEnabled();
   });
 });

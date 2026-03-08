@@ -3,13 +3,15 @@
 ## Purpose
 
 Before implementing or revising any page-level E2E spec, refine the dedicated
-detailed plan for that page. The existing `web-*.md` and `mgmt-*.md` files are
-already the canonical detailed plans; this document describes how to update
-them, not how to create a second parallel layer of `detail-*` files.
+detailed plan for that page in `.llm/plans/completed/e2e-page-tests`. The
+existing `web-*.md` and `mgmt-*.md` files are already the canonical detailed
+plans; this document describes how to update them, not how to create a second
+parallel layer of `detail-*` files.
 
 ## Input
 
-- One current detailed plan file (`web-*.md` or `mgmt-*.md`)
+- One current detailed plan file from
+  `.llm/plans/completed/e2e-page-tests` (`web-*.md` or `mgmt-*.md`)
 - Current route/page implementation under `apps/*/src/app/**/page.tsx`
 - Related components and route helpers
 - Deterministic seed/token/isolation assumptions from `docs/testing/E2E-PAGE-TESTING.md`
@@ -47,7 +49,8 @@ them, not how to create a second parallel layer of `detail-*` files.
 
 ## File handling
 
-- Update the existing `web-*.md` / `mgmt-*.md` file in place.
+- Update the existing `web-*.md` / `mgmt-*.md` file in place under
+  `.llm/plans/completed/e2e-page-tests`.
 - Do not create `detail-web-*` or `detail-mgmt-*` shadow files.
 - Keep each detailed plan under 300 lines. If a page starts growing too large,
   move truly cross-cutting guidance back into shared docs instead of creating a

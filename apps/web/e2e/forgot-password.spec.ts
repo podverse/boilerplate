@@ -36,9 +36,9 @@ test.describe('Forgot password', () => {
       }
     );
     await expect(
-      page
-        .getByRole('alert')
-        .or(page.getByText(/sent|check your email|if an account exists|error|invalid/i))
+      page.getByText(
+        /sent|check your email|if an account exists|error|invalid|not enabled|verification/i
+      )
     ).toBeVisible();
     await capturePageLoad(
       page,

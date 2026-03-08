@@ -16,7 +16,7 @@ export default defineConfig({
   webServer: [
     {
       command:
-        'npm run build -w @boilerplate/management-api && MANAGEMENT_API_PORT=4110 npm run start -w @boilerplate/management-api',
+        'npm run build -w @boilerplate/management-api && NODE_ENV=test MANAGEMENT_API_PORT=4110 MANAGEMENT_DB_HOST=localhost MANAGEMENT_DB_PORT=5532 MANAGEMENT_DB_NAME=boilerplate_management_test MANAGEMENT_DB_USERNAME=read_write MANAGEMENT_DB_PASSWORD=test DB_HOST=localhost DB_PORT=5532 DB_NAME=boilerplate_test DB_READ_USERNAME=read DB_READ_PASSWORD=test DB_READ_WRITE_USERNAME=read_write DB_READ_WRITE_PASSWORD=test VALKEY_HOST=localhost VALKEY_PORT=6479 VALKEY_PASSWORD=test npm run start -w @boilerplate/management-api',
       port: 4110,
       cwd: '../..',
       reuseExistingServer: false,
@@ -24,7 +24,7 @@ export default defineConfig({
     },
     {
       command:
-        'PORT=4112 MANAGEMENT_API_BACKEND_URL=http://localhost:4110 NEXT_PUBLIC_WEB_APP_URL=http://localhost:4012 npm run build -w @boilerplate/management-web && PORT=4112 MANAGEMENT_API_BACKEND_URL=http://localhost:4110 NEXT_PUBLIC_WEB_APP_URL=http://localhost:4012 npm run start -w @boilerplate/management-web',
+        'PORT=4112 MANAGEMENT_API_BACKEND_URL=http://localhost:4110 NEXT_PUBLIC_MANAGEMENT_API_URL=/api/management NEXT_PUBLIC_WEB_APP_URL=http://localhost:4012 npm run build -w @boilerplate/management-web && PORT=4112 MANAGEMENT_API_BACKEND_URL=http://localhost:4110 NEXT_PUBLIC_MANAGEMENT_API_URL=/api/management NEXT_PUBLIC_WEB_APP_URL=http://localhost:4012 npm run start -w @boilerplate/management-web',
       port: 4112,
       cwd: '../..',
       reuseExistingServer: false,

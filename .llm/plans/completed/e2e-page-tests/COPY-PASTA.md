@@ -5,11 +5,11 @@ after foundation and route normalization are complete.
 
 ## Parallel group A: Detailed plan refinement (web)
 
-`Use .llm/plans/active/e2e-page-tests/02-detailed-plan-generation.md as the template. Refine these existing web detailed plans only: [list specific web-*.md files]. Keep each file under 300 lines and include selectors, assertion matrix, seeded/helper-created fixture mapping, report-mode screenshot checkpoints, and exact redirect/permission outcomes where known.`
+`Use .llm/plans/active/e2e-page-tests/02-detailed-plan-generation.md as the template. Refine these existing web detailed plans only in .llm/plans/completed/e2e-page-tests: [list specific web-*.md files]. Keep each file under 300 lines and include selectors, assertion matrix, seeded/helper-created fixture mapping, report-mode screenshot checkpoints, and exact redirect/permission outcomes where known.`
 
 ## Parallel group B: Detailed plan refinement (management-web)
 
-`Use .llm/plans/active/e2e-page-tests/02-detailed-plan-generation.md as the template. Refine these existing management-web detailed plans only: [list specific mgmt-*.md files]. Keep each file under 300 lines and include permission/event_visibility branches, CRUD matrix, selectors, helper-created fixture requirements, and report-mode screenshot checkpoints.`
+`Use .llm/plans/active/e2e-page-tests/02-detailed-plan-generation.md as the template. Refine these existing management-web detailed plans only in .llm/plans/completed/e2e-page-tests: [list specific mgmt-*.md files]. Keep each file under 300 lines and include permission/event_visibility branches, CRUD matrix, selectors, helper-created fixture requirements, and report-mode screenshot checkpoints.`
 
 ## Parallel group C: Web E2E implementation
 

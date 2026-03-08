@@ -4,8 +4,7 @@ import { actionAndCapture, capturePageLoad } from './helpers/stepScreenshots';
 
 const E2E_USERNAME = 'e2e-superadmin';
 const E2E_PASSWORD = 'Test!1Aa';
-/** UUID from tools/web/seed-e2e.mjs E2E_BUCKET1_ID (main DB; management E2E runs after full seed). */
-const E2E_BUCKET1_ID = '22222222-2222-4222-a222-222222222222';
+const E2E_SUPER_ADMIN_ID = 'aaaaaaaa-aaaa-4aaa-aaaa-aaaaaaaaaaaa';
 
 async function login(page: import('@playwright/test').Page) {
   await page.goto('/login');
@@ -15,33 +14,36 @@ async function login(page: import('@playwright/test').Page) {
   await expect(page).toHaveURL(/\/dashboard/);
 }
 
-test.describe('Bucket detail', () => {
+test.describe('Management admin detail', () => {
   test('unauthenticated user is redirected to login', async ({ page }, testInfo) => {
     await actionAndCapture(
       page,
       testInfo,
-      'navigate-to-management-bucket-detail-while-unauthenticated-expect-redirect-to-login',
+      'navigate-to-management-admin-detail-while-unauthenticated-expect-redirect-to-login',
       async () => {
-        await page.goto(`/bucket/${E2E_BUCKET1_ID}`);
+        await page.goto(`/admin/${E2E_SUPER_ADMIN_ID}`);
       }
     );
     await expect(page).toHaveURL(/\/login/);
   });
 
-  test('authenticated user sees bucket detail with tabs or messages', async ({
-    page,
-  }, testInfo) => {
+  test('authenticated user sees seeded super admin detail', async ({ page }, testInfo) => {
     await login(page);
     await actionAndCapture(
       page,
       testInfo,
-      'navigate-to-management-bucket-detail-expect-tabs-or-messages',
+      'navigate-to-management-admin-detail-route-and-expect-seeded-super-admin-fields-visible',
       async () => {
-        await page.goto(`/bucket/${E2E_BUCKET1_ID}`);
+        await page.goto(`/admin/${E2E_SUPER_ADMIN_ID}`);
       }
     );
-    await expect(page).toHaveURL(new RegExp(`/bucket/${E2E_BUCKET1_ID}`));
-    await expect(page.getByText(/E2E Bucket One/)).toBeVisible();
-    await capturePageLoad(page, testInfo, 'management-bucket-detail-visible-with-name-or-tabs');
+    await expect(page).toHaveURL(new RegExp(`/admin/${E2E_SUPER_ADMIN_ID}`));
+    await expect(page.getByRole('heading', { name: /view admin/i })).toBeVisible();
+    await expect(page.getByText(/username:\s*e2e-superadmin/i)).toBeVisible();
+    await capturePageLoad(
+      page,
+      testInfo,
+      'management-admin-detail-visible-with-seeded-super-admin-data'
+    );
   });
 });

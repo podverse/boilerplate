@@ -11,13 +11,15 @@
 - Use App Router page files as source of truth:
   - `apps/web/src/app/**/page.tsx`
   - `apps/management-web/src/app/**/page.tsx`
-- Ensure every active route has exactly one active detailed plan file.
+- Ensure every active route has exactly one detailed plan file in
+  `.llm/plans/completed/e2e-page-tests`.
 - Keep deprecated topic-era placeholders out of active execution.
 
 ## Phase 3: Refine detailed plans where needed
 
 - Follow `02-detailed-plan-generation.md`.
-- Refine existing `web-*.md` and `mgmt-*.md` files when route behavior, fixture assumptions, or report-mode guidance changes.
+- Refine completed `web-*.md` and `mgmt-*.md` files when route behavior,
+  fixture assumptions, or report-mode guidance changes.
 - Prioritize high-risk CRUD and permission-heavy pages first.
 
 ## Phase 4: Implement tests in vertical slices
@@ -25,6 +27,12 @@
 - **Web and management-web can run in parallel** once the affected detailed plans are current.
 - For each page, implement Playwright coverage that matches its detailed plan.
 - Keep PRs scoped by route clusters (auth, bucket CRUD, settings/roles, admin/users).
+
+## Current state
+
+- Route-level plan execution is complete for the current route baseline.
+- Active plan work is now maintenance-only (runbook updates, mapping refresh, and
+  documenting newly added routes before implementation).
 
 ## Suggested batch order (implementation)
 

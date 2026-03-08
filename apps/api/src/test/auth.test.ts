@@ -164,12 +164,23 @@ describe('auth (shared)', () => {
     });
 
     it('returns 200 with user when authenticated via cookie', async () => {
-      const agent = request.agent(app);
-      await agent
+      const loginRes = await request(app)
         .post(`${API}/auth/login`)
-        .send({ email: testUserEmail, password: testUserPassword })
-        .expect(200);
-      const res = await agent.get(`${API}/auth/me`).expect(200);
+        .send({ email: testUserEmail, password: testUserPassword });
+      expect(
+        loginRes.status,
+        `Expected login to succeed before cookie-auth /auth/me check, received status ${loginRes.status} with body ${JSON.stringify(loginRes.body)}`
+      ).toBe(200);
+      const setCookie = loginRes.headers['set-cookie'];
+      const cookies = Array.isArray(setCookie)
+        ? setCookie
+        : setCookie !== undefined
+          ? [setCookie]
+          : [];
+      expect(cookies.length).toBeGreaterThan(0);
+      const cookieHeader = cookies.map((cookie) => cookie.split(';')[0]).join('; ');
+      expect(cookieHeader).not.toBe('');
+      const res = await request(app).get(`${API}/auth/me`).set('Cookie', cookieHeader).expect(200);
       expect(res.body.user.email).toBe(testUserEmail);
     });
   });

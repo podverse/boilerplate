@@ -13,7 +13,9 @@ token/setup policy for one-time links, and isolation rules for mutating specs.
 - **Deterministic seed scripts**:
   - `tools/web/seed-e2e.mjs`
   - `tools/management-web/seed-e2e.mjs`
-- **Canonical detailed plan set**: current `web-*.md` and `mgmt-*.md` files are the detailed plans used for implementation; they are not lightweight placeholders anymore.
+- **Canonical detailed plan set**: completed `web-*.md` and `mgmt-*.md` files in
+  `.llm/plans/completed/e2e-page-tests` are the detailed plans used for
+  implementation; they are not lightweight placeholders.
 - **Reporting baseline**: HTML report, traces, retained failure media, timestamped report bundles, latest symlink, and step screenshots in report mode.
 
 ## Canonical fixture matrix

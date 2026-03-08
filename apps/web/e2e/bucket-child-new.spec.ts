@@ -14,31 +14,38 @@ async function login(page: import('@playwright/test').Page) {
   await expect(page).toHaveURL(/\/dashboard/);
 }
 
-test.describe('Bucket messages', () => {
+test.describe('Bucket child new', () => {
   test('unauthenticated user is redirected to login', async ({ page }, testInfo) => {
     await actionAndCapture(
       page,
       testInfo,
-      'navigate-to-bucket-messages-while-unauthenticated-expect-redirect-to-login',
+      'navigate-to-bucket-child-new-while-unauthenticated-expect-redirect-to-login',
       async () => {
-        await page.goto(`/bucket/${E2E_BUCKET1_SHORT_ID}/messages`);
+        await page.goto(`/bucket/${E2E_BUCKET1_SHORT_ID}/new`);
       }
     );
     await expect(page).toHaveURL(/\/login/);
   });
 
-  test('authenticated user sees messages list or empty state', async ({ page }, testInfo) => {
+  test('authenticated user sees child bucket create form', async ({ page }, testInfo) => {
     await login(page);
     await actionAndCapture(
       page,
       testInfo,
-      'navigate-to-bucket-messages-expect-list-or-empty-state',
+      'navigate-to-bucket-child-new-route-and-expect-child-bucket-create-form-visible',
       async () => {
-        await page.goto(`/bucket/${E2E_BUCKET1_SHORT_ID}/messages`);
+        await page.goto(`/bucket/${E2E_BUCKET1_SHORT_ID}/new`);
       }
     );
-    await expect(page).toHaveURL(new RegExp(`/bucket/${E2E_BUCKET1_SHORT_ID}(/messages)?`));
-    await expect(page.getByRole('heading', { name: /messages/i })).toBeVisible();
-    await capturePageLoad(page, testInfo, 'bucket-messages-page-visible-with-list-or-empty-state');
+    await expect(page).toHaveURL(new RegExp(`/bucket/${E2E_BUCKET1_SHORT_ID}/new`));
+    await expect(page.getByRole('textbox', { name: /name/i })).toBeVisible();
+    await expect(
+      page.getByRole('button', { name: /create topic|create|save|add bucket/i })
+    ).toBeVisible();
+    await capturePageLoad(
+      page,
+      testInfo,
+      'bucket-child-new-form-visible-with-name-input-and-submit'
+    );
   });
 });

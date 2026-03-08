@@ -37,11 +37,26 @@ test.describe('Buckets list', () => {
       }
     );
     await expect(page).toHaveURL(/\/buckets/);
-    await expect(
-      page
-        .getByRole('link', { name: /add bucket|new bucket|create/i })
-        .or(page.getByRole('heading', { name: /buckets/i }))
-    ).toBeVisible();
+    await expect(page.getByRole('heading', { name: /buckets/i })).toBeVisible();
+    await expect(page.getByRole('link', { name: /add bucket|new bucket|create/i })).toBeVisible();
     await capturePageLoad(page, testInfo, 'management-buckets-page-visible-with-list-or-add-cta');
+  });
+
+  test('add bucket CTA navigates to new bucket form', async ({ page }, testInfo) => {
+    await login(page);
+    await page.goto('/buckets');
+    await actionAndCapture(
+      page,
+      testInfo,
+      'click-add-bucket-cta-and-expect-navigation-to-management-buckets-new-route',
+      async () => {
+        await page
+          .getByRole('link', { name: /add bucket|new bucket|create/i })
+          .first()
+          .click();
+      }
+    );
+    await expect(page).toHaveURL(/\/buckets\/new/);
+    await expect(page.getByRole('heading', { name: /add bucket/i })).toBeVisible();
   });
 });

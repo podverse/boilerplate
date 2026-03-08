@@ -16,7 +16,7 @@ export default defineConfig({
   webServer: [
     {
       command:
-        'npm run build -w @boilerplate/api && API_PORT=4010 npm run start -w @boilerplate/api',
+        'npm run build -w @boilerplate/api && NODE_ENV=test API_PORT=4010 DB_HOST=localhost DB_PORT=5532 DB_NAME=boilerplate_test DB_READ_USERNAME=read DB_READ_PASSWORD=test DB_READ_WRITE_USERNAME=read_write DB_READ_WRITE_PASSWORD=test VALKEY_HOST=localhost VALKEY_PORT=6479 VALKEY_PASSWORD=test npm run start -w @boilerplate/api',
       port: 4010,
       cwd: '../..',
       reuseExistingServer: false,
@@ -32,7 +32,7 @@ export default defineConfig({
     },
     {
       command:
-        'PORT=4012 RUNTIME_CONFIG_URL=http://localhost:4011 npm run build -w @boilerplate/web && PORT=4012 RUNTIME_CONFIG_URL=http://localhost:4011 npm run start -w @boilerplate/web',
+        'PORT=4012 RUNTIME_CONFIG_URL=http://localhost:4011 NEXT_PUBLIC_API_URL=http://localhost:4010 npm run build -w @boilerplate/web && PORT=4012 RUNTIME_CONFIG_URL=http://localhost:4011 NEXT_PUBLIC_API_URL=http://localhost:4010 npm run start -w @boilerplate/web',
       port: 4012,
       cwd: '../..',
       reuseExistingServer: false,
