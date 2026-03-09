@@ -108,3 +108,20 @@ bucket-admin-edit E2E: full actor and permission matrix. Implement the plan as s
 - apps/web/e2e/helpers/advancedFixtures.ts
 - apps/web/e2e/bucket-admin-edit.spec.ts
 - .llm/history/active/bucket-admin-edit-page/bucket-admin-edit-page-part-01.md (this session)
+
+### Session 7 - 2026-03-09
+
+#### Prompt (Developer)
+
+Review: management-web bucket-admin-edit.spec.ts vs E2E skills. Implement the plan as specified.
+
+#### Key Decisions
+
+- Readability: step labels use compound "bucket-admin-edit-page"; describe block "Editing" → "editing"; test 3 adds toHaveURL and capturePageLoad for post-navigation verification and report evidence.
+- Permission/CRUD flow: added list→edit test (super-admin goes settings?tab=admins → click edit for seeded-bucket-owner → edit page with read-only UI) and Cancel→list test (super-admin on edit page clicks Cancel → settings?tab=admins).
+- Save→list deferred: management-web E2E seed has only the bucket owner (E2E_MAIN_USER_ID) as admin for the seeded bucket; no non-owner bucket admin to edit, so Save flow test not added. Can be added later if seed gains a non-owner bucket admin.
+
+#### Files Created/Modified
+
+- apps/management-web/e2e/bucket-admin-edit.spec.ts
+- .llm/history/active/bucket-admin-edit-page/bucket-admin-edit-page-part-01.md (this session)
