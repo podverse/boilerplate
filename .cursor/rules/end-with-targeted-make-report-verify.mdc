@@ -34,3 +34,5 @@ Preferred command order:
   - `make e2e_test_report`
 
 Spec variables (`SPEC`, `WEB_SPEC`, `MGMT_SPEC`) may contain comma-separated spec paths when multiple related specs should run.
+
+Extended reference: **response-ending-make-verify** skill (command tree, API gate, multi-spec examples).

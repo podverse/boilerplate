@@ -14,6 +14,8 @@ Use this skill when you change **layout**, **functionality**, or **conditions** 
 - **Functionality changes** – New or changed forms, buttons, links, or user flows (e.g. create bucket, edit message, login).
 - **Condition changes** – New or changed redirects, auth guards, visibility rules, or error/empty states.
 
+For CRUD and permission-gated flows, also apply **e2e-crud-state-matrix** and, for permission-gated pages, **e2e-permission-actor-matrix**.
+
 If the change is in **web**, add or update a spec in `apps/web/e2e/`. If it is in **management-web**, add or update a spec in `apps/management-web/e2e/`.
 
 ## Where tests live

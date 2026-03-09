@@ -1,6 +1,6 @@
 ---
 name: boilerplate-global-patterns
-description: Global patterns for the Boilerplate repo (API + Next.js app)
+description: Global patterns for the Boilerplate repo (API + Next.js app). Use when starting work in the repo or when applying repo-wide code quality, structure, or plan/history conventions.
 version: 1.0.0
 ---
 

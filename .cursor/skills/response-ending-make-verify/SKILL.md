@@ -6,6 +6,8 @@ version: 1.0.0
 
 # Response-Ending Make Verification
 
+The Cursor rule `end-with-targeted-make-report-verify` enforces this behavior; this skill is the extended reference (command tree, API gate, multi-spec).
+
 Use this skill when answering implementation requests in this repo.
 
 ## Required response behavior
