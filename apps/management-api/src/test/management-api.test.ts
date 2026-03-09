@@ -6,43 +6,31 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import request from 'supertest';
 
 import { AUTH_MESSAGE_INVALID_CREDENTIALS } from '@boilerplate/helpers';
-import { appDataSourceRead, appDataSourceReadWrite } from '@boilerplate/orm';
-import { managementDataSource } from '@boilerplate/management-orm';
-import { createApp } from '../app.js';
 import { config } from '../config/index.js';
-import { createSuperAdminForTest } from './createSuperAdminForTest.js';
+import { createManagementLoginAgent } from './helpers/login-agent.js';
+import {
+  createManagementApiTestAppWithSuperAdmin,
+  destroyManagementApiTestDataSources,
+} from './helpers/setup.js';
 
 const API = config.apiVersionPath;
 const superAdminUsername = 'test-super-admin';
 const superAdminPassword = 'test-super-admin-password-1';
 
 describe('management-api', () => {
-  let app: ReturnType<typeof createApp>;
+  let app: Awaited<ReturnType<typeof createManagementApiTestAppWithSuperAdmin>>;
   let superAdminAgent: ReturnType<typeof request.agent>;
 
   beforeAll(async () => {
-    await appDataSourceRead.initialize();
-    await appDataSourceReadWrite.initialize();
-    await managementDataSource.initialize();
-    await createSuperAdminForTest(superAdminUsername, superAdminPassword);
-    app = createApp();
-    superAdminAgent = request.agent(app);
-    await superAdminAgent
-      .post(`${API}/auth/login`)
-      .send({ username: superAdminUsername, password: superAdminPassword })
-      .expect(200);
+    app = await createManagementApiTestAppWithSuperAdmin(superAdminUsername, superAdminPassword);
+    superAdminAgent = await createManagementLoginAgent(app, {
+      username: superAdminUsername,
+      password: superAdminPassword,
+    });
   });
 
   afterAll(async () => {
-    if (managementDataSource.isInitialized) {
-      await managementDataSource.destroy();
-    }
-    if (appDataSourceReadWrite.isInitialized) {
-      await appDataSourceReadWrite.destroy();
-    }
-    if (appDataSourceRead.isInitialized) {
-      await appDataSourceRead.destroy();
-    }
+    await destroyManagementApiTestDataSources();
   });
 
   describe('versioned root', () => {
@@ -118,11 +106,10 @@ describe('management-api', () => {
     });
 
     it('returns 204 and clears cookies when authenticated', async () => {
-      const tempAgent = request.agent(app);
-      await tempAgent
-        .post(`${API}/auth/login`)
-        .send({ username: superAdminUsername, password: superAdminPassword })
-        .expect(200);
+      const tempAgent = await createManagementLoginAgent(app, {
+        username: superAdminUsername,
+        password: superAdminPassword,
+      });
       const res = await tempAgent.post(`${API}/auth/logout`).expect(204);
       const setCookie = res.headers['set-cookie'];
       const cookies = Array.isArray(setCookie)
@@ -155,11 +142,10 @@ describe('management-api', () => {
     });
 
     it('returns 200 with user and new cookies for valid refresh token', async () => {
-      const refreshAgent = request.agent(app);
-      await refreshAgent
-        .post(`${API}/auth/login`)
-        .send({ username: superAdminUsername, password: superAdminPassword })
-        .expect(200);
+      const refreshAgent = await createManagementLoginAgent(app, {
+        username: superAdminUsername,
+        password: superAdminPassword,
+      });
       const res = await refreshAgent.post(`${API}/auth/refresh`).expect(200);
       expect(res.body).toHaveProperty('user');
       expect(res.body.user.username).toBe(superAdminUsername);
@@ -297,11 +283,10 @@ describe('management-api', () => {
     });
 
     it('POST /admins/change-password returns 401 when current password wrong', async () => {
-      const adminAgent = request.agent(app);
-      await adminAgent
-        .post(`${API}/auth/login`)
-        .send({ username: adminUsername, password: adminPassword })
-        .expect(200);
+      const adminAgent = await createManagementLoginAgent(app, {
+        username: adminUsername,
+        password: adminPassword,
+      });
       await adminAgent
         .post(`${API}/admins/change-password`)
         .send({ currentPassword: 'wrong-password', newPassword: 'new-admin-pass' })
@@ -309,11 +294,10 @@ describe('management-api', () => {
     });
 
     it('POST /admins/change-password changes own password', async () => {
-      const adminAgent = request.agent(app);
-      await adminAgent
-        .post(`${API}/auth/login`)
-        .send({ username: adminUsername, password: adminPassword })
-        .expect(200);
+      const adminAgent = await createManagementLoginAgent(app, {
+        username: adminUsername,
+        password: adminPassword,
+      });
       const newPassword = 'admin-password-2';
       await adminAgent
         .post(`${API}/admins/change-password`)
@@ -504,11 +488,10 @@ describe('management-api', () => {
         })
         .expect(201);
       actorId = res.body.admin.id;
-      actorAgent = request.agent(app);
-      await actorAgent
-        .post(`${API}/auth/login`)
-        .send({ username: actorEmail, password: actorPassword })
-        .expect(200);
+      actorAgent = await createManagementLoginAgent(app, {
+        username: actorEmail,
+        password: actorPassword,
+      });
     });
 
     afterAll(async () => {

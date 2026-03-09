@@ -8,8 +8,8 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import request from 'supertest';
 
-import { appDataSourceRead, appDataSourceReadWrite } from '@boilerplate/orm';
 import { config } from '../config/index.js';
+import { destroyApiTestDataSources, initializeApiTestDataSources } from './helpers/setup.js';
 
 const API = config.apiVersionPath;
 const RATE_LIMIT_MESSAGE = 'Too many requests. Please try again later.';
@@ -30,19 +30,17 @@ describe('auth rate limiting', () => {
   beforeAll(async () => {
     process.env.RATE_LIMIT_STRICT_FOR_TEST = 'true';
     process.env.RATE_LIMIT_MODERATE_FOR_TEST = 'true';
-    await appDataSourceRead.initialize();
-    await appDataSourceReadWrite.initialize();
+    // Keep signup route mounted for this suite so strict limiter assertions are not
+    // masked by admin-only/no-mailer 403 behavior.
+    process.env.MAILER_ENABLED = 'true';
+    process.env.AUTH_MODE = 'self_signup';
+    await initializeApiTestDataSources();
     const { createApp: createAppFn } = await import('../app.js');
     app = createAppFn();
   });
 
   afterAll(async () => {
-    if (appDataSourceReadWrite.isInitialized) {
-      await appDataSourceReadWrite.destroy();
-    }
-    if (appDataSourceRead.isInitialized) {
-      await appDataSourceRead.destroy();
-    }
+    await destroyApiTestDataSources();
   });
 
   it('returns 429 after exceeding strict limit on POST /auth/login', async () => {
@@ -66,8 +64,8 @@ describe('auth rate limiting', () => {
       const res = await request(app)
         .post(`${API}/auth/signup`)
         .send({ email: `rate-signup-${i}@example.com`, password: 'any' });
-      // Depending on mailer mode: 400/403/201; any non-429 is valid before limit
-      expect(res.status).not.toBe(429);
+      // Validation failures are expected before hitting the strict limiter threshold.
+      expect(res.status).toBe(400);
     }
     const res = await request(app)
       .post(`${API}/auth/signup`)
@@ -75,7 +73,7 @@ describe('auth rate limiting', () => {
     expect(res.status).toBe(429);
     expect(res.body.message).toBe(RATE_LIMIT_MESSAGE);
     expectRetryAfterSeconds(res.body.retryAfterSeconds);
-  });
+  }, 15_000);
 
   it('returns 429 after exceeding moderate limit on POST /auth/change-password', async () => {
     // change-password rate limiter runs before auth; unauthenticated requests count toward limit

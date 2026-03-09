@@ -1,21 +1,13 @@
 import { expect, test } from '@playwright/test';
 
+import { loginAsManagementSuperAdmin, nextFixtureName } from './helpers/advancedFixtures';
+import { expectUnauthedRouteRedirectsToLogin } from './helpers/authAssertions';
+import { clickConfirmDeleteInModal } from './helpers/flowHelpers';
 import { actionAndCapture, capturePageLoad } from './helpers/stepScreenshots';
-
-const E2E_USERNAME = 'e2e-superadmin';
-const E2E_PASSWORD = 'Test!1Aa';
-
-async function login(page: import('@playwright/test').Page) {
-  await page.goto('/login');
-  await page.getByRole('textbox', { name: /username|email/i }).fill(E2E_USERNAME);
-  await page.getByLabel(/password/i).fill(E2E_PASSWORD);
-  await page.getByRole('button', { name: /log in|sign in|submit/i }).click();
-  await expect(page).toHaveURL(/\/dashboard/);
-}
 
 test.describe('Admins list', () => {
   test('unauthenticated user is redirected to login', async ({ page }, testInfo) => {
-    await actionAndCapture(
+    await expectUnauthedRouteRedirectsToLogin(
       page,
       testInfo,
       'navigate-to-management-admins-while-unauthenticated-expect-redirect-to-login',
@@ -23,11 +15,10 @@ test.describe('Admins list', () => {
         await page.goto('/admins');
       }
     );
-    await expect(page).toHaveURL(/\/login/);
   });
 
   test('authenticated user sees admins list or add-admin CTA', async ({ page }, testInfo) => {
-    await login(page);
+    await loginAsManagementSuperAdmin(page);
     await actionAndCapture(
       page,
       testInfo,
@@ -43,7 +34,7 @@ test.describe('Admins list', () => {
   });
 
   test('add admin CTA navigates to new admin form', async ({ page }, testInfo) => {
-    await login(page);
+    await loginAsManagementSuperAdmin(page);
     await page.goto('/admins');
     await actionAndCapture(
       page,
@@ -58,5 +49,50 @@ test.describe('Admins list', () => {
     );
     await expect(page).toHaveURL(/\/admins\/new/);
     await expect(page.getByRole('heading', { name: /add admin/i })).toBeVisible();
+  });
+
+  test('superadmin row does not expose delete action', async ({ page }, testInfo) => {
+    await loginAsManagementSuperAdmin(page);
+    await page.goto('/admins?search=e2e-superadmin');
+
+    const superAdminRow = page.locator('tr', { hasText: /e2e-superadmin/i }).first();
+    await expect(superAdminRow).toBeVisible();
+    await expect(superAdminRow.getByRole('button', { name: /delete/i })).toHaveCount(0);
+    await capturePageLoad(
+      page,
+      testInfo,
+      'management-admins-superadmin-row-visible-without-delete-action'
+    );
+  });
+
+  test('created admin can be deleted from admins list', async ({ page }, testInfo) => {
+    await loginAsManagementSuperAdmin(page);
+    await page.goto('/admins/new');
+
+    const username = nextFixtureName('e2e-admin-delete');
+    const displayName = `E2E ${username}`;
+    await page.getByRole('textbox', { name: /display name/i }).fill(displayName);
+    await page.getByRole('textbox', { name: /^username$/i }).fill(username);
+    await page.getByLabel(/^password/i).fill('Test!1Aa');
+
+    await page.getByRole('button', { name: /add admin|create|save/i }).click();
+    await expect(page).toHaveURL(/\/admins(\?|$)/);
+
+    await page.goto(`/admins?search=${encodeURIComponent(username)}`);
+    const row = page.locator('tr', { hasText: username }).first();
+    await expect(row).toBeVisible();
+
+    await actionAndCapture(
+      page,
+      testInfo,
+      'delete-created-admin-row-from-management-admins-table',
+      async () => {
+        await row.getByRole('button', { name: /delete/i }).click();
+        await clickConfirmDeleteInModal(page);
+      }
+    );
+
+    await page.goto(`/admins?search=${encodeURIComponent(username)}`);
+    await expect(page.locator('tr', { hasText: username })).toHaveCount(0);
   });
 });

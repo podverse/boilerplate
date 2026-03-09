@@ -1,3 +1,4 @@
+import { expect } from '@playwright/test';
 import type { APIRequestContext, Page } from '@playwright/test';
 
 const MANAGEMENT_LOGIN_USERNAME = 'e2e-superadmin';
@@ -11,6 +12,7 @@ export async function loginAsManagementSuperAdmin(page: Page): Promise<void> {
   await page.getByRole('textbox', { name: /username|email/i }).fill(MANAGEMENT_LOGIN_USERNAME);
   await page.getByLabel(/password/i).fill(MANAGEMENT_LOGIN_PASSWORD);
   await page.getByRole('button', { name: /log in|sign in|submit/i }).click();
+  await expect(page).toHaveURL(/\/dashboard/);
 }
 
 export async function createChildBucketFixture(

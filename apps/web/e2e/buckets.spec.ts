@@ -1,30 +1,24 @@
 import { expect, test } from '@playwright/test';
 
+import {
+  expectUnauthedRouteRedirectsToLogin,
+  loginAsWebE2EUserAndExpectDashboard,
+} from './helpers/advancedFixtures';
 import { actionAndCapture, capturePageLoad } from './helpers/stepScreenshots';
-
-const E2E_EMAIL = 'e2e@example.com';
-const E2E_PASSWORD = 'Test!1Aa';
 
 test.describe('Buckets list', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('/login');
-    await page.getByRole('textbox', { name: /email|username/i }).fill(E2E_EMAIL);
-    await page.getByLabel(/password/i).fill(E2E_PASSWORD);
-    await page.getByRole('button', { name: /log in|sign in|submit/i }).click();
-    await expect(page).toHaveURL(/\/dashboard/);
+    await loginAsWebE2EUserAndExpectDashboard(page);
   });
 
   test('unauthenticated user is redirected to login', async ({ page }, testInfo) => {
     await page.context().clearCookies();
-    await actionAndCapture(
+    await expectUnauthedRouteRedirectsToLogin(
       page,
-      testInfo,
+      '/buckets',
       'navigate-to-buckets-while-unauthenticated-expect-redirect-to-login',
-      async () => {
-        await page.goto('/buckets');
-      }
+      testInfo
     );
-    await expect(page).toHaveURL(/\/login/);
   });
 
   test('authenticated user sees buckets list and add-bucket CTA', async ({ page }, testInfo) => {
@@ -50,6 +44,8 @@ test.describe('Buckets list', () => {
     await page.goto('/buckets');
     await expect(page.getByText('E2E Bucket One')).toBeVisible();
     await expect(page.getByText('E2E Bucket Two')).toBeVisible();
+    const rowCount = await page.getByRole('table').locator('tbody tr').count();
+    expect(rowCount).toBeGreaterThanOrEqual(2);
     await capturePageLoad(
       page,
       testInfo,
@@ -71,5 +67,26 @@ test.describe('Buckets list', () => {
       }
     );
     await expect(page).toHaveURL(/\/buckets\/new/);
+  });
+
+  test('buckets route preserves explicit sort and search query params', async ({
+    page,
+  }, testInfo) => {
+    await actionAndCapture(
+      page,
+      testInfo,
+      'open-buckets-with-explicit-sort-search-page-query-params',
+      async () => {
+        await page.goto('/buckets?search=e2e&sortBy=name&sortOrder=asc&page=1');
+      }
+    );
+
+    await expect(page).toHaveURL(/\/buckets\?/);
+    const currentUrl = new URL(page.url());
+    expect(currentUrl.pathname).toBe('/buckets');
+    expect(currentUrl.searchParams.get('search')).toBe('e2e');
+    expect(currentUrl.searchParams.get('sortBy')).toBe('name');
+    expect(currentUrl.searchParams.get('sortOrder')).toBe('asc');
+    expect(currentUrl.searchParams.get('page')).toBe('1');
   });
 });

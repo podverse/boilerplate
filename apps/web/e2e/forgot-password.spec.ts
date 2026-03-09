@@ -62,4 +62,20 @@ test.describe('Forgot password', () => {
     );
     await expect(page).toHaveURL(/\/login/);
   });
+
+  test('email field is required before submit', async ({ page }, testInfo) => {
+    await page.goto('/forgot-password');
+
+    await actionAndCapture(
+      page,
+      testInfo,
+      'submit-empty-forgot-password-form-and-stay-on-page',
+      async () => {
+        await page.getByRole('button', { name: /send|submit|reset password|forgot/i }).click();
+      }
+    );
+
+    await expect(page).toHaveURL(/\/forgot-password/);
+    await expect(page.getByRole('textbox', { name: /email/i })).toBeVisible();
+  });
 });

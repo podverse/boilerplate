@@ -6,43 +6,31 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import request from 'supertest';
 
-import { appDataSourceRead, appDataSourceReadWrite } from '@boilerplate/orm';
-import { managementDataSource } from '@boilerplate/management-orm';
-import { createApp } from '../app.js';
 import { config } from '../config/index.js';
-import { createSuperAdminForTest } from './createSuperAdminForTest.js';
+import { createManagementLoginAgent } from './helpers/login-agent.js';
+import {
+  createManagementApiTestAppWithSuperAdmin,
+  destroyManagementApiTestDataSources,
+} from './helpers/setup.js';
 
 const API = config.apiVersionPath;
 const superAdminUsername = 'test-super-admin';
 const superAdminPassword = 'test-super-admin-password-1';
 
 describe('management-api admins permissions', () => {
-  let app: ReturnType<typeof createApp>;
+  let app: Awaited<ReturnType<typeof createManagementApiTestAppWithSuperAdmin>>;
   let superAdminAgent: ReturnType<typeof request.agent>;
 
   beforeAll(async () => {
-    await appDataSourceRead.initialize();
-    await appDataSourceReadWrite.initialize();
-    await managementDataSource.initialize();
-    await createSuperAdminForTest(superAdminUsername, superAdminPassword);
-    app = createApp();
-    superAdminAgent = request.agent(app);
-    await superAdminAgent
-      .post(`${API}/auth/login`)
-      .send({ username: superAdminUsername, password: superAdminPassword })
-      .expect(200);
+    app = await createManagementApiTestAppWithSuperAdmin(superAdminUsername, superAdminPassword);
+    superAdminAgent = await createManagementLoginAgent(app, {
+      username: superAdminUsername,
+      password: superAdminPassword,
+    });
   });
 
   afterAll(async () => {
-    if (managementDataSource.isInitialized) {
-      await managementDataSource.destroy();
-    }
-    if (appDataSourceReadWrite.isInitialized) {
-      await appDataSourceReadWrite.destroy();
-    }
-    if (appDataSourceRead.isInitialized) {
-      await appDataSourceRead.destroy();
-    }
+    await destroyManagementApiTestDataSources();
   });
 
   describe('admin with read-only permissions on admins', () => {
@@ -66,11 +54,10 @@ describe('management-api admins permissions', () => {
         .expect(201);
       readOnlyAdminId = res.body.admin.id;
 
-      readOnlyAgent = request.agent(app);
-      await readOnlyAgent
-        .post(`${API}/auth/login`)
-        .send({ username: readOnlyEmail, password: readOnlyPassword })
-        .expect(200);
+      readOnlyAgent = await createManagementLoginAgent(app, {
+        username: readOnlyEmail,
+        password: readOnlyPassword,
+      });
     });
 
     it('GET /admins returns 200 (has read)', async () => {
@@ -110,7 +97,6 @@ describe('management-api admins permissions', () => {
 
     it('PATCH /admins/:id permission update succeeds when actor has update permission', async () => {
       // Admin with update permission can update another admin's permissions (non–super-admin target)
-      const updateAgent = request.agent(app);
       const updateEmail = `update-perm-${ts}@example.com`;
       const createRes = await superAdminAgent
         .post(`${API}/admins`)
@@ -124,10 +110,10 @@ describe('management-api admins permissions', () => {
         })
         .expect(201);
       const updateAdminId = createRes.body.admin.id;
-      await updateAgent
-        .post(`${API}/auth/login`)
-        .send({ username: updateEmail, password: 'update-password-1' })
-        .expect(200);
+      const updateAgent = await createManagementLoginAgent(app, {
+        username: updateEmail,
+        password: 'update-password-1',
+      });
       const patchRes = await updateAgent
         .patch(`${API}/admins/${readOnlyAdminId}`)
         .send({ adminsCrud: 15 })
@@ -164,11 +150,10 @@ describe('management-api admins permissions', () => {
         .expect(201);
       noPermAdminId = res.body.admin.id;
 
-      noPermAgent = request.agent(app);
-      await noPermAgent
-        .post(`${API}/auth/login`)
-        .send({ username: noPermEmail, password: noPermPassword })
-        .expect(200);
+      noPermAgent = await createManagementLoginAgent(app, {
+        username: noPermEmail,
+        password: noPermPassword,
+      });
     });
 
     it('GET /admins returns 403 (no read permission)', async () => {

@@ -1,34 +1,26 @@
 import { expect, test } from '@playwright/test';
 
+import {
+  expectUnauthedRouteRedirectsToLogin,
+  loginAsWebE2EUserAndExpectDashboard,
+  nextFixtureName,
+} from './helpers/advancedFixtures';
+import { expectInvalidRouteShowsNotFound } from './helpers/flowHelpers';
 import { actionAndCapture, capturePageLoad } from './helpers/stepScreenshots';
-
-const E2E_EMAIL = 'e2e@example.com';
-const E2E_PASSWORD = 'Test!1Aa';
 const E2E_BUCKET1_SHORT_ID = 'e2ebkt000001';
-
-async function login(page: import('@playwright/test').Page) {
-  await page.goto('/login');
-  await page.getByRole('textbox', { name: /email|username/i }).fill(E2E_EMAIL);
-  await page.getByLabel(/password/i).fill(E2E_PASSWORD);
-  await page.getByRole('button', { name: /log in|sign in|submit/i }).click();
-  await expect(page).toHaveURL(/\/dashboard/);
-}
 
 test.describe('Bucket role new', () => {
   test('unauthenticated user is redirected to login', async ({ page }, testInfo) => {
-    await actionAndCapture(
+    await expectUnauthedRouteRedirectsToLogin(
       page,
-      testInfo,
+      `/bucket/${E2E_BUCKET1_SHORT_ID}/settings/roles/new`,
       'navigate-to-bucket-role-new-while-unauthenticated-expect-redirect-to-login',
-      async () => {
-        await page.goto(`/bucket/${E2E_BUCKET1_SHORT_ID}/settings/roles/new`);
-      }
+      testInfo
     );
-    await expect(page).toHaveURL(/\/login/);
   });
 
   test('authenticated user sees role create form', async ({ page }, testInfo) => {
-    await login(page);
+    await loginAsWebE2EUserAndExpectDashboard(page);
     await actionAndCapture(
       page,
       testInfo,
@@ -44,8 +36,8 @@ test.describe('Bucket role new', () => {
   });
 
   test('invalid bucket id shows not found', async ({ page }, testInfo) => {
-    await login(page);
-    await actionAndCapture(
+    await loginAsWebE2EUserAndExpectDashboard(page);
+    await expectInvalidRouteShowsNotFound(
       page,
       testInfo,
       'navigate-to-bucket-role-new-with-invalid-bucket-id-and-expect-not-found',
@@ -53,6 +45,71 @@ test.describe('Bucket role new', () => {
         await page.goto('/bucket/invalid-bucket-99999/settings/roles/new');
       }
     );
-    await expect(page.getByText(/not found|404/i)).toBeVisible();
+  });
+
+  test('role name is required before create', async ({ page }, testInfo) => {
+    await loginAsWebE2EUserAndExpectDashboard(page);
+    await page.goto(`/bucket/${E2E_BUCKET1_SHORT_ID}/settings/roles/new`);
+
+    const roleNameInput = page.getByRole('textbox', { name: /role name|name/i });
+    const submitButton = page.getByRole('button', { name: /save|create/i });
+    await expect(roleNameInput).toHaveAttribute('required', '');
+    await expect(submitButton).toBeEnabled();
+    await actionAndCapture(
+      page,
+      testInfo,
+      'submit-empty-required-role-name-form-and-stay-on-page',
+      async () => {
+        await submitButton.click();
+      }
+    );
+    await expect(page).toHaveURL(new RegExp(`/bucket/${E2E_BUCKET1_SHORT_ID}/settings/roles/new`));
+  });
+
+  test('valid submit creates custom role and returns to settings roles list', async ({
+    page,
+  }, testInfo) => {
+    await loginAsWebE2EUserAndExpectDashboard(page);
+    await page.goto(`/bucket/${E2E_BUCKET1_SHORT_ID}/settings/roles/new`);
+
+    const roleName = nextFixtureName('e2e-web-role');
+    await page.getByRole('textbox', { name: /role name|name/i }).fill(roleName);
+
+    await actionAndCapture(
+      page,
+      testInfo,
+      'submit-valid-new-bucket-role-and-expect-roles-list',
+      async () => {
+        await page.getByRole('button', { name: /save|create/i }).click();
+      }
+    );
+
+    await expect(page).toHaveURL(
+      new RegExp(`/bucket/${E2E_BUCKET1_SHORT_ID}/settings\\?tab=roles`)
+    );
+    await expect(page.getByText(new RegExp(roleName, 'i')).first()).toBeVisible();
+  });
+
+  test('when bucket create is on, message create remains checked and disabled', async ({
+    page,
+  }, testInfo) => {
+    await loginAsWebE2EUserAndExpectDashboard(page);
+    await page.goto(`/bucket/${E2E_BUCKET1_SHORT_ID}/settings/roles/new`);
+
+    const bucketCreate = page.getByLabel('Create').nth(1);
+    const messageCreate = page.getByLabel('Create').nth(2);
+
+    await expect(bucketCreate).toBeVisible();
+    await expect(messageCreate).toBeVisible();
+    await actionAndCapture(
+      page,
+      testInfo,
+      'assert-bucket-create-and-message-create-dependency',
+      async () => {
+        await expect(bucketCreate).toBeChecked();
+      }
+    );
+    await expect(messageCreate).toBeChecked();
+    await expect(messageCreate).toBeDisabled();
   });
 });

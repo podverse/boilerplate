@@ -7,22 +7,21 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import request from 'supertest';
 
 import { AUTH_MESSAGE_INVALID_CREDENTIALS } from '@boilerplate/helpers';
-import { UserService, appDataSourceRead, appDataSourceReadWrite } from '@boilerplate/orm';
-import { createApp } from '../app.js';
+import { UserService } from '@boilerplate/orm';
 import { config } from '../config/index.js';
 import { hashPassword } from '../lib/auth/hash.js';
+import { createApiLoginAgent } from './helpers/login-agent.js';
+import { createApiTestApp, destroyApiTestDataSources } from './helpers/setup.js';
 
 const API = config.apiVersionPath;
 
 describe('auth (shared)', () => {
-  let app: ReturnType<typeof createApp>;
+  let app: Awaited<ReturnType<typeof createApiTestApp>>;
   const testUserEmail = `test-${Date.now()}@example.com`;
   const testUserPassword = 'test-password-1';
 
   beforeAll(async () => {
-    await appDataSourceRead.initialize();
-    await appDataSourceReadWrite.initialize();
-    app = createApp();
+    app = await createApiTestApp();
     const hashed = await hashPassword(testUserPassword);
     await UserService.create({
       email: testUserEmail,
@@ -32,12 +31,7 @@ describe('auth (shared)', () => {
   });
 
   afterAll(async () => {
-    if (appDataSourceReadWrite.isInitialized) {
-      await appDataSourceReadWrite.destroy();
-    }
-    if (appDataSourceRead.isInitialized) {
-      await appDataSourceRead.destroy();
-    }
+    await destroyApiTestDataSources();
   });
 
   describe('versioned root routes', () => {
@@ -104,11 +98,10 @@ describe('auth (shared)', () => {
     });
 
     it('returns 204 and clears cookies when authenticated', async () => {
-      const agent = request.agent(app);
-      await agent
-        .post(`${API}/auth/login`)
-        .send({ email: testUserEmail, password: testUserPassword })
-        .expect(200);
+      const agent = await createApiLoginAgent(app, {
+        email: testUserEmail,
+        password: testUserPassword,
+      });
       const res = await agent.post(`${API}/auth/logout`).expect(204);
       const setCookie = res.headers['set-cookie'];
       const cookies = Array.isArray(setCookie)
@@ -199,11 +192,10 @@ describe('auth (shared)', () => {
     });
 
     it('returns 200 with user and new cookies when refresh cookie valid', async () => {
-      const agent = request.agent(app);
-      await agent
-        .post(`${API}/auth/login`)
-        .send({ email: testUserEmail, password: testUserPassword })
-        .expect(200);
+      const agent = await createApiLoginAgent(app, {
+        email: testUserEmail,
+        password: testUserPassword,
+      });
       const res = await agent.post(`${API}/auth/refresh`).expect(200);
       expect(res.body).toHaveProperty('user');
       expect(res.body.user.email).toBe(testUserEmail);
@@ -226,21 +218,19 @@ describe('auth (shared)', () => {
     });
 
     it('returns 400 when currentPassword or newPassword missing', async () => {
-      const agent = request.agent(app);
-      await agent
-        .post(`${API}/auth/login`)
-        .send({ email: testUserEmail, password: testUserPassword })
-        .expect(200);
+      const agent = await createApiLoginAgent(app, {
+        email: testUserEmail,
+        password: testUserPassword,
+      });
       await agent.post(`${API}/auth/change-password`).send({ newPassword: 'new1' }).expect(400);
       await agent.post(`${API}/auth/change-password`).send({ currentPassword: 'old' }).expect(400);
     });
 
     it('returns 400 when newPassword fails validation (too short)', async () => {
-      const agent = request.agent(app);
-      await agent
-        .post(`${API}/auth/login`)
-        .send({ email: testUserEmail, password: testUserPassword })
-        .expect(200);
+      const agent = await createApiLoginAgent(app, {
+        email: testUserEmail,
+        password: testUserPassword,
+      });
       const res = await agent
         .post(`${API}/auth/change-password`)
         .send({ currentPassword: testUserPassword, newPassword: 'x' })
@@ -249,11 +239,10 @@ describe('auth (shared)', () => {
     });
 
     it('returns 401 when current password wrong', async () => {
-      const agent = request.agent(app);
-      await agent
-        .post(`${API}/auth/login`)
-        .send({ email: testUserEmail, password: testUserPassword })
-        .expect(200);
+      const agent = await createApiLoginAgent(app, {
+        email: testUserEmail,
+        password: testUserPassword,
+      });
       await agent
         .post(`${API}/auth/change-password`)
         .send({ currentPassword: 'wrong', newPassword: 'new-pass' })
@@ -262,11 +251,10 @@ describe('auth (shared)', () => {
 
     it('returns 204 and allows login with new password', async () => {
       const newPassword = 'new-password-2';
-      const agent = request.agent(app);
-      await agent
-        .post(`${API}/auth/login`)
-        .send({ email: testUserEmail, password: testUserPassword })
-        .expect(200);
+      const agent = await createApiLoginAgent(app, {
+        email: testUserEmail,
+        password: testUserPassword,
+      });
       await agent
         .post(`${API}/auth/change-password`)
         .send({ currentPassword: testUserPassword, newPassword })

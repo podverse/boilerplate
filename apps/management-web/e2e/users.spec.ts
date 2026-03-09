@@ -1,21 +1,12 @@
 import { expect, test } from '@playwright/test';
 
+import { loginAsManagementSuperAdmin } from './helpers/advancedFixtures';
+import { expectUnauthedRouteRedirectsToLogin } from './helpers/authAssertions';
 import { actionAndCapture, capturePageLoad } from './helpers/stepScreenshots';
-
-const E2E_USERNAME = 'e2e-superadmin';
-const E2E_PASSWORD = 'Test!1Aa';
-
-async function login(page: import('@playwright/test').Page) {
-  await page.goto('/login');
-  await page.getByRole('textbox', { name: /username|email/i }).fill(E2E_USERNAME);
-  await page.getByLabel(/password/i).fill(E2E_PASSWORD);
-  await page.getByRole('button', { name: /log in|sign in|submit/i }).click();
-  await expect(page).toHaveURL(/\/dashboard/);
-}
 
 test.describe('Users list', () => {
   test('unauthenticated user is redirected to login', async ({ page }, testInfo) => {
-    await actionAndCapture(
+    await expectUnauthedRouteRedirectsToLogin(
       page,
       testInfo,
       'navigate-to-management-users-while-unauthenticated-expect-redirect-to-login',
@@ -23,11 +14,10 @@ test.describe('Users list', () => {
         await page.goto('/users');
       }
     );
-    await expect(page).toHaveURL(/\/login/);
   });
 
   test('authenticated user sees users list or add-user CTA', async ({ page }, testInfo) => {
-    await login(page);
+    await loginAsManagementSuperAdmin(page);
     await actionAndCapture(
       page,
       testInfo,
@@ -43,7 +33,7 @@ test.describe('Users list', () => {
   });
 
   test('add user CTA navigates to new user form', async ({ page }, testInfo) => {
-    await login(page);
+    await loginAsManagementSuperAdmin(page);
     await page.goto('/users');
     await actionAndCapture(
       page,
@@ -58,5 +48,44 @@ test.describe('Users list', () => {
     );
     await expect(page).toHaveURL(/\/users\/new/);
     await expect(page.getByRole('heading', { name: /add user/i })).toBeVisible();
+  });
+
+  test('users route supports explicit query params', async ({ page }, testInfo) => {
+    await loginAsManagementSuperAdmin(page);
+    await actionAndCapture(
+      page,
+      testInfo,
+      'navigate-to-management-users-with-query-params-and-verify-persistence',
+      async () => {
+        await page.goto('/users?search=e2e&page=1&sortBy=email&sortOrder=asc');
+      }
+    );
+    const currentUrl = new URL(page.url());
+    expect(currentUrl.pathname).toBe('/users');
+    expect(currentUrl.searchParams.get('search')).toBe('e2e');
+    expect(currentUrl.searchParams.get('page')).toBe('1');
+    expect(currentUrl.searchParams.get('sortBy')).toBe('email');
+    expect(currentUrl.searchParams.get('sortOrder')).toBe('asc');
+  });
+
+  test('existing user delete opens confirmation and cancel keeps row', async ({
+    page,
+  }, testInfo) => {
+    await loginAsManagementSuperAdmin(page);
+    await page.goto('/users?search=e2e@example.com');
+    const row = page.locator('tr', { hasText: 'e2e@example.com' }).first();
+    await expect(row).toBeVisible();
+
+    await actionAndCapture(page, testInfo, 'open-user-delete-confirmation-and-cancel', async () => {
+      await row.getByRole('button', { name: /delete/i }).click();
+      const cancelButton = page
+        .locator('button')
+        .filter({ hasText: /cancel/i })
+        .last();
+      await expect(cancelButton).toBeVisible();
+      await cancelButton.click();
+    });
+
+    await expect(page.locator('tr', { hasText: 'e2e@example.com' })).toHaveCount(1);
   });
 });

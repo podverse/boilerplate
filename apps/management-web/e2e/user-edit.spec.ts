@@ -1,22 +1,13 @@
 import { expect, test } from '@playwright/test';
 
+import { loginAsManagementSuperAdmin } from './helpers/advancedFixtures';
+import { expectUnauthedRouteRedirectsToLogin } from './helpers/authAssertions';
 import { actionAndCapture, capturePageLoad } from './helpers/stepScreenshots';
-
-const E2E_USERNAME = 'e2e-superadmin';
-const E2E_PASSWORD = 'Test!1Aa';
 const E2E_MAIN_USER_ID = '11111111-1111-4111-a111-111111111111';
-
-async function login(page: import('@playwright/test').Page) {
-  await page.goto('/login');
-  await page.getByRole('textbox', { name: /username|email/i }).fill(E2E_USERNAME);
-  await page.getByLabel(/password/i).fill(E2E_PASSWORD);
-  await page.getByRole('button', { name: /log in|sign in|submit/i }).click();
-  await expect(page).toHaveURL(/\/dashboard/);
-}
 
 test.describe('Management user edit', () => {
   test('unauthenticated user is redirected to login', async ({ page }, testInfo) => {
-    await actionAndCapture(
+    await expectUnauthedRouteRedirectsToLogin(
       page,
       testInfo,
       'navigate-to-management-user-edit-while-unauthenticated-expect-redirect-to-login',
@@ -24,11 +15,10 @@ test.describe('Management user edit', () => {
         await page.goto(`/user/${E2E_MAIN_USER_ID}/edit`);
       }
     );
-    await expect(page).toHaveURL(/\/login/);
   });
 
   test('authenticated user sees edit user form', async ({ page }, testInfo) => {
-    await login(page);
+    await loginAsManagementSuperAdmin(page);
     await actionAndCapture(
       page,
       testInfo,
@@ -50,5 +40,32 @@ test.describe('Management user edit', () => {
       testInfo,
       'management-user-edit-route-visible-with-edit-form-or-not-found-state'
     );
+  });
+
+  test('editing user profile persists after save and reload', async ({ page }, testInfo) => {
+    await loginAsManagementSuperAdmin(page);
+    await page.goto(`/user/${E2E_MAIN_USER_ID}/edit`);
+
+    const emailInput = page.getByRole('textbox', { name: /email/i }).first();
+    const displayNameInput = page.getByRole('textbox', { name: /display name/i }).first();
+    await expect(emailInput).toBeVisible();
+    await expect(displayNameInput).toBeVisible();
+
+    const currentEmail = await emailInput.inputValue();
+    const updatedDisplayName = `E2E User Updated ${Date.now()}`;
+    await displayNameInput.fill(updatedDisplayName);
+
+    await actionAndCapture(
+      page,
+      testInfo,
+      'save-updated-management-user-profile-and-return-to-users-list',
+      async () => {
+        await page.getByRole('button', { name: /save changes|save|update/i }).click();
+      }
+    );
+
+    await expect(page).toHaveURL(/\/users(\?|$)/);
+    await page.goto(`/users?search=${encodeURIComponent(currentEmail)}`);
+    await expect(page.getByText(new RegExp(updatedDisplayName, 'i')).first()).toBeVisible();
   });
 });

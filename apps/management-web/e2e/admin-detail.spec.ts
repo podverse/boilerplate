@@ -1,22 +1,13 @@
 import { expect, test } from '@playwright/test';
 
+import { loginAsManagementSuperAdmin } from './helpers/advancedFixtures';
+import { expectUnauthedRouteRedirectsToLogin } from './helpers/authAssertions';
 import { actionAndCapture, capturePageLoad } from './helpers/stepScreenshots';
-
-const E2E_USERNAME = 'e2e-superadmin';
-const E2E_PASSWORD = 'Test!1Aa';
 const E2E_SUPER_ADMIN_ID = 'aaaaaaaa-aaaa-4aaa-aaaa-aaaaaaaaaaaa';
-
-async function login(page: import('@playwright/test').Page) {
-  await page.goto('/login');
-  await page.getByRole('textbox', { name: /username|email/i }).fill(E2E_USERNAME);
-  await page.getByLabel(/password/i).fill(E2E_PASSWORD);
-  await page.getByRole('button', { name: /log in|sign in|submit/i }).click();
-  await expect(page).toHaveURL(/\/dashboard/);
-}
 
 test.describe('Management admin detail', () => {
   test('unauthenticated user is redirected to login', async ({ page }, testInfo) => {
-    await actionAndCapture(
+    await expectUnauthedRouteRedirectsToLogin(
       page,
       testInfo,
       'navigate-to-management-admin-detail-while-unauthenticated-expect-redirect-to-login',
@@ -24,11 +15,10 @@ test.describe('Management admin detail', () => {
         await page.goto(`/admin/${E2E_SUPER_ADMIN_ID}`);
       }
     );
-    await expect(page).toHaveURL(/\/login/);
   });
 
   test('authenticated user sees seeded super admin detail', async ({ page }, testInfo) => {
-    await login(page);
+    await loginAsManagementSuperAdmin(page);
     await actionAndCapture(
       page,
       testInfo,

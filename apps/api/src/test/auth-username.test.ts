@@ -8,30 +8,24 @@ process.env.MAILER_ENABLED = 'true';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import request from 'supertest';
 
-import {
-  UserService,
-  VerificationTokenService,
-  appDataSourceRead,
-  appDataSourceReadWrite,
-} from '@boilerplate/orm';
-import { createApp } from '../app.js';
+import { UserService, VerificationTokenService } from '@boilerplate/orm';
 import { config } from '../config/index.js';
 import { hashPassword } from '../lib/auth/hash.js';
 import { generateToken, getSetPasswordExpiry, hashToken } from '../lib/auth/verification-token.js';
+import { createApiLoginAgent } from './helpers/login-agent.js';
+import { createApiTestApp, destroyApiTestDataSources } from './helpers/setup.js';
 
 const API = config.apiVersionPath;
 
 describe('auth (username and set-password)', () => {
-  let app: ReturnType<typeof createApp>;
+  let app: Awaited<ReturnType<typeof createApiTestApp>>;
   const ts = Date.now();
   const testUserEmail = `username-test-${ts}@example.com`;
   const testUserUsername = `username-test-${ts}`;
   const testUserPassword = 'test-password-1';
 
   beforeAll(async () => {
-    await appDataSourceRead.initialize();
-    await appDataSourceReadWrite.initialize();
-    app = createApp();
+    app = await createApiTestApp();
     const hashed = await hashPassword(testUserPassword);
     await UserService.create({
       email: testUserEmail,
@@ -42,12 +36,7 @@ describe('auth (username and set-password)', () => {
   });
 
   afterAll(async () => {
-    if (appDataSourceReadWrite.isInitialized) {
-      await appDataSourceReadWrite.destroy();
-    }
-    if (appDataSourceRead.isInitialized) {
-      await appDataSourceRead.destroy();
-    }
+    await destroyApiTestDataSources();
   });
 
   describe('POST /auth/login (by username)', () => {
@@ -146,11 +135,10 @@ describe('auth (username and set-password)', () => {
 
   describe('PATCH /auth/me (username)', () => {
     it('returns 200 with updated user when setting username', async () => {
-      const agent = request.agent(app);
-      await agent
-        .post(`${API}/auth/login`)
-        .send({ email: testUserEmail, password: testUserPassword })
-        .expect(200);
+      const agent = await createApiLoginAgent(app, {
+        email: testUserEmail,
+        password: testUserPassword,
+      });
       const newUsername = `updated-username-${Date.now()}`;
       const res = await agent.patch(`${API}/auth/me`).send({ username: newUsername }).expect(200);
       expect(res.body.user.username).toBe(newUsername);
@@ -169,11 +157,10 @@ describe('auth (username and set-password)', () => {
         password: otherHashed,
         displayName: null,
       });
-      const agent = request.agent(app);
-      await agent
-        .post(`${API}/auth/login`)
-        .send({ email: testUserEmail, password: testUserPassword })
-        .expect(200);
+      const agent = await createApiLoginAgent(app, {
+        email: testUserEmail,
+        password: testUserPassword,
+      });
       const res = await agent.patch(`${API}/auth/me`).send({ username: otherUsername }).expect(409);
       expect(res.body.message).toBe('Username already in use');
     });
@@ -205,11 +192,11 @@ describe('auth (username and set-password)', () => {
     });
 
     it('returns available: true when authenticated user checks own username', async () => {
-      const agent = request.agent(app);
-      const loginRes = await agent
-        .post(`${API}/auth/login`)
-        .send({ email: testUserEmail, password: testUserPassword })
-        .expect(200);
+      const agent = await createApiLoginAgent(app, {
+        email: testUserEmail,
+        password: testUserPassword,
+      });
+      const loginRes = await agent.get(`${API}/auth/me`).expect(200);
       const ownUsername =
         loginRes.body.user?.username ?? loginRes.body.user?.email ?? testUserUsername;
       const res = await agent

@@ -5,39 +5,31 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import request from 'supertest';
 
-import {
-  BucketAdminService,
-  BucketService,
-  appDataSourceRead,
-  appDataSourceReadWrite,
-} from '@boilerplate/orm';
-import { managementDataSource } from '@boilerplate/management-orm';
-import { createApp } from '../app.js';
+import { BucketAdminService, BucketService } from '@boilerplate/orm';
 import { config } from '../config/index.js';
-import { createSuperAdminForTest } from './createSuperAdminForTest.js';
+import { createManagementLoginAgent } from './helpers/login-agent.js';
+import {
+  createManagementApiTestAppWithSuperAdmin,
+  destroyManagementApiTestDataSources,
+} from './helpers/setup.js';
 
 const API = config.apiVersionPath;
 const superAdminUsername = 'test-super-admin';
 const superAdminPassword = 'test-super-admin-password-1';
 
 describe('management-api buckets and messages', () => {
-  let app: ReturnType<typeof createApp>;
+  let app: Awaited<ReturnType<typeof createManagementApiTestAppWithSuperAdmin>>;
   let superAdminAgent: ReturnType<typeof request.agent>;
   let ownerUserId: string;
   let bucketId: string;
   let messageId: string;
 
   beforeAll(async () => {
-    await appDataSourceRead.initialize();
-    await appDataSourceReadWrite.initialize();
-    await managementDataSource.initialize();
-    await createSuperAdminForTest(superAdminUsername, superAdminPassword);
-    app = createApp();
-    superAdminAgent = request.agent(app);
-    await superAdminAgent
-      .post(`${API}/auth/login`)
-      .send({ username: superAdminUsername, password: superAdminPassword })
-      .expect(200);
+    app = await createManagementApiTestAppWithSuperAdmin(superAdminUsername, superAdminPassword);
+    superAdminAgent = await createManagementLoginAgent(app, {
+      username: superAdminUsername,
+      password: superAdminPassword,
+    });
 
     const userRes = await superAdminAgent
       .post(`${API}/users`)
@@ -51,15 +43,7 @@ describe('management-api buckets and messages', () => {
   });
 
   afterAll(async () => {
-    if (managementDataSource.isInitialized) {
-      await managementDataSource.destroy();
-    }
-    if (appDataSourceReadWrite.isInitialized) {
-      await appDataSourceReadWrite.destroy();
-    }
-    if (appDataSourceRead.isInitialized) {
-      await appDataSourceRead.destroy();
-    }
+    await destroyManagementApiTestDataSources();
   });
 
   describe('buckets', () => {
@@ -344,11 +328,10 @@ describe('management-api buckets and messages', () => {
         })
         .expect(201);
 
-      noBucketsAgent = request.agent(app);
-      await noBucketsAgent
-        .post(`${API}/auth/login`)
-        .send({ username: noBucketsEmail, password: noBucketsPassword })
-        .expect(200);
+      noBucketsAgent = await createManagementLoginAgent(app, {
+        username: noBucketsEmail,
+        password: noBucketsPassword,
+      });
 
       const bucketRes = await superAdminAgent
         .post(`${API}/buckets`)
@@ -399,11 +382,10 @@ describe('management-api buckets and messages', () => {
         })
         .expect(201);
 
-      bucketsReadOnlyAgent = request.agent(app);
-      await bucketsReadOnlyAgent
-        .post(`${API}/auth/login`)
-        .send({ username: bucketsReadOnlyEmail, password: bucketsReadOnlyPassword })
-        .expect(200);
+      bucketsReadOnlyAgent = await createManagementLoginAgent(app, {
+        username: bucketsReadOnlyEmail,
+        password: bucketsReadOnlyPassword,
+      });
 
       const bucketRes = await superAdminAgent
         .post(`${API}/buckets`)
@@ -471,17 +453,15 @@ describe('management-api buckets and messages', () => {
         })
         .expect(201);
 
-      noBucketAdminsAgent = request.agent(app);
-      await noBucketAdminsAgent
-        .post(`${API}/auth/login`)
-        .send({ username: noBucketAdminsEmail, password: noBucketAdminsPassword })
-        .expect(200);
+      noBucketAdminsAgent = await createManagementLoginAgent(app, {
+        username: noBucketAdminsEmail,
+        password: noBucketAdminsPassword,
+      });
 
-      withBucketAdminsAgent = request.agent(app);
-      await withBucketAdminsAgent
-        .post(`${API}/auth/login`)
-        .send({ username: withBucketAdminsEmail, password: withBucketAdminsPassword })
-        .expect(200);
+      withBucketAdminsAgent = await createManagementLoginAgent(app, {
+        username: withBucketAdminsEmail,
+        password: withBucketAdminsPassword,
+      });
 
       const bucketRes = await superAdminAgent
         .post(`${API}/buckets`)

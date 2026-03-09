@@ -1,4 +1,5 @@
 import type { Page, TestInfo } from '@playwright/test';
+import path from 'path';
 
 const stepCounters = new WeakMap<TestInfo, number>();
 const MAX_IMAGE_ATTACH_NAME_LENGTH = 60;
@@ -25,11 +26,15 @@ const truncate = (s: string, maxLen: number): string => {
   return t.slice(0, maxLen);
 };
 
-/** Full step description for the text attachment (test context + label). */
+/** Step description for the text attachment: [file#line] – label. Test context is shown once at test level in the report. */
 const buildFullDescription = (testInfo: TestInfo, label: string): string => {
-  const context = testInfo.titlePath.filter((segment) => segment.trim().length > 0).join(' ');
+  const fileName = path.basename(testInfo.file);
+  const sourceMarker = `[${fileName}#${testInfo.line}]`;
   const labelPart = label.trim();
-  return context ? `${context} – ${labelPart}` : labelPart;
+  return [sourceMarker, labelPart]
+    .map((s) => s.trim())
+    .filter(Boolean)
+    .join(' – ');
 };
 
 const captureStep = async (page: Page, testInfo: TestInfo, label: string): Promise<void> => {

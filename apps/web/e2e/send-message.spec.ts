@@ -51,4 +51,23 @@ test.describe('Send message (public)', () => {
     await expect(page).toHaveURL(new RegExp(`/b/${E2E_BUCKET1_SHORT_ID}/send-message`));
     await expect(submitButton).toBeEnabled();
   });
+
+  test('valid send-message form submits and redirects back to public bucket', async ({
+    page,
+  }, testInfo) => {
+    await page.goto(`/b/${E2E_BUCKET1_SHORT_ID}/send-message`);
+    await page.getByRole('textbox', { name: /your name/i }).fill('E2E Sender');
+    await page.getByRole('textbox', { name: /message/i }).fill('E2E public message body');
+
+    await actionAndCapture(
+      page,
+      testInfo,
+      'submit-valid-public-send-message-form-and-expect-public-bucket-redirect',
+      async () => {
+        await page.getByRole('button', { name: /send|submit/i }).click();
+      }
+    );
+
+    await expect(page).toHaveURL(new RegExp(`/b/${E2E_BUCKET1_SHORT_ID}$`));
+  });
 });

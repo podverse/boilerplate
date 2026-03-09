@@ -9,9 +9,10 @@ outcomes via fixed seed data.
 - Test every page layout and interaction for apps/web and apps/management-web.
 - Guarantee the same results and values each run using predefined, constant data
   seeded in the database before tests.
-- **Gate**: API and management-api integration tests must run and **pass** before any
-  web or management-web E2E tests run. If any API/management-api test fails, the process
-  stops and Playwright is not executed.
+- **Configurable API gate**: E2E targets support `E2E_API_GATE_MODE=auto|on|off`.
+  - `auto` (default): run API gate only when changed files look API-impacting.
+  - `on`: always run API + management-api integration tests before Playwright.
+  - `off`: always skip API gate and run seed + Playwright directly.
 
 ## Prerequisites
 
@@ -21,38 +22,62 @@ outcomes via fixed seed data.
 
 ## Make targets
 
-| Target                         | Description                                                                                                |
-| ------------------------------ | ---------------------------------------------------------------------------------------------------------- |
-| `e2e_deps`                     | Start Postgres (5532), Valkey (6479), create test DBs and schema.                                          |
-| `e2e_seed`                     | Load deterministic seed for both web and management-web.                                                   |
-| `e2e_seed_web`                 | Load deterministic seed for web E2E only (main DB).                                                        |
-| `e2e_seed_management_web`      | Load deterministic seed for management-web E2E only.                                                       |
-| `e2e_test_api`                 | Run API integration tests only (api + management-api).                                                     |
-| `e2e_test`                     | Run API tests first (fail fast), then E2E for both web and management-web.                                 |
-| `e2e_test_web`                 | Run API tests first (fail fast), then E2E for web only.                                                    |
-| `e2e_test_management_web`      | Run API tests first (fail fast), then E2E for management-web only.                                         |
-| `e2e_test_home`                | Run API tests first (fail fast), then only home smoke specs for both apps.                                 |
-| `e2e_test_home_report`         | Run home smoke for both apps with step screenshots, save timestamped HTML reports, and auto-open them.     |
-| `e2e_test_report`              | Run full E2E suite for both apps with step screenshots, save timestamped HTML reports, and auto-open them. |
-| `e2e_test_web_home`            | Run API tests first, then only `apps/web/e2e/home.spec.ts`.                                                |
-| `e2e_test_management_web_home` | Run API tests first, then only `apps/management-web/e2e/home.spec.ts`.                                     |
-| `e2e_teardown`                 | Stop processes started for E2E (dev servers, API, sidecar).                                                |
+| Target                                | Description                                                                                                                            |
+| ------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| `e2e_deps`                            | Start Postgres (5532), Valkey (6479), create test DBs and schema.                                                                      |
+| `e2e_seed`                            | Load deterministic seed for both web and management-web.                                                                               |
+| `e2e_seed_web`                        | Load deterministic seed for web E2E only (main DB).                                                                                    |
+| `e2e_seed_management_web`             | Load deterministic seed for management-web E2E only.                                                                                   |
+| `e2e_test_api`                        | Run API integration tests only (api + management-api).                                                                                 |
+| `e2e_test`                            | Run API gate decision, then E2E for both web and management-web.                                                                       |
+| `e2e_test_web`                        | Run API gate decision, then E2E for web only.                                                                                          |
+| `e2e_test_management_web`             | Run API gate decision, then E2E for management-web only.                                                                               |
+| `e2e_test_home`                       | Run API gate decision, then only home smoke specs for both apps.                                                                       |
+| `e2e_test_home_report`                | Run API gate decision, then home smoke for both apps with step screenshots and timestamped HTML reports.                               |
+| `e2e_test_web_report_spec`            | Run one or more web specs in report mode with step screenshots (`SPEC=...`) and auto-open the report.                                  |
+| `e2e_test_management_web_report_spec` | Run one or more management-web specs in report mode with step screenshots (`SPEC=...`) and auto-open the report.                       |
+| `e2e_test_report_scoped`              | Run one or more web specs + one or more management-web specs in report mode (`WEB_SPEC=... MGMT_SPEC=...`) and auto-open both reports. |
+| `e2e_test_report`                     | Run full E2E suite for both apps with step screenshots, save timestamped HTML reports, and auto-open them.                             |
+| `e2e_test_web_home`                   | Run API tests first, then only `apps/web/e2e/home.spec.ts`.                                                                            |
+| `e2e_test_management_web_home`        | Run API tests first, then only `apps/management-web/e2e/home.spec.ts`.                                                                 |
+| `e2e_teardown`                        | Stop processes started for E2E (dev servers, API, sidecar).                                                                            |
 
-**API gate**: `e2e_test`, `e2e_test_web`, and `e2e_test_management_web` all run API
-integration tests first. On first failure, Make exits and Playwright is not run.
+**API gate behavior**:
+
+- Default is `E2E_API_GATE_MODE=auto`.
+- `auto` inspects unstaged + staged + untracked files and runs API integration tests
+  only when API-impacting paths are detected.
+- `E2E_API_GATE_MODE=on` forces the old strict behavior: run API tests first and fail
+  fast before Playwright.
+- `E2E_API_GATE_MODE=off` always skips API integration tests.
 
 ## Flow
 
 1. **`make e2e_deps`** — Test DBs and schema (same as `test_deps`: Postgres 5532,
    Valkey 6479, `boilerplate_test`, `boilerplate_management_test`).
 2. **`make e2e_seed`** — Load deterministic fixtures (idempotent: truncate + insert).
-3. **Run API integration tests** — `npm run test` (api + management-api). **If any fail,
-   stop and do not run Playwright.**
+3. **Run API gate decision** — by default (`auto`), Make runs API integration tests only
+   when changed paths look API-impacting.
 4. Run Playwright (e.g. `make e2e_test_web` or `make e2e_test_management_web`).
    - Web E2E auto-starts API (`4010`), sidecar (`4011`), and web (`4012`) in production-like mode (`build` + `start`).
    - Management-web E2E auto-starts management-api (`4110`) and management-web (`4112`) in production-like mode (`build` + `start`).
 5. **`make e2e_teardown`** — Stop any manually started services. For full cleanup (remove test containers),
    run `make test_clean`.
+
+Force strict gate mode when needed:
+
+- `make E2E_API_GATE_MODE=on e2e_test_web`
+- `make E2E_API_GATE_MODE=on e2e_test_management_web`
+- `make E2E_API_GATE_MODE=on e2e_test_report_scoped WEB_SPEC=e2e/<web-spec>.spec.ts MGMT_SPEC=e2e/<management-spec>.spec.ts`
+
+Spec-list format:
+
+- `SPEC`, `WEB_SPEC`, and `MGMT_SPEC` accept either:
+  - a single spec path, or
+  - a comma-separated list of spec paths.
+- Example (multiple specs):
+  - `make e2e_test_web_report_spec SPEC=e2e/buckets.spec.ts,e2e/invite.spec.ts`
+  - `make e2e_test_report_scoped WEB_SPEC=e2e/buckets.spec.ts,e2e/bucket-detail.spec.ts MGMT_SPEC=e2e/buckets.spec.ts,e2e/events.spec.ts`
 
 Stability mode is now the default for all E2E commands. Startup is usually slower than dev mode because app builds run before servers start, but this reduces dev-only overlay noise and false positives.
 
@@ -62,6 +87,9 @@ Use this to bootstrap the E2E toolchain with one simple test per app.
 
 1. `make e2e_deps`
 2. Run one of:
+   - `make e2e_test_web_report_spec SPEC=e2e/<web-spec>.spec.ts` (preferred for focused web feature work; `auto` gate)
+   - `make e2e_test_management_web_report_spec SPEC=e2e/<management-spec>.spec.ts` (preferred for focused management-web feature work; `auto` gate)
+   - `make e2e_test_report_scoped WEB_SPEC=e2e/<web-spec>.spec.ts MGMT_SPEC=e2e/<management-spec>.spec.ts` (cross-app feature work; `auto` gate)
    - `make e2e_test_home` (both home smoke specs)
    - `make e2e_test_home_report` (both home smoke specs + step screenshots + open HTML reports)
    - `make e2e_test_report` (full E2E suite for both apps + step screenshots + open HTML reports)
@@ -83,6 +111,11 @@ Nix wrapper variants:
 - `./scripts/nix/with-env make e2e_deps`
 - `./scripts/nix/with-env make e2e_test_home`
 - `./scripts/nix/with-env make e2e_test_home_report`
+- `./scripts/nix/with-env make e2e_test_web_report_spec SPEC=e2e/<web-spec>.spec.ts`
+- `./scripts/nix/with-env make e2e_test_management_web_report_spec SPEC=e2e/<management-spec>.spec.ts`
+- `./scripts/nix/with-env make e2e_test_report_scoped WEB_SPEC=e2e/<web-spec>.spec.ts MGMT_SPEC=e2e/<management-spec>.spec.ts`
+- `./scripts/nix/with-env make E2E_API_GATE_MODE=on e2e_test_web_report_spec SPEC=e2e/<web-spec>.spec.ts`
+- `./scripts/nix/with-env make E2E_API_GATE_MODE=on e2e_test_management_web_report_spec SPEC=e2e/<management-spec>.spec.ts`
 - `./scripts/nix/with-env make e2e_test_web_home`
 - `./scripts/nix/with-env make e2e_test_management_web_home`
 - `./scripts/nix/with-env make e2e_teardown`
@@ -222,7 +255,16 @@ Recommended Playwright settings (both web and management-web configs):
 
 ### Full-suite report-mode guidance
 
-- Built-in report-focused Make commands: `make e2e_test_home_report` (home smoke only) and `make e2e_test_report` (full E2E suite).
+- Built-in report-focused Make commands:
+  - Feature-scoped defaults:
+    - `make e2e_test_web_report_spec SPEC=e2e/<web-spec>.spec.ts`
+    - `make e2e_test_management_web_report_spec SPEC=e2e/<management-spec>.spec.ts`
+    - `make e2e_test_report_scoped WEB_SPEC=e2e/<web-spec>.spec.ts MGMT_SPEC=e2e/<management-spec>.spec.ts`
+  - Broader regression checks:
+    - `make e2e_test_home_report` (home smoke only)
+    - `make e2e_test_report` (full E2E suite)
+- Prefer scoped report commands for day-to-day feature work so reports contain only relevant scenarios and screenshots.
+- Use full-suite report mode only when changes are broad, cross-cutting, or near release/deployment validation.
 - Future route-cluster or other report-focused commands should follow the
   same model:
   - set `E2E_STEP_SCREENSHOTS=true`

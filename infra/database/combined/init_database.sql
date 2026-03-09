@@ -181,11 +181,3 @@ CREATE TABLE bucket_admin_invitation (
 CREATE INDEX idx_bucket_admin_invitation_bucket_id ON bucket_admin_invitation(bucket_id);
 CREATE INDEX idx_bucket_admin_invitation_token ON bucket_admin_invitation(token);
 CREATE INDEX idx_bucket_admin_invitation_status ON bucket_admin_invitation(status);
-
-
--- Including: 0004_drop_profile_visibility.sql
--- 0004 migration: drop profile_visibility from user (unused column)
-
-ALTER TABLE "user" DROP COLUMN IF EXISTS profile_visibility;
-
-

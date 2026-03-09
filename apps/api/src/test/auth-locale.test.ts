@@ -41,22 +41,20 @@ vi.mock('../lib/mailer/send.js', () => ({
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import request from 'supertest';
 
-import { UserService, appDataSourceRead, appDataSourceReadWrite } from '@boilerplate/orm';
-import { createApp } from '../app.js';
+import { UserService } from '@boilerplate/orm';
 import { config } from '../config/index.js';
 import { hashPassword } from '../lib/auth/hash.js';
+import { createApiTestApp, destroyApiTestDataSources } from './helpers/setup.js';
 
 const API = config.apiVersionPath;
 
 describe('locale (mailer-enabled)', () => {
-  let app: ReturnType<typeof createApp>;
+  let app: Awaited<ReturnType<typeof createApiTestApp>>;
   const signupPassword = 'signup-pass-1';
   let forgotPasswordUserEmail: string;
 
   beforeAll(async () => {
-    await appDataSourceRead.initialize();
-    await appDataSourceReadWrite.initialize();
-    app = createApp();
+    app = await createApiTestApp();
     forgotPasswordUserEmail = `locale-fp-${Date.now()}@example.com`;
     const hashed = await hashPassword(signupPassword);
     await UserService.create({
@@ -67,12 +65,7 @@ describe('locale (mailer-enabled)', () => {
   });
 
   afterAll(async () => {
-    if (appDataSourceReadWrite.isInitialized) {
-      await appDataSourceReadWrite.destroy();
-    }
-    if (appDataSourceRead.isInitialized) {
-      await appDataSourceRead.destroy();
-    }
+    await destroyApiTestDataSources();
   });
 
   describe('signup – verification email locale', () => {

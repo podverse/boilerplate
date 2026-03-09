@@ -131,4 +131,36 @@ test.describe('Login', () => {
     );
     await expect(page).toHaveURL(/\/forgot-password/);
   });
+
+  test('safe returnUrl redirects to requested internal route after login', async ({
+    page,
+  }, testInfo) => {
+    await page.goto('/login?returnUrl=%2Fsettings');
+    await actionAndCapture(
+      page,
+      testInfo,
+      'login-with-safe-return-url-and-verify-redirect-to-settings',
+      async () => {
+        await page.getByRole('textbox', { name: /email|username/i }).fill(E2E_EMAIL);
+        await page.getByLabel(/password/i).fill(E2E_PASSWORD);
+        await page.getByRole('button', { name: /log in|sign in|submit/i }).click();
+      }
+    );
+    await expect(page).toHaveURL(/\/settings/);
+  });
+
+  test('unsafe returnUrl is ignored and falls back to dashboard', async ({ page }, testInfo) => {
+    await page.goto('/login?returnUrl=%2F%2Fevil.example');
+    await actionAndCapture(
+      page,
+      testInfo,
+      'login-with-unsafe-return-url-and-verify-dashboard-fallback',
+      async () => {
+        await page.getByRole('textbox', { name: /email|username/i }).fill(E2E_EMAIL);
+        await page.getByLabel(/password/i).fill(E2E_PASSWORD);
+        await page.getByRole('button', { name: /log in|sign in|submit/i }).click();
+      }
+    );
+    await expect(page).toHaveURL(/\/dashboard/);
+  });
 });

@@ -66,4 +66,21 @@ test.describe('Sign up', () => {
     );
     await expect(page).toHaveURL(/\/login/);
   });
+
+  test('required fields prevent empty submit navigation', async ({ page }, testInfo) => {
+    await page.goto('/signup');
+    const submitButton = page.getByRole('button', { name: /sign up|create account|submit/i });
+
+    await actionAndCapture(
+      page,
+      testInfo,
+      'verify-empty-signup-form-keeps-submit-disabled',
+      async () => {
+        await expect(submitButton).toBeDisabled();
+      }
+    );
+
+    await expect(page).toHaveURL(/\/signup/);
+    await expect(page.getByRole('textbox', { name: /username|email/i }).first()).toBeVisible();
+  });
 });

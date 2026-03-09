@@ -1,4 +1,7 @@
-import type { APIRequestContext, Page } from '@playwright/test';
+import { expect } from '@playwright/test';
+import type { APIRequestContext, Page, TestInfo } from '@playwright/test';
+
+import { actionAndCapture } from './stepScreenshots';
 
 const WEB_LOGIN_EMAIL = 'e2e@example.com';
 const WEB_LOGIN_PASSWORD = 'Test!1Aa';
@@ -6,11 +9,28 @@ const WEB_LOGIN_PASSWORD = 'Test!1Aa';
 export const nextFixtureName = (prefix: string): string =>
   `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 
-export async function loginAsWebE2EUser(page: Page): Promise<void> {
+export async function loginAsWebE2EUserAndExpectDashboard(page: Page): Promise<void> {
   await page.goto('/login');
   await page.getByRole('textbox', { name: /email|username/i }).fill(WEB_LOGIN_EMAIL);
   await page.getByLabel(/password/i).fill(WEB_LOGIN_PASSWORD);
   await page.getByRole('button', { name: /log in|sign in|submit/i }).click();
+  await expect(page).toHaveURL(/\/dashboard/);
+}
+
+export async function loginAsWebE2EUser(page: Page): Promise<void> {
+  await loginAsWebE2EUserAndExpectDashboard(page);
+}
+
+export async function expectUnauthedRouteRedirectsToLogin(
+  page: Page,
+  route: string,
+  stepLabel: string,
+  testInfo: TestInfo
+): Promise<void> {
+  await actionAndCapture(page, testInfo, stepLabel, async () => {
+    await page.goto(route);
+  });
+  await expect(page).toHaveURL(/\/login/);
 }
 
 export async function createChildBucketFixture(

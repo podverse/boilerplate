@@ -6,9 +6,11 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import request from 'supertest';
 
-import { appDataSourceRead, appDataSourceReadWrite } from '@boilerplate/orm';
-import { managementDataSource } from '@boilerplate/management-orm';
 import { config } from '../config/index.js';
+import {
+  destroyManagementApiTestDataSources,
+  initializeManagementApiTestDataSources,
+} from './helpers/setup.js';
 
 const API = config.apiVersionPath;
 const RATE_LIMIT_MESSAGE = 'Too many requests. Please try again later.';
@@ -31,23 +33,13 @@ describe('management-api rate limiting', () => {
 
   beforeAll(async () => {
     process.env.RATE_LIMIT_STRICT_FOR_TEST = 'true';
-    await appDataSourceRead.initialize();
-    await appDataSourceReadWrite.initialize();
-    await managementDataSource.initialize();
+    await initializeManagementApiTestDataSources();
     const { createApp: createAppFn } = await import('../app.js');
     app = createAppFn();
   });
 
   afterAll(async () => {
-    if (managementDataSource.isInitialized) {
-      await managementDataSource.destroy();
-    }
-    if (appDataSourceReadWrite.isInitialized) {
-      await appDataSourceReadWrite.destroy();
-    }
-    if (appDataSourceRead.isInitialized) {
-      await appDataSourceRead.destroy();
-    }
+    await destroyManagementApiTestDataSources();
   });
 
   it('returns 429 after exceeding strict limit on POST /auth/login', async () => {
@@ -61,6 +53,8 @@ describe('management-api rate limiting', () => {
     // Body is the single source of truth: exact seconds remaining from backend in-memory store.
     const retryAfterSeconds: unknown = res.body.retryAfterSeconds;
     expect(typeof retryAfterSeconds).toBe('number');
-    expect(retryAfterSeconds as number).toBeGreaterThan(0);
+    if (typeof retryAfterSeconds === 'number') {
+      expect(retryAfterSeconds).toBeGreaterThan(0);
+    }
   });
 });
