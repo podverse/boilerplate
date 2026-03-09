@@ -36,9 +36,14 @@ For each tested page/component surface, explicitly track:
 - **Validation**: empty/invalid submit -> remains on form -> validation visible.
 - **State branches**: explicit assertions for each reachable empty/loading/error branch.
 
+## Permission-gated surfaces
+
+For edit/detail/settings pages that are gated by ownership or role (bucket admin, bucket role, message edit, management resource edit), also apply the **e2e-permission-actor-matrix** skill so all actor × outcome permutations (unauthenticated, owner, non-owner with/without permission, non-admin) and flow tests (list→edit, Cancel→list) are covered.
+
 ## Completion checklist
 
 - [ ] Every modified surface has CRUD row status (`covered` or `deferred`).
 - [ ] Deferred rows include rationale in the active plan/history.
+- [ ] For permission-gated surfaces, actor matrix coverage is applied (see e2e-permission-actor-matrix).
 - [ ] Changed specs pass targeted runs.
 - [ ] Full relevant app E2E run passes.

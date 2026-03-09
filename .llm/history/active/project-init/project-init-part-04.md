@@ -74,6 +74,81 @@ Return:
 - apps/management-api/src/test/management-buckets-messages.test.ts
 - apps/management-api/src/test/management-api-rate-limit.test.ts
 
+### Session 57 - 2026-03-09
+
+#### Prompt (Developer)
+
+It looks like the text that has a different background color is not using the hyphens. in the same way the other sections are. It should be consistent. Update a skill if you need to to remember this pattern
+
+#### Key Decisions
+
+- Identified that the detail-row text in the gray background section was being transformed by
+  reporter logic (`humanizeStepLabel`) that replaced hyphenated compounds with spaced words.
+- Updated reporter behavior to preserve step labels exactly as authored, ensuring hyphenated
+  compound terms remain consistent between the summary and detail sections.
+- Updated the E2E readability skill so future specs keep hyphenated compound terms consistent
+  in step labels and rely on reporter pass-through behavior.
+
+#### Files Modified
+
+- .llm/history/active/project-init/project-init-part-04.md
+- scripts/e2e-html-steps-reporter.ts
+- .cursor/skills/e2e-readability/SKILL.md
+
+### Session 58 - 2026-03-09
+
+#### Prompt (Developer)
+
+Global E2E Pattern Rollout
+
+Implement the plan as specified, it is attached for your reference. Do NOT edit the plan file itself.
+
+To-do's from the plan have already been created. Do not create them again. Mark them as in_progress as you work, starting with the first one. Don't stop until you have completed all the to-dos.
+
+#### Key Decisions
+
+- Rolled out the confirmed pattern across all E2E specs in both apps: full-sentence
+  describe blocks, full-sentence test titles, and full-sentence helper step labels.
+- Standardized hyphenated compound concept terms in titles/labels (for route/page/form
+  and seeded identity concepts) so report summary and detail wording stay aligned.
+- Performed a repository-wide consistency sweep after batch edits and resolved remaining
+  wording outliers.
+- Updated the E2E readability skill to explicitly require applying these rules across
+  all web and management-web E2E specs.
+
+#### Files Modified
+
+- .llm/history/active/project-init/project-init-part-04.md
+- .cursor/skills/e2e-readability/SKILL.md
+- apps/web/e2e/*.spec.ts (22 files)
+- apps/management-web/e2e/*.spec.ts (26 files)
+
+### Session 56 - 2026-03-09
+
+#### Prompt (Developer)
+
+Fix transient 404 in management-users-permissions without weakening validation
+
+Implement the plan as specified, it is attached for your reference. Do NOT edit the plan file itself.
+
+To-do's from the plan have already been created. Do not create them again. Mark them as in_progress as you work, starting with the first one. Don't stop until you have completed all the to-dos.
+
+#### Key Decisions
+
+- Identified that intermittent `404` in setup `POST /users` caused cascade failures in cleanup
+  (`DELETE /users/undefined`) and UUID parse errors, while route contract validation is already
+  covered in `management-api.test.ts`.
+- Decoupled fixture user creation in `management-users-permissions.test.ts` from API route setup
+  by creating fixture users directly via `UserService.create` with a hashed password, preserving
+  this suite's permission/change-password focus.
+- Hardened cleanup in the read-only permissions block to guard deletes when setup state is absent,
+  preventing secondary failures that obscure the root issue.
+
+#### Files Modified
+
+- .llm/history/active/project-init/project-init-part-04.md
+- apps/management-api/src/test/management-users-permissions.test.ts
+
 ### Session 42 - 2026-03-08
 
 #### Prompt (Developer)
@@ -314,6 +389,85 @@ i see a lot of text like this navigate-to-management-admin-detail-while-unauthen
 
 - .llm/history/active/project-init/project-init-part-04.md
 - scripts/e2e-html-steps-reporter.ts
+
+### Session 55 - 2026-03-08
+
+#### Prompt (Developer)
+
+In /Users/mitcheldowney/repos/pv/boilerplate, perform wording-only updates in apps/web/e2e/**/*.spec.ts and apps/management-web/e2e/**/*.spec.ts for step-label strings passed to actionAndCapture, expectUnauthedRouteRedirectsToLogin, and expectInvalidRouteShowsNotFound.
+
+Goal: make labels action-oriented and remove expectation wording that appears before assertions.
+
+Rules:
+- Update step labels only (do not change test titles, selectors, assertions, logic).
+- Remove tokens like '-expect-...', '-...-visible', '-...-shows-...', '-...-renders-...' in pre-assertion action labels.
+- Keep labels concise action phrases.
+- Preserve capturePageLoad labels unless they are clearly pre-assertion action labels (usually capturePageLoad happens after assertions).
+- Apply across both web and management-web specs.
+
+After edits:
+1) Run a quick grep/scan to ensure no pre-assertion labels still contain 'expect' where avoidable.
+2) Return a concise list of files edited and representative old->new label examples.
+Do not touch plan files.
+
+#### Key Decisions
+
+- Performed wording-only edits on step-label strings used by `actionAndCapture`,
+  `expectUnauthedRouteRedirectsToLogin`, and `expectInvalidRouteShowsNotFound` in
+  web and management-web E2E specs.
+- Removed pre-assertion expectation phrasing patterns (for example `-expect-...`,
+  `-...-visible`, `-...-shows-...`, `-...-renders-...`) from those labels so
+  labels describe actions more directly.
+- Ran a post-edit grep/scan for targeted helper call blocks to confirm no remaining
+  avoidable `expect` wording in the updated pre-assertion labels.
+
+#### Files Modified
+
+- .llm/history/active/project-init/project-init-part-04.md
+- apps/management-web/e2e/admin-detail.spec.ts
+- apps/management-web/e2e/admin-edit.spec.ts
+- apps/management-web/e2e/admin-role-new.spec.ts
+- apps/management-web/e2e/admins-new.spec.ts
+- apps/management-web/e2e/admins.spec.ts
+- apps/management-web/e2e/bucket-admin-edit.spec.ts
+- apps/management-web/e2e/bucket-child-new.spec.ts
+- apps/management-web/e2e/bucket-detail.spec.ts
+- apps/management-web/e2e/bucket-edit.spec.ts
+- apps/management-web/e2e/bucket-message-edit.spec.ts
+- apps/management-web/e2e/bucket-messages.spec.ts
+- apps/management-web/e2e/bucket-role-edit.spec.ts
+- apps/management-web/e2e/bucket-role-new.spec.ts
+- apps/management-web/e2e/bucket-settings.spec.ts
+- apps/management-web/e2e/buckets-new.spec.ts
+- apps/management-web/e2e/buckets.spec.ts
+- apps/management-web/e2e/events.spec.ts
+- apps/management-web/e2e/login.spec.ts
+- apps/management-web/e2e/profile.spec.ts
+- apps/management-web/e2e/settings.spec.ts
+- apps/management-web/e2e/user-detail.spec.ts
+- apps/management-web/e2e/user-edit.spec.ts
+- apps/management-web/e2e/users-new.spec.ts
+- apps/management-web/e2e/users.spec.ts
+- apps/web/e2e/bucket-admin-edit.spec.ts
+- apps/web/e2e/bucket-child-new.spec.ts
+- apps/web/e2e/bucket-detail.spec.ts
+- apps/web/e2e/bucket-message-edit.spec.ts
+- apps/web/e2e/bucket-messages.spec.ts
+- apps/web/e2e/bucket-nested-new.spec.ts
+- apps/web/e2e/bucket-role-edit.spec.ts
+- apps/web/e2e/bucket-role-new.spec.ts
+- apps/web/e2e/bucket-settings.spec.ts
+- apps/web/e2e/buckets-new.spec.ts
+- apps/web/e2e/buckets.spec.ts
+- apps/web/e2e/forgot-password.spec.ts
+- apps/web/e2e/invite.spec.ts
+- apps/web/e2e/login.spec.ts
+- apps/web/e2e/profile.spec.ts
+- apps/web/e2e/reset-password.spec.ts
+- apps/web/e2e/send-message.spec.ts
+- apps/web/e2e/settings.spec.ts
+- apps/web/e2e/short-bucket.spec.ts
+- apps/web/e2e/signup.spec.ts
 
 ### Session 41 - 2026-03-08
 
@@ -781,3 +935,113 @@ To-do's from the plan have already been created. Do not create them again. Mark 
 - apps/management-api/src/test/management-users-permissions.test.ts
 - apps/management-api/src/test/management-buckets-messages.test.ts
 - apps/management-api/src/test/management-api-rate-limit.test.ts
+
+### Session 35 - 2026-03-08
+
+#### Prompt (Developer)
+
+E2E Navigation Screenshot Filtering Plan
+
+Implement the plan as specified, it is attached for your reference. Do NOT edit the plan file itself.
+
+To-do's from the plan have already been created. Do not create them again. Mark them as in_progress as you work, starting with the first one. Don't stop until you have completed all the to-dos.
+
+#### Key Decisions
+
+- Logged the exact developer prompt before making file changes to satisfy history tracking requirements.
+- Audited both `apps/web/e2e` and `apps/management-web/e2e` and enforced a strict post-navigation rule: each navigation step now has explicit destination-load verification via URL and/or destination-specific visible UI.
+- Added verification directly in shared navigation helpers (`loginAsWebE2EUserAndExpectDashboard`, `loginAsManagementSuperAdmin`) so all callsites inherit the load check.
+- Updated the custom E2E HTML reporter to keep step text rows but suppress screenshot images for navigation-only setup steps when later validation evidence exists in the same test.
+- Preserved existing redirect-to-login summary-only collapse behavior and preserved authored hyphenated step labels in report output.
+- Verified behavior with scoped cross-app report run (`web/login.spec.ts` and `management-web/login.spec.ts`) plus IDE lint diagnostics.
+
+#### Files Modified
+
+- .llm/history/active/project-init/project-init-part-04.md
+- apps/web/e2e/helpers/advancedFixtures.ts
+- apps/management-web/e2e/helpers/advancedFixtures.ts
+- apps/web/e2e/dashboard.spec.ts
+- apps/web/e2e/login.spec.ts
+- apps/web/e2e/signup.spec.ts
+- apps/web/e2e/forgot-password.spec.ts
+- apps/web/e2e/buckets.spec.ts
+- apps/web/e2e/buckets-new.spec.ts
+- apps/web/e2e/bucket-child-new.spec.ts
+- apps/web/e2e/bucket-nested-new.spec.ts
+- apps/web/e2e/invite.spec.ts
+- apps/web/e2e/bucket-settings.spec.ts
+- apps/web/e2e/send-message.spec.ts
+- apps/web/e2e/bucket-role-new.spec.ts
+- apps/web/e2e/bucket-role-edit.spec.ts
+- apps/web/e2e/short-bucket.spec.ts
+- apps/web/e2e/bucket-message-edit.spec.ts
+- apps/management-web/e2e/dashboard.spec.ts
+- apps/management-web/e2e/login.spec.ts
+- apps/management-web/e2e/admins.spec.ts
+- apps/management-web/e2e/buckets.spec.ts
+- apps/management-web/e2e/buckets-new.spec.ts
+- apps/management-web/e2e/users.spec.ts
+- apps/management-web/e2e/users-new.spec.ts
+- apps/management-web/e2e/bucket-role-new.spec.ts
+- apps/management-web/e2e/bucket-role-edit.spec.ts
+- scripts/e2e-html-steps-reporter.ts
+- .cursor/skills/e2e-readability/SKILL.md
+
+### Session 36 - 2026-03-09
+
+#### Prompt (Developer)
+
+E2E Error-State Capture Ordering
+
+Implement the plan as specified, it is attached for your reference. Do NOT edit the plan file itself.
+
+To-do's from the plan have already been created. Do not create them again. Mark them as in_progress as you work, starting with the first one. Don't stop until you have completed all the to-dos.
+
+#### Key Decisions
+
+- Logged the exact developer prompt before implementation edits, then executed todo items in order.
+- Updated web and management helper wrappers so error-like flows (not-found and unauth redirect) verify expected outcomes before `actionAndCapture` takes screenshots.
+- Reordered error/validation assertions in affected specs to run inside `actionAndCapture` callbacks, ensuring screenshots represent confirmed error-like states.
+- Kept existing assertions and test intent intact; changed timing/order only.
+- Added an explicit error-state screenshot ordering rule to the E2E readability skill.
+- Verified with scoped report-mode E2E runs (web + management-web) and lints.
+
+#### Files Modified
+
+- .llm/history/active/project-init/project-init-part-04.md
+- apps/web/e2e/helpers/flowHelpers.ts
+- apps/web/e2e/helpers/advancedFixtures.ts
+- apps/management-web/e2e/helpers/flowHelpers.ts
+- apps/management-web/e2e/helpers/authAssertions.ts
+- apps/web/e2e/login.spec.ts
+- apps/web/e2e/settings.spec.ts
+- apps/web/e2e/send-message.spec.ts
+- apps/web/e2e/invite.spec.ts
+- apps/web/e2e/reset-password.spec.ts
+- apps/web/e2e/forgot-password.spec.ts
+- apps/web/e2e/signup.spec.ts
+- apps/web/e2e/bucket-detail.spec.ts
+- apps/web/e2e/buckets-new.spec.ts
+- apps/web/e2e/bucket-child-new.spec.ts
+- apps/web/e2e/bucket-nested-new.spec.ts
+- apps/management-web/e2e/login.spec.ts
+- apps/management-web/e2e/users-new.spec.ts
+- apps/management-web/e2e/buckets-new.spec.ts
+- apps/management-web/e2e/bucket-role-new.spec.ts
+- apps/management-web/e2e/user-edit.spec.ts
+- .cursor/skills/e2e-readability/SKILL.md
+
+### Session 37 - 2026-03-09
+
+#### Prompt (Developer)
+
+review the e2e-affirmative-tests plans and complete them or move them to completed
+
+#### Key Decisions
+
+- Logged the exact developer prompt before making implementation edits.
+- Audited the `e2e-affirmative-tests` plan set to identify already-implemented vs missing items before applying code changes.
+
+#### Files Modified
+
+- .llm/history/active/project-init/project-init-part-04.md

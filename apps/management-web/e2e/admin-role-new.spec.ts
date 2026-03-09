@@ -3,25 +3,32 @@ import { expect, test } from '@playwright/test';
 import { loginAsManagementSuperAdmin } from './helpers/advancedFixtures';
 import { expectUnauthedRouteRedirectsToLogin } from './helpers/authAssertions';
 import { actionAndCapture, capturePageLoad } from './helpers/stepScreenshots';
+import { setE2EUserContext } from './helpers/userContext';
 
-test.describe('Management admin role new', () => {
-  test('unauthenticated user is redirected to login', async ({ page }, testInfo) => {
+test.describe('This suite covers Creating a new-management-admin-role.', () => {
+  test('When an unauthenticated user tries to open the new admin role page, they are redirected to the login-page.', async ({
+    page,
+  }, testInfo) => {
+    setE2EUserContext(testInfo, 'unauthenticated');
     await expectUnauthedRouteRedirectsToLogin(
       page,
       testInfo,
-      'navigate-to-management-admin-role-new-while-unauthenticated-expect-redirect-to-login',
+      'User navigates to the management admin role new page while not logged in and is redirected to the login-page.',
       async () => {
         await page.goto('/admins/roles/new');
       }
     );
   });
 
-  test('authenticated user sees add role form', async ({ page }, testInfo) => {
+  test('When an authenticated user opens the new admin role page, they see the add role form.', async ({
+    page,
+  }, testInfo) => {
+    setE2EUserContext(testInfo, 'super-admin (full CRUD)');
     await loginAsManagementSuperAdmin(page);
     await actionAndCapture(
       page,
       testInfo,
-      'navigate-to-management-admin-role-new-route-and-expect-add-role-form-visible',
+      'User navigates to the management admin role new route and sees the add role form.',
       async () => {
         await page.goto('/admins/roles/new');
       }
@@ -32,7 +39,7 @@ test.describe('Management admin role new', () => {
     await capturePageLoad(
       page,
       testInfo,
-      'management-admin-role-new-form-visible-with-role-name-and-save'
+      'The management admin role new form is visible with role name and save button.'
     );
   });
 });

@@ -5,66 +5,78 @@ import {
   loginAsWebE2EUserAndExpectDashboard,
 } from './helpers/advancedFixtures';
 import { actionAndCapture, capturePageLoad } from './helpers/stepScreenshots';
+import { setE2EUserContext } from './helpers/userContext';
 
 const E2E_BUCKET1_SHORT_ID = 'e2ebkt000001';
 
-test.describe('Bucket nested new', () => {
-  test('unauthenticated user is redirected to login', async ({ page }, testInfo) => {
+test.describe('This suite verifies creating a new nested bucket under an existing bucket.', () => {
+  test('When an unauthenticated user tries to open the page to create a new nested bucket, they are redirected to the login page.', async ({
+    page,
+  }, testInfo) => {
+    setE2EUserContext(testInfo, 'unauthenticated');
     await expectUnauthedRouteRedirectsToLogin(
       page,
       `/bucket/${E2E_BUCKET1_SHORT_ID}/bucket/new`,
-      'navigate-to-bucket-nested-new-while-unauthenticated-expect-redirect-to-login',
+      'User navigates to the nested-bucket-create-page while not logged in and is redirected to the login page.',
       testInfo
     );
   });
 
-  test('authenticated user sees nested bucket create form', async ({ page }, testInfo) => {
+  test('When an authenticated user opens the page to create a new nested bucket, they see the create form with a name field and a submit button.', async ({
+    page,
+  }, testInfo) => {
+    setE2EUserContext(testInfo, 'seeded-bucket-owner');
     await loginAsWebE2EUserAndExpectDashboard(page);
     await actionAndCapture(
       page,
       testInfo,
-      'navigate-to-bucket-nested-new-route-and-expect-nested-create-form-visible',
+      'User navigates to the nested-bucket-create-route and the nested-bucket-create-form page loads.',
       async () => {
         await page.goto(`/bucket/${E2E_BUCKET1_SHORT_ID}/bucket/new`);
       }
     );
     await expect(page).toHaveURL(new RegExp(`/bucket/${E2E_BUCKET1_SHORT_ID}/bucket/new`));
     await expect(page.getByRole('textbox', { name: /name/i })).toBeVisible();
-    await expect(
-      page.getByRole('button', { name: /create topic|create|save|add bucket/i })
-    ).toBeVisible();
+    await expect(page.getByRole('button', { name: /add bucket|create|save/i })).toBeVisible();
     await capturePageLoad(
       page,
       testInfo,
-      'bucket-nested-new-form-visible-with-name-input-and-submit'
+      'The nested-bucket-create-form is visible with the name input and the add-bucket submit button.'
     );
   });
 
-  test('empty submit shows validation and stays on create page', async ({ page }, testInfo) => {
+  test('When the user submits the nested bucket form without entering a name, validation is shown and they remain on the create page.', async ({
+    page,
+  }, testInfo) => {
+    setE2EUserContext(testInfo, 'seeded-bucket-owner');
     await loginAsWebE2EUserAndExpectDashboard(page);
     await page.goto(`/bucket/${E2E_BUCKET1_SHORT_ID}/bucket/new`);
+    await expect(page.getByRole('textbox', { name: /name/i })).toBeVisible();
 
     await actionAndCapture(
       page,
       testInfo,
-      'submit-empty-nested-topic-form-and-expect-validation',
+      'User submits the nested-bucket form without filling in the name field and sees validation.',
       async () => {
-        await page.getByRole('button', { name: /create topic|create|save|add bucket/i }).click();
+        await page.getByRole('button', { name: /add bucket|create|save/i }).click();
+        await expect(page).toHaveURL(new RegExp(`/bucket/${E2E_BUCKET1_SHORT_ID}/bucket/new`));
+        await expect(page.getByText(/required|name/i).first()).toBeVisible();
       }
     );
-
-    await expect(page).toHaveURL(new RegExp(`/bucket/${E2E_BUCKET1_SHORT_ID}/bucket/new`));
-    await expect(page.getByText(/required|name/i).first()).toBeVisible();
   });
 
-  test('cancel returns to bucket detail', async ({ page }, testInfo) => {
+  test('When the user clicks cancel on the nested-bucket-create-form, they are taken back to the bucket-detail-page.', async ({
+    page,
+  }, testInfo) => {
+    setE2EUserContext(testInfo, 'seeded-bucket-owner');
     await loginAsWebE2EUserAndExpectDashboard(page);
     await page.goto(`/bucket/${E2E_BUCKET1_SHORT_ID}/bucket/new`);
+    await expect(page.getByRole('button', { name: /cancel/i })).toBeVisible();
 
     await actionAndCapture(
       page,
       testInfo,
-      'cancel-nested-topic-creation-and-return-to-bucket',
+      'User clicks cancel on the nested-bucket-create-form and returns to the bucket-detail-page.',
       async () => {
         await page.getByRole('button', { name: /cancel/i }).click();
       }
@@ -72,17 +84,21 @@ test.describe('Bucket nested new', () => {
     await expect(page).toHaveURL(new RegExp(`/bucket/${E2E_BUCKET1_SHORT_ID}$`));
   });
 
-  test('valid nested topic create redirects back to bucket detail', async ({ page }, testInfo) => {
+  test('When the user fills in a name and submits the nested-bucket form, they are redirected back to the bucket-detail-page.', async ({
+    page,
+  }, testInfo) => {
+    setE2EUserContext(testInfo, 'seeded-bucket-owner');
     await loginAsWebE2EUserAndExpectDashboard(page);
     await page.goto(`/bucket/${E2E_BUCKET1_SHORT_ID}/bucket/new`);
-    await page.getByRole('textbox', { name: /name/i }).fill(`e2e-nested-topic-${Date.now()}`);
+    await expect(page.getByRole('textbox', { name: /name/i })).toBeVisible();
+    await page.getByRole('textbox', { name: /name/i }).fill(`e2e-nested-bucket-${Date.now()}`);
 
     await actionAndCapture(
       page,
       testInfo,
-      'submit-valid-nested-topic-form-and-return-to-bucket',
+      'User submits the nested-bucket form with a valid name and is redirected back to the bucket-detail-page.',
       async () => {
-        await page.getByRole('button', { name: /create topic|create|save|add bucket/i }).click();
+        await page.getByRole('button', { name: /add bucket|create|save/i }).click();
       }
     );
 

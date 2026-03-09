@@ -3,26 +3,33 @@ import { expect, test } from '@playwright/test';
 import { loginAsManagementSuperAdmin } from './helpers/advancedFixtures';
 import { expectUnauthedRouteRedirectsToLogin } from './helpers/authAssertions';
 import { actionAndCapture, capturePageLoad } from './helpers/stepScreenshots';
+import { setE2EUserContext } from './helpers/userContext';
 const E2E_BUCKET1_ID = '22222222-2222-4222-a222-222222222222';
 
-test.describe('Management bucket settings', () => {
-  test('unauthenticated user is redirected to login', async ({ page }, testInfo) => {
+test.describe('This suite covers Management bucket-settings-page.', () => {
+  test('When an unauthenticated user tries to open the bucket-settings-page, they are redirected to the login-page.', async ({
+    page,
+  }, testInfo) => {
+    setE2EUserContext(testInfo, 'unauthenticated');
     await expectUnauthedRouteRedirectsToLogin(
       page,
       testInfo,
-      'navigate-to-management-bucket-settings-while-unauthenticated-expect-redirect-to-login',
+      'User navigates to the management bucket-settings-page while not logged in and is redirected to the login-page.',
       async () => {
         await page.goto(`/bucket/${E2E_BUCKET1_ID}/settings`);
       }
     );
   });
 
-  test('authenticated user sees bucket settings with tabs', async ({ page }, testInfo) => {
+  test('When an authenticated user opens the bucket-settings-page, they see the settings with tabs.', async ({
+    page,
+  }, testInfo) => {
+    setE2EUserContext(testInfo, 'super-admin (full CRUD)');
     await loginAsManagementSuperAdmin(page);
     await actionAndCapture(
       page,
       testInfo,
-      'navigate-to-management-bucket-settings-and-expect-general-admins-roles-tabs-visible',
+      'User navigates to the management bucket-settings-page and sees general, admins, and roles tabs.',
       async () => {
         await page.goto(`/bucket/${E2E_BUCKET1_ID}/settings`);
       }
@@ -35,7 +42,7 @@ test.describe('Management bucket settings', () => {
     await capturePageLoad(
       page,
       testInfo,
-      'management-bucket-settings-visible-with-general-admins-roles-tabs'
+      'The management bucket-settings-page is visible with general, admins, and roles tabs.'
     );
   });
 });

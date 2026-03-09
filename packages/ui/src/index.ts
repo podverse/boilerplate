@@ -95,7 +95,7 @@ export type { SectionWithHeadingProps } from './components/layout/SectionWithHea
 export { BucketDetailContent } from './components/bucket/BucketDetailContent';
 export type {
   BucketDetailContentProps,
-  BucketTopic,
+  BucketDetailBucket,
 } from './components/bucket/BucketDetailContent';
 export { BucketMessageList } from './components/bucket/BucketMessageList';
 export type {
@@ -171,7 +171,7 @@ export { TableWithSort } from './components/table/TableWithSort';
 export type { TableWithSortColumn, TableWithSortProps } from './components/table/TableWithSort';
 export {
   BUCKET_DETAIL_MESSAGES_KEY,
-  BUCKET_DETAIL_TOPICS_LIST_KEY,
+  BUCKET_DETAIL_BUCKETS_LIST_KEY,
   getMessagesSortFromCookie,
   getMessagesSortFromCookieValue,
   getSortPrefsFromCookieValue,

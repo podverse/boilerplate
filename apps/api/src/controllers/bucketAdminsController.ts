@@ -97,6 +97,20 @@ export async function getBucketAdmin(req: Request, res: Response): Promise<void>
     res.status(404).json({ message: 'User not found' });
     return;
   }
+  if (targetUser.id === effectiveBucket.ownerId) {
+    const fullCrud = CRUD_BITS.create | CRUD_BITS.read | CRUD_BITS.update | CRUD_BITS.delete;
+    const syntheticOwnerAdmin = {
+      id: 'owner',
+      bucketId: effectiveBucket.id,
+      userId: targetUser.id,
+      bucketCrud: fullCrud,
+      messageCrud: fullCrud,
+      adminCrud: fullCrud,
+      createdAt: effectiveBucket.createdAt,
+    };
+    res.status(200).json({ admin: adminToJson(syntheticOwnerAdmin, targetUser) });
+    return;
+  }
   const existing = await BucketAdminService.findByBucketAndUser(effectiveBucket.id, targetUser.id);
   if (existing === null) {
     res.status(404).json({ message: 'Bucket admin not found' });
@@ -185,13 +199,13 @@ export async function updateBucketAdmin(req: Request, res: Response): Promise<vo
     res.status(403).json({ message: 'Forbidden' });
     return;
   }
+  if (targetUser.id === effectiveBucket.ownerId) {
+    res.status(403).json({ message: 'Bucket owner cannot be edited' });
+    return;
+  }
   const existing = await BucketAdminService.findByBucketAndUser(effectiveBucket.id, targetUser.id);
   if (existing === null) {
     res.status(404).json({ message: 'Bucket admin not found' });
-    return;
-  }
-  if (targetUser.id === effectiveBucket.ownerId) {
-    res.status(403).json({ message: 'Bucket owner cannot be edited' });
     return;
   }
   const body = req.body as UpdateBucketAdminBody;

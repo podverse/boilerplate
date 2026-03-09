@@ -26,7 +26,7 @@ export type TableWithSortProps = {
   className?: string;
   /** When set with sortPrefsListKey and getSortUrl, restore sort from cookie when URL has no sortBy/sortOrder and save on header click. */
   sortPrefsCookieName?: string;
-  /** Path-based list key (e.g. bucket-detail-topics). Used with sortPrefsCookieName. */
+  /** Path-based list key (e.g. bucket-detail-buckets). Used with sortPrefsCookieName. */
   sortPrefsListKey?: string;
   /** Build URL for a given sort; used by restore effect. When sortPrefsCookieName and sortPrefsListKey are set, required for restore. */
   getSortUrl?: (sortBy: string, sortOrder: 'asc' | 'desc') => string;

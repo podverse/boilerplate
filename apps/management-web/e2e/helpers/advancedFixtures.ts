@@ -9,6 +9,7 @@ export const nextFixtureName = (prefix: string): string =>
 
 export async function loginAsManagementSuperAdmin(page: Page): Promise<void> {
   await page.goto('/login');
+  await expect(page.getByRole('textbox', { name: /username|email/i })).toBeVisible();
   await page.getByRole('textbox', { name: /username|email/i }).fill(MANAGEMENT_LOGIN_USERNAME);
   await page.getByLabel(/password/i).fill(MANAGEMENT_LOGIN_PASSWORD);
   await page.getByRole('button', { name: /log in|sign in|submit/i }).click();

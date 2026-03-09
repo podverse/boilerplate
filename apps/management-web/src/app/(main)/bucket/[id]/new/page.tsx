@@ -75,7 +75,7 @@ export default async function NewChildBucketPage({ params }: { params: Promise<{
   const breadcrumbItems: BreadcrumbItem[] = [
     ...ancestors.map((a) => ({ label: a.name, href: bucketViewRoute(a.shortId) })),
     { label: bucket.name, href: bucketViewRoute(bucket.shortId) },
-    { label: tCommon('bucketDetail.createTopic'), href: undefined },
+    { label: tCommon('bucketDetail.addBucket'), href: undefined },
   ];
 
   return (
@@ -83,9 +83,9 @@ export default async function NewChildBucketPage({ params }: { params: Promise<{
       <Breadcrumbs
         items={breadcrumbItems}
         LinkComponent={BreadcrumbLink}
-        ariaLabel={tCommon('bucketDetail.topics')}
+        ariaLabel={tCommon('bucketDetail.buckets')}
       />
-      <SectionWithHeading title={tCommon('bucketDetail.createTopic')}>
+      <SectionWithHeading title={tCommon('bucketDetail.addBucket')}>
         <NewChildBucketFormClient
           parentBucketId={bucketId}
           successHref={parentHref}

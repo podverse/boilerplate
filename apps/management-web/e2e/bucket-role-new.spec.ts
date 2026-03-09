@@ -3,26 +3,33 @@ import { expect, test } from '@playwright/test';
 import { loginAsManagementSuperAdmin, nextFixtureName } from './helpers/advancedFixtures';
 import { expectUnauthedRouteRedirectsToLogin } from './helpers/authAssertions';
 import { actionAndCapture, capturePageLoad } from './helpers/stepScreenshots';
+import { setE2EUserContext } from './helpers/userContext';
 const E2E_BUCKET1_ID = '22222222-2222-4222-a222-222222222222';
 
-test.describe('Management bucket role new', () => {
-  test('unauthenticated user is redirected to login', async ({ page }, testInfo) => {
+test.describe('This suite covers Creating a new-bucket-role in management.', () => {
+  test('When an unauthenticated user tries to open the new-bucket-role page, they are redirected to the login-page.', async ({
+    page,
+  }, testInfo) => {
+    setE2EUserContext(testInfo, 'unauthenticated');
     await expectUnauthedRouteRedirectsToLogin(
       page,
       testInfo,
-      'navigate-to-management-bucket-role-new-while-unauthenticated-expect-redirect-to-login',
+      'User navigates to the management bucket-role-new-page while not logged in and is redirected to the login-page.',
       async () => {
         await page.goto(`/bucket/${E2E_BUCKET1_ID}/settings/roles/new`);
       }
     );
   });
 
-  test('authenticated user sees role create form', async ({ page }, testInfo) => {
+  test('When an authenticated user opens the new-bucket-role page, they see the role create form.', async ({
+    page,
+  }, testInfo) => {
+    setE2EUserContext(testInfo, 'super-admin (full CRUD)');
     await loginAsManagementSuperAdmin(page);
     await actionAndCapture(
       page,
       testInfo,
-      'navigate-to-management-bucket-role-new-route-and-expect-role-form-visible',
+      'User navigates to the management bucket-role-new-route and sees the role form.',
       async () => {
         await page.goto(`/bucket/${E2E_BUCKET1_ID}/settings/roles/new`);
       }
@@ -33,13 +40,17 @@ test.describe('Management bucket role new', () => {
     await capturePageLoad(
       page,
       testInfo,
-      'management-bucket-role-new-form-visible-with-role-name-and-save'
+      'The management bucket role new form is visible with role name and save button.'
     );
   });
 
-  test('role name is required before create', async ({ page }, testInfo) => {
+  test('When the user leaves the role name empty and submits, they remain on the page.', async ({
+    page,
+  }, testInfo) => {
+    setE2EUserContext(testInfo, 'super-admin (full CRUD)');
     await loginAsManagementSuperAdmin(page);
     await page.goto(`/bucket/${E2E_BUCKET1_ID}/settings/roles/new`);
+    await expect(page.getByRole('textbox', { name: /role name|name/i })).toBeVisible();
 
     const roleNameInput = page.getByRole('textbox', { name: /role name|name/i });
     const submitButton = page.getByRole('button', { name: /save|create/i });
@@ -49,20 +60,21 @@ test.describe('Management bucket role new', () => {
     await actionAndCapture(
       page,
       testInfo,
-      'submit-empty-management-role-form-and-stay-on-page',
+      'User submits the empty management role form and stays on the page.',
       async () => {
         await submitButton.click();
+        await expect(page).toHaveURL(new RegExp(`/bucket/${E2E_BUCKET1_ID}/settings/roles/new`));
       }
     );
-
-    await expect(page).toHaveURL(new RegExp(`/bucket/${E2E_BUCKET1_ID}/settings/roles/new`));
   });
 
-  test('valid submit creates custom role and returns to settings roles list', async ({
+  test('When the user submits a valid new role, a custom role is created and they are returned to the settings roles list.', async ({
     page,
   }, testInfo) => {
+    setE2EUserContext(testInfo, 'super-admin (full CRUD)');
     await loginAsManagementSuperAdmin(page);
     await page.goto(`/bucket/${E2E_BUCKET1_ID}/settings/roles/new`);
+    await expect(page.getByRole('textbox', { name: /role name|name/i })).toBeVisible();
 
     const roleName = nextFixtureName('e2e-mgmt-role');
     await page.getByRole('textbox', { name: /role name|name/i }).fill(roleName);
@@ -70,7 +82,7 @@ test.describe('Management bucket role new', () => {
     await actionAndCapture(
       page,
       testInfo,
-      'submit-valid-management-new-role-and-expect-roles-list',
+      'User submits the valid management new role and is taken to the roles list.',
       async () => {
         await page.getByRole('button', { name: /save|create/i }).click();
       }

@@ -5,23 +5,30 @@ import {
   loginAsWebE2EUserAndExpectDashboard,
 } from './helpers/advancedFixtures';
 import { actionAndCapture, capturePageLoad } from './helpers/stepScreenshots';
+import { setE2EUserContext } from './helpers/userContext';
 
-test.describe('Settings', () => {
-  test('unauthenticated user is redirected to login', async ({ page }, testInfo) => {
+test.describe('This suite verifies the user-settings-page.', () => {
+  test('When an unauthenticated user tries to open the user-settings-page, they are redirected to the login page.', async ({
+    page,
+  }, testInfo) => {
+    setE2EUserContext(testInfo, 'unauthenticated');
     await expectUnauthedRouteRedirectsToLogin(
       page,
       '/settings',
-      'navigate-to-settings-while-unauthenticated-expect-redirect-to-login',
+      'User navigates to the user-settings-page while not logged in and is redirected to the login page.',
       testInfo
     );
   });
 
-  test('authenticated user sees settings page with tabs or form', async ({ page }, testInfo) => {
+  test('When an authenticated user opens the user-settings-page, they see the settings page with tabs or form.', async ({
+    page,
+  }, testInfo) => {
+    setE2EUserContext(testInfo, 'seeded-bucket-owner');
     await loginAsWebE2EUserAndExpectDashboard(page);
     await actionAndCapture(
       page,
       testInfo,
-      'navigate-to-settings-expect-settings-tabs-or-profile-password-sections',
+      'User navigates to the user-settings-page and sees tabs or profile and password sections.',
       async () => {
         await page.goto('/settings');
       }
@@ -32,10 +39,17 @@ test.describe('Settings', () => {
         .getByRole('tab', { name: /profile|general|password/i })
         .or(page.getByRole('heading', { name: /settings|profile|account/i }))
     ).toBeVisible();
-    await capturePageLoad(page, testInfo, 'settings-page-visible-with-tabs-or-heading');
+    await capturePageLoad(
+      page,
+      testInfo,
+      'The user-settings-page is visible with tabs or heading.'
+    );
   });
 
-  test('password tab validates mismatch and keeps user on settings', async ({ page }, testInfo) => {
+  test('When the user submits the password-tab with a mismatch, validation is shown and they remain on settings.', async ({
+    page,
+  }, testInfo) => {
+    setE2EUserContext(testInfo, 'seeded-bucket-owner');
     await loginAsWebE2EUserAndExpectDashboard(page);
     await page.goto('/settings?tab=password');
 
@@ -45,25 +59,27 @@ test.describe('Settings', () => {
     await actionAndCapture(
       page,
       testInfo,
-      'submit-password-tab-with-mismatch-and-expect-validation-message',
+      'User submits the password-tab with a mismatch and sees a validation message.',
       async () => {
         await passwordInputs.nth(0).fill('Test!1Aa');
         await passwordInputs.nth(1).fill('Test!1Ab');
         await passwordInputs.nth(2).fill('Test!1Ac');
         await page.getByRole('button', { name: /change password|save/i }).click();
+        await expect(page).toHaveURL(/\/settings\?tab=password/);
+        await expect(page.getByText(/match|failed|error/i).first()).toBeVisible();
       }
     );
-
-    await expect(page).toHaveURL(/\/settings\?tab=password/);
-    await expect(page.getByText(/match|failed|error/i).first()).toBeVisible();
   });
 
-  test('email tab shows request form controls', async ({ page }, testInfo) => {
+  test('When the user opens the email-tab, they see the new-email form controls.', async ({
+    page,
+  }, testInfo) => {
+    setE2EUserContext(testInfo, 'seeded-bucket-owner');
     await loginAsWebE2EUserAndExpectDashboard(page);
     await actionAndCapture(
       page,
       testInfo,
-      'open-email-tab-and-verify-new-email-controls',
+      'User opens the email-tab and sees the new-email controls.',
       async () => {
         await page.goto('/settings?tab=email');
       }

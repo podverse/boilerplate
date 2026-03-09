@@ -3,13 +3,15 @@
  * GET /me and POST /logout are not rate limited (see plan).
  *
  * Uses RATE_LIMIT_STRICT_FOR_TEST and RATE_LIMIT_MODERATE_FOR_TEST so real limits (100) apply.
- * Must set env before loading the app (dynamic import in beforeAll).
+ * Must set env before loading the app. We dynamic-import setup and app inside beforeAll so that
+ * app.js (and thus the rate-limit middleware) is loaded only after env is set; a static import
+ * of setup would pull in app.js at test load time, before beforeAll runs, and limiters would
+ * get the default test limit (100k) instead of 100.
  */
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import request from 'supertest';
 
 import { config } from '../config/index.js';
-import { destroyApiTestDataSources, initializeApiTestDataSources } from './helpers/setup.js';
 
 const API = config.apiVersionPath;
 const RATE_LIMIT_MESSAGE = 'Too many requests. Please try again later.';
@@ -34,14 +36,16 @@ describe('auth rate limiting', () => {
     // masked by admin-only/no-mailer 403 behavior.
     process.env.MAILER_ENABLED = 'true';
     process.env.AUTH_MODE = 'self_signup';
-    await initializeApiTestDataSources();
+    const setup = await import('./helpers/setup.js');
+    await setup.initializeApiTestDataSources();
     const { createApp: createAppFn } = await import('../app.js');
     app = createAppFn();
-  });
+  }, 60_000);
 
   afterAll(async () => {
-    await destroyApiTestDataSources();
-  });
+    const setup = await import('./helpers/setup.js');
+    await setup.destroyApiTestDataSources();
+  }, 30_000);
 
   it('returns 429 after exceeding strict limit on POST /auth/login', async () => {
     for (let i = 0; i < STRICT_LIMIT_IN_TEST; i++) {

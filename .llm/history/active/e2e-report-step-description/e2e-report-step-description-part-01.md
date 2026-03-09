@@ -44,3 +44,51 @@ Instead of navigate-to-management-home-route-and-expect-redirect-to-login-page-f
 - `apps/management-web/e2e/home.spec.ts`
 - `scripts/e2e-html-steps-reporter.ts`
 - `.llm/history/active/e2e-report-step-description/e2e-report-step-description-part-01.md`
+
+---
+
+### Session 3 - 2026-03-08
+
+#### Prompt (Developer)
+
+Fix `Next Shot` stalling in HTML E2E report
+
+Implement the plan as specified, it is attached for your reference. Do NOT edit the plan file itself.
+
+To-do's from the plan have already been created. Do not create them again. Mark them as in_progress as you work, starting with the first one. Don't stop until you have completed all the to-dos.
+
+#### Key Decisions
+
+- Replaced `Next Shot` current-index-based navigation with forward-only lookup (`findNextShotAhead`) using a strict threshold (`scrollY + SHOT_OFFSET_PX + 2`) so the button cannot re-select the same shot near pixel boundaries.
+- Added deterministic next-section fallback (`findNextByTopNoWrap`) that chooses the first test section below the current viewport, avoiding stalls at section boundaries.
+- Kept the 75px screenshot alignment behavior intact and verified by regenerating the scoped report for `bucket-admin-edit`.
+
+#### Files Modified
+
+- `scripts/e2e-html-steps-reporter.ts`
+- `.llm/history/active/e2e-report-step-description/e2e-report-step-description-part-01.md`
+
+---
+
+### Session 4 - 2026-03-08
+
+#### Prompt (Developer)
+
+Normalize confusing E2E step-label wording across all specs
+
+Implement the plan as specified, it is attached for your reference. Do NOT edit the plan file itself.
+
+To-do's from the plan have already been created. Do not create them again. Mark them as in_progress as you work, starting with the first one. Don't stop until you have completed all the to-dos.
+
+#### Key Decisions
+
+- Completed wording-only sweep across `apps/web/e2e` and `apps/management-web/e2e`, targeting pre-assertion step labels passed to screenshot/helper wrappers.
+- Updated step labels to action-oriented phrasing (removed expectation wording like `expect`, `...-visible`, `...-renders`, `...-shows`) while preserving test logic, selectors, and assertions.
+- Kept `capturePageLoad` outcome-oriented labels where they run after assertions, so report phrasing reflects timing accurately.
+- Verified output by running scoped report commands for one web spec and one management-web spec.
+
+#### Files Modified
+
+- `apps/web/e2e/*.spec.ts` (20 files, step-label wording only)
+- `apps/management-web/e2e/*.spec.ts` (24 files, step-label wording only)
+- `.llm/history/active/e2e-report-step-description/e2e-report-step-description-part-01.md`

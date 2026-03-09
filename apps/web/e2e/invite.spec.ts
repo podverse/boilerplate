@@ -2,10 +2,12 @@ import { expect, test } from '@playwright/test';
 
 import { loginAsWebE2EUserAndExpectDashboard } from './helpers/advancedFixtures';
 import { actionAndCapture, capturePageLoad } from './helpers/stepScreenshots';
+import { setE2EUserContext } from './helpers/userContext';
 
 async function createInvitationToken(page: import('@playwright/test').Page): Promise<string> {
   await loginAsWebE2EUserAndExpectDashboard(page);
   await page.goto('/bucket/e2ebkt000001/settings/roles/new');
+  await expect(page.getByRole('textbox', { name: /role name|name/i })).toBeVisible();
   await page
     .getByRole('textbox', { name: /role name|name/i })
     .fill(`e2e-invite-role-${Date.now()}`);
@@ -13,6 +15,7 @@ async function createInvitationToken(page: import('@playwright/test').Page): Pro
   await expect(page).toHaveURL(/\/bucket\/e2ebkt000001\/settings\?tab=roles/);
 
   await page.goto('/bucket/e2ebkt000001/settings?tab=admins');
+  await expect(page.getByRole('button', { name: /add admin/i })).toBeVisible();
   await page.getByRole('button', { name: /add admin/i }).click();
   const inviteInput = page
     .getByRole('textbox', { name: /invite link|invitation/i })
@@ -27,70 +30,78 @@ async function createInvitationToken(page: import('@playwright/test').Page): Pro
   return tokenMatch[1];
 }
 
-test.describe('Invite', () => {
-  test('invalid invite token shows invalid or expired state', async ({ page }, testInfo) => {
+test.describe('This suite verifies the bucket invitation flow.', () => {
+  test('When the user opens an invite-route with an invalid token, they see an invalid or expired state.', async ({
+    page,
+  }, testInfo) => {
+    setE2EUserContext(testInfo, 'unauthenticated');
     await actionAndCapture(
       page,
       testInfo,
-      'navigate-to-invite-route-with-invalid-token-and-expect-invalid-or-expired-message',
+      'User navigates to the invite-route with an invalid token and sees an invalid or expired message.',
       async () => {
         await page.goto('/invite/invalid-token-99999');
+        await expect(
+          page.getByText(/invitation not found|invalid|no longer valid|failed to load/i)
+        ).toBeVisible();
       }
     );
-    await expect(
-      page.getByText(/invitation not found|invalid|no longer valid|failed to load/i)
-    ).toBeVisible();
   });
 
-  test('authenticated user still sees invalid state for invalid token', async ({
+  test('When an authenticated user opens an invalid invite token, they still see the invalid state.', async ({
     page,
   }, testInfo) => {
+    setE2EUserContext(testInfo, 'seeded-bucket-owner');
     await loginAsWebE2EUserAndExpectDashboard(page);
     await actionAndCapture(
       page,
       testInfo,
-      'login-then-navigate-to-invalid-invite-token-and-expect-invalid-state',
+      'User logs in and navigates to an invalid invite token; invalid state is shown.',
       async () => {
         await page.goto('/invite/invalid-token-99999');
+        await expect(
+          page.getByText(/invitation not found|invalid|no longer valid|failed to load/i)
+        ).toBeVisible();
       }
     );
-    await expect(
-      page.getByText(/invitation not found|invalid|no longer valid|failed to load/i)
-    ).toBeVisible();
     await capturePageLoad(
       page,
       testInfo,
-      'invite-page-invalid-state-visible-for-authenticated-user-with-invalid-token'
+      'The invite page shows invalid state for an authenticated user with an invalid token.'
     );
   });
 
-  test('unauthenticated user with valid token sees login-required flow', async ({
+  test('When an unauthenticated user opens a valid invite token, they see the login-required flow.', async ({
     page,
   }, testInfo) => {
+    setE2EUserContext(testInfo, 'unauthenticated');
     const token = await createInvitationToken(page);
     await page.context().clearCookies();
 
     await actionAndCapture(
       page,
       testInfo,
-      'open-valid-invite-while-logged-out-and-open-login-form',
+      'User opens a valid invite while logged out and the login form is shown.',
       async () => {
         await page.goto(`/invite/${token}`);
+        await expect(page.getByRole('button', { name: /log in|login/i })).toBeVisible();
         await page.getByRole('button', { name: /log in|login/i }).click();
+        await expect(page.getByRole('textbox', { name: /email|username/i })).toBeVisible();
+        await expect(page.getByLabel(/password/i)).toBeVisible();
       }
     );
-
-    await expect(page.getByRole('textbox', { name: /email|username/i })).toBeVisible();
-    await expect(page.getByLabel(/password/i)).toBeVisible();
   });
 
-  test('authenticated user can reject a valid invite token', async ({ page }, testInfo) => {
+  test('When an authenticated user opens a valid invite token, they can accept or reject the invitation.', async ({
+    page,
+  }, testInfo) => {
+    setE2EUserContext(testInfo, 'seeded-bucket-owner');
     const token = await createInvitationToken(page);
 
     await actionAndCapture(
       page,
       testInfo,
-      'open-valid-invite-while-authenticated-and-assert-decision-actions-visible',
+      'User opens a valid invite while authenticated and sees accept or reject actions.',
       async () => {
         await page.goto(`/invite/${token}`);
       }

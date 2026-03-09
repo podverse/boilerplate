@@ -3,25 +3,32 @@ import { expect, test } from '@playwright/test';
 import { loginAsManagementSuperAdmin } from './helpers/advancedFixtures';
 import { expectUnauthedRouteRedirectsToLogin } from './helpers/authAssertions';
 import { actionAndCapture, capturePageLoad } from './helpers/stepScreenshots';
+import { setE2EUserContext } from './helpers/userContext';
 
-test.describe('Profile', () => {
-  test('unauthenticated user is redirected to login', async ({ page }, testInfo) => {
+test.describe('This suite covers Management profile-page.', () => {
+  test('When an unauthenticated user tries to open the profile-page, they are redirected to the login-page.', async ({
+    page,
+  }, testInfo) => {
+    setE2EUserContext(testInfo, 'unauthenticated');
     await expectUnauthedRouteRedirectsToLogin(
       page,
       testInfo,
-      'navigate-to-management-profile-while-unauthenticated-expect-redirect-to-login',
+      'User navigates to the management profile-page while not logged in and is redirected to the login-page.',
       async () => {
         await page.goto('/profile');
       }
     );
   });
 
-  test('authenticated user sees profile or identity', async ({ page }, testInfo) => {
+  test('When an authenticated user opens the profile-page, they are redirected to the settings-page and see profile or identity.', async ({
+    page,
+  }, testInfo) => {
+    setE2EUserContext(testInfo, 'super-admin (full CRUD)');
     await loginAsManagementSuperAdmin(page);
     await actionAndCapture(
       page,
       testInfo,
-      'navigate-to-management-profile-and-expect-single-redirect-to-settings',
+      'User navigates to the management profile-page and is redirected to settings.',
       async () => {
         await page.goto('/profile');
       }
@@ -31,7 +38,7 @@ test.describe('Profile', () => {
     await capturePageLoad(
       page,
       testInfo,
-      'management-profile-route-redirects-to-settings-page-for-authenticated-user'
+      'The management profile route redirects to the settings-page for the authenticated user.'
     );
   });
 });

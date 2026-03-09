@@ -26,6 +26,7 @@ export function EditBucketAdminFormClient({
   initialAdminCrud,
   successHref,
   cancelHref,
+  readOnly = false,
 }: {
   bucketId: string;
   userId: string;
@@ -34,6 +35,7 @@ export function EditBucketAdminFormClient({
   initialAdminCrud: number;
   successHref: string;
   cancelHref: string;
+  readOnly?: boolean;
 }) {
   const t = useTranslations('buckets');
   const tRoles = useTranslations('roles');
@@ -118,6 +120,7 @@ export function EditBucketAdminFormClient({
       successHref={successHref}
       cancelHref={cancelHref}
       onSuccess={() => router.push(successHref)}
+      readOnly={readOnly}
     />
   );
 }

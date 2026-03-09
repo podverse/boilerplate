@@ -69,7 +69,7 @@ $focus-ring-space: $focus-outline-width + $focus-outline-offset;
   }
 }
 
-.tabLinkActive {
+.tabLink.tabLinkActive {
   color: var(--color-on-primary);
   background: var(--color-primary);
   border-color: var(--color-primary);

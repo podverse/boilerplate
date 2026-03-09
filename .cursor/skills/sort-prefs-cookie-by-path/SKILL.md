@@ -5,7 +5,7 @@ description: Persist sort preferences in a cookie keyed by path (not resource ID
 
 # Sort Preferences Cookie by Path (Boilerplate)
 
-Use this skill when adding or changing sort UI (messages recent/oldest, table sortBy/sortOrder). Persist the user's last choice in a cookie keyed by **path** (e.g. `bucket-detail-messages`, `bucket-detail-topics`), not by resource ID. Restore when the URL has no sort param(s).
+Use this skill when adding or changing sort UI (messages recent/oldest, table sortBy/sortOrder). Persist the user's last choice in a cookie keyed by **path** (e.g. `bucket-detail-messages`, `bucket-detail-buckets`), not by resource ID. Restore when the URL has no sort param(s).
 
 **First-paint / no flash:** Prefer restoring from the cookie on the **server** (redirect when URL has no sort params) so the first paint shows the correct sort and there is no flash of unsorted content. Use server-safe helpers (`getMessagesSortFromCookieValue`, `getSortPrefsFromCookieValue`) in the page and `redirect()` before fetching data. Keep client-side restore in TableWithSort and MessagesSortSelect for in-app navigation.
 
@@ -18,7 +18,7 @@ Use this skill when adding or changing sort UI (messages recent/oldest, table so
 
 Implement at the **table** level via **TableWithSort** so any sortable table can opt in:
 
-- Pass optional `sortPrefsCookieName`, `sortPrefsListKey` (path-based, e.g. `bucket-detail-topics`), and `getSortUrl(sortBy, sortOrder)`.
+- Pass optional `sortPrefsCookieName`, `sortPrefsListKey` (path-based, e.g. `bucket-detail-buckets`), and `getSortUrl(sortBy, sortOrder)`.
 - TableWithSort handles: restore (effect when URL has no sortBy/sortOrder → read cookie → `router.replace(getSortUrl(...))`) and save (on header click → write cookie → `onSortChange(sortKey, nextOrder)`).
 - Parent only builds the URL and navigates; `onSortChange` has signature `(sortKey: string, nextOrder: 'asc' | 'desc') => void`.
 
@@ -31,7 +31,7 @@ Implement in the component that owns the select (e.g. **MessagesSortSelect**):
 
 ## Same app cookie
 
-Use the same app cookie as other table sort prefs (`TABLE_SORT_PREFS_COOKIE_NAME` / `management_table_sort_prefs`). Add path-based list keys as needed. Cookie value is a map; keys include `bucket-detail-messages` (value `{ sort: 'recent' | 'oldest' }`) and `bucket-detail-topics` (value `SortPref`).
+Use the same app cookie as other table sort prefs (`TABLE_SORT_PREFS_COOKIE_NAME` / `management_table_sort_prefs`). Add path-based list keys as needed. Cookie value is a map; keys include `bucket-detail-messages` (value `{ sort: 'recent' | 'oldest' }`) and `bucket-detail-buckets` (value `SortPref`).
 
 ## See also
 

@@ -3,25 +3,32 @@ import { expect, test } from '@playwright/test';
 import { loginAsManagementSuperAdmin } from './helpers/advancedFixtures';
 import { expectUnauthedRouteRedirectsToLogin } from './helpers/authAssertions';
 import { actionAndCapture, capturePageLoad } from './helpers/stepScreenshots';
+import { setE2EUserContext } from './helpers/userContext';
 
-test.describe('Management admins new', () => {
-  test('unauthenticated user is redirected to login', async ({ page }, testInfo) => {
+test.describe('This suite covers Creating a new-management-admin.', () => {
+  test('When an unauthenticated user tries to open the new admin page, they are redirected to the login-page.', async ({
+    page,
+  }, testInfo) => {
+    setE2EUserContext(testInfo, 'unauthenticated');
     await expectUnauthedRouteRedirectsToLogin(
       page,
       testInfo,
-      'navigate-to-management-admins-new-while-unauthenticated-expect-redirect-to-login',
+      'User navigates to the management admins new page while not logged in and is redirected to the login-page.',
       async () => {
         await page.goto('/admins/new');
       }
     );
   });
 
-  test('authenticated user sees add admin form', async ({ page }, testInfo) => {
+  test('When an authenticated user opens the new admin page, they see the add admin form.', async ({
+    page,
+  }, testInfo) => {
+    setE2EUserContext(testInfo, 'super-admin (full CRUD)');
     await loginAsManagementSuperAdmin(page);
     await actionAndCapture(
       page,
       testInfo,
-      'navigate-to-management-admins-new-route-and-expect-add-admin-form-visible',
+      'User navigates to the management admins new route and sees the add admin form.',
       async () => {
         await page.goto('/admins/new');
       }
@@ -33,7 +40,7 @@ test.describe('Management admins new', () => {
     await capturePageLoad(
       page,
       testInfo,
-      'management-add-admin-form-visible-with-username-and-submit'
+      'The management add admin form is visible with username and submit button.'
     );
   });
 });

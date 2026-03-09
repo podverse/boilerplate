@@ -10,8 +10,8 @@ const COOKIE_PATH = '/';
 /** Path-based key for messages sort (recent/oldest) in the cookie map. */
 export const BUCKET_DETAIL_MESSAGES_KEY = 'bucket-detail-messages';
 
-/** Path-based key for topics table sort (sortBy/sortOrder) in the cookie map. */
-export const BUCKET_DETAIL_TOPICS_LIST_KEY = 'bucket-detail-topics';
+/** Path-based key for bucket detail buckets table sort (sortBy/sortOrder) in the cookie map. */
+export const BUCKET_DETAIL_BUCKETS_LIST_KEY = 'bucket-detail-buckets';
 
 export type SortPref = {
   sortBy: string;

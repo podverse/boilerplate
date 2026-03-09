@@ -3,25 +3,32 @@ import { expect, test } from '@playwright/test';
 import { loginAsManagementSuperAdmin } from './helpers/advancedFixtures';
 import { expectUnauthedRouteRedirectsToLogin } from './helpers/authAssertions';
 import { actionAndCapture, capturePageLoad } from './helpers/stepScreenshots';
+import { setE2EUserContext } from './helpers/userContext';
 
-test.describe('Users list', () => {
-  test('unauthenticated user is redirected to login', async ({ page }, testInfo) => {
+test.describe('This suite covers Management users-list-page.', () => {
+  test('When an unauthenticated user tries to open the users-list-page, they are redirected to the login-page.', async ({
+    page,
+  }, testInfo) => {
+    setE2EUserContext(testInfo, 'unauthenticated');
     await expectUnauthedRouteRedirectsToLogin(
       page,
       testInfo,
-      'navigate-to-management-users-while-unauthenticated-expect-redirect-to-login',
+      'User navigates to the management users page while not logged in and is redirected to the login-page.',
       async () => {
         await page.goto('/users');
       }
     );
   });
 
-  test('authenticated user sees users list or add-user CTA', async ({ page }, testInfo) => {
+  test('When an authenticated user opens the users-list-page, they see the users list or add-user CTA.', async ({
+    page,
+  }, testInfo) => {
+    setE2EUserContext(testInfo, 'super-admin (full CRUD)');
     await loginAsManagementSuperAdmin(page);
     await actionAndCapture(
       page,
       testInfo,
-      'navigate-to-management-users-expect-list-or-add-user-cta',
+      'User navigates to the management users page and sees the list or add-user CTA.',
       async () => {
         await page.goto('/users');
       }
@@ -29,16 +36,24 @@ test.describe('Users list', () => {
     await expect(page).toHaveURL(/\/users/);
     await expect(page.getByRole('heading', { name: /users/i })).toBeVisible();
     await expect(page.getByRole('link', { name: /add user|new user|create/i })).toBeVisible();
-    await capturePageLoad(page, testInfo, 'management-users-page-visible-with-list-or-add-cta');
+    await capturePageLoad(
+      page,
+      testInfo,
+      'The management users page is visible with list or add-user CTA.'
+    );
   });
 
-  test('add user CTA navigates to new user form', async ({ page }, testInfo) => {
+  test('When the user clicks the add user CTA, they are navigated to the new user form.', async ({
+    page,
+  }, testInfo) => {
+    setE2EUserContext(testInfo, 'super-admin (full CRUD)');
     await loginAsManagementSuperAdmin(page);
     await page.goto('/users');
+    await expect(page.getByRole('heading', { name: /users/i })).toBeVisible();
     await actionAndCapture(
       page,
       testInfo,
-      'click-add-user-cta-and-expect-navigation-to-management-users-new-route',
+      'User clicks the add user CTA and is navigated to the management users new route.',
       async () => {
         await page
           .getByRole('link', { name: /add user|new user|create/i })
@@ -50,12 +65,15 @@ test.describe('Users list', () => {
     await expect(page.getByRole('heading', { name: /add user/i })).toBeVisible();
   });
 
-  test('users route supports explicit query params', async ({ page }, testInfo) => {
+  test('When the user opens the users route with explicit query params, the params are persisted.', async ({
+    page,
+  }, testInfo) => {
+    setE2EUserContext(testInfo, 'super-admin (full CRUD)');
     await loginAsManagementSuperAdmin(page);
     await actionAndCapture(
       page,
       testInfo,
-      'navigate-to-management-users-with-query-params-and-verify-persistence',
+      'User navigates to the management users page with query params and they persist.',
       async () => {
         await page.goto('/users?search=e2e&page=1&sortBy=email&sortOrder=asc');
       }
@@ -68,23 +86,29 @@ test.describe('Users list', () => {
     expect(currentUrl.searchParams.get('sortOrder')).toBe('asc');
   });
 
-  test('existing user delete opens confirmation and cancel keeps row', async ({
+  test('When the user opens the delete confirmation for an existing user and cancels, the row remains.', async ({
     page,
   }, testInfo) => {
+    setE2EUserContext(testInfo, 'super-admin (full CRUD)');
     await loginAsManagementSuperAdmin(page);
     await page.goto('/users?search=e2e@example.com');
     const row = page.locator('tr', { hasText: 'e2e@example.com' }).first();
     await expect(row).toBeVisible();
 
-    await actionAndCapture(page, testInfo, 'open-user-delete-confirmation-and-cancel', async () => {
-      await row.getByRole('button', { name: /delete/i }).click();
-      const cancelButton = page
-        .locator('button')
-        .filter({ hasText: /cancel/i })
-        .last();
-      await expect(cancelButton).toBeVisible();
-      await cancelButton.click();
-    });
+    await actionAndCapture(
+      page,
+      testInfo,
+      'User opens the user delete confirmation and clicks cancel.',
+      async () => {
+        await row.getByRole('button', { name: /delete/i }).click();
+        const cancelButton = page
+          .locator('button')
+          .filter({ hasText: /cancel/i })
+          .last();
+        await expect(cancelButton).toBeVisible();
+        await cancelButton.click();
+      }
+    );
 
     await expect(page.locator('tr', { hasText: 'e2e@example.com' })).toHaveCount(1);
   });

@@ -3,25 +3,32 @@ import { expect, test } from '@playwright/test';
 import { loginAsManagementSuperAdmin, nextFixtureName } from './helpers/advancedFixtures';
 import { expectUnauthedRouteRedirectsToLogin } from './helpers/authAssertions';
 import { actionAndCapture, capturePageLoad } from './helpers/stepScreenshots';
+import { setE2EUserContext } from './helpers/userContext';
 
-test.describe('Management users new', () => {
-  test('unauthenticated user is redirected to login', async ({ page }, testInfo) => {
+test.describe('This suite covers Creating a new-management-user.', () => {
+  test('When an unauthenticated user tries to open the new user page, they are redirected to the login-page.', async ({
+    page,
+  }, testInfo) => {
+    setE2EUserContext(testInfo, 'unauthenticated');
     await expectUnauthedRouteRedirectsToLogin(
       page,
       testInfo,
-      'navigate-to-management-users-new-while-unauthenticated-expect-redirect-to-login',
+      'User navigates to the management users new page while not logged in and is redirected to the login-page.',
       async () => {
         await page.goto('/users/new');
       }
     );
   });
 
-  test('authenticated user sees add user form', async ({ page }, testInfo) => {
+  test('When an authenticated user opens the new user page, they see the add user form.', async ({
+    page,
+  }, testInfo) => {
+    setE2EUserContext(testInfo, 'super-admin (full CRUD)');
     await loginAsManagementSuperAdmin(page);
     await actionAndCapture(
       page,
       testInfo,
-      'navigate-to-management-users-new-route-and-expect-add-user-form-visible',
+      'User navigates to the management users new route and sees the add user form.',
       async () => {
         await page.goto('/users/new');
       }
@@ -33,18 +40,22 @@ test.describe('Management users new', () => {
     await capturePageLoad(
       page,
       testInfo,
-      'management-add-user-form-visible-with-credentials-fields'
+      'The management add user form is visible with credentials fields.'
     );
   });
 
-  test('cancel returns to users list', async ({ page }, testInfo) => {
+  test('When the user clicks cancel on the new user form, they are returned to the users list.', async ({
+    page,
+  }, testInfo) => {
+    setE2EUserContext(testInfo, 'super-admin (full CRUD)');
     await loginAsManagementSuperAdmin(page);
     await page.goto('/users/new');
+    await expect(page.getByRole('button', { name: /cancel/i })).toBeVisible();
 
     await actionAndCapture(
       page,
       testInfo,
-      'click-cancel-on-management-user-create-form-and-expect-users-list',
+      'User clicks cancel on the management user create form and is taken to the users list.',
       async () => {
         await page.getByRole('button', { name: /cancel/i }).click();
       }
@@ -52,26 +63,33 @@ test.describe('Management users new', () => {
     await expect(page).toHaveURL(/\/users(\?|$)/);
   });
 
-  test('empty submit shows validation and stays on page', async ({ page }, testInfo) => {
+  test('When the user submits the new user form without required fields, validation is shown and they remain on the page.', async ({
+    page,
+  }, testInfo) => {
+    setE2EUserContext(testInfo, 'super-admin (full CRUD)');
     await loginAsManagementSuperAdmin(page);
     await page.goto('/users/new');
+    await expect(page.getByRole('textbox', { name: /email/i })).toBeVisible();
 
     await actionAndCapture(
       page,
       testInfo,
-      'submit-empty-management-user-create-form-and-expect-validation',
+      'User submits the empty management user create form and sees validation.',
       async () => {
         await page.getByRole('button', { name: /create user|create|save|add user/i }).click();
+        await expect(page).toHaveURL(/\/users\/new$/);
+        await expect(page.getByText(/required|email|username/i).first()).toBeVisible();
       }
     );
-
-    await expect(page).toHaveURL(/\/users\/new$/);
-    await expect(page.getByText(/required|email|username/i).first()).toBeVisible();
   });
 
-  test('valid user create submits and shows success state', async ({ page }, testInfo) => {
+  test('When the user submits a valid user create form, the form submits and a success state is shown.', async ({
+    page,
+  }, testInfo) => {
+    setE2EUserContext(testInfo, 'super-admin (full CRUD)');
     await loginAsManagementSuperAdmin(page);
     await page.goto('/users/new');
+    await expect(page.getByRole('textbox', { name: /email/i })).toBeVisible();
 
     const email = `${nextFixtureName('e2e-mgmt-user')}@example.com`;
     await page.getByRole('textbox', { name: /email/i }).fill(email);
@@ -79,7 +97,7 @@ test.describe('Management users new', () => {
     await actionAndCapture(
       page,
       testInfo,
-      'submit-valid-management-user-create-form-and-expect-success-state',
+      'User submits the valid management user create form and sees success state.',
       async () => {
         await page.getByRole('button', { name: /create user|create|save|add user/i }).click();
       }

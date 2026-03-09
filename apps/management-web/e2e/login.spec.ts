@@ -1,16 +1,20 @@
 import { expect, test } from '@playwright/test';
 
 import { actionAndCapture, capturePageLoad } from './helpers/stepScreenshots';
+import { setE2EUserContext } from './helpers/userContext';
 
 const E2E_USERNAME = 'e2e-superadmin';
 const E2E_PASSWORD = 'Test!1Aa';
 
-test.describe('Login', () => {
-  test('shows login form when unauthenticated', async ({ page }, testInfo) => {
+test.describe('This suite covers Management login-page.', () => {
+  test('When an unauthenticated user visits the login-page, they see the login form.', async ({
+    page,
+  }, testInfo) => {
+    setE2EUserContext(testInfo, 'unauthenticated');
     await actionAndCapture(
       page,
       testInfo,
-      'navigate-to-management-login-page-and-expect-form-visible-with-username-field',
+      'User navigates to the management login-page and sees the form with username field.',
       async () => {
         await page.goto('/login');
       }
@@ -21,17 +25,21 @@ test.describe('Login', () => {
     await capturePageLoad(
       page,
       testInfo,
-      'management-login-form-fully-visible-with-username-password-and-submit'
+      'The management login form is fully visible with username, password, and submit button.'
     );
   });
 
-  test('valid credentials redirect to dashboard', async ({ page }, testInfo) => {
+  test('When the user submits valid credentials, they are redirected to the dashboard.', async ({
+    page,
+  }, testInfo) => {
+    setE2EUserContext(testInfo, 'super-admin (full CRUD)');
     await actionAndCapture(
       page,
       testInfo,
-      'fill-username-and-password-with-seeded-super-admin-then-submit',
+      'User fills username and password with the seeded-super-admin and submits.',
       async () => {
         await page.goto('/login');
+        await expect(page.getByRole('textbox', { name: /username|email/i })).toBeVisible();
         await page.getByRole('textbox', { name: /username|email/i }).fill(E2E_USERNAME);
         await page.getByLabel(/password/i).fill(E2E_PASSWORD);
         await page.getByRole('button', { name: /log in|sign in|submit/i }).click();
@@ -41,23 +49,27 @@ test.describe('Login', () => {
     await capturePageLoad(
       page,
       testInfo,
-      'management-dashboard-visible-after-successful-login-with-super-admin'
+      'The management dashboard is visible after successful login with the super admin.'
     );
   });
 
-  test('invalid credentials show error and do not redirect', async ({ page }, testInfo) => {
+  test('When the user submits invalid credentials, an error is shown and they remain on the login-page.', async ({
+    page,
+  }, testInfo) => {
+    setE2EUserContext(testInfo, 'unauthenticated');
     await actionAndCapture(
       page,
       testInfo,
-      'fill-wrong-password-and-submit-expect-error-message',
+      'User fills a wrong password and submits; an error message is shown.',
       async () => {
         await page.goto('/login');
+        await expect(page.getByRole('textbox', { name: /username|email/i })).toBeVisible();
         await page.getByRole('textbox', { name: /username|email/i }).fill(E2E_USERNAME);
         await page.getByLabel(/password/i).fill('WrongPassword1!');
         await page.getByRole('button', { name: /log in|sign in|submit/i }).click();
+        await expect(page).toHaveURL(/\/login/);
+        await expect(page.getByText(/invalid|incorrect|wrong|error/i)).toBeVisible();
       }
     );
-    await expect(page).toHaveURL(/\/login/);
-    await expect(page.getByText(/invalid|incorrect|wrong|error/i)).toBeVisible();
   });
 });

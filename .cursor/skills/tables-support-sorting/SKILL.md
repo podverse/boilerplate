@@ -5,7 +5,7 @@ description: Ensure tables that display list data support sortable columns; use 
 
 # Tables Support Sorting (Boilerplate)
 
-Use this skill when adding or changing tables that display list data (e.g. buckets, topics, admins, messages). Every such table should support sortable columns where it makes sense, so users can order by name, date, or other relevant fields.
+Use this skill when adding or changing tables that display list data (e.g. buckets, admins, messages). Every such table should support sortable columns where it makes sense, so users can order by name, date, or other relevant fields.
 
 ## How to add sorting
 

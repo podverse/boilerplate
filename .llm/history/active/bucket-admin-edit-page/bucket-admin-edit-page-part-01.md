@@ -70,3 +70,41 @@ The tabs active logic on the button settings admins page is wrong because it sho
 
 - apps/web/src/app/(main)/buckets/[id]/BucketAdminsClient.tsx (bitmaskToFlags, formatCrudMask, new meta block)
 - apps/web/src/app/(main)/buckets/[id]/BucketAdminsClient.module.scss (adminCrudMeta)
+
+### Session 5 - 2026-03-08
+
+#### Prompt (Developer)
+
+Add affirmative E2E tests for bucket-admin-edit. Implement the plan as specified.
+
+#### Key Decisions
+
+- Extended web E2E seed with second user (e2eusr000002, e2e-admin2@example.com) and one bucket_admin row on e2ebkt000001 so the edit page has a valid non-owner admin target.
+- Added two affirmative tests: "seeded non-owner admin edit page loads with form visible" and "seeded non-owner admin can be updated and saved".
+- Documented in E2E-SPEC-REPORT-COMMANDS that bucket-admin-edit requires e2e_seed_web for affirmative tests.
+
+#### Files Created/Modified
+
+- tools/web/seed-e2e.mjs (second user + bucket_admin row)
+- apps/web/e2e/bucket-admin-edit.spec.ts (E2E_BUCKET1_ADMIN2_SHORT_ID, two new tests)
+- docs/testing/E2E-SPEC-REPORT-COMMANDS.md (prerequisite note for bucket-admin-edit)
+- .llm/history/active/bucket-admin-edit-page/bucket-admin-edit-page-part-01.md (this session)
+
+### Session 6 - 2026-03-09
+
+#### Prompt (Developer)
+
+bucket-admin-edit E2E: full actor and permission matrix. Implement the plan as specified.
+
+#### Key Decisions
+
+- E2E seed: added admin-without-permission (e2eusr000003, e2e-admin-readonly@example.com, bucket_crud=2) and non-admin (e2eusr000004, e2e-other@example.com, no bucket_admin row); e2e-admin2 given bucket_crud=15 so canManageBucketAdmins is true.
+- advancedFixtures: added loginAsWebE2EAdminWithPermission, loginAsWebE2EAdminWithoutPermission, loginAsWebE2ENonAdmin and loginWithEmailAndExpectDashboard.
+- Spec: owner list→edit and Cancel→list; non-owner admin with permission (owner edit → not found because owner has no bucket_admin row; self edit → form; invalid id → not found); admin without permission and non-admin → not found. Constants E2E_USER3_SHORT_ID, E2E_USER4_SHORT_ID added.
+
+#### Files Created/Modified
+
+- tools/web/seed-e2e.mjs
+- apps/web/e2e/helpers/advancedFixtures.ts
+- apps/web/e2e/bucket-admin-edit.spec.ts
+- .llm/history/active/bucket-admin-edit-page/bucket-admin-edit-page-part-01.md (this session)

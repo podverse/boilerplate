@@ -100,7 +100,7 @@ export function TopicForm({ parentBucketId, successHref, cancelHref }: TopicForm
             </Button>
           </Link>
           <Button type="submit" variant="primary" loading={loading} disabled={loading}>
-            {t('createTopic')}
+            {t('addBucket')}
           </Button>
         </FormActions>
       </Stack>

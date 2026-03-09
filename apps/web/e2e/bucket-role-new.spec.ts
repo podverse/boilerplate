@@ -7,24 +7,31 @@ import {
 } from './helpers/advancedFixtures';
 import { expectInvalidRouteShowsNotFound } from './helpers/flowHelpers';
 import { actionAndCapture, capturePageLoad } from './helpers/stepScreenshots';
+import { setE2EUserContext } from './helpers/userContext';
 const E2E_BUCKET1_SHORT_ID = 'e2ebkt000001';
 
-test.describe('Bucket role new', () => {
-  test('unauthenticated user is redirected to login', async ({ page }, testInfo) => {
+test.describe('This suite verifies creating a new bucket role.', () => {
+  test('When an unauthenticated user tries to open the bucket-role-new-page, they are redirected to the login page.', async ({
+    page,
+  }, testInfo) => {
+    setE2EUserContext(testInfo, 'unauthenticated');
     await expectUnauthedRouteRedirectsToLogin(
       page,
       `/bucket/${E2E_BUCKET1_SHORT_ID}/settings/roles/new`,
-      'navigate-to-bucket-role-new-while-unauthenticated-expect-redirect-to-login',
+      'User navigates to the bucket-role-new-page while not logged in and is redirected to the login page.',
       testInfo
     );
   });
 
-  test('authenticated user sees role create form', async ({ page }, testInfo) => {
+  test('When an authenticated user opens the bucket-role-new-page, they see the bucket-role-new-form.', async ({
+    page,
+  }, testInfo) => {
+    setE2EUserContext(testInfo, 'seeded-bucket-owner');
     await loginAsWebE2EUserAndExpectDashboard(page);
     await actionAndCapture(
       page,
       testInfo,
-      'navigate-to-bucket-role-new-route-and-expect-role-create-form-visible',
+      'User navigates to the bucket-role-new-route and sees the bucket-role-new-form.',
       async () => {
         await page.goto(`/bucket/${E2E_BUCKET1_SHORT_ID}/settings/roles/new`);
       }
@@ -32,24 +39,35 @@ test.describe('Bucket role new', () => {
     await expect(page).toHaveURL(new RegExp(`/bucket/${E2E_BUCKET1_SHORT_ID}/settings/roles/new`));
     await expect(page.getByRole('textbox', { name: /role name|name/i })).toBeVisible();
     await expect(page.getByRole('button', { name: /save|create/i })).toBeVisible();
-    await capturePageLoad(page, testInfo, 'bucket-role-new-form-visible-with-role-name-and-save');
+    await capturePageLoad(
+      page,
+      testInfo,
+      'The bucket-role-new-form is visible with a role name and save button.'
+    );
   });
 
-  test('invalid bucket id shows not found', async ({ page }, testInfo) => {
+  test('When the user opens the bucket-role-new-page with an invalid bucket id, they see not found.', async ({
+    page,
+  }, testInfo) => {
+    setE2EUserContext(testInfo, 'seeded-bucket-owner');
     await loginAsWebE2EUserAndExpectDashboard(page);
     await expectInvalidRouteShowsNotFound(
       page,
       testInfo,
-      'navigate-to-bucket-role-new-with-invalid-bucket-id-and-expect-not-found',
+      'User navigates to the bucket-role-new-page with an invalid bucket id and sees not found.',
       async () => {
         await page.goto('/bucket/invalid-bucket-99999/settings/roles/new');
       }
     );
   });
 
-  test('role name is required before create', async ({ page }, testInfo) => {
+  test('When the user leaves the role name empty and submits the bucket-role-new-form, they remain on the page.', async ({
+    page,
+  }, testInfo) => {
+    setE2EUserContext(testInfo, 'seeded-bucket-owner');
     await loginAsWebE2EUserAndExpectDashboard(page);
     await page.goto(`/bucket/${E2E_BUCKET1_SHORT_ID}/settings/roles/new`);
+    await expect(page.getByRole('textbox', { name: /role name|name/i })).toBeVisible();
 
     const roleNameInput = page.getByRole('textbox', { name: /role name|name/i });
     const submitButton = page.getByRole('button', { name: /save|create/i });
@@ -58,7 +76,7 @@ test.describe('Bucket role new', () => {
     await actionAndCapture(
       page,
       testInfo,
-      'submit-empty-required-role-name-form-and-stay-on-page',
+      'User submits the form with empty required role name and stays on the page.',
       async () => {
         await submitButton.click();
       }
@@ -66,11 +84,13 @@ test.describe('Bucket role new', () => {
     await expect(page).toHaveURL(new RegExp(`/bucket/${E2E_BUCKET1_SHORT_ID}/settings/roles/new`));
   });
 
-  test('valid submit creates custom role and returns to settings roles list', async ({
+  test('When the user submits a valid new bucket role, a custom role is created and they are returned to the settings roles list.', async ({
     page,
   }, testInfo) => {
+    setE2EUserContext(testInfo, 'seeded-bucket-owner');
     await loginAsWebE2EUserAndExpectDashboard(page);
     await page.goto(`/bucket/${E2E_BUCKET1_SHORT_ID}/settings/roles/new`);
+    await expect(page.getByRole('textbox', { name: /role name|name/i })).toBeVisible();
 
     const roleName = nextFixtureName('e2e-web-role');
     await page.getByRole('textbox', { name: /role name|name/i }).fill(roleName);
@@ -78,7 +98,7 @@ test.describe('Bucket role new', () => {
     await actionAndCapture(
       page,
       testInfo,
-      'submit-valid-new-bucket-role-and-expect-roles-list',
+      'User submits the valid new bucket role and is taken to the roles list.',
       async () => {
         await page.getByRole('button', { name: /save|create/i }).click();
       }
@@ -90,11 +110,12 @@ test.describe('Bucket role new', () => {
     await expect(page.getByText(new RegExp(roleName, 'i')).first()).toBeVisible();
   });
 
-  test('when bucket create is on, message create remains checked and disabled', async ({
+  test('When bucket-create is on, message-create remains checked and disabled.', async ({
     page,
   }, testInfo) => {
     await loginAsWebE2EUserAndExpectDashboard(page);
     await page.goto(`/bucket/${E2E_BUCKET1_SHORT_ID}/settings/roles/new`);
+    await expect(page.getByRole('textbox', { name: /role name|name/i })).toBeVisible();
 
     const bucketCreate = page.getByLabel('Create').nth(1);
     const messageCreate = page.getByLabel('Create').nth(2);
@@ -104,7 +125,7 @@ test.describe('Bucket role new', () => {
     await actionAndCapture(
       page,
       testInfo,
-      'assert-bucket-create-and-message-create-dependency',
+      'User verifies that bucket-create and message-create have the expected dependency.',
       async () => {
         await expect(bucketCreate).toBeChecked();
       }

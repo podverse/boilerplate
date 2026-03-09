@@ -6,33 +6,41 @@ import {
 } from './helpers/advancedFixtures';
 import { expectInvalidRouteShowsNotFound } from './helpers/flowHelpers';
 import { actionAndCapture, capturePageLoad } from './helpers/stepScreenshots';
+import { setE2EUserContext } from './helpers/userContext';
 
 const E2E_BUCKET1_SHORT_ID = 'e2ebkt000001';
 
 async function createPublicMessage(page: import('@playwright/test').Page, body: string) {
   await page.goto(`/b/${E2E_BUCKET1_SHORT_ID}/send-message`);
+  await expect(page.getByRole('textbox', { name: /your name/i })).toBeVisible();
   await page.getByRole('textbox', { name: /your name/i }).fill('E2E Sender');
   await page.getByRole('textbox', { name: /message/i }).fill(body);
   await page.getByRole('button', { name: /send|submit/i }).click();
   await expect(page).toHaveURL(new RegExp(`/b/${E2E_BUCKET1_SHORT_ID}$`));
 }
 
-test.describe('Bucket message edit', () => {
-  test('unauthenticated user is redirected to login', async ({ page }, testInfo) => {
+test.describe('This suite verifies editing a bucket message.', () => {
+  test('When an unauthenticated user tries to open the bucket-message-edit-page, they are redirected to the login page.', async ({
+    page,
+  }, testInfo) => {
+    setE2EUserContext(testInfo, 'unauthenticated');
     await expectUnauthedRouteRedirectsToLogin(
       page,
       `/bucket/${E2E_BUCKET1_SHORT_ID}/messages/invalid-message-99999/edit`,
-      'navigate-to-bucket-message-edit-while-unauthenticated-expect-redirect-to-login',
+      'User navigates to the bucket-message-edit-page while not logged in and is redirected to the login page.',
       testInfo
     );
   });
 
-  test('invalid message id shows not found', async ({ page }, testInfo) => {
+  test('When the user opens the bucket-message-edit-page with an invalid message id, they see not found.', async ({
+    page,
+  }, testInfo) => {
+    setE2EUserContext(testInfo, 'seeded-bucket-owner');
     await loginAsWebE2EUserAndExpectDashboard(page);
     await expectInvalidRouteShowsNotFound(
       page,
       testInfo,
-      'navigate-to-bucket-message-edit-with-invalid-message-id-and-expect-not-found',
+      'User navigates to the bucket-message-edit-page with an invalid message id and sees not found.',
       async () => {
         await page.goto(`/bucket/${E2E_BUCKET1_SHORT_ID}/messages/invalid-message-99999/edit`);
       }
@@ -40,11 +48,14 @@ test.describe('Bucket message edit', () => {
     await capturePageLoad(
       page,
       testInfo,
-      'bucket-message-edit-invalid-message-id-renders-not-found'
+      'The bucket-message-edit-page with an invalid message id renders not found.'
     );
   });
 
-  test('existing message can be edited and saved', async ({ page }, testInfo) => {
+  test('When the user edits an existing message and saves, the message is updated and they return to bucket detail.', async ({
+    page,
+  }, testInfo) => {
+    setE2EUserContext(testInfo, 'seeded-bucket-owner');
     const originalBody = `e2e-edit-message-original-${Date.now()}`;
     const updatedBody = `e2e-edit-message-updated-${Date.now()}`.slice(0, 48);
     await createPublicMessage(page, originalBody);
@@ -63,7 +74,7 @@ test.describe('Bucket message edit', () => {
     await actionAndCapture(
       page,
       testInfo,
-      'save-edited-bucket-message-and-return-to-bucket-detail',
+      'User saves the edited bucket message and is returned to bucket detail.',
       async () => {
         await page.getByRole('button', { name: /save/i }).click();
       }
@@ -72,7 +83,10 @@ test.describe('Bucket message edit', () => {
     await expect(page).toHaveURL(new RegExp(`/bucket/${E2E_BUCKET1_SHORT_ID}$`));
   });
 
-  test('cancel from edit page returns to bucket detail', async ({ page }, testInfo) => {
+  test('When the user clicks cancel on the bucket-message-edit-page, they are returned to bucket detail.', async ({
+    page,
+  }, testInfo) => {
+    setE2EUserContext(testInfo, 'seeded-bucket-owner');
     const originalBody = `e2e-cancel-message-${Date.now()}`;
     await createPublicMessage(page, originalBody);
     await loginAsWebE2EUserAndExpectDashboard(page);
@@ -85,7 +99,7 @@ test.describe('Bucket message edit', () => {
     await actionAndCapture(
       page,
       testInfo,
-      'click-cancel-on-edit-message-form-and-return-to-bucket-detail',
+      'User clicks cancel on the bucket-message-edit-form and is returned to bucket detail.',
       async () => {
         await page.getByRole('link', { name: /cancel/i }).click();
       }

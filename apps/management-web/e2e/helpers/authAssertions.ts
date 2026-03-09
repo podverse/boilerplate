@@ -9,6 +9,9 @@ export async function expectUnauthedRouteRedirectsToLogin(
   stepLabel: string,
   action: () => Promise<void>
 ): Promise<void> {
-  await actionAndCapture(page, testInfo, stepLabel, action);
-  await expect(page).toHaveURL(/\/login/);
+  await actionAndCapture(page, testInfo, stepLabel, async () => {
+    await action();
+    await expect(page).toHaveURL(/\/login/);
+    await expect(page.getByRole('textbox', { name: /username|email/i })).toBeVisible();
+  });
 }

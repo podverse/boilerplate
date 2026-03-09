@@ -71,14 +71,114 @@ function stepDescriptionLabelOnly(body: string): string {
   return match !== null ? match[1].trim() : trimmed;
 }
 
-/** Turn hyphenated step labels into human-readable text (sentence case, optional comma before "expect"). */
+/** Keep step labels as authored so hyphenated compound terms remain consistent in all sections. */
 function humanizeStepLabel(label: string): string {
-  const trimmed = label.trim();
-  if (trimmed.length === 0) return trimmed;
-  if (!trimmed.includes('-')) return trimmed;
-  const withSpaces = trimmed.replace(/-+/g, ' ').replace(/\s+/g, ' ').trim();
-  const sentenceCase = withSpaces.charAt(0).toUpperCase() + withSpaces.slice(1).toLowerCase();
-  return sentenceCase.replace(/\s+expect\s+/i, ', expect ');
+  return label.trim();
+}
+
+const USER_ROLE_ANNOTATION_TYPE = 'user-role';
+
+/** Extract user context (role / CRUD permissions) from test result annotations for report display. */
+function getUserContextFromResult(result: TestResult): string | null {
+  const list = result.annotations ?? [];
+  for (let i = 0; i < list.length; i++) {
+    const a = list[i];
+    if (
+      a.type === USER_ROLE_ANNOTATION_TYPE &&
+      a.description !== undefined &&
+      a.description.trim() !== ''
+    ) {
+      return a.description.trim();
+    }
+  }
+  return null;
+}
+
+/** True for repetitive "redirect to login" tests that are collapsed by default in the report (summary only). */
+function isRedirectToLoginTest(test: TestCase): boolean {
+  const title = test.title.trim().toLowerCase();
+  return (
+    title === 'unauthenticated user is redirected to login' ||
+    title === 'redirects unauthenticated users to login' ||
+    title.includes('redirected to the login page') ||
+    title.includes('redirects unauthenticated users to login')
+  );
+}
+
+interface CollectedStep {
+  imgSrc: string;
+  stepLabelOnly: string;
+}
+
+function normalizeStepLabel(label: string): string {
+  return label.trim().toLowerCase();
+}
+
+function isValidationStepLabel(label: string): boolean {
+  const normalized = normalizeStepLabel(label);
+  if (normalized === '') {
+    return false;
+  }
+  return (
+    normalized.includes('expect') ||
+    normalized.includes('is visible') ||
+    normalized.includes('is shown') ||
+    normalized.includes('is fully rendered') ||
+    normalized.includes('loads') ||
+    normalized.includes('render') ||
+    normalized.includes('redirect') ||
+    normalized.includes('shows ') ||
+    normalized.includes('sees ') ||
+    normalized.includes('stays on') ||
+    normalized.includes('remains on') ||
+    normalized.includes('not found') ||
+    normalized.includes('error') ||
+    normalized.includes('success')
+  );
+}
+
+function isNavigationOnlyStepLabel(label: string): boolean {
+  const normalized = normalizeStepLabel(label);
+  if (normalized === '') {
+    return false;
+  }
+  const hasNavigationVerb =
+    normalized.includes('navigate') ||
+    normalized.includes('opens ') ||
+    normalized.includes('open ') ||
+    normalized.includes('goes to') ||
+    normalized.includes('visits ');
+  if (!hasNavigationVerb) {
+    return false;
+  }
+  const hasActionVerb =
+    normalized.includes('fills ') ||
+    normalized.includes('clicks ') ||
+    normalized.includes('submits ') ||
+    normalized.includes('saves ') ||
+    normalized.includes('deletes ') ||
+    normalized.includes('edits ');
+  return !hasActionVerb;
+}
+
+function shouldHideNavigationOnlyImage(steps: CollectedStep[], stepIndex: number): boolean {
+  const step = steps[stepIndex];
+  if (step === undefined || !isNavigationOnlyStepLabel(step.stepLabelOnly)) {
+    return false;
+  }
+  for (let i = stepIndex + 1; i < steps.length; i++) {
+    if (isValidationStepLabel(steps[i]?.stepLabelOnly ?? '')) {
+      return true;
+    }
+  }
+  return false;
+}
+
+/** Human-readable status label used consistently in summary and section. */
+function statusDisplayLabel(status: string): string {
+  if (status === 'passed') return 'passed';
+  if (status === 'timedOut') return 'timed out';
+  return 'failed';
 }
 
 export default class HtmlStepsReporter implements Reporter {
@@ -155,18 +255,18 @@ export default class HtmlStepsReporter implements Reporter {
       --report-space-lg: 1rem;
       --report-space-xl: 1.5rem;
       --report-space-2xl: 2rem;
-      /* Font sizes */
-      --report-font-xs: 0.8125rem;
-      --report-font-sm: 0.875rem;
-      --report-font-md: 0.95rem;
-      --report-font-base: 1rem;
-      --report-font-lg: 1.0625rem;
-      --report-font-section: 1.1rem;
-      --report-font-title: 1.25rem;
+      /* Font sizes (+2pt ≈ 0.1667rem each at 16px base) */
+      --report-font-xs: 0.98rem;
+      --report-font-sm: 1.04rem;
+      --report-font-md: 1.12rem;
+      --report-font-base: 1.17rem;
+      --report-font-lg: 1.23rem;
+      --report-font-section: 1.27rem;
+      --report-font-title: 1.42rem;
       /* Layout */
       --report-radius-sm: 4px;
       --report-radius-md: 6px;
-      --report-max-width: 850px;
+      --report-max-width: 900px;
     }
     body { font-family: system-ui, sans-serif; margin: var(--report-space-lg); background: var(--report-bg); color: var(--report-text); }
     h1 { font-size: var(--report-font-title); margin-bottom: var(--report-space-lg); }
@@ -184,9 +284,9 @@ export default class HtmlStepsReporter implements Reporter {
     .summary-list .summary-group-header:first-child { margin-top: 0; }
     section.test { margin-bottom: var(--report-space-2xl); border: 1px solid var(--report-border); border-radius: var(--report-radius-md); padding: var(--report-space-lg); scroll-margin-top: var(--report-space-sm); max-width: var(--report-max-width); width: 100%; }
     section.test h2 { font-size: var(--report-font-base); margin: 0 0 var(--report-space-xs); font-weight: 600; }
+    .test-describe { font-size: var(--report-font-sm); color: var(--report-muted); margin: 0 0 var(--report-space-xs); }
     .test-source-marker { font-size: var(--report-font-xs); color: var(--report-muted); margin: 0 0 var(--report-space-xs); }
     .status { font-size: var(--report-font-sm); margin-bottom: var(--report-space-xs); }
-    .test-context { font-size: var(--report-font-md); margin-bottom: var(--report-space-md); color: var(--report-text); }
     .status.passed { color: var(--report-pass); }
     .status.failed { color: var(--report-fail); }
     .status.timedout { color: var(--report-timeout); }
@@ -195,9 +295,15 @@ export default class HtmlStepsReporter implements Reporter {
     .step-block .step-content { width: 100%; }
     .step-block a.step-image-link { display: inline-block; }
     .step-block img { width: 100%; height: auto; border: 1px solid var(--report-border); border-radius: var(--report-radius-sm); display: block; cursor: zoom-in; }
+    .step-block .step-image-suppressed { padding: var(--report-space-sm) var(--report-space-md); border: 1px dashed var(--report-border); border-radius: var(--report-radius-sm); font-size: var(--report-font-xs); color: var(--report-muted); }
     .step-block .step-description { margin-bottom: var(--report-space-sm); }
     .step-block .step-description .step-description-text { margin: 0; padding: var(--report-space-md); background: var(--report-surface); border-radius: var(--report-radius-sm); font-size: var(--report-font-xs); overflow-x: auto; white-space: pre-wrap; text-indent: 0; }
-    .nav-buttons { position: fixed; bottom: var(--report-space-lg); right: var(--report-space-lg); display: flex; gap: var(--report-space-sm); z-index: 10; }
+    .test-user-context { font-size: var(--report-font-sm); color: var(--report-muted); margin: 0 0 var(--report-space-xs); }
+    .test-user-context-unset { font-style: italic; }
+    .nav-wrapper { position: fixed; bottom: var(--report-space-lg); right: var(--report-space-lg); display: flex; flex-direction: column; align-items: flex-end; gap: var(--report-space-sm); z-index: 10; }
+    .nav-end-message { font-size: var(--report-font-sm); color: var(--report-text-muted, #666); display: none; }
+    .nav-end-message.visible { display: block; }
+    .nav-buttons { display: flex; gap: var(--report-space-sm); }
     .nav-buttons button { padding: var(--report-space-sm) var(--report-space-md); font-size: var(--report-font-sm); cursor: pointer; border: 1px solid var(--report-border); border-radius: var(--report-radius-md); background: var(--report-surface); color: var(--report-text); }
     .nav-buttons button:hover { background: var(--report-surface-hover); }
   </style>
@@ -228,17 +334,29 @@ ${isInterrupted ? '  <div class="incomplete-banner">Run aborted during execution
           : status === 'timedOut'
             ? 'prefix-timeout'
             : 'prefix-error';
-      const prefixText = status === 'passed' ? 'pass' : status === 'timedOut' ? 'timeout' : 'error';
-      parts.push(`      <li><span class="${escapeHtml(prefixClass)}">${escapeHtml(prefixText)}:</span> <a href="#test-${testIndex}">${escapeHtml(test.title)}</a></li>
+      const prefixText = statusDisplayLabel(status);
+      const isRedirectToLogin = isRedirectToLoginTest(test);
+      const userContext = getUserContextFromResult(result);
+      const titleSuffix = userContext !== null ? ` (${escapeHtml(userContext)})` : '';
+      if (isRedirectToLogin) {
+        parts.push(`      <li><span class="${escapeHtml(prefixClass)}">${escapeHtml(prefixText)}:</span> ${escapeHtml(test.title)}${titleSuffix}</li>
 `);
+      } else {
+        parts.push(`      <li><span class="${escapeHtml(prefixClass)}">${escapeHtml(prefixText)}:</span> <a href="#test-${testIndex}">${escapeHtml(test.title)}</a>${titleSuffix}</li>
+`);
+      }
     }
     parts.push(`    </ul>
   </div>
   <h2 class="section-heading">Screenshots and step descriptions</h2>
 `);
 
+    let shotIndex = 0;
     for (let testIndex = 0; testIndex < this.runs.length; testIndex++) {
       const { test, result } = this.runs[testIndex];
+      if (isRedirectToLoginTest(test)) {
+        continue;
+      }
       const statusClass = result.status ?? 'unknown';
       const titlePath = test.titlePath();
       const projectOrFile = (s: string): boolean =>
@@ -247,88 +365,108 @@ ${isInterrupted ? '  <div class="incomplete-banner">Run aborted during execution
       const contextSegments = titlePath
         .map((s) => s.trim())
         .filter((s) => s.length > 0 && !projectOrFile(s));
-      const testContextRaw = contextSegments.join(' ');
+      const describeLabel = contextSegments.length >= 2 ? contextSegments[0] : '';
       const firstSourceMarker = getFirstStepSourceMarker(result.attachments);
-      const testContext = testContextRaw;
+      const userContext = getUserContextFromResult(result);
+      const userContextLine =
+        userContext !== null
+          ? `    <div class="test-user-context">User context: ${escapeHtml(userContext)}</div>\n`
+          : `    <div class="test-user-context test-user-context-unset">User context: (not set)</div>\n`;
       parts.push(`  <section id="test-${testIndex}" class="test" data-test-index="${testIndex}" data-status="${escapeHtml(statusClass)}">
-    <h2>${escapeHtml(test.title)}</h2>
-${firstSourceMarker !== '' ? `    <div class="test-source-marker">${escapeHtml(firstSourceMarker)}</div>\n` : ''}    <div class="status ${escapeHtml(statusClass)}">${escapeHtml(statusClass)}</div>
-${testContext !== '' ? `    <div class="test-context">${escapeHtml(testContext)}</div>\n` : ''}`);
+${describeLabel !== '' ? `    <div class="test-describe">${escapeHtml(describeLabel)}</div>\n` : ''}    <h2>${escapeHtml(test.title)}</h2>
+${firstSourceMarker !== '' ? `    <div class="test-source-marker">${escapeHtml(firstSourceMarker)}</div>\n` : ''}${userContextLine}    <div class="status ${escapeHtml(statusClass)}">${escapeHtml(statusDisplayLabel(statusClass))}</div>
+`);
       if (result.error?.message) {
         parts.push(`    <div class="error">${escapeHtml(result.error.message)}</div>
 `);
       }
 
       const attachments = result.attachments ?? [];
+      const collectedSteps: CollectedStep[] = [];
       for (let i = 0; i < attachments.length; i++) {
         const att = attachments[i];
-        if (att.contentType === 'image/png' && att.path) {
-          const srcPath = path.isAbsolute(att.path)
-            ? att.path
-            : path.resolve(this.rootDir, att.path);
-          const ext = path.extname(att.path) || '.png';
-          const destName = `test-${testIndex}-step-${i}${ext}`;
-          const destPath = path.join(attachmentsDir, destName);
-          try {
-            fs.copyFileSync(srcPath, destPath);
-          } catch {
-            // If copy fails (e.g. path from worker), skip image
-            continue;
-          }
-          const imgSrc = `attachments/${destName}`;
-          const next = attachments[i + 1];
-          let stepDescription = '';
-          // Next attachment may be "Step description" – emit it right after this image
-          if (
-            next &&
-            next.name === STEP_DESCRIPTION_NAME &&
-            (next.contentType === 'text/plain' || !next.contentType)
-          ) {
-            stepDescription =
-              next.body !== undefined
-                ? typeof next.body === 'string'
-                  ? next.body
-                  : next.body.toString('utf-8')
-                : '';
-            stepDescription = stepDescription.trim();
-            i++; // consume the Step description attachment
-          }
-          const stepLabelOnly =
-            stepDescription !== ''
-              ? humanizeStepLabel(stepDescriptionLabelOnly(stepDescription))
+        if (att.contentType !== 'image/png' || !att.path) {
+          continue;
+        }
+        const srcPath = path.isAbsolute(att.path) ? att.path : path.resolve(this.rootDir, att.path);
+        const ext = path.extname(att.path) || '.png';
+        const destName = `test-${testIndex}-step-${i}${ext}`;
+        const destPath = path.join(attachmentsDir, destName);
+        try {
+          fs.copyFileSync(srcPath, destPath);
+        } catch {
+          // If copy fails (e.g. path from worker), skip image
+          continue;
+        }
+        const imgSrc = `attachments/${destName}`;
+        const next = attachments[i + 1];
+        let stepDescription = '';
+        if (
+          next &&
+          next.name === STEP_DESCRIPTION_NAME &&
+          (next.contentType === 'text/plain' || !next.contentType)
+        ) {
+          stepDescription =
+            next.body !== undefined
+              ? typeof next.body === 'string'
+                ? next.body
+                : next.body.toString('utf-8')
               : '';
-          parts.push(`    <div class="step-block">
+          stepDescription = stepDescription.trim();
+          i++; // consume the Step description attachment
+        }
+        const stepLabelOnly =
+          stepDescription !== ''
+            ? humanizeStepLabel(stepDescriptionLabelOnly(stepDescription))
+            : '';
+        collectedSteps.push({ imgSrc, stepLabelOnly });
+      }
+
+      for (let stepIndex = 0; stepIndex < collectedSteps.length; stepIndex++) {
+        const step = collectedSteps[stepIndex];
+        const hideImage = shouldHideNavigationOnlyImage(collectedSteps, stepIndex);
+        parts.push(`    <div class="step-block" data-shot-index="${shotIndex}">
     <div class="step-content">
 ${
-  stepLabelOnly !== ''
+  step.stepLabelOnly !== ''
     ? `    <div class="step-description">
-    <div class="step-description-text">${escapeHtml(stepLabelOnly)}</div>
+    <div class="step-description-text">${escapeHtml(step.stepLabelOnly)}</div>
     </div>
 `
     : ''
-}    <a class="step-image-link" href="${escapeHtml(imgSrc)}" target="_blank" rel="noopener noreferrer">
-    <img src="${escapeHtml(imgSrc)}" alt="Step screenshot">
+}${
+          hideImage
+            ? `    <div class="step-image-suppressed">Screenshot hidden for navigation-only step; later validation captures evidence.</div>
+`
+            : `    <a class="step-image-link" href="${escapeHtml(step.imgSrc)}" target="_blank" rel="noopener noreferrer">
+    <img src="${escapeHtml(step.imgSrc)}" alt="Step screenshot">
     </a>
-    </div>
+`
+        }    </div>
 `);
-          parts.push(`    </div>
+        parts.push(`    </div>
 `);
-        }
+        shotIndex++;
       }
 
       parts.push(`  </section>
 `);
     }
 
-    parts.push(`  <div class="nav-buttons" aria-label="Report navigation">
+    parts.push(`  <div class="nav-wrapper">
+  <div id="nav-end-message" class="nav-end-message" role="status" aria-live="polite">End of list</div>
+  <div class="nav-buttons" aria-label="Report navigation">
     <button type="button" id="nav-top">Top</button>
+    <button type="button" id="nav-next-shot">Next Shot</button>
     <button type="button" id="nav-next-test">Next Test</button>
     <button type="button" id="nav-next-error">Next Error</button>
+  </div>
   </div>
   <script>
     (function () {
       var testSections = document.querySelectorAll('section.test');
       var errorSections = document.querySelectorAll('section.test[data-status="failed"], section.test[data-status="timedOut"]');
+      var endMessage = document.getElementById('nav-end-message');
       function findCurrentIndex(elements) {
         var viewportTop = window.scrollY + 80;
         var currentIndex = -1;
@@ -345,12 +483,71 @@ ${
         if (nextIndex >= elements.length) nextIndex = 0;
         return elements[nextIndex];
       }
-      function scrollTo(el) {
-        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      function findNextNoWrap(elements) {
+        if (elements.length === 0) return null;
+        var currentIndex = findCurrentIndex(elements);
+        var nextIndex = currentIndex + 1;
+        if (nextIndex >= elements.length) return null;
+        return elements[nextIndex];
       }
-      document.getElementById('nav-top').addEventListener('click', function () { window.scrollTo({ top: 0, behavior: 'smooth' }); });
-      document.getElementById('nav-next-test').addEventListener('click', function () { scrollTo(findNext(testSections)); });
-      document.getElementById('nav-next-error').addEventListener('click', function () { scrollTo(findNext(errorSections)); });
+      function findNextByTopNoWrap(elements, offsetPx) {
+        if (elements.length === 0) return null;
+        var threshold = window.scrollY + (offsetPx || 0) + 2;
+        for (var j = 0; j < elements.length; j++) {
+          var top = elements[j].getBoundingClientRect().top + window.scrollY;
+          if (top > threshold) return elements[j];
+        }
+        return null;
+      }
+      var SHOT_OFFSET_PX = 108;
+      var shotBlocks = document.querySelectorAll('.step-block[data-shot-index]');
+      function findNextShotAhead() {
+        var threshold = window.scrollY + SHOT_OFFSET_PX + 2;
+        for (var k = 0; k < shotBlocks.length; k++) {
+          var top = shotBlocks[k].getBoundingClientRect().top + window.scrollY;
+          if (top > threshold) return shotBlocks[k];
+        }
+        return null;
+      }
+      function scrollToShot(el) {
+        if (!el) return;
+        var top = el.getBoundingClientRect().top + window.scrollY;
+        window.scrollTo({ top: top - SHOT_OFFSET_PX, behavior: 'auto' });
+      }
+      function scrollTo(el) {
+        if (el) el.scrollIntoView({ behavior: 'auto', block: 'start' });
+      }
+      var endMessageTimeout;
+      function showEndMessage() {
+        endMessage.classList.add('visible');
+        if (endMessageTimeout) clearTimeout(endMessageTimeout);
+        endMessageTimeout = setTimeout(function () { hideEndMessage(); endMessageTimeout = null; }, 3000);
+      }
+      function hideEndMessage() { endMessage.classList.remove('visible'); if (endMessageTimeout) { clearTimeout(endMessageTimeout); endMessageTimeout = null; } }
+      document.getElementById('nav-top').addEventListener('click', function () { hideEndMessage(); window.scrollTo({ top: 0, behavior: 'auto' }); });
+      document.getElementById('nav-next-shot').addEventListener('click', function () {
+        var nextShot = findNextShotAhead();
+        if (nextShot !== null) {
+          hideEndMessage();
+          scrollToShot(nextShot);
+          return;
+        }
+        var nextTest = findNextByTopNoWrap(testSections, 0);
+        if (nextTest !== null) {
+          hideEndMessage();
+          scrollTo(nextTest);
+          return;
+        }
+        showEndMessage();
+      });
+      document.getElementById('nav-next-test').addEventListener('click', function () {
+        var next = findNextNoWrap(testSections);
+        if (next) { hideEndMessage(); scrollTo(next); } else { showEndMessage(); }
+      });
+      document.getElementById('nav-next-error').addEventListener('click', function () {
+        var next = findNextNoWrap(errorSections);
+        if (next) { hideEndMessage(); scrollTo(next); } else { showEndMessage(); }
+      });
     })();
   </script>
 </body>

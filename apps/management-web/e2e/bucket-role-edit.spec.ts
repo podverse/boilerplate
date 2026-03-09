@@ -4,38 +4,49 @@ import { loginAsManagementSuperAdmin, nextFixtureName } from './helpers/advanced
 import { expectUnauthedRouteRedirectsToLogin } from './helpers/authAssertions';
 import { expectInvalidRouteShowsNotFound } from './helpers/flowHelpers';
 import { actionAndCapture } from './helpers/stepScreenshots';
+import { setE2EUserContext } from './helpers/userContext';
 const E2E_BUCKET1_ID = '22222222-2222-4222-a222-222222222222';
 
-test.describe('Management bucket role edit', () => {
-  test('unauthenticated user is redirected to login', async ({ page }, testInfo) => {
+test.describe('This suite covers Editing a bucket role in management.', () => {
+  test('When an unauthenticated user tries to open the bucket-role-edit-page, they are redirected to the login-page.', async ({
+    page,
+  }, testInfo) => {
+    setE2EUserContext(testInfo, 'unauthenticated');
     await expectUnauthedRouteRedirectsToLogin(
       page,
       testInfo,
-      'navigate-to-management-bucket-role-edit-while-unauthenticated-expect-redirect-to-login',
+      'User navigates to the management bucket-role-edit-page while not logged in and is redirected to the login-page.',
       async () => {
         await page.goto(`/bucket/${E2E_BUCKET1_ID}/settings/roles/invalid-role-99999/edit`);
       }
     );
   });
 
-  test('invalid role id shows not found', async ({ page }, testInfo) => {
+  test('When the user opens the role edit page with an invalid role id, they see not found.', async ({
+    page,
+  }, testInfo) => {
+    setE2EUserContext(testInfo, 'super-admin (full CRUD)');
     await loginAsManagementSuperAdmin(page);
     await expectInvalidRouteShowsNotFound(
       page,
       testInfo,
-      'navigate-to-management-bucket-role-edit-with-invalid-role-id-and-expect-not-found',
+      'User navigates to the management bucket-role-edit-page with an invalid role id and sees not found.',
       async () => {
         await page.goto(`/bucket/${E2E_BUCKET1_ID}/settings/roles/invalid-role-99999/edit`);
       }
     );
   });
 
-  test('existing custom role can be edited and saved', async ({ page }, testInfo) => {
+  test('When the user edits an existing custom role and saves, the role is updated and they return to the roles list.', async ({
+    page,
+  }, testInfo) => {
+    setE2EUserContext(testInfo, 'super-admin (full CRUD)');
     await loginAsManagementSuperAdmin(page);
     const createdName = nextFixtureName('e2e-mgmt-role');
     const updatedName = nextFixtureName('e2e-mgmt-role-updated');
 
     await page.goto(`/bucket/${E2E_BUCKET1_ID}/settings/roles/new`);
+    await expect(page.getByRole('textbox', { name: /role name|name/i })).toBeVisible();
     await page.getByRole('textbox', { name: /role name|name/i }).fill(createdName);
     await page.getByRole('button', { name: /save|create/i }).click();
     await expect(page).toHaveURL(new RegExp(`/bucket/${E2E_BUCKET1_ID}/settings\\?tab=roles`));
@@ -44,7 +55,7 @@ test.describe('Management bucket role edit', () => {
     await actionAndCapture(
       page,
       testInfo,
-      'open-management-edit-page-for-created-custom-role',
+      'User opens the management edit page for the created custom role.',
       async () => {
         const row = page.locator('li', { hasText: createdName }).first();
         await row.getByRole('link', { name: /edit/i }).click();
@@ -58,7 +69,7 @@ test.describe('Management bucket role edit', () => {
     await actionAndCapture(
       page,
       testInfo,
-      'save-updated-management-custom-role-and-return-to-roles-list',
+      'User saves the updated management custom role and is returned to the roles list.',
       async () => {
         await page.getByRole('button', { name: /save|create/i }).click();
       }

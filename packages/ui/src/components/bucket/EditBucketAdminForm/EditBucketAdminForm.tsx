@@ -53,6 +53,8 @@ export type EditBucketAdminFormProps = {
   cancelHref: string;
   /** If provided, called after successful submit instead of navigating via successHref (e.g. router.push). */
   onSuccess?: () => void;
+  /** When true, all form controls are disabled and the save button is hidden. Use for viewing the bucket owner. */
+  readOnly?: boolean;
 };
 
 function adminCrudWithRead(crud: number): number {
@@ -74,6 +76,7 @@ export function EditBucketAdminForm({
   successHref,
   cancelHref,
   onSuccess,
+  readOnly = false,
 }: EditBucketAdminFormProps) {
   const useRoleDropdown = roleOptions.length > 0;
   const crudLabels: Record<'create' | 'read' | 'update' | 'delete', string> = {
@@ -200,6 +203,7 @@ export function EditBucketAdminForm({
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    if (readOnly) return;
     setSubmitError(null);
     setLoading(true);
     try {
@@ -265,6 +269,7 @@ export function EditBucketAdminForm({
               label={labels.roleSelectLabel ?? 'Role'}
               options={options}
               value={selectedRoleId}
+              disabled={readOnly}
               onChange={(value) => {
                 if (
                   value === EDIT_ADMIN_CREATE_ROLE_ID &&
@@ -290,14 +295,14 @@ export function EditBucketAdminForm({
           flags={adminFlags}
           onChange={setAdminFlagsWithReadForced}
           disabledBits={useRoleDropdown ? undefined : { read: true }}
-          disabled={useRoleDropdown}
+          disabled={useRoleDropdown || readOnly}
         />
         <CrudCheckboxes
           label={labels.bucketPermissions ?? 'Bucket permissions'}
           labels={crudLabels}
           flags={bucketFlags}
           onChange={setBucketFlagsWithReadForced}
-          disabled={useRoleDropdown}
+          disabled={useRoleDropdown || readOnly}
           disabledBits={!useRoleDropdown ? { read: true } : undefined}
           selectAllInfo={labels.bucketPermissionsInfo}
         />
@@ -306,7 +311,7 @@ export function EditBucketAdminForm({
           labels={crudLabels}
           flags={messageFlags}
           onChange={setMessageFlagsWithReadForced}
-          disabled={useRoleDropdown}
+          disabled={useRoleDropdown || readOnly}
           disabledBits={
             !useRoleDropdown
               ? {
@@ -327,14 +332,16 @@ export function EditBucketAdminForm({
           <ButtonLink href={cancelHref} variant="secondary">
             {labels.cancel}
           </ButtonLink>
-          <Button
-            type="submit"
-            variant="primary"
-            loading={loading}
-            disabled={isInvalidRoleSelection}
-          >
-            {labels.save}
-          </Button>
+          {readOnly ? null : (
+            <Button
+              type="submit"
+              variant="primary"
+              loading={loading}
+              disabled={isInvalidRoleSelection}
+            >
+              {labels.save}
+            </Button>
+          )}
         </FormActions>
       </Stack>
     </FormContainer>

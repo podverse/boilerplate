@@ -4,26 +4,34 @@ import {
   expectUnauthedRouteRedirectsToLogin,
   loginAsWebE2EUserAndExpectDashboard,
 } from './helpers/advancedFixtures';
+import { expectInvalidRouteShowsNotFound } from './helpers/flowHelpers';
 import { actionAndCapture, capturePageLoad } from './helpers/stepScreenshots';
+import { setE2EUserContext } from './helpers/userContext';
 
 const E2E_BUCKET1_SHORT_ID = 'e2ebkt000001';
 
-test.describe('Bucket detail', () => {
-  test('unauthenticated user is redirected to login', async ({ page }, testInfo) => {
+test.describe('This suite verifies the bucket-detail-page.', () => {
+  test('When an unauthenticated user tries to open the bucket-detail-page, they are redirected to the login page.', async ({
+    page,
+  }, testInfo) => {
+    setE2EUserContext(testInfo, 'unauthenticated');
     await expectUnauthedRouteRedirectsToLogin(
       page,
       `/bucket/${E2E_BUCKET1_SHORT_ID}`,
-      'navigate-to-bucket-detail-while-unauthenticated-expect-redirect-to-login',
+      'User navigates to the bucket-detail-page while not logged in and is redirected to the login page.',
       testInfo
     );
   });
 
-  test('authenticated user sees bucket detail for seeded bucket', async ({ page }, testInfo) => {
+  test('When an authenticated user opens the bucket-detail-page for the seeded bucket, they see the bucket name and content.', async ({
+    page,
+  }, testInfo) => {
+    setE2EUserContext(testInfo, 'seeded-bucket-owner');
     await loginAsWebE2EUserAndExpectDashboard(page);
     await actionAndCapture(
       page,
       testInfo,
-      'navigate-to-bucket-detail-by-short-id-expect-bucket-name-and-content',
+      'User navigates to the bucket-detail-page by short id and sees bucket name and content.',
       async () => {
         await page.goto(`/bucket/${E2E_BUCKET1_SHORT_ID}`);
       }
@@ -35,20 +43,22 @@ test.describe('Bucket detail', () => {
     await capturePageLoad(
       page,
       testInfo,
-      'bucket-detail-page-shows-bucket-name-E2E-Bucket-One-and-settings-or-messages-links'
+      'The bucket-detail-page shows the bucket name E2E Bucket One and settings or messages links.'
     );
   });
 
-  test('invalid bucket id shows 404', async ({ page }, testInfo) => {
+  test('When the user opens the bucket-detail-page with an invalid bucket id, they see a 404.', async ({
+    page,
+  }, testInfo) => {
+    setE2EUserContext(testInfo, 'seeded-bucket-owner');
     await loginAsWebE2EUserAndExpectDashboard(page);
-    await actionAndCapture(
+    await expectInvalidRouteShowsNotFound(
       page,
       testInfo,
-      'navigate-to-bucket-with-invalid-id-expect-not-found',
+      'User navigates to the bucket with an invalid id and sees not found.',
       async () => {
         await page.goto('/bucket/nonexistent-bucket-id-99999');
       }
     );
-    await expect(page.getByText(/not found|404|does not exist/i).first()).toBeVisible();
   });
 });

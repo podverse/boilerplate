@@ -6,7 +6,7 @@ import { DEFAULT_PAGE_LIMIT } from '@boilerplate/helpers';
 import type { ListBucketMessagesResponse } from '@boilerplate/helpers-requests';
 import { request, managementWebBuckets } from '@boilerplate/helpers-requests';
 import {
-  BUCKET_DETAIL_TOPICS_LIST_KEY,
+  BUCKET_DETAIL_BUCKETS_LIST_KEY,
   Breadcrumbs,
   BucketDetailContent,
   BucketDetailPageLayout,
@@ -136,7 +136,7 @@ async function fetchMessagesPaginated(
   };
 }
 
-const TOPICS_DEFAULT_SORT_BY = 'name';
+const BUCKETS_DEFAULT_SORT_BY = 'name';
 
 function sortChildBuckets<
   T extends { name: string; lastMessageAt?: string | null; createdAt: string },
@@ -198,20 +198,20 @@ export default async function BucketDetailPage({
         : 'recent'
       : (getMessagesSortFromCookieValue(sortPrefsCookieValue) ?? 'recent');
 
-  const topicsSortBy =
+  const bucketsSortBy =
     tab === 'buckets'
       ? resolvedSearchParams.sortBy === 'name' ||
         resolvedSearchParams.sortBy === 'lastMessage' ||
         resolvedSearchParams.sortBy === 'created'
         ? resolvedSearchParams.sortBy
-        : (getSortPrefsFromCookieValue(sortPrefsCookieValue, BUCKET_DETAIL_TOPICS_LIST_KEY)
-            ?.sortBy ?? TOPICS_DEFAULT_SORT_BY)
+        : (getSortPrefsFromCookieValue(sortPrefsCookieValue, BUCKET_DETAIL_BUCKETS_LIST_KEY)
+            ?.sortBy ?? BUCKETS_DEFAULT_SORT_BY)
       : undefined;
-  const topicsSortOrder =
+  const bucketsSortOrder =
     tab === 'buckets'
       ? resolvedSearchParams.sortOrder === 'desc' || resolvedSearchParams.sortOrder === 'asc'
         ? resolvedSearchParams.sortOrder
-        : (getSortPrefsFromCookieValue(sortPrefsCookieValue, BUCKET_DETAIL_TOPICS_LIST_KEY)
+        : (getSortPrefsFromCookieValue(sortPrefsCookieValue, BUCKET_DETAIL_BUCKETS_LIST_KEY)
             ?.sortOrder ?? 'asc')
       : undefined;
 
@@ -252,14 +252,14 @@ export default async function BucketDetailPage({
 
   const bucketAncestryForNewChild = [...ancestors.map((a) => a.shortId), bucket.shortId];
   const canCreateBucket = bucketsCrud.create;
-  const createTopicHref = canCreateBucket
+  const createBucketHref = canCreateBucket
     ? bucketNewRouteFromAncestry(bucketAncestryForNewChild)
     : undefined;
-  const createTopicLabel = canCreateBucket ? tCommon('bucketDetail.createTopic') : undefined;
+  const createBucketLabel = canCreateBucket ? tCommon('bucketDetail.addBucket') : undefined;
 
   const sortedChildBuckets =
-    tab === 'buckets' && topicsSortBy !== undefined && topicsSortOrder !== undefined
-      ? sortChildBuckets(childBuckets, topicsSortBy, topicsSortOrder)
+    tab === 'buckets' && bucketsSortBy !== undefined && bucketsSortOrder !== undefined
+      ? sortChildBuckets(childBuckets, bucketsSortBy, bucketsSortOrder)
       : childBuckets;
   const childBucketsForContent = sortedChildBuckets.map((childBucket) => ({
     id: childBucket.id,
@@ -293,7 +293,7 @@ export default async function BucketDetailPage({
     ...(showMessagesTab
       ? [{ href: bucketViewRoute(id), label: tCommon('bucketDetail.messages') }]
       : []),
-    { href: bucketDetailTabRoute(id, 'buckets'), label: tCommon('bucketDetail.topics') },
+    { href: bucketDetailTabRoute(id, 'buckets'), label: tCommon('bucketDetail.buckets') },
     ...(bucket.isPublic && publicPageHref !== undefined
       ? [{ href: publicPageHref, label: tCommon('bucketDetail.publicPage') }]
       : []),
@@ -371,22 +371,22 @@ export default async function BucketDetailPage({
             </SectionWithHeading>
           ) : undefined
         }
-        topics={tab === 'buckets' ? childBucketsForContent : undefined}
-        topicsTitle={tCommon('bucketDetail.topics')}
-        topicViewLabel={tCommon('bucketDetail.view')}
-        topicEditLabel={tCommon('bucketDetail.edit')}
-        createTopicHref={createTopicHref}
-        createTopicLabel={createTopicLabel}
-        topicsColumnName={tCommon('bucketDetail.name')}
-        topicsColumnLastMessage={tCommon('bucketDetail.lastMessage')}
-        topicsColumnCreated={tCommon('bucketDetail.created')}
-        topicsColumnPublic={tCommon('bucketDetail.isPublic')}
-        topicsColumnActions={tCommon('bucketDetail.actions')}
-        topicsEmptyMessage={tCommon('bucketDetail.noBucketsYet')}
-        topicsSortBy={tab === 'buckets' ? topicsSortBy : undefined}
-        topicsSortOrder={tab === 'buckets' ? topicsSortOrder : undefined}
-        topicsSortBasePath={tab === 'buckets' ? bucketDetailTabRoute(id, 'buckets') : undefined}
-        topicsSortPrefsCookieName={TABLE_SORT_PREFS_COOKIE_NAME}
+        buckets={tab === 'buckets' ? childBucketsForContent : undefined}
+        bucketsTitle={tCommon('bucketDetail.buckets')}
+        bucketViewLabel={tCommon('bucketDetail.view')}
+        bucketEditLabel={tCommon('bucketDetail.edit')}
+        createBucketHref={createBucketHref}
+        createBucketLabel={createBucketLabel}
+        bucketsColumnName={tCommon('bucketDetail.name')}
+        bucketsColumnLastMessage={tCommon('bucketDetail.lastMessage')}
+        bucketsColumnCreated={tCommon('bucketDetail.created')}
+        bucketsColumnPublic={tCommon('bucketDetail.isPublic')}
+        bucketsColumnActions={tCommon('bucketDetail.actions')}
+        bucketsEmptyMessage={tCommon('bucketDetail.noBucketsYet')}
+        bucketsSortBy={tab === 'buckets' ? bucketsSortBy : undefined}
+        bucketsSortOrder={tab === 'buckets' ? bucketsSortOrder : undefined}
+        bucketsSortBasePath={tab === 'buckets' ? bucketDetailTabRoute(id, 'buckets') : undefined}
+        bucketsSortPrefsCookieName={TABLE_SORT_PREFS_COOKIE_NAME}
         wrapInContainer={false}
       />
     </BucketDetailPageLayout>

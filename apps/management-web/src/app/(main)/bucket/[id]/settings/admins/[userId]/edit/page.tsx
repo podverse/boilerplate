@@ -1,5 +1,6 @@
 import { redirect, notFound } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
+import { CRUD_BITS } from '@boilerplate/helpers';
 import { formatUserLabel } from '@boilerplate/helpers';
 import { request } from '@boilerplate/helpers-requests';
 import { PageHeader, Text } from '@boilerplate/ui';
@@ -83,41 +84,52 @@ export default async function EditBucketAdminPage({
   if (bucket === null) notFound();
 
   const result = await fetchAdmin(bucketId, userId);
-  if (result === null) notFound();
-  const { admin } = result;
-
-  if (admin.userId === bucket.ownerId) {
-    redirect(bucketSettingsAdminsRoute(bucketId));
-  }
+  const isOwner = userId === bucket.ownerId;
+  if (result === null && !isOwner) notFound();
 
   const t = await getTranslations('buckets');
   const adminsHref = bucketSettingsAdminsRoute(bucketId);
 
+  const fullCrud = CRUD_BITS.create | CRUD_BITS.read | CRUD_BITS.update | CRUD_BITS.delete;
+
+  const admin = result?.admin;
+  const initialBucketCrud = admin?.bucketCrud ?? fullCrud;
+  const initialMessageCrud = admin?.messageCrud ?? fullCrud;
+  const initialAdminCrud = admin?.adminCrud ?? (isOwner ? fullCrud : 2 | CRUD_BITS.read);
+
+  const userLabel =
+    admin?.user !== undefined && admin.user !== null
+      ? formatUserLabel({
+          username: admin.user.username,
+          email: admin.user.email,
+          displayName: admin.user.displayName,
+        })
+      : isOwner && bucket.ownerDisplayName !== undefined && bucket.ownerDisplayName !== null
+        ? bucket.ownerDisplayName
+        : null;
+
   return (
     <>
       <PageHeader title={t('editAdminTitle')} />
-      {admin.user !== undefined &&
-        admin.user !== null &&
-        (() => {
-          const line = formatUserLabel({
-            username: admin.user.username,
-            email: admin.user.email,
-            displayName: admin.user.displayName,
-          });
-          return line !== '—' ? (
-            <Text variant="muted" size="sm">
-              {line}
-            </Text>
-          ) : null;
-        })()}
+      {isOwner ? (
+        <Text variant="muted" size="sm" as="p" role="alert">
+          {t('cannotEditBucketOwnerAdmin')}
+        </Text>
+      ) : null}
+      {userLabel !== null && userLabel !== '—' ? (
+        <Text variant="muted" size="sm">
+          {userLabel}
+        </Text>
+      ) : null}
       <EditBucketAdminFormClient
         bucketId={bucketId}
         userId={userId}
-        initialBucketCrud={admin.bucketCrud}
-        initialMessageCrud={admin.messageCrud}
-        initialAdminCrud={admin.adminCrud ?? 2}
+        initialBucketCrud={initialBucketCrud}
+        initialMessageCrud={initialMessageCrud}
+        initialAdminCrud={initialAdminCrud}
         successHref={adminsHref}
         cancelHref={adminsHref}
+        readOnly={isOwner}
       />
     </>
   );

@@ -5,20 +5,55 @@ import { actionAndCapture } from './stepScreenshots';
 
 const WEB_LOGIN_EMAIL = 'e2e@example.com';
 const WEB_LOGIN_PASSWORD = 'Test!1Aa';
+const WEB_E2E_ADMIN_WITH_PERMISSION_EMAIL = 'e2e-admin2@example.com';
+const WEB_E2E_ADMIN_WITHOUT_PERMISSION_EMAIL = 'e2e-admin-readonly@example.com';
+const WEB_E2E_NON_ADMIN_EMAIL = 'e2e-other@example.com';
 
 export const nextFixtureName = (prefix: string): string =>
   `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 
-export async function loginAsWebE2EUserAndExpectDashboard(page: Page): Promise<void> {
+async function loginWithEmailAndExpectDashboard(
+  page: Page,
+  email: string,
+  password: string
+): Promise<void> {
   await page.goto('/login');
-  await page.getByRole('textbox', { name: /email|username/i }).fill(WEB_LOGIN_EMAIL);
-  await page.getByLabel(/password/i).fill(WEB_LOGIN_PASSWORD);
+  await expect(page.getByRole('textbox', { name: /email|username/i })).toBeVisible();
+  await page.getByRole('textbox', { name: /email|username/i }).fill(email);
+  await page.getByLabel(/password/i).fill(password);
   await page.getByRole('button', { name: /log in|sign in|submit/i }).click();
   await expect(page).toHaveURL(/\/dashboard/);
 }
 
+export async function loginAsWebE2EUserAndExpectDashboard(page: Page): Promise<void> {
+  await loginWithEmailAndExpectDashboard(page, WEB_LOGIN_EMAIL, WEB_LOGIN_PASSWORD);
+}
+
 export async function loginAsWebE2EUser(page: Page): Promise<void> {
   await loginAsWebE2EUserAndExpectDashboard(page);
+}
+
+/** Log in as non-owner admin with bucket-admins permission (e2e-admin2@example.com). */
+export async function loginAsWebE2EAdminWithPermission(page: Page): Promise<void> {
+  await loginWithEmailAndExpectDashboard(
+    page,
+    WEB_E2E_ADMIN_WITH_PERMISSION_EMAIL,
+    WEB_LOGIN_PASSWORD
+  );
+}
+
+/** Log in as non-owner admin without bucket update (e2e-admin-readonly@example.com). */
+export async function loginAsWebE2EAdminWithoutPermission(page: Page): Promise<void> {
+  await loginWithEmailAndExpectDashboard(
+    page,
+    WEB_E2E_ADMIN_WITHOUT_PERMISSION_EMAIL,
+    WEB_LOGIN_PASSWORD
+  );
+}
+
+/** Log in as user with no bucket_admin row for E2E Bucket One (e2e-other@example.com). */
+export async function loginAsWebE2ENonAdmin(page: Page): Promise<void> {
+  await loginWithEmailAndExpectDashboard(page, WEB_E2E_NON_ADMIN_EMAIL, WEB_LOGIN_PASSWORD);
 }
 
 export async function expectUnauthedRouteRedirectsToLogin(
@@ -29,8 +64,9 @@ export async function expectUnauthedRouteRedirectsToLogin(
 ): Promise<void> {
   await actionAndCapture(page, testInfo, stepLabel, async () => {
     await page.goto(route);
+    await expect(page).toHaveURL(/\/login/);
+    await expect(page.getByRole('textbox', { name: /email|username/i })).toBeVisible();
   });
-  await expect(page).toHaveURL(/\/login/);
 }
 
 export async function createChildBucketFixture(

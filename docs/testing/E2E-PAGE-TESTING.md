@@ -20,6 +20,8 @@ outcomes via fixed seed data.
 - Nix users: run commands via `./scripts/nix/with-env <command>` from repo root.
 - Playwright browser binaries installed locally (e.g. `./scripts/nix/with-env npx playwright install chromium`).
 
+For a copy-paste list of **one-spec report commands** (run each spec in isolation with reports), see [E2E-SPEC-REPORT-COMMANDS.md](E2E-SPEC-REPORT-COMMANDS.md).
+
 ## Make targets
 
 | Target                                | Description                                                                                                                            |
@@ -32,14 +34,10 @@ outcomes via fixed seed data.
 | `e2e_test`                            | Run API gate decision, then E2E for both web and management-web.                                                                       |
 | `e2e_test_web`                        | Run API gate decision, then E2E for web only.                                                                                          |
 | `e2e_test_management_web`             | Run API gate decision, then E2E for management-web only.                                                                               |
-| `e2e_test_home`                       | Run API gate decision, then only home smoke specs for both apps.                                                                       |
-| `e2e_test_home_report`                | Run API gate decision, then home smoke for both apps with step screenshots and timestamped HTML reports.                               |
 | `e2e_test_web_report_spec`            | Run one or more web specs in report mode with step screenshots (`SPEC=...`) and auto-open the report.                                  |
 | `e2e_test_management_web_report_spec` | Run one or more management-web specs in report mode with step screenshots (`SPEC=...`) and auto-open the report.                       |
 | `e2e_test_report_scoped`              | Run one or more web specs + one or more management-web specs in report mode (`WEB_SPEC=... MGMT_SPEC=...`) and auto-open both reports. |
 | `e2e_test_report`                     | Run full E2E suite for both apps with step screenshots, save timestamped HTML reports, and auto-open them.                             |
-| `e2e_test_web_home`                   | Run API tests first, then only `apps/web/e2e/home.spec.ts`.                                                                            |
-| `e2e_test_management_web_home`        | Run API tests first, then only `apps/management-web/e2e/home.spec.ts`.                                                                 |
 | `e2e_teardown`                        | Stop processes started for E2E (dev servers, API, sidecar).                                                                            |
 
 **API gate behavior**:
@@ -86,15 +84,11 @@ Stability mode is now the default for all E2E commands. Startup is usually slowe
 Use this to bootstrap the E2E toolchain with one simple test per app.
 
 1. `make e2e_deps`
-2. Run one of:
-   - `make e2e_test_web_report_spec SPEC=e2e/<web-spec>.spec.ts` (preferred for focused web feature work; `auto` gate)
-   - `make e2e_test_management_web_report_spec SPEC=e2e/<management-spec>.spec.ts` (preferred for focused management-web feature work; `auto` gate)
-   - `make e2e_test_report_scoped WEB_SPEC=e2e/<web-spec>.spec.ts MGMT_SPEC=e2e/<management-spec>.spec.ts` (cross-app feature work; `auto` gate)
-   - `make e2e_test_home` (both home smoke specs)
-   - `make e2e_test_home_report` (both home smoke specs + step screenshots + open HTML reports)
+2. Run one of (use `SPEC=`, `WEB_SPEC=`, and `MGMT_SPEC=` to run a subset of specs; for home smoke use `e2e/home.spec.ts`):
+   - `make e2e_test_web_report_spec SPEC=e2e/<web-spec>.spec.ts` (e.g. `SPEC=e2e/home.spec.ts` for web home smoke)
+   - `make e2e_test_management_web_report_spec SPEC=e2e/<management-spec>.spec.ts` (e.g. `SPEC=e2e/home.spec.ts` for management-web home smoke)
+   - `make e2e_test_report_scoped WEB_SPEC=e2e/<web-spec>.spec.ts MGMT_SPEC=e2e/<management-spec>.spec.ts` (e.g. both home: `WEB_SPEC=e2e/home.spec.ts MGMT_SPEC=e2e/home.spec.ts`)
    - `make e2e_test_report` (full E2E suite for both apps + step screenshots + open HTML reports)
-   - `make e2e_test_web_home` (web only)
-   - `make e2e_test_management_web_home` (management-web only)
 3. Cleanup:
    - `make e2e_teardown`
    - `make test_clean` (full dependency container cleanup)
@@ -109,21 +103,17 @@ These do not use the normal dev ports (`4000/4001/4002` and `4100/4101/4102`), s
 Nix wrapper variants:
 
 - `./scripts/nix/with-env make e2e_deps`
-- `./scripts/nix/with-env make e2e_test_home`
-- `./scripts/nix/with-env make e2e_test_home_report`
 - `./scripts/nix/with-env make e2e_test_web_report_spec SPEC=e2e/<web-spec>.spec.ts`
 - `./scripts/nix/with-env make e2e_test_management_web_report_spec SPEC=e2e/<management-spec>.spec.ts`
 - `./scripts/nix/with-env make e2e_test_report_scoped WEB_SPEC=e2e/<web-spec>.spec.ts MGMT_SPEC=e2e/<management-spec>.spec.ts`
 - `./scripts/nix/with-env make E2E_API_GATE_MODE=on e2e_test_web_report_spec SPEC=e2e/<web-spec>.spec.ts`
 - `./scripts/nix/with-env make E2E_API_GATE_MODE=on e2e_test_management_web_report_spec SPEC=e2e/<management-spec>.spec.ts`
-- `./scripts/nix/with-env make e2e_test_web_home`
-- `./scripts/nix/with-env make e2e_test_management_web_home`
 - `./scripts/nix/with-env make e2e_teardown`
 - `./scripts/nix/with-env make test_clean`
 
 ### Timestamped HTML report output
 
-`make e2e_test_home_report` writes report bundles to:
+`make e2e_test_report_scoped WEB_SPEC=e2e/home.spec.ts MGMT_SPEC=e2e/home.spec.ts` (and other report targets) write report bundles to:
 
 - `.artifacts/e2e-reports/<datetime>/web/`
 - `.artifacts/e2e-reports/<datetime>/management-web/`
@@ -137,24 +127,24 @@ It also updates:
 Retention policy for report directories:
 
 - Keep at most 10 timestamped run directories under `.artifacts/e2e-reports/`.
-- On each `make e2e_test_home_report` run, oldest timestamped directories are automatically removed when count exceeds 10.
+- On each report run (e.g. `e2e_test_report_scoped`, `e2e_test_report`, `e2e_test_web_report_spec`), oldest timestamped directories are automatically removed when count exceeds 10.
 - The `latest` symlink is always updated to the newest run and is not part of the rotation count.
 
 These artifacts are git-ignored (`.artifacts/e2e-reports/`) and should not be committed.
 
 ### Step screenshot policy (report mode vs normal mode)
 
-- `make e2e_test_home_report` enables `E2E_STEP_SCREENSHOTS=true`, which captures:
+- Report targets (`e2e_test_web_report_spec`, `e2e_test_management_web_report_spec`, `e2e_test_report_scoped`, `e2e_test_report`) enable `E2E_STEP_SCREENSHOTS=true`, which captures:
   - initial page-load screenshots
   - post-action screenshots for user-visible steps (e.g. fill, click, navigation)
 - Screenshots are stored in each test's Playwright output directory and attached to the HTML report for in-context review.
-- Normal targets (`e2e_test_home`, `e2e_test_web`, `e2e_test_management_web`, etc.) do **not** enable this toggle, so runs stay lightweight by default.
+- Normal targets (`e2e_test_web`, `e2e_test_management_web`, `e2e_test`, etc.) do **not** enable this toggle, so runs stay lightweight by default.
 - Screenshot filenames should be deliberately long and human-readable so QA can
   infer the expected visible state from the filename alone.
 
 ### Step report layout (custom reporter)
 
-`make e2e_test_home_report` uses a custom Playwright reporter
+Report targets use a custom Playwright reporter
 (`scripts/e2e-html-steps-reporter.ts`) instead of the built-in HTML reporter. The
 generated report shows each step screenshot with its full **Step description**
 directly below it in an expandable block, so you can match descriptions to
@@ -261,7 +251,7 @@ Recommended Playwright settings (both web and management-web configs):
     - `make e2e_test_management_web_report_spec SPEC=e2e/<management-spec>.spec.ts`
     - `make e2e_test_report_scoped WEB_SPEC=e2e/<web-spec>.spec.ts MGMT_SPEC=e2e/<management-spec>.spec.ts`
   - Broader regression checks:
-    - `make e2e_test_home_report` (home smoke only)
+    - `make e2e_test_report_scoped WEB_SPEC=e2e/home.spec.ts MGMT_SPEC=e2e/home.spec.ts` (home smoke)
     - `make e2e_test_report` (full E2E suite)
 - Prefer scoped report commands for day-to-day feature work so reports contain only relevant scenarios and screenshots.
 - Use full-suite report mode only when changes are broad, cross-cutting, or near release/deployment validation.
@@ -278,7 +268,7 @@ Recommended Playwright settings (both web and management-web configs):
 
 Reviewer flow:
 
-1. Run `make e2e_test_home_report` or `make e2e_test_report` (or another report-focused command that sets `E2E_STEP_SCREENSHOTS=true` and writes to the same timestamped report layout).
+1. Run `make e2e_test_report_scoped WEB_SPEC=... MGMT_SPEC=...` or `make e2e_test_report` (or another report-focused command that sets `E2E_STEP_SCREENSHOTS=true` and writes to the same timestamped report layout).
 2. Open the app-specific HTML report (auto-open is attempted by the command).
 3. Inspect each test's attachments for ordered step screenshots.
 4. Use trace + failure artifacts for debugging when needed.

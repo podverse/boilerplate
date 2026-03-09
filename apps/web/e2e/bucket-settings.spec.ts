@@ -6,25 +6,32 @@ import {
 } from './helpers/advancedFixtures';
 import { clickDeleteAndAcceptBrowserDialog } from './helpers/flowHelpers';
 import { actionAndCapture, capturePageLoad } from './helpers/stepScreenshots';
+import { setE2EUserContext } from './helpers/userContext';
 
 const E2E_BUCKET1_SHORT_ID = 'e2ebkt000001';
 
-test.describe('Bucket settings', () => {
-  test('unauthenticated user is redirected to login', async ({ page }, testInfo) => {
+test.describe('This suite verifies the bucket-settings-page.', () => {
+  test('When an unauthenticated user tries to open the bucket-settings-page, they are redirected to the login page.', async ({
+    page,
+  }, testInfo) => {
+    setE2EUserContext(testInfo, 'unauthenticated');
     await expectUnauthedRouteRedirectsToLogin(
       page,
       `/bucket/${E2E_BUCKET1_SHORT_ID}/settings`,
-      'navigate-to-bucket-settings-while-unauthenticated-expect-redirect-to-login',
+      'User navigates to the bucket-settings-page while not logged in and is redirected to the login page.',
       testInfo
     );
   });
 
-  test('authenticated user sees bucket settings page', async ({ page }, testInfo) => {
+  test('When an authenticated user opens the bucket-settings-page, they see the settings page.', async ({
+    page,
+  }, testInfo) => {
+    setE2EUserContext(testInfo, 'seeded-bucket-owner');
     await loginAsWebE2EUserAndExpectDashboard(page);
     await actionAndCapture(
       page,
       testInfo,
-      'navigate-to-bucket-settings-expect-settings-form-or-admins-section',
+      'User navigates to the bucket-settings-page and sees the settings form or admins section.',
       async () => {
         await page.goto(`/bucket/${E2E_BUCKET1_SHORT_ID}/settings`);
       }
@@ -37,16 +44,19 @@ test.describe('Bucket settings', () => {
     await capturePageLoad(
       page,
       testInfo,
-      'bucket-settings-page-visible-with-save-button-or-settings-heading'
+      'The bucket-settings-page is visible with a save button or settings heading.'
     );
   });
 
-  test('bucket settings admins tab url is reachable', async ({ page }, testInfo) => {
+  test('When the user opens the bucket-settings admins-tab URL, the admins context is shown.', async ({
+    page,
+  }, testInfo) => {
+    setE2EUserContext(testInfo, 'seeded-bucket-owner');
     await loginAsWebE2EUserAndExpectDashboard(page);
     await actionAndCapture(
       page,
       testInfo,
-      'navigate-to-bucket-settings-admins-tab-and-expect-admins-context-visible',
+      'User navigates to the bucket-settings admins-tab and sees the admins context.',
       async () => {
         await page.goto(`/bucket/${E2E_BUCKET1_SHORT_ID}/settings?tab=admins`);
       }
@@ -57,9 +67,13 @@ test.describe('Bucket settings', () => {
     await expect(page.getByText(/admins/i).first()).toBeVisible();
   });
 
-  test('admins tab can generate an invitation link', async ({ page }, testInfo) => {
+  test('When the user is on the admins-tab, they can generate an invitation link.', async ({
+    page,
+  }, testInfo) => {
+    setE2EUserContext(testInfo, 'seeded-bucket-owner');
     await loginAsWebE2EUserAndExpectDashboard(page);
     await page.goto(`/bucket/${E2E_BUCKET1_SHORT_ID}/settings/roles/new`);
+    await expect(page.getByRole('textbox', { name: /role name|name/i })).toBeVisible();
     await page
       .getByRole('textbox', { name: /role name|name/i })
       .fill(`e2e-admin-role-${Date.now()}`);
@@ -69,13 +83,14 @@ test.describe('Bucket settings', () => {
     );
 
     await page.goto(`/bucket/${E2E_BUCKET1_SHORT_ID}/settings?tab=admins`);
+    await expect(page.getByRole('button', { name: /add admin/i })).toBeVisible();
 
     await expect(page.getByRole('button', { name: /add admin/i })).toBeVisible();
 
     await actionAndCapture(
       page,
       testInfo,
-      'generate-admin-invitation-link-from-admins-tab',
+      'User generates an admin invitation link from the admins-tab.',
       async () => {
         await page.getByRole('button', { name: /add admin/i }).click();
       }
@@ -87,9 +102,13 @@ test.describe('Bucket settings', () => {
     await expect(inviteLinkInput.first()).toBeVisible();
   });
 
-  test('admins tab can remove a pending invitation', async ({ page }, testInfo) => {
+  test('When the user is on the admins-tab, they can remove a pending invitation.', async ({
+    page,
+  }, testInfo) => {
+    setE2EUserContext(testInfo, 'seeded-bucket-owner');
     await loginAsWebE2EUserAndExpectDashboard(page);
     await page.goto(`/bucket/${E2E_BUCKET1_SHORT_ID}/settings/roles/new`);
+    await expect(page.getByRole('textbox', { name: /role name|name/i })).toBeVisible();
     await page
       .getByRole('textbox', { name: /role name|name/i })
       .fill(`e2e-admin-role-${Date.now()}`);
@@ -99,6 +118,7 @@ test.describe('Bucket settings', () => {
     );
 
     await page.goto(`/bucket/${E2E_BUCKET1_SHORT_ID}/settings?tab=admins`);
+    await expect(page.getByRole('button', { name: /add admin/i })).toBeVisible();
     await page.getByRole('button', { name: /add admin/i }).click();
     const pendingRows = page.locator('table tbody tr');
     await expect(pendingRows.first()).toBeVisible();
@@ -111,7 +131,7 @@ test.describe('Bucket settings', () => {
     await actionAndCapture(
       page,
       testInfo,
-      'delete-first-pending-admin-invitation-row',
+      'User deletes the first pending admin invitation row.',
       async () => {
         await clickDeleteAndAcceptBrowserDialog(
           page,
@@ -124,11 +144,13 @@ test.describe('Bucket settings', () => {
     }
   });
 
-  test('general tab exposes editable controls and cancel returns to bucket detail', async ({
+  test('When the user is on the general-tab, editable controls are shown and cancel returns to bucket detail.', async ({
     page,
   }, testInfo) => {
+    setE2EUserContext(testInfo, 'seeded-bucket-owner');
     await loginAsWebE2EUserAndExpectDashboard(page);
     await page.goto(`/bucket/${E2E_BUCKET1_SHORT_ID}/settings?tab=general`);
+    await expect(page.getByRole('textbox', { name: /name/i })).toBeVisible();
 
     await expect(page.getByRole('textbox', { name: /name/i })).toBeVisible();
     await expect(page.getByRole('spinbutton', { name: /message body max length/i })).toBeVisible();
@@ -138,7 +160,7 @@ test.describe('Bucket settings', () => {
     await actionAndCapture(
       page,
       testInfo,
-      'click-cancel-from-general-settings-and-expect-bucket-detail',
+      'User clicks cancel from general-tab settings and is taken to bucket detail.',
       async () => {
         await page.getByRole('link', { name: /cancel/i }).click();
       }

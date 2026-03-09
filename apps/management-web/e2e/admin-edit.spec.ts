@@ -3,26 +3,33 @@ import { expect, test } from '@playwright/test';
 import { loginAsManagementSuperAdmin } from './helpers/advancedFixtures';
 import { expectUnauthedRouteRedirectsToLogin } from './helpers/authAssertions';
 import { actionAndCapture, capturePageLoad } from './helpers/stepScreenshots';
+import { setE2EUserContext } from './helpers/userContext';
 const E2E_SUPER_ADMIN_ID = 'aaaaaaaa-aaaa-4aaa-aaaa-aaaaaaaaaaaa';
 
-test.describe('Management admin edit', () => {
-  test('unauthenticated user is redirected to login', async ({ page }, testInfo) => {
+test.describe('This suite covers Editing a management admin.', () => {
+  test('When an unauthenticated user tries to open the admin-edit-page, they are redirected to the login-page.', async ({
+    page,
+  }, testInfo) => {
+    setE2EUserContext(testInfo, 'unauthenticated');
     await expectUnauthedRouteRedirectsToLogin(
       page,
       testInfo,
-      'navigate-to-management-admin-edit-while-unauthenticated-expect-redirect-to-login',
+      'User navigates to the management admin-edit-page while not logged in and is redirected to the login-page.',
       async () => {
         await page.goto(`/admin/${E2E_SUPER_ADMIN_ID}/edit`);
       }
     );
   });
 
-  test('authenticated user sees edit admin form', async ({ page }, testInfo) => {
+  test('When an authenticated user opens the admin-edit-page, they see the edit admin form.', async ({
+    page,
+  }, testInfo) => {
+    setE2EUserContext(testInfo, 'super-admin (full CRUD)');
     await loginAsManagementSuperAdmin(page);
     await actionAndCapture(
       page,
       testInfo,
-      'navigate-to-management-admin-edit-route-and-expect-edit-admin-form-visible',
+      'User navigates to the management admin-edit-route and sees the edit admin form.',
       async () => {
         await page.goto(`/admin/${E2E_SUPER_ADMIN_ID}/edit`);
       }
@@ -34,11 +41,14 @@ test.describe('Management admin edit', () => {
     await capturePageLoad(
       page,
       testInfo,
-      'management-admin-edit-form-visible-with-fields-and-save'
+      'The management admin-edit-form is visible with fields and save button.'
     );
   });
 
-  test('editing admin profile persists after save and reload', async ({ page }, testInfo) => {
+  test('When the user edits the admin profile and saves, the changes persist after reload.', async ({
+    page,
+  }, testInfo) => {
+    setE2EUserContext(testInfo, 'super-admin (full CRUD)');
     await loginAsManagementSuperAdmin(page);
     await page.goto(`/admin/${E2E_SUPER_ADMIN_ID}/edit`);
 
@@ -50,7 +60,7 @@ test.describe('Management admin edit', () => {
     await actionAndCapture(
       page,
       testInfo,
-      'save-updated-management-admin-display-name-and-return-to-admins-list',
+      'User saves the updated management admin display name and is returned to the admins list.',
       async () => {
         await page.getByRole('button', { name: /save changes|save|update/i }).click();
       }

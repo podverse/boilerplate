@@ -1,16 +1,20 @@
 import { expect, test } from '@playwright/test';
 
 import { actionAndCapture, capturePageLoad } from './helpers/stepScreenshots';
+import { setE2EUserContext } from './helpers/userContext';
 
 const E2E_EMAIL = 'e2e@example.com';
 const E2E_PASSWORD = 'Test!1Aa';
 
-test.describe('Login', () => {
-  test('shows login form when unauthenticated', async ({ page }, testInfo) => {
+test.describe('This suite verifies the login page.', () => {
+  test('When an unauthenticated user visits the login page, they see the login form.', async ({
+    page,
+  }, testInfo) => {
+    setE2EUserContext(testInfo, 'unauthenticated');
     await actionAndCapture(
       page,
       testInfo,
-      'navigate-to-login-page-and-expect-form-visible-for-unauthenticated-user',
+      'User navigates to the login page and sees the form for unauthenticated users.',
       async () => {
         await page.goto('/login');
       }
@@ -21,15 +25,18 @@ test.describe('Login', () => {
     await capturePageLoad(
       page,
       testInfo,
-      'login-form-fully-visible-with-email-password-and-submit-button'
+      'The login form is fully visible with email, password, and submit button.'
     );
   });
 
-  test('valid credentials redirect to dashboard', async ({ page }, testInfo) => {
+  test('When the user submits valid credentials, they are redirected to the dashboard.', async ({
+    page,
+  }, testInfo) => {
+    setE2EUserContext(testInfo, 'unauthenticated');
     await actionAndCapture(
       page,
       testInfo,
-      'navigate-to-login-page-before-entering-valid-seeded-credentials',
+      'User navigates to the login page before entering valid seeded credentials.',
       async () => {
         await page.goto('/login');
       }
@@ -37,7 +44,7 @@ test.describe('Login', () => {
     await actionAndCapture(
       page,
       testInfo,
-      'fill-email-and-password-with-seeded-e2e-user-then-submit',
+      'User fills email and password with the seeded E2E user and submits.',
       async () => {
         await page.getByRole('textbox', { name: /email|username/i }).fill(E2E_EMAIL);
         await page.getByLabel(/password/i).fill(E2E_PASSWORD);
@@ -48,15 +55,18 @@ test.describe('Login', () => {
     await capturePageLoad(
       page,
       testInfo,
-      'dashboard-visible-after-successful-login-with-seeded-user'
+      'The dashboard is visible after successful login with the seeded user.'
     );
   });
 
-  test('invalid credentials show error and do not redirect', async ({ page }, testInfo) => {
+  test('When the user submits invalid credentials, an error is shown and they remain on the login page.', async ({
+    page,
+  }, testInfo) => {
+    setE2EUserContext(testInfo, 'unauthenticated');
     await actionAndCapture(
       page,
       testInfo,
-      'navigate-to-login-page-before-entering-invalid-credentials',
+      'User navigates to the login page before entering invalid credentials.',
       async () => {
         await page.goto('/login');
       }
@@ -64,29 +74,33 @@ test.describe('Login', () => {
     await actionAndCapture(
       page,
       testInfo,
-      'fill-wrong-password-and-submit-expect-error-message',
+      'User fills a wrong password and submits; an error message is shown.',
       async () => {
         await page.getByRole('textbox', { name: /email|username/i }).fill(E2E_EMAIL);
         await page.getByLabel(/password/i).fill('WrongPassword1!');
         await page.getByRole('button', { name: /log in|sign in|submit/i }).click();
+        await expect(page).toHaveURL(/\/login/);
+        await expect(page.getByText(/invalid|incorrect|wrong|error/i)).toBeVisible();
       }
     );
-    await expect(page).toHaveURL(/\/login/);
-    await expect(page.getByText(/invalid|incorrect|wrong|error/i)).toBeVisible();
     await capturePageLoad(
       page,
       testInfo,
-      'login-page-still-visible-with-error-message-after-invalid-credentials'
+      'The login page is still visible with an error message after invalid credentials.'
     );
   });
 
-  test('authenticated user visiting /login redirects to dashboard', async ({ page }, testInfo) => {
+  test('When an authenticated user visits the login page, they are redirected to the dashboard.', async ({
+    page,
+  }, testInfo) => {
+    setE2EUserContext(testInfo, 'seeded-bucket-owner');
     await actionAndCapture(
       page,
       testInfo,
-      'log-in-with-seeded-user-first-to-establish-session',
+      'User logs in with the seeded user first to establish a session.',
       async () => {
         await page.goto('/login');
+        await expect(page.getByRole('textbox', { name: /email|username/i })).toBeVisible();
         await page.getByRole('textbox', { name: /email|username/i }).fill(E2E_EMAIL);
         await page.getByLabel(/password/i).fill(E2E_PASSWORD);
         await page.getByRole('button', { name: /log in|sign in|submit/i }).click();
@@ -96,7 +110,7 @@ test.describe('Login', () => {
     await actionAndCapture(
       page,
       testInfo,
-      'navigate-to-login-while-authenticated-expect-redirect-to-dashboard',
+      'User navigates to the login page while authenticated and is redirected to the dashboard.',
       async () => {
         await page.goto('/login');
       }
@@ -104,13 +118,16 @@ test.describe('Login', () => {
     await expect(page).toHaveURL(/\/dashboard/);
   });
 
-  test('sign up link goes to signup page', async ({ page }, testInfo) => {
+  test('When the user clicks the sign-up link, they are taken to the sign-up page.', async ({
+    page,
+  }, testInfo) => {
+    setE2EUserContext(testInfo, 'unauthenticated');
     await page.goto('/login');
     await expect(page.getByRole('link', { name: /sign up/i })).toBeVisible();
     await actionAndCapture(
       page,
       testInfo,
-      'click-sign-up-link-and-verify-navigation-to-signup-page',
+      'User clicks the sign-up link and is navigated to the sign-up page.',
       async () => {
         await page.getByRole('link', { name: /sign up/i }).click();
       }
@@ -118,13 +135,16 @@ test.describe('Login', () => {
     await expect(page).toHaveURL(/\/signup/);
   });
 
-  test('forgot password link goes to forgot-password page', async ({ page }, testInfo) => {
+  test('When the user clicks the forgot-password link, they are taken to the forgot-password page.', async ({
+    page,
+  }, testInfo) => {
+    setE2EUserContext(testInfo, 'unauthenticated');
     await page.goto('/login');
     await expect(page.getByRole('link', { name: /forgot password/i })).toBeVisible();
     await actionAndCapture(
       page,
       testInfo,
-      'click-forgot-password-link-and-verify-navigation-to-forgot-password-page',
+      'User clicks the forgot-password link and is navigated to the forgot-password page.',
       async () => {
         await page.getByRole('link', { name: /forgot password/i }).click();
       }
@@ -132,14 +152,16 @@ test.describe('Login', () => {
     await expect(page).toHaveURL(/\/forgot-password/);
   });
 
-  test('safe returnUrl redirects to requested internal route after login', async ({
+  test('When the user logs in with a safe returnUrl, they are redirected to the requested internal route after login.', async ({
     page,
   }, testInfo) => {
+    setE2EUserContext(testInfo, 'unauthenticated');
     await page.goto('/login?returnUrl=%2Fsettings');
+    await expect(page.getByRole('textbox', { name: /email|username/i })).toBeVisible();
     await actionAndCapture(
       page,
       testInfo,
-      'login-with-safe-return-url-and-verify-redirect-to-settings',
+      'User logs in with a safe returnUrl and is redirected to the settings page.',
       async () => {
         await page.getByRole('textbox', { name: /email|username/i }).fill(E2E_EMAIL);
         await page.getByLabel(/password/i).fill(E2E_PASSWORD);
@@ -149,12 +171,16 @@ test.describe('Login', () => {
     await expect(page).toHaveURL(/\/settings/);
   });
 
-  test('unsafe returnUrl is ignored and falls back to dashboard', async ({ page }, testInfo) => {
+  test('When the user logs in with an unsafe returnUrl, it is ignored and they are redirected to the dashboard.', async ({
+    page,
+  }, testInfo) => {
+    setE2EUserContext(testInfo, 'unauthenticated');
     await page.goto('/login?returnUrl=%2F%2Fevil.example');
+    await expect(page.getByRole('textbox', { name: /email|username/i })).toBeVisible();
     await actionAndCapture(
       page,
       testInfo,
-      'login-with-unsafe-return-url-and-verify-dashboard-fallback',
+      'User logs in with an unsafe returnUrl and is redirected to the dashboard as fallback.',
       async () => {
         await page.getByRole('textbox', { name: /email|username/i }).fill(E2E_EMAIL);
         await page.getByLabel(/password/i).fill(E2E_PASSWORD);

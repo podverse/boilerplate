@@ -1,7 +1,7 @@
 @use '../../../styles/variables' as *;
 
-/** Topics table: header row + Name, Last Message, Created, Actions columns. */
-.topicsTable {
+/** Buckets table: header row + Name, Last Message, Created, Actions columns. */
+.bucketsTable {
   /* Name column takes remaining space; date/actions columns don't grow. */
   tbody tr td:first-child {
     width: 99%;

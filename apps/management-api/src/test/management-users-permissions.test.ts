@@ -5,8 +5,10 @@
  */
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import request from 'supertest';
+import { UserService } from '@boilerplate/orm';
 
 import { config } from '../config/index.js';
+import { hashPassword } from '../lib/auth/hash.js';
 import { createManagementLoginAgent } from './helpers/login-agent.js';
 import {
   createManagementApiTestAppWithSuperAdmin,
@@ -16,6 +18,16 @@ import {
 const API = config.apiVersionPath;
 const superAdminUsername = 'test-super-admin';
 const superAdminPassword = 'test-super-admin-password-1';
+
+async function createUserFixture(email: string, displayName: string): Promise<string> {
+  const passwordHash = await hashPassword('target-user-password-1');
+  const user = await UserService.create({
+    email,
+    password: passwordHash,
+    displayName,
+  });
+  return user.id;
+}
 
 describe('management-api users permissions', () => {
   let app: Awaited<ReturnType<typeof createManagementApiTestAppWithSuperAdmin>>;
@@ -61,16 +73,11 @@ describe('management-api users permissions', () => {
         password: readOnlyPassword,
       });
 
-      // Create a target user to act on
-      const userRes = await superAdminAgent
-        .post(`${API}/users`)
-        .send({
-          email: `target-user-read-${ts}@example.com`,
-          password: 'target-user-password-1',
-          displayName: `Target User Read ${ts}`,
-        })
-        .expect(201);
-      targetUserId = userRes.body.user.id;
+      // Create a target user to act on (direct fixture; POST /users contract is covered elsewhere)
+      targetUserId = await createUserFixture(
+        `target-user-read-${ts}@example.com`,
+        `Target User Read ${ts}`
+      );
     });
 
     it('GET /users returns 200 (has read)', async () => {
@@ -112,8 +119,12 @@ describe('management-api users permissions', () => {
     });
 
     afterAll(async () => {
-      await superAdminAgent.delete(`${API}/users/${targetUserId}`).expect(204);
-      await superAdminAgent.delete(`${API}/admins/${readOnlyAdminId}`).expect(204);
+      if (targetUserId !== undefined) {
+        await superAdminAgent.delete(`${API}/users/${targetUserId}`).expect(204);
+      }
+      if (readOnlyAdminId !== undefined) {
+        await superAdminAgent.delete(`${API}/admins/${readOnlyAdminId}`).expect(204);
+      }
     });
   });
 
@@ -184,14 +195,10 @@ describe('management-api users permissions', () => {
         password: changePassPassword,
       });
 
-      const userRes = await superAdminAgent
-        .post(`${API}/users`)
-        .send({
-          email: `target-user-changepw-${ts3}@example.com`,
-          password: 'target-user-password-1',
-        })
-        .expect(201);
-      targetUserId = userRes.body.user.id;
+      targetUserId = await createUserFixture(
+        `target-user-changepw-${ts3}@example.com`,
+        `Target User ChangePW ${ts3}`
+      );
     });
 
     it('POST /users/:id/change-password returns 204 (has users update permission)', async () => {
@@ -210,8 +217,12 @@ describe('management-api users permissions', () => {
     });
 
     afterAll(async () => {
-      await superAdminAgent.delete(`${API}/users/${targetUserId}`).expect(204);
-      await superAdminAgent.delete(`${API}/admins/${changePassAdminId}`).expect(204);
+      if (targetUserId !== undefined) {
+        await superAdminAgent.delete(`${API}/users/${targetUserId}`).expect(204);
+      }
+      if (changePassAdminId !== undefined) {
+        await superAdminAgent.delete(`${API}/admins/${changePassAdminId}`).expect(204);
+      }
     });
   });
 });

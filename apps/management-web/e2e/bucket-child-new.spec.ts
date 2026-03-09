@@ -3,26 +3,33 @@ import { expect, test } from '@playwright/test';
 import { loginAsManagementSuperAdmin } from './helpers/advancedFixtures';
 import { expectUnauthedRouteRedirectsToLogin } from './helpers/authAssertions';
 import { actionAndCapture, capturePageLoad } from './helpers/stepScreenshots';
+import { setE2EUserContext } from './helpers/userContext';
 const E2E_BUCKET1_ID = '22222222-2222-4222-a222-222222222222';
 
-test.describe('Management bucket child new', () => {
-  test('unauthenticated user is redirected to login', async ({ page }, testInfo) => {
+test.describe('This suite covers Creating a new-child-bucket in management.', () => {
+  test('When an unauthenticated user tries to open the new-child-bucket page, they are redirected to the login-page.', async ({
+    page,
+  }, testInfo) => {
+    setE2EUserContext(testInfo, 'unauthenticated');
     await expectUnauthedRouteRedirectsToLogin(
       page,
       testInfo,
-      'navigate-to-management-bucket-child-new-while-unauthenticated-expect-redirect-to-login',
+      'User navigates to the management bucket child new page while not logged in and is redirected to the login-page.',
       async () => {
         await page.goto(`/bucket/${E2E_BUCKET1_ID}/new`);
       }
     );
   });
 
-  test('authenticated user sees child bucket create form', async ({ page }, testInfo) => {
+  test('When an authenticated user opens the new-child-bucket page, they see the child bucket create form.', async ({
+    page,
+  }, testInfo) => {
+    setE2EUserContext(testInfo, 'super-admin (full CRUD)');
     await loginAsManagementSuperAdmin(page);
     await actionAndCapture(
       page,
       testInfo,
-      'navigate-to-management-bucket-child-new-route-and-expect-create-form-visible',
+      'User navigates to the management bucket child new route and sees the create form.',
       async () => {
         await page.goto(`/bucket/${E2E_BUCKET1_ID}/new`);
       }
@@ -35,7 +42,7 @@ test.describe('Management bucket child new', () => {
     await capturePageLoad(
       page,
       testInfo,
-      'management-bucket-child-new-form-visible-with-name-and-submit'
+      'The management bucket child new form is visible with name and submit button.'
     );
   });
 });

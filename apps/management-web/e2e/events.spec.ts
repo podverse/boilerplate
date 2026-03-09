@@ -3,40 +3,50 @@ import { expect, test } from '@playwright/test';
 import { loginAsManagementSuperAdmin } from './helpers/advancedFixtures';
 import { expectUnauthedRouteRedirectsToLogin } from './helpers/authAssertions';
 import { actionAndCapture, capturePageLoad } from './helpers/stepScreenshots';
+import { setE2EUserContext } from './helpers/userContext';
 
-test.describe('Events', () => {
-  test('unauthenticated user is redirected to login', async ({ page }, testInfo) => {
+test.describe('This suite covers Management events-page.', () => {
+  test('When an unauthenticated user tries to open the events-page, they are redirected to the login-page.', async ({
+    page,
+  }, testInfo) => {
+    setE2EUserContext(testInfo, 'unauthenticated');
     await expectUnauthedRouteRedirectsToLogin(
       page,
       testInfo,
-      'navigate-to-management-events-while-unauthenticated-expect-redirect-to-login',
+      'User navigates to the management events-page while not logged in and is redirected to the login-page.',
       async () => {
         await page.goto('/events');
       }
     );
   });
 
-  test('authenticated user sees events page', async ({ page }, testInfo) => {
+  test('When an authenticated user opens the events-page, they see the events-page.', async ({
+    page,
+  }, testInfo) => {
+    setE2EUserContext(testInfo, 'super-admin (full CRUD)');
     await loginAsManagementSuperAdmin(page);
     await actionAndCapture(
       page,
       testInfo,
-      'navigate-to-management-events-expect-list-or-heading',
+      'User navigates to the management events-page and sees the list or heading.',
       async () => {
         await page.goto('/events');
       }
     );
     await expect(page).toHaveURL(/\/events/);
     await expect(page.getByRole('heading', { name: /events/i })).toBeVisible();
-    await capturePageLoad(page, testInfo, 'management-events-page-visible');
+    await capturePageLoad(page, testInfo, 'The management events-page is visible.');
   });
 
-  test('events route supports query params for sort and search', async ({ page }, testInfo) => {
+  test('When the user opens the events route with sort and search query params, the page loads with those params.', async ({
+    page,
+  }, testInfo) => {
+    setE2EUserContext(testInfo, 'super-admin (full CRUD)');
     await loginAsManagementSuperAdmin(page);
     await actionAndCapture(
       page,
       testInfo,
-      'navigate-to-management-events-with-sort-and-search-query-and-expect-page-load',
+      'User navigates to the management events-page with sort and search query params and the page loads.',
       async () => {
         await page.goto('/events?sort=oldest&search=e2e&page=1');
       }

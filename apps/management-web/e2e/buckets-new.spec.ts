@@ -3,25 +3,32 @@ import { expect, test } from '@playwright/test';
 import { loginAsManagementSuperAdmin, nextFixtureName } from './helpers/advancedFixtures';
 import { expectUnauthedRouteRedirectsToLogin } from './helpers/authAssertions';
 import { actionAndCapture, capturePageLoad } from './helpers/stepScreenshots';
+import { setE2EUserContext } from './helpers/userContext';
 
-test.describe('Management buckets new', () => {
-  test('unauthenticated user is redirected to login', async ({ page }, testInfo) => {
+test.describe('This suite covers Creating a new-management-bucket.', () => {
+  test('When an unauthenticated user tries to open the new bucket page, they are redirected to the login-page.', async ({
+    page,
+  }, testInfo) => {
+    setE2EUserContext(testInfo, 'unauthenticated');
     await expectUnauthedRouteRedirectsToLogin(
       page,
       testInfo,
-      'navigate-to-management-buckets-new-while-unauthenticated-expect-redirect-to-login',
+      'User navigates to the management buckets new page while not logged in and is redirected to the login-page.',
       async () => {
         await page.goto('/buckets/new');
       }
     );
   });
 
-  test('authenticated user sees add bucket form', async ({ page }, testInfo) => {
+  test('When an authenticated user opens the new bucket page, they see the add bucket form.', async ({
+    page,
+  }, testInfo) => {
+    setE2EUserContext(testInfo, 'super-admin (full CRUD)');
     await loginAsManagementSuperAdmin(page);
     await actionAndCapture(
       page,
       testInfo,
-      'navigate-to-management-buckets-new-route-and-expect-add-bucket-form-visible',
+      'User navigates to the management buckets new route and sees the add bucket form.',
       async () => {
         await page.goto('/buckets/new');
       }
@@ -32,35 +39,42 @@ test.describe('Management buckets new', () => {
     await capturePageLoad(
       page,
       testInfo,
-      'management-add-bucket-form-visible-with-name-and-submit'
+      'The management add bucket form is visible with name and submit button.'
     );
   });
 
-  test('empty submit shows validation and stays on page', async ({ page }, testInfo) => {
+  test('When the user submits the new bucket form without required fields, validation is shown and they remain on the page.', async ({
+    page,
+  }, testInfo) => {
+    setE2EUserContext(testInfo, 'super-admin (full CRUD)');
     await loginAsManagementSuperAdmin(page);
     await page.goto('/buckets/new');
+    await expect(page.getByRole('textbox', { name: /name|bucket/i })).toBeVisible();
 
     await actionAndCapture(
       page,
       testInfo,
-      'submit-empty-management-bucket-create-form-and-expect-validation',
+      'User submits the empty management bucket create form and sees validation.',
       async () => {
         await page.getByRole('button', { name: /create bucket|add bucket|create|save/i }).click();
+        await expect(page).toHaveURL(/\/buckets\/new$/);
+        await expect(page.getByText(/required|name|owner/i).first()).toBeVisible();
       }
     );
-
-    await expect(page).toHaveURL(/\/buckets\/new$/);
-    await expect(page.getByText(/required|name|owner/i).first()).toBeVisible();
   });
 
-  test('cancel returns to buckets list', async ({ page }, testInfo) => {
+  test('When the user clicks cancel on the new bucket form, they are returned to the buckets list.', async ({
+    page,
+  }, testInfo) => {
+    setE2EUserContext(testInfo, 'super-admin (full CRUD)');
     await loginAsManagementSuperAdmin(page);
     await page.goto('/buckets/new');
+    await expect(page.getByRole('button', { name: /cancel/i })).toBeVisible();
 
     await actionAndCapture(
       page,
       testInfo,
-      'click-cancel-on-management-bucket-create-form-and-expect-buckets-list',
+      'User clicks cancel on the management bucket create form and is taken to the buckets list.',
       async () => {
         await page.getByRole('button', { name: /cancel/i }).click();
       }
@@ -68,11 +82,13 @@ test.describe('Management buckets new', () => {
     await expect(page).toHaveURL(/\/buckets(\?|$)/);
   });
 
-  test('valid bucket create submits and redirects to bucket surface', async ({
+  test('When the user submits a valid bucket create form, the form submits and they are redirected to the bucket surface.', async ({
     page,
   }, testInfo) => {
+    setE2EUserContext(testInfo, 'super-admin (full CRUD)');
     await loginAsManagementSuperAdmin(page);
     await page.goto('/buckets/new');
+    await expect(page.getByRole('textbox', { name: /name|bucket/i })).toBeVisible();
 
     const bucketName = nextFixtureName('e2e-mgmt-bucket');
     await page.getByRole('textbox', { name: /name|bucket/i }).fill(bucketName);
@@ -85,7 +101,7 @@ test.describe('Management buckets new', () => {
     await actionAndCapture(
       page,
       testInfo,
-      'submit-valid-management-bucket-create-form-and-expect-redirect',
+      'User submits the valid management bucket create form and is redirected.',
       async () => {
         await page.getByRole('button', { name: /create bucket|add bucket|create|save/i }).click();
       }

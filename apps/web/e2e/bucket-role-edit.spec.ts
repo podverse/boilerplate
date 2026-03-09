@@ -10,37 +10,52 @@ import {
   expectInvalidRouteShowsNotFound,
 } from './helpers/flowHelpers';
 import { actionAndCapture, capturePageLoad } from './helpers/stepScreenshots';
+import { setE2EUserContext } from './helpers/userContext';
 const E2E_BUCKET1_SHORT_ID = 'e2ebkt000001';
 
-test.describe('Bucket role edit', () => {
-  test('unauthenticated user is redirected to login', async ({ page }, testInfo) => {
+test.describe('This suite verifies editing an existing bucket role.', () => {
+  test('When an unauthenticated user tries to open the bucket-role-edit-page, they are redirected to the login page.', async ({
+    page,
+  }, testInfo) => {
+    setE2EUserContext(testInfo, 'unauthenticated');
     await expectUnauthedRouteRedirectsToLogin(
       page,
       `/bucket/${E2E_BUCKET1_SHORT_ID}/settings/roles/invalid-role-99999/edit`,
-      'navigate-to-bucket-role-edit-while-unauthenticated-expect-redirect-to-login',
+      'User navigates to the bucket-role-edit-page while not logged in and is redirected to the login page.',
       testInfo
     );
   });
 
-  test('invalid role id shows not found', async ({ page }, testInfo) => {
+  test('When the user opens the bucket-role-edit-page with an invalid role id, they see not found.', async ({
+    page,
+  }, testInfo) => {
+    setE2EUserContext(testInfo, 'seeded-bucket-owner');
     await loginAsWebE2EUserAndExpectDashboard(page);
     await expectInvalidRouteShowsNotFound(
       page,
       testInfo,
-      'navigate-to-bucket-role-edit-with-invalid-role-id-and-expect-not-found',
+      'User navigates to the bucket-role-edit-page with an invalid role id and sees not found.',
       async () => {
         await page.goto(`/bucket/${E2E_BUCKET1_SHORT_ID}/settings/roles/invalid-role-99999/edit`);
       }
     );
-    await capturePageLoad(page, testInfo, 'bucket-role-edit-invalid-role-id-renders-not-found');
+    await capturePageLoad(
+      page,
+      testInfo,
+      'The bucket-role-edit-page with an invalid role id renders not found.'
+    );
   });
 
-  test('existing custom role can be edited and saved', async ({ page }, testInfo) => {
+  test('When the user edits an existing custom role and saves, the role is updated and they return to the roles list.', async ({
+    page,
+  }, testInfo) => {
+    setE2EUserContext(testInfo, 'seeded-bucket-owner');
     await loginAsWebE2EUserAndExpectDashboard(page);
     const createdName = nextFixtureName('e2e-web-role');
     const updatedName = nextFixtureName('e2e-web-role-updated');
 
     await page.goto(`/bucket/${E2E_BUCKET1_SHORT_ID}/settings/roles/new`);
+    await expect(page.getByRole('textbox', { name: /role name|name/i })).toBeVisible();
     await page.getByRole('textbox', { name: /role name|name/i }).fill(createdName);
     await page.getByRole('button', { name: /save|create/i }).click();
     await expect(page).toHaveURL(
@@ -48,10 +63,15 @@ test.describe('Bucket role edit', () => {
     );
     await expect(page.getByText(new RegExp(createdName, 'i')).first()).toBeVisible();
 
-    await actionAndCapture(page, testInfo, 'open-edit-page-for-created-custom-role', async () => {
-      const row = page.locator('li', { hasText: createdName }).first();
-      await row.getByRole('link', { name: /edit/i }).click();
-    });
+    await actionAndCapture(
+      page,
+      testInfo,
+      'User opens the bucket-role-edit-page for the created custom role.',
+      async () => {
+        const row = page.locator('li', { hasText: createdName }).first();
+        await row.getByRole('link', { name: /edit/i }).click();
+      }
+    );
 
     const roleNameInput = page.getByRole('textbox', { name: /role name|name/i });
     await expect(roleNameInput).toBeVisible();
@@ -60,7 +80,7 @@ test.describe('Bucket role edit', () => {
     await actionAndCapture(
       page,
       testInfo,
-      'save-updated-custom-role-and-return-to-roles-list',
+      'User saves the updated custom role and is returned to the roles list.',
       async () => {
         await page.getByRole('button', { name: /save|create/i }).click();
       }
@@ -72,11 +92,15 @@ test.describe('Bucket role edit', () => {
     await expect(page.getByText(new RegExp(updatedName, 'i')).first()).toBeVisible();
   });
 
-  test('custom role can be deleted from roles list', async ({ page }, testInfo) => {
+  test('When the user deletes a custom role from the roles list, the role is removed.', async ({
+    page,
+  }, testInfo) => {
+    setE2EUserContext(testInfo, 'seeded-bucket-owner');
     await loginAsWebE2EUserAndExpectDashboard(page);
     const createdName = nextFixtureName('e2e-web-role-delete');
 
     await page.goto(`/bucket/${E2E_BUCKET1_SHORT_ID}/settings/roles/new`);
+    await expect(page.getByRole('textbox', { name: /role name|name/i })).toBeVisible();
     await page.getByRole('textbox', { name: /role name|name/i }).fill(createdName);
     await page.getByRole('button', { name: /save|create/i }).click();
     await expect(page).toHaveURL(
@@ -89,7 +113,7 @@ test.describe('Bucket role edit', () => {
     await actionAndCapture(
       page,
       testInfo,
-      'delete-created-custom-role-from-roles-list',
+      'User deletes the created custom role from the roles list.',
       async () => {
         await clickDeleteAndAcceptBrowserDialog(
           page,

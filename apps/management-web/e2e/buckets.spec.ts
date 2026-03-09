@@ -4,25 +4,32 @@ import { loginAsManagementSuperAdmin, nextFixtureName } from './helpers/advanced
 import { expectUnauthedRouteRedirectsToLogin } from './helpers/authAssertions';
 import { clickConfirmDeleteInModal } from './helpers/flowHelpers';
 import { actionAndCapture, capturePageLoad } from './helpers/stepScreenshots';
+import { setE2EUserContext } from './helpers/userContext';
 
-test.describe('Buckets list', () => {
-  test('unauthenticated user is redirected to login', async ({ page }, testInfo) => {
+test.describe('This suite covers Management buckets-list-page.', () => {
+  test('When an unauthenticated user tries to open the buckets-list-page, they are redirected to the login-page.', async ({
+    page,
+  }, testInfo) => {
+    setE2EUserContext(testInfo, 'unauthenticated');
     await expectUnauthedRouteRedirectsToLogin(
       page,
       testInfo,
-      'navigate-to-management-buckets-while-unauthenticated-expect-redirect-to-login',
+      'User navigates to the management buckets page while not logged in and is redirected to the login-page.',
       async () => {
         await page.goto('/buckets');
       }
     );
   });
 
-  test('authenticated user sees buckets list or add-bucket CTA', async ({ page }, testInfo) => {
+  test('When an authenticated user opens the buckets-list-page, they see the buckets list or add-bucket CTA.', async ({
+    page,
+  }, testInfo) => {
+    setE2EUserContext(testInfo, 'super-admin (full CRUD)');
     await loginAsManagementSuperAdmin(page);
     await actionAndCapture(
       page,
       testInfo,
-      'navigate-to-management-buckets-expect-list-or-add-bucket-cta',
+      'User navigates to the management buckets page and sees the list or add-bucket CTA.',
       async () => {
         await page.goto('/buckets');
       }
@@ -30,16 +37,24 @@ test.describe('Buckets list', () => {
     await expect(page).toHaveURL(/\/buckets/);
     await expect(page.getByRole('heading', { name: /buckets/i })).toBeVisible();
     await expect(page.getByRole('link', { name: /add bucket|new bucket|create/i })).toBeVisible();
-    await capturePageLoad(page, testInfo, 'management-buckets-page-visible-with-list-or-add-cta');
+    await capturePageLoad(
+      page,
+      testInfo,
+      'The management buckets page is visible with list or add-bucket CTA.'
+    );
   });
 
-  test('add bucket CTA navigates to new bucket form', async ({ page }, testInfo) => {
+  test('When the user clicks the add bucket CTA, they are navigated to the new bucket form.', async ({
+    page,
+  }, testInfo) => {
+    setE2EUserContext(testInfo, 'super-admin (full CRUD)');
     await loginAsManagementSuperAdmin(page);
     await page.goto('/buckets');
+    await expect(page.getByRole('heading', { name: /buckets/i })).toBeVisible();
     await actionAndCapture(
       page,
       testInfo,
-      'click-add-bucket-cta-and-expect-navigation-to-management-buckets-new-route',
+      'User clicks the add bucket CTA and is navigated to the management buckets new route.',
       async () => {
         await page
           .getByRole('link', { name: /add bucket|new bucket|create/i })
@@ -51,12 +66,15 @@ test.describe('Buckets list', () => {
     await expect(page.getByRole('heading', { name: /add bucket/i })).toBeVisible();
   });
 
-  test('buckets route supports explicit query params', async ({ page }, testInfo) => {
+  test('When the user opens the buckets route with explicit query params, the params are persisted.', async ({
+    page,
+  }, testInfo) => {
+    setE2EUserContext(testInfo, 'super-admin (full CRUD)');
     await loginAsManagementSuperAdmin(page);
     await actionAndCapture(
       page,
       testInfo,
-      'navigate-to-management-buckets-with-query-params-and-verify-persistence',
+      'User navigates to the management buckets page with query params and they persist.',
       async () => {
         await page.goto('/buckets?search=e2e&page=1&sortBy=name&sortOrder=asc');
       }
@@ -69,9 +87,13 @@ test.describe('Buckets list', () => {
     expect(currentUrl.searchParams.get('sortOrder')).toBe('asc');
   });
 
-  test('created bucket can be deleted from buckets list', async ({ page }, testInfo) => {
+  test('When the user deletes a created bucket from the buckets list, the bucket is removed.', async ({
+    page,
+  }, testInfo) => {
+    setE2EUserContext(testInfo, 'super-admin (full CRUD)');
     await loginAsManagementSuperAdmin(page);
     await page.goto('/buckets/new');
+    await expect(page.getByRole('textbox', { name: /name|bucket/i })).toBeVisible();
 
     const bucketName = nextFixtureName('e2e-mgmt-bucket-delete');
     await page.getByRole('textbox', { name: /name|bucket/i }).fill(bucketName);
@@ -90,7 +112,7 @@ test.describe('Buckets list', () => {
     await actionAndCapture(
       page,
       testInfo,
-      'delete-created-bucket-row-from-management-buckets-table',
+      'User deletes the created bucket row from the management buckets table.',
       async () => {
         await row.getByRole('button', { name: /delete/i }).click();
         await clickConfirmDeleteInModal(page);
@@ -98,6 +120,7 @@ test.describe('Buckets list', () => {
     );
 
     await page.goto(`/buckets?search=${encodeURIComponent(bucketName)}`);
+    await expect(page).toHaveURL(/\/buckets\?search=/);
     await expect(page.locator('tr', { hasText: bucketName })).toHaveCount(0);
   });
 });

@@ -93,7 +93,7 @@ export function NewChildBucketFormClient({
             </Button>
           </Link>
           <Button type="submit" variant="primary" loading={loading} disabled={loading}>
-            {tBucketDetail('createTopic')}
+            {tBucketDetail('addBucket')}
           </Button>
         </FormActions>
       </Stack>
