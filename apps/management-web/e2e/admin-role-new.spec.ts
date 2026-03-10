@@ -1,26 +1,36 @@
 import { expect, test } from '@playwright/test';
 
-import { loginAsManagementSuperAdmin } from './helpers/advancedFixtures';
+import {
+  loginAsManagementAdminWithBucketAdmins,
+  loginAsManagementSuperAdmin,
+  nextFixtureName,
+} from './helpers/advancedFixtures';
 import { expectUnauthedRouteRedirectsToLogin } from './helpers/authAssertions';
 import { actionAndCapture, capturePageLoad } from './helpers/stepScreenshots';
 import { setE2EUserContext } from './helpers/userContext';
 
-test.describe('This suite covers Creating a new-management-admin-role.', () => {
-  test('When an unauthenticated user tries to open the new admin role page, they are redirected to the login-page.', async ({
+/**
+ * Permission: adminsCrud create required; else redirect /admins. Actor matrix: unauthenticated →
+ * login; super-admin and admin with admins create → form; admin without admins create (e.g.
+ * admin-with-bucket-admins) → redirect /admins.
+ */
+
+test.describe('This suite verifies the management admin-role-new-page: unauthenticated redirect, permitted role sees form, create success and validation, flow from admins-list to new-role form.', () => {
+  test('When an unauthenticated user tries to open the admin-role-new-page, they are redirected to the login-page.', async ({
     page,
   }, testInfo) => {
     setE2EUserContext(testInfo, 'unauthenticated');
     await expectUnauthedRouteRedirectsToLogin(
       page,
       testInfo,
-      'User navigates to the management admin role new page while not logged in and is redirected to the login-page.',
+      'User navigates to the management admin-role-new-page while not logged in and is redirected to the login-page.',
       async () => {
         await page.goto('/admins/roles/new');
       }
     );
   });
 
-  test('When an authenticated user opens the new admin role page, they see the add role form.', async ({
+  test('When a permitted user (super-admin) opens the admin-role-new-page, they see the admin-role-new-form.', async ({
     page,
   }, testInfo) => {
     setE2EUserContext(testInfo, 'super-admin (full CRUD)');
@@ -28,18 +38,113 @@ test.describe('This suite covers Creating a new-management-admin-role.', () => {
     await actionAndCapture(
       page,
       testInfo,
-      'User navigates to the management admin role new route and sees the add role form.',
+      'User navigates to the management admin-role-new-route and sees the add-role form.',
       async () => {
         await page.goto('/admins/roles/new');
+        await expect(page).toHaveURL(/\/admins\/roles\/new/);
+        await expect(page.getByRole('textbox', { name: /role name|name/i })).toBeVisible();
+        await expect(page.getByRole('button', { name: /create role|save|create/i })).toBeVisible();
+      }
+    );
+    await capturePageLoad(
+      page,
+      testInfo,
+      'The management admin-role-new-form is visible with role name and create button.'
+    );
+  });
+
+  test('When the user leaves the role name empty and clicks Create role, they remain on the admin-role-new-page.', async ({
+    page,
+  }, testInfo) => {
+    setE2EUserContext(testInfo, 'super-admin (full CRUD)');
+    await loginAsManagementSuperAdmin(page);
+    await page.goto('/admins/roles/new');
+    const roleNameInput = page.getByRole('textbox', { name: /role name|name/i });
+    const createButton = page.getByRole('button', { name: /create role/i });
+    await expect(roleNameInput).toBeVisible();
+    await expect(createButton).toBeVisible();
+
+    await actionAndCapture(
+      page,
+      testInfo,
+      'User clicks Create role with empty role name and remains on the admin-role-new-page.',
+      async () => {
+        await createButton.click();
+        await expect(page).toHaveURL(/\/admins\/roles\/new/);
+      }
+    );
+  });
+
+  test('When the user submits a valid new admin role, they are returned to the admins page.', async ({
+    page,
+  }, testInfo) => {
+    setE2EUserContext(testInfo, 'super-admin (full CRUD)');
+    await loginAsManagementSuperAdmin(page);
+    await page.goto('/admins/roles/new');
+    await expect(page.getByRole('textbox', { name: /role name|name/i })).toBeVisible();
+
+    const roleName = nextFixtureName('e2e-mgmt-admin-role');
+    await page.getByRole('textbox', { name: /role name|name/i }).fill(roleName);
+
+    await actionAndCapture(
+      page,
+      testInfo,
+      'User submits the valid new admin role and is taken to the admins page.',
+      async () => {
+        await page.getByRole('button', { name: /create role/i }).click();
+        await expect(page).toHaveURL(/\/admins(\?|$)/);
+      }
+    );
+    await capturePageLoad(
+      page,
+      testInfo,
+      'The admins page is visible after creating a new admin role.'
+    );
+  });
+
+  test('When the super-admin navigates from the admins-list-page to the admin-role-new-page via the add-admin form role option, the admin-role-new-form loads.', async ({
+    page,
+  }, testInfo) => {
+    setE2EUserContext(testInfo, 'super-admin (full CRUD)');
+    await loginAsManagementSuperAdmin(page);
+    await page.goto('/admins');
+    await expect(page).toHaveURL(/\/admins/);
+    await page
+      .getByRole('link', { name: /add admin|new admin|create/i })
+      .first()
+      .click();
+    await expect(page).toHaveURL(/\/admins\/new/);
+    const roleCombobox = page.getByRole('combobox', { name: /role/i });
+    await expect(roleCombobox).toBeVisible();
+
+    await actionAndCapture(
+      page,
+      testInfo,
+      'User selects the Custom Role option on the add-admin form and is taken to the admin-role-new-page.',
+      async () => {
+        await roleCombobox.selectOption({ label: /custom role/i });
       }
     );
     await expect(page).toHaveURL(/\/admins\/roles\/new/);
     await expect(page.getByRole('textbox', { name: /role name|name/i })).toBeVisible();
-    await expect(page.getByRole('button', { name: /save|create|add role/i })).toBeVisible();
     await capturePageLoad(
       page,
       testInfo,
-      'The management admin role new form is visible with role name and save button.'
+      'The admin-role-new-form is visible after navigating from the add-admin form.'
+    );
+  });
+
+  test('When an admin without adminsCrud create (e.g. admin-with-bucket-admins) opens the admin-role-new-page, they are redirected to the admins list.', async ({
+    page,
+  }, testInfo) => {
+    setE2EUserContext(testInfo, 'admin with buckets read, no admins CRUD');
+    await loginAsManagementAdminWithBucketAdmins(page);
+    await page.goto('/admins/roles/new');
+    await expect(page).toHaveURL(/\/admins/);
+    await capturePageLoad(
+      page,
+      testInfo,
+      'The admin without admins create is redirected to the admins list when opening the admin-role-new-page.'
     );
   });
 });

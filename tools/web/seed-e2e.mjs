@@ -1,10 +1,12 @@
 #!/usr/bin/env node
 /**
  * Deterministic E2E seed for web app: main DB (boilerplate_test).
- * Inserts fixed user, credentials, bio, and buckets. Run after make e2e_deps.
+ * Inserts fixed user, credentials, bio, buckets, and a password_reset token for E2E.
+ * Run after make e2e_deps.
  * Uses test DB env defaults (DB_HOST, DB_PORT 5532, DB_NAME boilerplate_test, read_write/test).
  */
 import bcrypt from 'bcrypt';
+import crypto from 'crypto';
 import pg from 'pg';
 
 const DB_HOST = process.env.DB_HOST ?? 'localhost';
@@ -30,6 +32,8 @@ const E2E_EMAIL2 = 'e2e-admin2@example.com';
 const E2E_EMAIL3 = 'e2e-admin-readonly@example.com';
 const E2E_EMAIL4 = 'e2e-other@example.com';
 const E2E_PASSWORD_PLAIN = 'Test!1Aa';
+/** Raw token for reset-password E2E (short to avoid URL truncation); must match apps/web/e2e/helpers/resetPasswordToken.ts */
+const E2E_RESET_PASSWORD_TOKEN_RAW = 'e2e0' + '0'.repeat(28);
 const E2E_DISPLAY_NAME = 'E2E User';
 const E2E_DISPLAY_NAME2 = 'E2E Admin Two';
 const E2E_DISPLAY_NAME3 = 'E2E Admin Readonly';
@@ -122,6 +126,16 @@ async function main() {
       `INSERT INTO bucket_admin (bucket_id, user_id, bucket_crud, message_crud, admin_crud, created_at)
        VALUES ($1, $2, $3, 2, 2, NOW())`,
       [E2E_BUCKET1_ID, E2E_USER3_ID, BUCKET_CRUD_READ]
+    );
+    const resetTokenHash = crypto
+      .createHash('sha256')
+      .update(E2E_RESET_PASSWORD_TOKEN_RAW, 'utf8')
+      .digest('hex');
+    const resetExpiresAt = new Date(Date.now() + 60 * 60 * 1000).toISOString();
+    await client.query(
+      `INSERT INTO verification_token (user_id, kind, token_hash, expires_at, payload)
+       VALUES ($1, 'password_reset', $2, $3::timestamp, NULL)`,
+      [E2E_USER_ID, resetTokenHash, resetExpiresAt]
     );
     console.log(
       'E2E web seed done: 4 users (owner, admin-with-permission, admin-without-permission, non-admin), 2 buckets, 2 bucket admins for E2E Bucket One.'

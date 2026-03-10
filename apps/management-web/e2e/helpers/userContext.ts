@@ -10,6 +10,8 @@ const USER_ROLE_ANNOTATION_TYPE = 'user-role';
  * Standard descriptions for management-web:
  * - "unauthenticated"
  * - "super-admin (full CRUD)"
+ * - "limited-admin (no buckets permission)" / "limited-admin (no buckets, events own only)"
+ * - "admin with bucketAdminsCrud" / "admin without bucketAdminsCrud"
  */
 export function setE2EUserContext(testInfo: TestInfo, description: string): void {
   const trimmed = description.trim();

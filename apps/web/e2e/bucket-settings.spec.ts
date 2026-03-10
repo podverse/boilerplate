@@ -2,28 +2,39 @@ import { expect, test } from '@playwright/test';
 
 import {
   expectUnauthedRouteRedirectsToLogin,
+  loginAsWebE2EAdminWithPermission,
+  loginAsWebE2EAdminWithoutPermission,
+  loginAsWebE2ENonAdmin,
   loginAsWebE2EUserAndExpectDashboard,
 } from './helpers/advancedFixtures';
+import { expectInvalidRouteShowsNotFound } from './helpers/flowHelpers';
 import { clickDeleteAndAcceptBrowserDialog } from './helpers/flowHelpers';
 import { actionAndCapture, capturePageLoad } from './helpers/stepScreenshots';
 import { setE2EUserContext } from './helpers/userContext';
 
 const E2E_BUCKET1_SHORT_ID = 'e2ebkt000001';
 
-test.describe('This suite verifies the bucket-settings-page.', () => {
-  test('When an unauthenticated user tries to open the bucket-settings-page, they are redirected to the login page.', async ({
+/**
+ * Permission: bucket settings (general, admins, roles tabs). Layout uses fetchBucket; no server-side gate
+ * for "can update bucket". Actor matrix: unauthenticated → login; owner and non-owner with bucket access →
+ * see settings and tabs; non-admin → not found. Admin-without-permission test is skipped: settings layout
+ * does not yet gate by update permission. Un-skip when the app adds notFound() for read-only admins.
+ */
+
+test.describe('This suite verifies the bucket-settings-page: unauthenticated redirect, tab URL state (general, admins, roles), owner and non-owner flows, and non-admin not found.', () => {
+  test('When an unauthenticated user tries to open the bucket-settings-page, they are redirected to the login-page.', async ({
     page,
   }, testInfo) => {
     setE2EUserContext(testInfo, 'unauthenticated');
     await expectUnauthedRouteRedirectsToLogin(
       page,
       `/bucket/${E2E_BUCKET1_SHORT_ID}/settings`,
-      'User navigates to the bucket-settings-page while not logged in and is redirected to the login page.',
+      'User navigates to the bucket-settings-page while not logged in and is redirected to the login-page.',
       testInfo
     );
   });
 
-  test('When an authenticated user opens the bucket-settings-page, they see the settings page.', async ({
+  test('When an authenticated user opens the bucket-settings-page, they see the bucket-settings-page with tabs.', async ({
     page,
   }, testInfo) => {
     setE2EUserContext(testInfo, 'seeded-bucket-owner');
@@ -34,13 +45,13 @@ test.describe('This suite verifies the bucket-settings-page.', () => {
       'User navigates to the bucket-settings-page and sees the settings form or admins section.',
       async () => {
         await page.goto(`/bucket/${E2E_BUCKET1_SHORT_ID}/settings`);
+        await expect(page).toHaveURL(new RegExp(`/bucket/${E2E_BUCKET1_SHORT_ID}/settings`));
+        await expect(page.getByRole('heading', { name: /settings|bucket/i })).toBeVisible();
+        await expect(page.getByRole('link', { name: /general/i })).toBeVisible();
+        await expect(page.getByRole('link', { name: /admins/i })).toBeVisible();
+        await expect(page.getByRole('link', { name: /roles/i })).toBeVisible();
       }
     );
-    await expect(page).toHaveURL(new RegExp(`/bucket/${E2E_BUCKET1_SHORT_ID}/settings`));
-    await expect(page.getByRole('heading', { name: /settings|bucket/i })).toBeVisible();
-    await expect(page.getByRole('link', { name: /general/i })).toBeVisible();
-    await expect(page.getByRole('link', { name: /admins/i })).toBeVisible();
-    await expect(page.getByRole('link', { name: /roles/i })).toBeVisible();
     await capturePageLoad(
       page,
       testInfo,
@@ -48,7 +59,7 @@ test.describe('This suite verifies the bucket-settings-page.', () => {
     );
   });
 
-  test('When the user opens the bucket-settings admins-tab URL, the admins context is shown.', async ({
+  test('When the user opens the bucket-settings-page with tab=roles, the roles-tab content is shown and the URL is preserved.', async ({
     page,
   }, testInfo) => {
     setE2EUserContext(testInfo, 'seeded-bucket-owner');
@@ -56,15 +67,36 @@ test.describe('This suite verifies the bucket-settings-page.', () => {
     await actionAndCapture(
       page,
       testInfo,
-      'User navigates to the bucket-settings admins-tab and sees the admins context.',
+      'User navigates to the bucket-settings-page with tab=roles and sees the roles-tab content.',
       async () => {
-        await page.goto(`/bucket/${E2E_BUCKET1_SHORT_ID}/settings?tab=admins`);
+        await page.goto(`/bucket/${E2E_BUCKET1_SHORT_ID}/settings?tab=roles`);
+        await expect(page).toHaveURL(
+          new RegExp(`/bucket/${E2E_BUCKET1_SHORT_ID}/settings\\?tab=roles`)
+        );
+        await expect(page.getByText(/roles/i).first()).toBeVisible();
       }
     );
-    await expect(page).toHaveURL(
-      new RegExp(`/bucket/${E2E_BUCKET1_SHORT_ID}/settings\\?tab=admins`)
+    await capturePageLoad(page, testInfo, 'The roles-tab is visible and URL has tab=roles.');
+  });
+
+  test('When the user opens the bucket-settings-page with tab=admins, the admins-tab content is shown and the URL is preserved.', async ({
+    page,
+  }, testInfo) => {
+    setE2EUserContext(testInfo, 'seeded-bucket-owner');
+    await loginAsWebE2EUserAndExpectDashboard(page);
+    await actionAndCapture(
+      page,
+      testInfo,
+      'User navigates to the bucket-settings-page with tab=admins and sees the admins-tab content.',
+      async () => {
+        await page.goto(`/bucket/${E2E_BUCKET1_SHORT_ID}/settings?tab=admins`);
+        await expect(page).toHaveURL(
+          new RegExp(`/bucket/${E2E_BUCKET1_SHORT_ID}/settings\\?tab=admins`)
+        );
+        await expect(page.getByText(/admins/i).first()).toBeVisible();
+      }
     );
-    await expect(page.getByText(/admins/i).first()).toBeVisible();
+    await capturePageLoad(page, testInfo, 'The admins-tab is visible and URL has tab=admins.');
   });
 
   test('When the user is on the admins-tab, they can generate an invitation link.', async ({
@@ -166,5 +198,52 @@ test.describe('This suite verifies the bucket-settings-page.', () => {
       }
     );
     await expect(page).toHaveURL(new RegExp(`/bucket/${E2E_BUCKET1_SHORT_ID}$`));
+  });
+
+  test('When the non-owner admin with bucket permission opens the bucket-settings-page, they see the bucket-settings-page and tabs.', async ({
+    page,
+  }, testInfo) => {
+    setE2EUserContext(testInfo, 'seeded-bucket-admin');
+    await loginAsWebE2EAdminWithPermission(page);
+    await page.goto(`/bucket/${E2E_BUCKET1_SHORT_ID}/settings`);
+    await expect(page).toHaveURL(new RegExp(`/bucket/${E2E_BUCKET1_SHORT_ID}/settings`));
+    await expect(page.getByRole('link', { name: /general/i })).toBeVisible();
+    await expect(page.getByRole('link', { name: /admins/i })).toBeVisible();
+    await expect(page.getByRole('link', { name: /roles/i })).toBeVisible();
+    await capturePageLoad(
+      page,
+      testInfo,
+      'The bucket-settings-page is visible with general, admins, and roles tabs for the non-owner admin.'
+    );
+  });
+
+  test.skip('When the non-owner admin without bucket update permission opens the bucket-settings-page, they see not found (skipped until settings layout is permission-gated server-side).', async ({
+    page,
+  }, testInfo) => {
+    setE2EUserContext(testInfo, 'admin-without-permission');
+    await loginAsWebE2EAdminWithoutPermission(page);
+    await expectInvalidRouteShowsNotFound(
+      page,
+      testInfo,
+      'User navigates to the bucket-settings-page and sees not found (no bucket update permission).',
+      async () => {
+        await page.goto(`/bucket/${E2E_BUCKET1_SHORT_ID}/settings`);
+      }
+    );
+  });
+
+  test('When the non-admin opens the bucket-settings-page, they see not found.', async ({
+    page,
+  }, testInfo) => {
+    setE2EUserContext(testInfo, 'non-admin');
+    await loginAsWebE2ENonAdmin(page);
+    await expectInvalidRouteShowsNotFound(
+      page,
+      testInfo,
+      'User navigates to the bucket-settings-page and sees not found (no bucket access).',
+      async () => {
+        await page.goto(`/bucket/${E2E_BUCKET1_SHORT_ID}/settings`);
+      }
+    );
   });
 });

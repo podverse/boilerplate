@@ -34,7 +34,7 @@ test.describe('This suite verifies editing a bucket admin.', () => {
     );
   });
 
-  test("When the user opens the bucket-admin-edit-route with the seeded-bucket-owner's user id, they see the edit page with editing disabled and a message.", async ({
+  test("When the user opens the bucket-admin-edit-route with the seeded-bucket-owner's user id, they see the bucket-admin-edit-page with editing disabled and a message.", async ({
     page,
   }, testInfo) => {
     setE2EUserContext(testInfo, 'seeded-bucket-owner');
@@ -48,7 +48,7 @@ test.describe('This suite verifies editing a bucket admin.', () => {
     await capturePageLoad(
       page,
       testInfo,
-      'The bucket-admin-edit page is visible with editing disabled and the owner message.'
+      'The bucket-admin-edit-page is visible with editing disabled and the owner message.'
     );
   });
 
@@ -67,7 +67,7 @@ test.describe('This suite verifies editing a bucket admin.', () => {
     );
   });
 
-  test('When the owner navigates from the admins list to the edit page for the seeded-bucket-admin, the form loads and is visible.', async ({
+  test('When the owner navigates from the admins-list to the bucket-admin-edit-page for the seeded-bucket-admin, the bucket-admin-edit-form loads and is visible.', async ({
     page,
   }, testInfo) => {
     setE2EUserContext(testInfo, 'seeded-bucket-owner');
@@ -75,7 +75,7 @@ test.describe('This suite verifies editing a bucket admin.', () => {
     await actionAndCapture(
       page,
       testInfo,
-      'User navigates to bucket settings admins tab and sees the admins list.',
+      'User navigates to the bucket-settings-admins-tab and sees the admins-list.',
       async () => {
         await page.goto(`/bucket/${E2E_BUCKET1_SHORT_ID}/settings?tab=admins`);
       }
@@ -84,7 +84,7 @@ test.describe('This suite verifies editing a bucket admin.', () => {
     await actionAndCapture(
       page,
       testInfo,
-      'User clicks the edit link for the seeded-bucket-admin and reaches the edit page.',
+      'User clicks the edit link for the seeded-bucket-admin and reaches the bucket-admin-edit-page.',
       async () => {
         await page.locator(`a[href*="admins/${E2E_BUCKET1_ADMIN2_SHORT_ID}/edit"]`).click();
       }
@@ -99,11 +99,11 @@ test.describe('This suite verifies editing a bucket admin.', () => {
     await capturePageLoad(
       page,
       testInfo,
-      'The bucket-admin-edit form is visible after navigating from the admins list.'
+      'The bucket-admin-edit-form is visible after navigating from the admins-list.'
     );
   });
 
-  test('When the owner clicks Cancel on the bucket-admin edit page, they return to the admins list.', async ({
+  test('When the owner clicks Cancel on the bucket-admin-edit-page, they return to the admins-list.', async ({
     page,
   }, testInfo) => {
     setE2EUserContext(testInfo, 'seeded-bucket-owner');
@@ -115,7 +115,7 @@ test.describe('This suite verifies editing a bucket admin.', () => {
     await actionAndCapture(
       page,
       testInfo,
-      'User clicks Cancel and returns to the admins list.',
+      'User clicks Cancel and returns to the admins-list.',
       async () => {
         await page.getByRole('link', { name: /cancel/i }).click();
       }
@@ -124,7 +124,7 @@ test.describe('This suite verifies editing a bucket admin.', () => {
       new RegExp(`/bucket/${E2E_BUCKET1_SHORT_ID}/settings\\?tab=admins`)
     );
     await expect(page.getByText(/E2E Admin Two|e2e-admin2@example.com/i).first()).toBeVisible();
-    await capturePageLoad(page, testInfo, 'The admins list is visible after Cancel.');
+    await capturePageLoad(page, testInfo, 'The admins-list is visible after Cancel.');
   });
 
   test('When the user opens the bucket-admin-edit-page for the seeded-bucket-admin, the form loads and is visible.', async ({
@@ -156,7 +156,7 @@ test.describe('This suite verifies editing a bucket admin.', () => {
     );
   });
 
-  test('When the user saves the seeded-bucket-admin edit form, the admin is updated and they return to the admins list.', async ({
+  test('When the user saves the bucket-admin-edit-form for the seeded-bucket-admin, the admin is updated and they return to the admins-list.', async ({
     page,
   }, testInfo) => {
     setE2EUserContext(testInfo, 'seeded-bucket-owner');
@@ -169,7 +169,7 @@ test.describe('This suite verifies editing a bucket admin.', () => {
     await actionAndCapture(
       page,
       testInfo,
-      'User clicks save on the bucket-admin edit form.',
+      'User clicks save on the bucket-admin-edit-form.',
       async () => {
         await page.getByRole('button', { name: /save/i }).click();
       }
@@ -182,11 +182,11 @@ test.describe('This suite verifies editing a bucket admin.', () => {
     await capturePageLoad(
       page,
       testInfo,
-      'The admins list is visible and shows the updated admin.'
+      'The admins-list is visible and shows the updated admin.'
     );
   });
 
-  test('When the non-owner admin with bucket-admins permission opens the edit page for the owner, they see the edit page with editing disabled and a message.', async ({
+  test('When the non-owner admin with bucket-admins permission opens the bucket-admin-edit-page for the owner, they see the bucket-admin-edit-page with editing disabled and a message.', async ({
     page,
   }, testInfo) => {
     setE2EUserContext(testInfo, 'seeded-bucket-admin');
@@ -200,11 +200,11 @@ test.describe('This suite verifies editing a bucket admin.', () => {
     await capturePageLoad(
       page,
       testInfo,
-      'The bucket-admin-edit page is visible with editing disabled for the owner row.'
+      'The bucket-admin-edit-page is visible with editing disabled for the owner row.'
     );
   });
 
-  test('When the non-owner admin with bucket-admins permission opens the edit page for themselves, they see the form with Save.', async ({
+  test('When the non-owner admin with bucket-admins permission opens the bucket-admin-edit-page for themselves, they see the bucket-admin-edit-form with Save.', async ({
     page,
   }, testInfo) => {
     setE2EUserContext(testInfo, 'seeded-bucket-admin');
@@ -219,7 +219,7 @@ test.describe('This suite verifies editing a bucket admin.', () => {
     );
     await expect(page.getByRole('button', { name: /save/i })).toBeVisible();
     await expect(page.getByRole('link', { name: /cancel/i })).toBeVisible();
-    await capturePageLoad(page, testInfo, 'The bucket-admin-edit form is visible for self.');
+    await capturePageLoad(page, testInfo, 'The bucket-admin-edit-form is visible for self.');
   });
 
   test('When the non-owner admin with bucket-admins permission opens the bucket-admin-edit-page with an invalid user id, they see not found.', async ({

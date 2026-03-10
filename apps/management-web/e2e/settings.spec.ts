@@ -5,7 +5,12 @@ import { expectUnauthedRouteRedirectsToLogin } from './helpers/authAssertions';
 import { actionAndCapture, capturePageLoad } from './helpers/stepScreenshots';
 import { setE2EUserContext } from './helpers/userContext';
 
-test.describe('This suite covers Management settings-page.', () => {
+/**
+ * Permission: authenticated only (self). Actor matrix: unauthenticated → login; any authenticated
+ * user → see settings tabs (General, Profile, Password).
+ */
+
+test.describe('This suite verifies the management settings-page: unauthenticated→redirect, authenticated opens settings→settings content (tabs) visible, and password-tab form visible.', () => {
   test('When an unauthenticated user tries to open the settings-page, they are redirected to the login-page.', async ({
     page,
   }, testInfo) => {
@@ -20,7 +25,7 @@ test.describe('This suite covers Management settings-page.', () => {
     );
   });
 
-  test('When an authenticated user opens the settings-page, they see the settings-page with tabs or form.', async ({
+  test('When an authenticated user opens the settings-page, they see the settings content with General, Profile, and Password tabs.', async ({
     page,
   }, testInfo) => {
     setE2EUserContext(testInfo, 'super-admin (full CRUD)');
@@ -28,21 +33,24 @@ test.describe('This suite covers Management settings-page.', () => {
     await actionAndCapture(
       page,
       testInfo,
-      'User navigates to the management settings-page and sees tabs or sections.',
+      'User navigates to the management settings-page and sees the settings content with tabs.',
       async () => {
         await page.goto('/settings');
       }
     );
     await expect(page).toHaveURL(/\/settings/);
     await expect(page.getByRole('heading', { name: /settings|account/i })).toBeVisible();
+    await expect(page.getByRole('link', { name: /^general$/i })).toBeVisible();
+    await expect(page.getByRole('link', { name: /profile/i })).toBeVisible();
+    await expect(page.getByRole('link', { name: /password/i })).toBeVisible();
     await capturePageLoad(
       page,
       testInfo,
-      'The management settings-page is visible with tabs or heading.'
+      'The settings-page is visible with General, Profile, and Password tabs.'
     );
   });
 
-  test('When the user opens the settings password tab URL, the password form context loads.', async ({
+  test('When the user opens the settings-page with the password tab, the password form is visible.', async ({
     page,
   }, testInfo) => {
     setE2EUserContext(testInfo, 'super-admin (full CRUD)');
@@ -50,12 +58,17 @@ test.describe('This suite covers Management settings-page.', () => {
     await actionAndCapture(
       page,
       testInfo,
-      'User navigates to the management settings password tab and sees password fields.',
+      'User navigates to the settings-page password tab and sees the password form.',
       async () => {
         await page.goto('/settings?tab=password');
       }
     );
     await expect(page).toHaveURL(/\/settings\?tab=password/);
     await expect(page.getByLabel(/current password|new password|password/i).first()).toBeVisible();
+    await capturePageLoad(
+      page,
+      testInfo,
+      'The password-tab form (current password, new password) is visible.'
+    );
   });
 });

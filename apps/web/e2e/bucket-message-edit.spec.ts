@@ -2,6 +2,9 @@ import { expect, test } from '@playwright/test';
 
 import {
   expectUnauthedRouteRedirectsToLogin,
+  loginAsWebE2EAdminWithPermission,
+  loginAsWebE2EAdminWithoutPermission,
+  loginAsWebE2ENonAdmin,
   loginAsWebE2EUserAndExpectDashboard,
 } from './helpers/advancedFixtures';
 import { expectInvalidRouteShowsNotFound } from './helpers/flowHelpers';
@@ -9,6 +12,12 @@ import { actionAndCapture, capturePageLoad } from './helpers/stepScreenshots';
 import { setE2EUserContext } from './helpers/userContext';
 
 const E2E_BUCKET1_SHORT_ID = 'e2ebkt000001';
+
+/**
+ * Permission: bucket message CRUD (update). API: getBucketAndEffective + message permission; 403 → notFound.
+ * Actor matrix: unauthenticated → login; owner and non-owner with message update → edit form, list→edit,
+ * Cancel/Save→detail, invalid id → not found; non-owner without / non-admin → not found.
+ */
 
 async function createPublicMessage(page: import('@playwright/test').Page, body: string) {
   await page.goto(`/b/${E2E_BUCKET1_SHORT_ID}/send-message`);
@@ -19,15 +28,15 @@ async function createPublicMessage(page: import('@playwright/test').Page, body: 
   await expect(page).toHaveURL(new RegExp(`/b/${E2E_BUCKET1_SHORT_ID}$`));
 }
 
-test.describe('This suite verifies editing a bucket message.', () => {
-  test('When an unauthenticated user tries to open the bucket-message-edit-page, they are redirected to the login page.', async ({
+test.describe('This suite verifies the bucket-message-edit-page: unauthenticated redirect, invalid message id, owner and non-owner flows, list→edit, Save→bucket-detail, and Cancel→bucket-detail.', () => {
+  test('When an unauthenticated user tries to open the bucket-message-edit-page, they are redirected to the login-page.', async ({
     page,
   }, testInfo) => {
     setE2EUserContext(testInfo, 'unauthenticated');
     await expectUnauthedRouteRedirectsToLogin(
       page,
       `/bucket/${E2E_BUCKET1_SHORT_ID}/messages/invalid-message-99999/edit`,
-      'User navigates to the bucket-message-edit-page while not logged in and is redirected to the login page.',
+      'User navigates to the bucket-message-edit-page while not logged in and is redirected to the login-page.',
       testInfo
     );
   });
@@ -77,10 +86,10 @@ test.describe('This suite verifies editing a bucket message.', () => {
       'User saves the edited bucket message and is returned to bucket detail.',
       async () => {
         await page.getByRole('button', { name: /save/i }).click();
+        await expect(page).toHaveURL(new RegExp(`/bucket/${E2E_BUCKET1_SHORT_ID}$`));
       }
     );
-
-    await expect(page).toHaveURL(new RegExp(`/bucket/${E2E_BUCKET1_SHORT_ID}$`));
+    await capturePageLoad(page, testInfo, 'The bucket-detail-page is visible after Save.');
   });
 
   test('When the user clicks cancel on the bucket-message-edit-page, they are returned to bucket detail.', async ({
@@ -102,8 +111,82 @@ test.describe('This suite verifies editing a bucket message.', () => {
       'User clicks cancel on the bucket-message-edit-form and is returned to bucket detail.',
       async () => {
         await page.getByRole('link', { name: /cancel/i }).click();
+        await expect(page).toHaveURL(new RegExp(`/bucket/${E2E_BUCKET1_SHORT_ID}$`));
       }
     );
-    await expect(page).toHaveURL(new RegExp(`/bucket/${E2E_BUCKET1_SHORT_ID}$`));
+    await capturePageLoad(page, testInfo, 'The bucket-detail-page is visible after Cancel.');
+  });
+
+  test('When the non-owner admin with message update permission opens the bucket-message-edit-page for a valid message, they see the bucket-message-edit-form.', async ({
+    page,
+  }, testInfo) => {
+    setE2EUserContext(testInfo, 'seeded-bucket-admin');
+    const body = `e2e-admin-edit-${Date.now()}`;
+    await createPublicMessage(page, body);
+    await loginAsWebE2EAdminWithPermission(page);
+    await page.goto(`/bucket/${E2E_BUCKET1_SHORT_ID}/messages`);
+    const editLink = page.getByRole('link', { name: /edit/i }).first();
+    await expect(editLink).toBeVisible();
+    await actionAndCapture(
+      page,
+      testInfo,
+      'User clicks edit from the messages-list and reaches the bucket-message-edit-page.',
+      async () => {
+        await editLink.click();
+      }
+    );
+    await expect(page).toHaveURL(new RegExp(`/bucket/${E2E_BUCKET1_SHORT_ID}/messages/.+/edit$`));
+    await expect(page.getByRole('textbox', { name: /message|body/i })).toBeVisible();
+    await expect(page.getByRole('button', { name: /save/i })).toBeVisible();
+    await capturePageLoad(
+      page,
+      testInfo,
+      'The bucket-message-edit-form is visible for the non-owner admin with message update permission.'
+    );
+  });
+
+  test('When the non-owner admin with message update permission opens the bucket-message-edit-page for an invalid message id, they see not found.', async ({
+    page,
+  }, testInfo) => {
+    setE2EUserContext(testInfo, 'seeded-bucket-admin');
+    await loginAsWebE2EAdminWithPermission(page);
+    await expectInvalidRouteShowsNotFound(
+      page,
+      testInfo,
+      'User navigates to the bucket-message-edit-page with an invalid message id and sees not found.',
+      async () => {
+        await page.goto(`/bucket/${E2E_BUCKET1_SHORT_ID}/messages/invalid-message-99999/edit`);
+      }
+    );
+  });
+
+  test('When the non-owner admin without message update permission opens the bucket-message-edit-page, they see not found.', async ({
+    page,
+  }, testInfo) => {
+    setE2EUserContext(testInfo, 'admin-without-permission');
+    await loginAsWebE2EAdminWithoutPermission(page);
+    await expectInvalidRouteShowsNotFound(
+      page,
+      testInfo,
+      'User navigates to the bucket-message-edit-page and sees not found (no message update permission).',
+      async () => {
+        await page.goto(`/bucket/${E2E_BUCKET1_SHORT_ID}/messages/invalid-message-99999/edit`);
+      }
+    );
+  });
+
+  test('When the non-admin opens the bucket-message-edit-page, they see not found.', async ({
+    page,
+  }, testInfo) => {
+    setE2EUserContext(testInfo, 'non-admin');
+    await loginAsWebE2ENonAdmin(page);
+    await expectInvalidRouteShowsNotFound(
+      page,
+      testInfo,
+      'User navigates to the bucket-message-edit-page and sees not found (no bucket access).',
+      async () => {
+        await page.goto(`/bucket/${E2E_BUCKET1_SHORT_ID}/messages/invalid-message-99999/edit`);
+      }
+    );
   });
 });

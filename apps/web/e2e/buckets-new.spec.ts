@@ -8,15 +8,17 @@ import {
 import { actionAndCapture, capturePageLoad } from './helpers/stepScreenshots';
 import { setE2EUserContext } from './helpers/userContext';
 
-test.describe('This suite verifies creating a new top-level bucket.', () => {
-  test('When an unauthenticated user tries to open the new-bucket-page, they are redirected to the login page.', async ({
+/** Permission: any authenticated user can create a top-level bucket; unauthenticated → redirect to login. */
+
+test.describe('This suite verifies the new-bucket-page: unauthenticated redirect, form visibility, validation, Cancel→buckets-list, valid create→redirect and bucket visible, and buckets-list→new flow.', () => {
+  test('When an unauthenticated user tries to open the new-bucket-page, they are redirected to the login-page.', async ({
     page,
   }, testInfo) => {
     setE2EUserContext(testInfo, 'unauthenticated');
     await expectUnauthedRouteRedirectsToLogin(
       page,
       '/buckets/new',
-      'User navigates to the new-bucket-page while not logged in and is redirected to the login page.',
+      'User navigates to the new-bucket-page while not logged in and is redirected to the login-page.',
       testInfo
     );
   });
@@ -32,11 +34,11 @@ test.describe('This suite verifies creating a new top-level bucket.', () => {
       'User navigates to the new-bucket-page and the create-bucket form loads.',
       async () => {
         await page.goto('/buckets/new');
+        await expect(page).toHaveURL(/\/buckets\/new/);
+        await expect(page.getByRole('textbox', { name: /name|bucket name/i })).toBeVisible();
+        await expect(page.getByRole('button', { name: /create|save|add bucket/i })).toBeVisible();
       }
     );
-    await expect(page).toHaveURL(/\/buckets\/new/);
-    await expect(page.getByRole('textbox', { name: /name|bucket name/i })).toBeVisible();
-    await expect(page.getByRole('button', { name: /create|save|add bucket/i })).toBeVisible();
     await capturePageLoad(
       page,
       testInfo,
@@ -44,7 +46,7 @@ test.describe('This suite verifies creating a new top-level bucket.', () => {
     );
   });
 
-  test('When the user clicks cancel or back, they are taken to the buckets list.', async ({
+  test('When the user clicks cancel or back, they are taken to the buckets-list-page.', async ({
     page,
   }, testInfo) => {
     setE2EUserContext(testInfo, 'seeded-bucket-owner');
@@ -56,12 +58,13 @@ test.describe('This suite verifies creating a new top-level bucket.', () => {
       await actionAndCapture(
         page,
         testInfo,
-        'User clicks cancel or back and is navigated to the buckets list.',
+        'User clicks cancel or back and is navigated to the buckets-list-page.',
         async () => {
           await cancel.first().click();
+          await expect(page).toHaveURL(/\/buckets/);
         }
       );
-      await expect(page).toHaveURL(/\/buckets/);
+      await capturePageLoad(page, testInfo, 'The buckets-list-page is visible after Cancel.');
     }
   });
 
@@ -84,7 +87,7 @@ test.describe('This suite verifies creating a new top-level bucket.', () => {
     );
   });
 
-  test('When the user submits the form with a valid name, a bucket is created and they are redirected to bucket surfaces.', async ({
+  test('When the user submits the form with a valid name, a bucket is created and they are redirected and the new bucket is visible.', async ({
     page,
   }, testInfo) => {
     setE2EUserContext(testInfo, 'seeded-bucket-owner');
@@ -101,10 +104,41 @@ test.describe('This suite verifies creating a new top-level bucket.', () => {
       'User submits the create-bucket form with a valid name and is redirected.',
       async () => {
         await page.getByRole('button', { name: /create|save|add bucket/i }).click();
+        await expect(page).toHaveURL(/\/buckets|\/bucket\//);
+        await expect(page.getByText(new RegExp(bucketName, 'i')).first()).toBeVisible();
       }
     );
+    await capturePageLoad(
+      page,
+      testInfo,
+      'The buckets-list or bucket-detail shows the new bucket after create.'
+    );
+  });
 
-    await expect(page).toHaveURL(/\/buckets|\/bucket\//);
-    await expect(page.getByText(new RegExp(bucketName, 'i')).first()).toBeVisible();
+  test('When the user navigates from the buckets-list-page to the new-bucket-page via the add-bucket link, they see the create-bucket form.', async ({
+    page,
+  }, testInfo) => {
+    setE2EUserContext(testInfo, 'seeded-bucket-owner');
+    await loginAsWebE2EUserAndExpectDashboard(page);
+    await page.goto('/buckets');
+    await expect(page).toHaveURL(/\/buckets/);
+    const addBucketLink = page.getByRole('link', { name: /add bucket|new bucket/i });
+    await expect(addBucketLink.first()).toBeVisible();
+    await actionAndCapture(
+      page,
+      testInfo,
+      'User clicks the add-bucket link on the buckets-list-page and reaches the new-bucket-page.',
+      async () => {
+        await addBucketLink.first().click();
+      }
+    );
+    await expect(page).toHaveURL(/\/buckets\/new/);
+    await expect(page.getByRole('textbox', { name: /name|bucket name/i })).toBeVisible();
+    await expect(page.getByRole('button', { name: /create|save|add bucket/i })).toBeVisible();
+    await capturePageLoad(
+      page,
+      testInfo,
+      'The create-bucket form is visible after navigating from the buckets-list-page.'
+    );
   });
 });

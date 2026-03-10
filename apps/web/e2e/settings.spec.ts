@@ -7,20 +7,22 @@ import {
 import { actionAndCapture, capturePageLoad } from './helpers/stepScreenshots';
 import { setE2EUserContext } from './helpers/userContext';
 
-test.describe('This suite verifies the user-settings-page.', () => {
-  test('When an unauthenticated user tries to open the user-settings-page, they are redirected to the login page.', async ({
+/** Settings is self-only: authenticated user sees own account settings (profile, password, email tabs); unauthenticated → redirect. */
+
+test.describe('This suite verifies the user-settings-page: unauthenticated→redirect, authenticated→settings content and tabs visible, password validation, email-tab controls, and profile save→persist.', () => {
+  test('When an unauthenticated user tries to open the user-settings-page, they are redirected to the login-page.', async ({
     page,
   }, testInfo) => {
     setE2EUserContext(testInfo, 'unauthenticated');
     await expectUnauthedRouteRedirectsToLogin(
       page,
       '/settings',
-      'User navigates to the user-settings-page while not logged in and is redirected to the login page.',
+      'User navigates to the user-settings-page while not logged in and is redirected to the login-page.',
       testInfo
     );
   });
 
-  test('When an authenticated user opens the user-settings-page, they see the settings page with tabs or form.', async ({
+  test('When an authenticated user opens the user-settings-page, they see the settings content with tabs or heading.', async ({
     page,
   }, testInfo) => {
     setE2EUserContext(testInfo, 'seeded-bucket-owner');
@@ -31,14 +33,14 @@ test.describe('This suite verifies the user-settings-page.', () => {
       'User navigates to the user-settings-page and sees tabs or profile and password sections.',
       async () => {
         await page.goto('/settings');
+        await expect(page).toHaveURL(/\/settings/);
+        await expect(
+          page
+            .getByRole('tab', { name: /profile|general|password/i })
+            .or(page.getByRole('heading', { name: /settings|profile|account/i }))
+        ).toBeVisible();
       }
     );
-    await expect(page).toHaveURL(/\/settings/);
-    await expect(
-      page
-        .getByRole('tab', { name: /profile|general|password/i })
-        .or(page.getByRole('heading', { name: /settings|profile|account/i }))
-    ).toBeVisible();
     await capturePageLoad(
       page,
       testInfo,
@@ -46,7 +48,7 @@ test.describe('This suite verifies the user-settings-page.', () => {
     );
   });
 
-  test('When the user submits the password-tab with a mismatch, validation is shown and they remain on settings.', async ({
+  test('When the user submits the password-tab with a mismatch, validation is shown and they remain on the settings-page.', async ({
     page,
   }, testInfo) => {
     setE2EUserContext(testInfo, 'seeded-bucket-owner');
@@ -69,6 +71,11 @@ test.describe('This suite verifies the user-settings-page.', () => {
         await expect(page.getByText(/match|failed|error/i).first()).toBeVisible();
       }
     );
+    await capturePageLoad(
+      page,
+      testInfo,
+      'The settings-page password-tab shows validation and user remains on settings.'
+    );
   });
 
   test('When the user opens the email-tab, they see the new-email form controls.', async ({
@@ -82,10 +89,39 @@ test.describe('This suite verifies the user-settings-page.', () => {
       'User opens the email-tab and sees the new-email controls.',
       async () => {
         await page.goto('/settings?tab=email');
+        await expect(page).toHaveURL(/\/settings\?tab=email/);
+        await expect(page.getByLabel(/new email/i)).toBeVisible();
       }
     );
+    await capturePageLoad(page, testInfo, 'The settings-page email-tab shows the new-email form.');
+  });
 
-    await expect(page).toHaveURL(/\/settings\?tab=email/);
-    await expect(page.getByLabel(/new email/i)).toBeVisible();
+  test('When the user opens the profile-tab and saves a display-name change, the update persists and success feedback is shown.', async ({
+    page,
+  }, testInfo) => {
+    setE2EUserContext(testInfo, 'seeded-bucket-owner');
+    await loginAsWebE2EUserAndExpectDashboard(page);
+    await page.goto('/settings?tab=profile');
+    await expect(page).toHaveURL(/\/settings\?tab=profile/);
+    const displayNameInput = page.getByRole('textbox', { name: /display name/i });
+    await expect(displayNameInput).toBeVisible();
+    const newName = `E2E Settings ${Date.now()}`;
+    await displayNameInput.fill(newName);
+
+    await actionAndCapture(
+      page,
+      testInfo,
+      'User clicks update profile on the settings-page and sees success feedback; the new display name persists.',
+      async () => {
+        await page.getByRole('button', { name: /update profile|save/i }).click();
+        await expect(page.getByText(/profile updated|updated successfully/i).first()).toBeVisible();
+        await expect(page.getByText(new RegExp(newName, 'i')).first()).toBeVisible();
+      }
+    );
+    await capturePageLoad(
+      page,
+      testInfo,
+      'The settings-page profile-tab shows success message and the updated display name.'
+    );
   });
 });

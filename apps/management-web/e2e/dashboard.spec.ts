@@ -4,18 +4,40 @@ import { actionAndCapture, capturePageLoad } from './helpers/stepScreenshots';
 import { setE2EUserContext } from './helpers/userContext';
 
 /**
- * Proof-of-concept E2E: login with seeded-super-admin and assert dashboard-page loads.
- * Requires e2e seed (e2e-superadmin@example.com / Test!1Aa) and management-api + management-web running.
+ * E2E: unauthenticated redirect from /dashboard; authenticated user sees dashboard.
+ * Requires e2e seed (e2e-superadmin / Test!1Aa) and management-api + management-web running.
  */
-test.describe('This suite covers Management dashboard-page after login.', () => {
-  test('When the user logs in with the seeded-super-admin account, the dashboard loads and shows the dashboard heading.', async ({
+test.describe('This suite verifies the management dashboard-page: unauthenticated redirect to login-page and authenticated user sees dashboard after login.', () => {
+  test('When an unauthenticated user visits the dashboard-page, they are redirected to the login-page.', async ({
+    page,
+  }, testInfo) => {
+    setE2EUserContext(testInfo, 'unauthenticated');
+    await actionAndCapture(
+      page,
+      testInfo,
+      'User visits the dashboard-page while unauthenticated and is redirected to the login-page.',
+      async () => {
+        await page.goto('/dashboard');
+        await expect(page).toHaveURL(/\/login/);
+        await expect(page.getByRole('textbox', { name: /username|email/i })).toBeVisible();
+        await expect(page.getByRole('button', { name: /log in|sign in|submit/i })).toBeVisible();
+      }
+    );
+    await capturePageLoad(
+      page,
+      testInfo,
+      'The login-page is visible after unauthenticated user is redirected from the dashboard-page.'
+    );
+  });
+
+  test('When the user logs in with the seeded-super-admin account, the dashboard-page loads and shows the dashboard heading.', async ({
     page,
   }, testInfo) => {
     setE2EUserContext(testInfo, 'super-admin (full CRUD)');
     await actionAndCapture(
       page,
       testInfo,
-      'User navigates to the management login screen before authenticating with the seeded-super-admin.',
+      'User navigates to the management login-page before authenticating with the seeded-super-admin.',
       async () => {
         await page.goto('/login');
       }
@@ -23,7 +45,7 @@ test.describe('This suite covers Management dashboard-page after login.', () => 
     await capturePageLoad(
       page,
       testInfo,
-      'The management login screen is fully rendered before entering super admin credentials.'
+      'The management login-page is fully rendered before entering super-admin credentials.'
     );
     await expect(page.getByRole('textbox', { name: /username|email/i })).toBeVisible();
     await actionAndCapture(
@@ -45,17 +67,17 @@ test.describe('This suite covers Management dashboard-page after login.', () => 
     await actionAndCapture(
       page,
       testInfo,
-      'User submits the management login form and is transitioned to the dashboard after successful authentication.',
+      'User submits the management login-form and is transitioned to the dashboard after successful authentication.',
       async () => {
         await page.getByRole('button', { name: /log in|sign in|submit/i }).click();
+        await expect(page).toHaveURL(/\/dashboard/);
+        await expect(page.getByRole('heading', { name: /dashboard/i })).toBeVisible();
       }
     );
-    await expect(page).toHaveURL(/\/dashboard/);
-    await expect(page.getByRole('heading', { name: 'Dashboard' })).toBeVisible();
     await capturePageLoad(
       page,
       testInfo,
-      'The management dashboard screen is visible with the primary heading after successful login.'
+      'The management dashboard-page is visible with the primary heading after successful login.'
     );
   });
 });

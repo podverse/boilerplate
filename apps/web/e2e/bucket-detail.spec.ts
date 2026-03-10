@@ -2,6 +2,8 @@ import { expect, test } from '@playwright/test';
 
 import {
   expectUnauthedRouteRedirectsToLogin,
+  loginAsWebE2EAdminWithPermission,
+  loginAsWebE2ENonAdmin,
   loginAsWebE2EUserAndExpectDashboard,
 } from './helpers/advancedFixtures';
 import { expectInvalidRouteShowsNotFound } from './helpers/flowHelpers';
@@ -10,15 +12,15 @@ import { setE2EUserContext } from './helpers/userContext';
 
 const E2E_BUCKET1_SHORT_ID = 'e2ebkt000001';
 
-test.describe('This suite verifies the bucket-detail-page.', () => {
-  test('When an unauthenticated user tries to open the bucket-detail-page, they are redirected to the login page.', async ({
+test.describe('This suite verifies the bucket-detail-page: unauthenticated redirect, owner and non-owner admin see detail and settings/messages links, invalid id and non-admin not found.', () => {
+  test('When an unauthenticated user tries to open the bucket-detail-page, they are redirected to the login-page.', async ({
     page,
   }, testInfo) => {
     setE2EUserContext(testInfo, 'unauthenticated');
     await expectUnauthedRouteRedirectsToLogin(
       page,
       `/bucket/${E2E_BUCKET1_SHORT_ID}`,
-      'User navigates to the bucket-detail-page while not logged in and is redirected to the login page.',
+      'User navigates to the bucket-detail-page while not logged in and is redirected to the login-page.',
       testInfo
     );
   });
@@ -34,12 +36,12 @@ test.describe('This suite verifies the bucket-detail-page.', () => {
       'User navigates to the bucket-detail-page by short id and sees bucket name and content.',
       async () => {
         await page.goto(`/bucket/${E2E_BUCKET1_SHORT_ID}`);
+        await expect(page).toHaveURL(new RegExp(`/bucket/${E2E_BUCKET1_SHORT_ID}`));
+        await expect(page.getByText('E2E Bucket One')).toBeVisible();
+        await expect(page.getByRole('link', { name: /messages/i })).toBeVisible();
+        await expect(page.getByRole('link', { name: /settings/i })).toBeVisible();
       }
     );
-    await expect(page).toHaveURL(new RegExp(`/bucket/${E2E_BUCKET1_SHORT_ID}`));
-    await expect(page.getByText('E2E Bucket One')).toBeVisible();
-    await expect(page.getByRole('link', { name: /messages/i })).toBeVisible();
-    await expect(page.getByRole('link', { name: /settings/i })).toBeVisible();
     await capturePageLoad(
       page,
       testInfo,
@@ -58,6 +60,38 @@ test.describe('This suite verifies the bucket-detail-page.', () => {
       'User navigates to the bucket with an invalid id and sees not found.',
       async () => {
         await page.goto('/bucket/nonexistent-bucket-id-99999');
+      }
+    );
+  });
+
+  test('When the non-owner admin with bucket access opens the bucket-detail-page, they see the bucket name and content.', async ({
+    page,
+  }, testInfo) => {
+    setE2EUserContext(testInfo, 'seeded-bucket-admin');
+    await loginAsWebE2EAdminWithPermission(page);
+    await page.goto(`/bucket/${E2E_BUCKET1_SHORT_ID}`);
+    await expect(page).toHaveURL(new RegExp(`/bucket/${E2E_BUCKET1_SHORT_ID}`));
+    await expect(page.getByText('E2E Bucket One')).toBeVisible();
+    await expect(page.getByRole('link', { name: /messages/i })).toBeVisible();
+    await expect(page.getByRole('link', { name: /settings/i })).toBeVisible();
+    await capturePageLoad(
+      page,
+      testInfo,
+      'The bucket-detail-page shows bucket name and settings/messages links for the non-owner admin.'
+    );
+  });
+
+  test('When the non-admin opens the bucket-detail-page, they see not found.', async ({
+    page,
+  }, testInfo) => {
+    setE2EUserContext(testInfo, 'non-admin');
+    await loginAsWebE2ENonAdmin(page);
+    await expectInvalidRouteShowsNotFound(
+      page,
+      testInfo,
+      'User navigates to the bucket-detail-page and sees not found (no bucket access).',
+      async () => {
+        await page.goto(`/bucket/${E2E_BUCKET1_SHORT_ID}`);
       }
     );
   });

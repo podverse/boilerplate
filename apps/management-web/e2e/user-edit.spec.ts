@@ -1,28 +1,53 @@
 import { expect, test } from '@playwright/test';
 
-import { loginAsManagementSuperAdmin } from './helpers/advancedFixtures';
+import {
+  loginAsManagementAdminWithBucketAdmins,
+  loginAsManagementSuperAdmin,
+} from './helpers/advancedFixtures';
 import { expectUnauthedRouteRedirectsToLogin } from './helpers/authAssertions';
-import { expectNotFoundPageVisible } from './helpers/flowHelpers';
+import { expectInvalidRouteShowsNotFound } from './helpers/flowHelpers';
 import { actionAndCapture, capturePageLoad } from './helpers/stepScreenshots';
 import { setE2EUserContext } from './helpers/userContext';
+
 const E2E_MAIN_USER_ID = '11111111-1111-4111-a111-111111111111';
 
-test.describe('This suite covers Editing a management user.', () => {
-  test('When an unauthenticated user tries to open the user edit page, they are redirected to the login-page.', async ({
+/**
+ * Permission: usersCrud update required; else redirect /users. Actor matrix: unauthenticated →
+ * login; super-admin and admin with usersCrud update → form; admin without users read/update
+ * (e.g. admin-with-bucket-admins) → redirect /users.
+ */
+
+test.describe('This suite verifies the management user-edit-page: unauthenticated redirect, invalid id→not found, super-admin sees form, list→edit, Cancel→list, Save→list.', () => {
+  test('When an unauthenticated user tries to open the user-edit-page, they are redirected to the login-page.', async ({
     page,
   }, testInfo) => {
     setE2EUserContext(testInfo, 'unauthenticated');
     await expectUnauthedRouteRedirectsToLogin(
       page,
       testInfo,
-      'User navigates to the management user edit page while not logged in and is redirected to the login-page.',
+      'User navigates to the management user-edit-page while not logged in and is redirected to the login-page.',
       async () => {
         await page.goto(`/user/${E2E_MAIN_USER_ID}/edit`);
       }
     );
   });
 
-  test('When an authenticated user opens the user edit page, they see the edit user form.', async ({
+  test('When the super-admin opens the user-edit-page with an invalid user id, they see not found.', async ({
+    page,
+  }, testInfo) => {
+    setE2EUserContext(testInfo, 'super-admin (full CRUD)');
+    await loginAsManagementSuperAdmin(page);
+    await expectInvalidRouteShowsNotFound(
+      page,
+      testInfo,
+      'User navigates to the management user-edit-page with an invalid user id and sees not found.',
+      async () => {
+        await page.goto('/user/99999999-9999-4999-a999-999999999999/edit');
+      }
+    );
+  });
+
+  test('When a permitted user (super-admin) opens the user-edit-page, they see the user-edit-form.', async ({
     page,
   }, testInfo) => {
     setE2EUserContext(testInfo, 'super-admin (full CRUD)');
@@ -30,34 +55,67 @@ test.describe('This suite covers Editing a management user.', () => {
     await actionAndCapture(
       page,
       testInfo,
-      'User navigates to the management user edit route and sees the edit user form.',
+      'User navigates to the management user-edit-route and sees the user-edit-form.',
       async () => {
         await page.goto(`/user/${E2E_MAIN_USER_ID}/edit`);
-        const visibleFormField = page.getByRole('textbox', { name: /email|display/i }).first();
-        const hasFormField = await visibleFormField.isVisible().catch(() => false);
-        if (hasFormField) {
-          await expect(page.getByRole('button', { name: /save|update/i })).toBeVisible();
-        } else {
-          await expectNotFoundPageVisible(page);
-        }
+        await expect(page).toHaveURL(new RegExp(`/user/${E2E_MAIN_USER_ID}/edit`));
+        await expect(page.getByRole('textbox', { name: /email|display/i }).first()).toBeVisible();
+        await expect(page.getByRole('button', { name: /save|update/i })).toBeVisible();
       }
     );
-    await expect(page).toHaveURL(new RegExp(`/user/${E2E_MAIN_USER_ID}/edit`));
-    const visibleFormField = page.getByRole('textbox', { name: /email|display/i }).first();
-    const hasFormField = await visibleFormField.isVisible().catch(() => false);
-    if (hasFormField) {
-      await expect(page.getByRole('button', { name: /save|update/i })).toBeVisible();
-    } else {
-      await expectNotFoundPageVisible(page);
-    }
     await capturePageLoad(
       page,
       testInfo,
-      'The management user edit route is visible with edit form or not found state.'
+      'The management user-edit-form is visible with email/display and save button.'
     );
   });
 
-  test('When the user edits the user profile and saves, the changes persist after reload.', async ({
+  test('When the super-admin navigates from the users-list-page to the user-edit-page via the edit link, the user-edit-form loads.', async ({
+    page,
+  }, testInfo) => {
+    setE2EUserContext(testInfo, 'super-admin (full CRUD)');
+    await loginAsManagementSuperAdmin(page);
+    await page.goto('/users?search=e2e@example.com');
+    await expect(page).toHaveURL(/\/users/);
+    const editLink = page.locator(`a[href*="/user/${E2E_MAIN_USER_ID}/edit"]`).first();
+    await expect(editLink).toBeVisible();
+    await actionAndCapture(
+      page,
+      testInfo,
+      'User clicks the edit link on the users-list-page and reaches the user-edit-page.',
+      async () => {
+        await editLink.click();
+      }
+    );
+    await expect(page).toHaveURL(new RegExp(`/user/${E2E_MAIN_USER_ID}/edit`));
+    await expect(page.getByRole('textbox', { name: /email|display/i }).first()).toBeVisible();
+    await capturePageLoad(
+      page,
+      testInfo,
+      'The user-edit-form is visible after navigating from the users-list-page.'
+    );
+  });
+
+  test('When the user clicks Cancel on the user-edit-form, they are returned to the users-list-page.', async ({
+    page,
+  }, testInfo) => {
+    setE2EUserContext(testInfo, 'super-admin (full CRUD)');
+    await loginAsManagementSuperAdmin(page);
+    await page.goto(`/user/${E2E_MAIN_USER_ID}/edit`);
+    await expect(page.getByRole('link', { name: /cancel/i })).toBeVisible();
+    await actionAndCapture(
+      page,
+      testInfo,
+      'User clicks Cancel on the user-edit-form and is returned to the users-list-page.',
+      async () => {
+        await page.getByRole('link', { name: /cancel/i }).click();
+        await expect(page).toHaveURL(/\/users(\?|$)/);
+      }
+    );
+    await capturePageLoad(page, testInfo, 'The users-list-page is visible after Cancel.');
+  });
+
+  test('When the user edits the user profile and saves, they are returned to the users list and the updated user is visible.', async ({
     page,
   }, testInfo) => {
     setE2EUserContext(testInfo, 'super-admin (full CRUD)');
@@ -79,11 +137,29 @@ test.describe('This suite covers Editing a management user.', () => {
       'User saves the updated management user profile and is returned to the users list.',
       async () => {
         await page.getByRole('button', { name: /save changes|save|update/i }).click();
+        await expect(page).toHaveURL(/\/users(\?|$)/);
       }
     );
-
-    await expect(page).toHaveURL(/\/users(\?|$)/);
     await page.goto(`/users?search=${encodeURIComponent(currentEmail)}`);
     await expect(page.getByText(new RegExp(updatedDisplayName, 'i')).first()).toBeVisible();
+    await capturePageLoad(
+      page,
+      testInfo,
+      'The users list shows the updated user display name after save.'
+    );
+  });
+
+  test('When an admin without usersCrud (e.g. admin-with-bucket-admins) opens the user-edit-page, they are redirected to the users list.', async ({
+    page,
+  }, testInfo) => {
+    setE2EUserContext(testInfo, 'admin with buckets read, no users CRUD');
+    await loginAsManagementAdminWithBucketAdmins(page);
+    await page.goto(`/user/${E2E_MAIN_USER_ID}/edit`);
+    await expect(page).toHaveURL(/\/users/);
+    await capturePageLoad(
+      page,
+      testInfo,
+      'The admin without usersCrud is redirected to the users list when opening the user-edit-page.'
+    );
   });
 });

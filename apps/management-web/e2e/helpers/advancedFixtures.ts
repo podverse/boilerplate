@@ -1,19 +1,49 @@
 import { expect } from '@playwright/test';
 import type { APIRequestContext, Page } from '@playwright/test';
 
-const MANAGEMENT_LOGIN_USERNAME = 'e2e-superadmin';
 const MANAGEMENT_LOGIN_PASSWORD = 'Test!1Aa';
+
+/** E2E management users (from tools/management-web/seed-e2e.mjs). Same password for all: Test!1Aa */
+export const E2E_MANAGEMENT_SUPER_ADMIN_USERNAME = 'e2e-superadmin';
+export const E2E_MANAGEMENT_LIMITED_ADMIN_USERNAME = 'e2e-limitedadmin';
+export const E2E_MANAGEMENT_ADMIN_BUCKET_ADMINS_USERNAME = 'e2e-admin-bucket-admins';
+export const E2E_MANAGEMENT_ADMIN_NO_BUCKET_ADMINS_USERNAME = 'e2e-admin-no-bucket-admins';
 
 export const nextFixtureName = (prefix: string): string =>
   `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 
-export async function loginAsManagementSuperAdmin(page: Page): Promise<void> {
+/** Returns a Cookie header string from the page context for use in same-origin API requests. */
+export async function getCookieHeaderFromPage(page: Page): Promise<string> {
+  const cookies = await page.context().cookies();
+  return cookies.map((c) => `${c.name}=${c.value}`).join('; ');
+}
+
+async function loginAsManagementUser(page: Page, username: string): Promise<void> {
   await page.goto('/login');
   await expect(page.getByRole('textbox', { name: /username|email/i })).toBeVisible();
-  await page.getByRole('textbox', { name: /username|email/i }).fill(MANAGEMENT_LOGIN_USERNAME);
+  await page.getByRole('textbox', { name: /username|email/i }).fill(username);
   await page.getByLabel(/password/i).fill(MANAGEMENT_LOGIN_PASSWORD);
   await page.getByRole('button', { name: /log in|sign in|submit/i }).click();
   await expect(page).toHaveURL(/\/dashboard/);
+}
+
+export async function loginAsManagementSuperAdmin(page: Page): Promise<void> {
+  await loginAsManagementUser(page, E2E_MANAGEMENT_SUPER_ADMIN_USERNAME);
+}
+
+/** Limited-admin: no buckets, no bucket_admins, event_visibility own. Use for restricted-route tests. */
+export async function loginAsLimitedAdmin(page: Page): Promise<void> {
+  await loginAsManagementUser(page, E2E_MANAGEMENT_LIMITED_ADMIN_USERNAME);
+}
+
+/** Admin with bucketAdminsCrud: can open bucket-admin-edit and edit non-owner rows. */
+export async function loginAsManagementAdminWithBucketAdmins(page: Page): Promise<void> {
+  await loginAsManagementUser(page, E2E_MANAGEMENT_ADMIN_BUCKET_ADMINS_USERNAME);
+}
+
+/** Admin without bucketAdminsCrud: bucket-admin-edit route shows not found. */
+export async function loginAsManagementAdminWithoutBucketAdmins(page: Page): Promise<void> {
+  await loginAsManagementUser(page, E2E_MANAGEMENT_ADMIN_NO_BUCKET_ADMINS_USERNAME);
 }
 
 export async function createChildBucketFixture(
@@ -62,6 +92,31 @@ export async function createBucketRoleFixture(
     throw new Error('Bucket role fixture response missing role id');
   }
   return { id: role.id, name: typeof role.name === 'string' ? role.name : name };
+}
+
+export async function createBucketMessageFixture(
+  request: APIRequestContext,
+  bucketId: string,
+  body: { body: string; senderName: string; isPublic?: boolean },
+  options?: { cookieHeader: string }
+): Promise<{ id: string }> {
+  const headers =
+    options?.cookieHeader !== undefined ? { Cookie: options.cookieHeader } : undefined;
+  const response = await request.post(`/api/management/buckets/${bucketId}/messages`, {
+    data: { body: body.body, senderName: body.senderName, isPublic: body.isPublic ?? true },
+    headers,
+  });
+  if (!response.ok()) {
+    throw new Error(
+      `Failed to create bucket message fixture: ${response.status()} ${response.statusText()}`
+    );
+  }
+  const data = (await response.json()) as { message?: { id: string } };
+  const message = data.message;
+  if (message === undefined || typeof message.id !== 'string') {
+    throw new Error('Bucket message fixture response missing message id');
+  }
+  return { id: message.id };
 }
 
 export async function createAdminRoleFixture(

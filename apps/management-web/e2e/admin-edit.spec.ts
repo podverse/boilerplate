@@ -1,12 +1,23 @@
 import { expect, test } from '@playwright/test';
 
-import { loginAsManagementSuperAdmin } from './helpers/advancedFixtures';
+import {
+  loginAsManagementAdminWithBucketAdmins,
+  loginAsManagementSuperAdmin,
+} from './helpers/advancedFixtures';
 import { expectUnauthedRouteRedirectsToLogin } from './helpers/authAssertions';
+import { expectInvalidRouteShowsNotFound } from './helpers/flowHelpers';
 import { actionAndCapture, capturePageLoad } from './helpers/stepScreenshots';
 import { setE2EUserContext } from './helpers/userContext';
+
 const E2E_SUPER_ADMIN_ID = 'aaaaaaaa-aaaa-4aaa-aaaa-aaaaaaaaaaaa';
 
-test.describe('This suite covers Editing a management admin.', () => {
+/**
+ * Permission: adminsCrud update (or super-admin self-edit) required; else redirect /admins. Actor
+ * matrix: unauthenticated → login; super-admin and admin with adminsCrud update → form; admin
+ * without admins read/update (e.g. admin-with-bucket-admins) → redirect /admins.
+ */
+
+test.describe('This suite verifies the management admin-edit-page: unauthenticated redirect, invalid admin id→not found, super-admin sees form, list→edit, Cancel→list, Save→list with updated admin visible.', () => {
   test('When an unauthenticated user tries to open the admin-edit-page, they are redirected to the login-page.', async ({
     page,
   }, testInfo) => {
@@ -21,7 +32,22 @@ test.describe('This suite covers Editing a management admin.', () => {
     );
   });
 
-  test('When an authenticated user opens the admin-edit-page, they see the edit admin form.', async ({
+  test('When the super-admin opens the admin-edit-page with an invalid admin id, they see not found.', async ({
+    page,
+  }, testInfo) => {
+    setE2EUserContext(testInfo, 'super-admin (full CRUD)');
+    await loginAsManagementSuperAdmin(page);
+    await expectInvalidRouteShowsNotFound(
+      page,
+      testInfo,
+      'User navigates to the management admin-edit-page with an invalid admin id and sees not found.',
+      async () => {
+        await page.goto('/admin/99999999-9999-4999-a999-999999999999/edit');
+      }
+    );
+  });
+
+  test('When the super-admin opens the admin-edit-page, they see the admin-edit-form.', async ({
     page,
   }, testInfo) => {
     setE2EUserContext(testInfo, 'super-admin (full CRUD)');
@@ -29,15 +55,15 @@ test.describe('This suite covers Editing a management admin.', () => {
     await actionAndCapture(
       page,
       testInfo,
-      'User navigates to the management admin-edit-route and sees the edit admin form.',
+      'User navigates to the management admin-edit-route and sees the admin-edit-form.',
       async () => {
         await page.goto(`/admin/${E2E_SUPER_ADMIN_ID}/edit`);
+        await expect(page).toHaveURL(new RegExp(`/admin/${E2E_SUPER_ADMIN_ID}/edit`));
+        await expect(page.getByRole('textbox', { name: /display name/i })).toBeVisible();
+        await expect(page.getByRole('textbox', { name: /^username$/i })).toBeVisible();
+        await expect(page.getByRole('button', { name: /save|update/i })).toBeVisible();
       }
     );
-    await expect(page).toHaveURL(new RegExp(`/admin/${E2E_SUPER_ADMIN_ID}/edit`));
-    await expect(page.getByRole('textbox', { name: /display name/i })).toBeVisible();
-    await expect(page.getByRole('textbox', { name: /^username$/i })).toBeVisible();
-    await expect(page.getByRole('button', { name: /save|update/i })).toBeVisible();
     await capturePageLoad(
       page,
       testInfo,
@@ -45,7 +71,52 @@ test.describe('This suite covers Editing a management admin.', () => {
     );
   });
 
-  test('When the user edits the admin profile and saves, the changes persist after reload.', async ({
+  test('When the super-admin navigates from the admins-list-page to the admin-edit-page via the edit link, the admin-edit-form loads.', async ({
+    page,
+  }, testInfo) => {
+    setE2EUserContext(testInfo, 'super-admin (full CRUD)');
+    await loginAsManagementSuperAdmin(page);
+    await page.goto('/admins');
+    await expect(page).toHaveURL(/\/admins/);
+    const editLink = page.locator(`a[href*="/admin/${E2E_SUPER_ADMIN_ID}/edit"]`);
+    await expect(editLink.first()).toBeVisible();
+    await actionAndCapture(
+      page,
+      testInfo,
+      'User clicks the edit link on the admins-list-page and reaches the admin-edit-page.',
+      async () => {
+        await editLink.first().click();
+      }
+    );
+    await expect(page).toHaveURL(new RegExp(`/admin/${E2E_SUPER_ADMIN_ID}/edit`));
+    await expect(page.getByRole('textbox', { name: /display name/i })).toBeVisible();
+    await capturePageLoad(
+      page,
+      testInfo,
+      'The admin-edit-form is visible after navigating from the admins-list-page.'
+    );
+  });
+
+  test('When the user clicks Cancel on the admin-edit-form, they are returned to the admins-list-page.', async ({
+    page,
+  }, testInfo) => {
+    setE2EUserContext(testInfo, 'super-admin (full CRUD)');
+    await loginAsManagementSuperAdmin(page);
+    await page.goto(`/admin/${E2E_SUPER_ADMIN_ID}/edit`);
+    await expect(page.getByRole('link', { name: /cancel/i })).toBeVisible();
+    await actionAndCapture(
+      page,
+      testInfo,
+      'User clicks Cancel on the admin-edit-form and is returned to the admins-list-page.',
+      async () => {
+        await page.getByRole('link', { name: /cancel/i }).click();
+        await expect(page).toHaveURL(/\/admins(\?|$)/);
+      }
+    );
+    await capturePageLoad(page, testInfo, 'The admins-list-page is visible after Cancel.');
+  });
+
+  test('When the user edits the admin profile and saves, they are returned to the admins list and the updated admin is visible.', async ({
     page,
   }, testInfo) => {
     setE2EUserContext(testInfo, 'super-admin (full CRUD)');
@@ -63,11 +134,29 @@ test.describe('This suite covers Editing a management admin.', () => {
       'User saves the updated management admin display name and is returned to the admins list.',
       async () => {
         await page.getByRole('button', { name: /save changes|save|update/i }).click();
+        await expect(page).toHaveURL(/\/admins(\?|$)/);
       }
     );
-
-    await expect(page).toHaveURL(/\/admins(\?|$)/);
     await page.goto('/admins?search=e2e-superadmin');
     await expect(page.getByText(new RegExp(updatedDisplayName, 'i')).first()).toBeVisible();
+    await capturePageLoad(
+      page,
+      testInfo,
+      'The admins-list-page shows the updated admin display name after save.'
+    );
+  });
+
+  test('When an admin without adminsCrud (e.g. admin-with-bucket-admins) opens the admin-edit-page, they are redirected to the admins list.', async ({
+    page,
+  }, testInfo) => {
+    setE2EUserContext(testInfo, 'admin with buckets read, no admins CRUD');
+    await loginAsManagementAdminWithBucketAdmins(page);
+    await page.goto(`/admin/${E2E_SUPER_ADMIN_ID}/edit`);
+    await expect(page).toHaveURL(/\/admins/);
+    await capturePageLoad(
+      page,
+      testInfo,
+      'The admin without adminsCrud is redirected to the admins list when opening the admin-edit-page.'
+    );
   });
 });

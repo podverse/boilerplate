@@ -17,8 +17,17 @@ const DB_PASSWORD =
 
 const E2E_SUPER_ADMIN_ID = 'aaaaaaaa-aaaa-4aaa-aaaa-aaaaaaaaaaaa';
 const E2E_SUPER_ADMIN_USERNAME = 'e2e-superadmin';
+const E2E_LIMITED_ADMIN_ID = 'bbbbbbbb-bbbb-4bbb-bbbb-bbbbbbbbbbbb';
+const E2E_LIMITED_ADMIN_USERNAME = 'e2e-limitedadmin';
+const E2E_ADMIN_BUCKET_ADMINS_ID = 'cccccccc-cccc-4ccc-cccc-cccccccccccc';
+const E2E_ADMIN_BUCKET_ADMINS_USERNAME = 'e2e-admin-bucket-admins';
+const E2E_ADMIN_NO_BUCKET_ADMINS_ID = 'dddddddd-dddd-4ddd-dddd-dddddddddddd';
+const E2E_ADMIN_NO_BUCKET_ADMINS_USERNAME = 'e2e-admin-no-bucket-admins';
 const E2E_PASSWORD_PLAIN = 'Test!1Aa';
 const E2E_DISPLAY_NAME = 'E2E Super Admin';
+const E2E_LIMITED_DISPLAY_NAME = 'E2E Limited Admin';
+const E2E_ADMIN_BUCKET_ADMINS_DISPLAY_NAME = 'E2E Admin Bucket Admins';
+const E2E_ADMIN_NO_BUCKET_ADMINS_DISPLAY_NAME = 'E2E Admin No Bucket Admins';
 
 async function main() {
   const passwordHash = await bcrypt.hash(E2E_PASSWORD_PLAIN, 10);
@@ -52,7 +61,70 @@ async function main() {
        VALUES ($1, 15, 15, 15, 15, 15, 'all')`,
       [E2E_SUPER_ADMIN_ID]
     );
-    console.log('E2E management-web seed done: 1 super admin (username e2e-superadmin).');
+
+    await client.query(
+      `INSERT INTO management_user (id, is_super_admin, created_at, created_by)
+       VALUES ($1, false, NOW(), $2)`,
+      [E2E_LIMITED_ADMIN_ID, E2E_SUPER_ADMIN_ID]
+    );
+    await client.query(
+      `INSERT INTO management_user_credentials (management_user_id, username, password_hash)
+       VALUES ($1, $2, $3)`,
+      [E2E_LIMITED_ADMIN_ID, E2E_LIMITED_ADMIN_USERNAME, passwordHash]
+    );
+    await client.query(
+      `INSERT INTO management_user_bio (management_user_id, display_name) VALUES ($1, $2)`,
+      [E2E_LIMITED_ADMIN_ID, E2E_LIMITED_DISPLAY_NAME]
+    );
+    await client.query(
+      `INSERT INTO admin_permissions (admin_id, admins_crud, users_crud, buckets_crud, bucket_messages_crud, bucket_admins_crud, event_visibility)
+       VALUES ($1, 15, 15, 0, 0, 0, 'own')`,
+      [E2E_LIMITED_ADMIN_ID]
+    );
+
+    await client.query(
+      `INSERT INTO management_user (id, is_super_admin, created_at, created_by)
+       VALUES ($1, false, NOW(), $2)`,
+      [E2E_ADMIN_BUCKET_ADMINS_ID, E2E_SUPER_ADMIN_ID]
+    );
+    await client.query(
+      `INSERT INTO management_user_credentials (management_user_id, username, password_hash)
+       VALUES ($1, $2, $3)`,
+      [E2E_ADMIN_BUCKET_ADMINS_ID, E2E_ADMIN_BUCKET_ADMINS_USERNAME, passwordHash]
+    );
+    await client.query(
+      `INSERT INTO management_user_bio (management_user_id, display_name) VALUES ($1, $2)`,
+      [E2E_ADMIN_BUCKET_ADMINS_ID, E2E_ADMIN_BUCKET_ADMINS_DISPLAY_NAME]
+    );
+    await client.query(
+      `INSERT INTO admin_permissions (admin_id, admins_crud, users_crud, buckets_crud, bucket_messages_crud, bucket_admins_crud, event_visibility)
+       VALUES ($1, 0, 0, 2, 0, 15, 'all_admins')`,
+      [E2E_ADMIN_BUCKET_ADMINS_ID]
+    );
+
+    await client.query(
+      `INSERT INTO management_user (id, is_super_admin, created_at, created_by)
+       VALUES ($1, false, NOW(), $2)`,
+      [E2E_ADMIN_NO_BUCKET_ADMINS_ID, E2E_SUPER_ADMIN_ID]
+    );
+    await client.query(
+      `INSERT INTO management_user_credentials (management_user_id, username, password_hash)
+       VALUES ($1, $2, $3)`,
+      [E2E_ADMIN_NO_BUCKET_ADMINS_ID, E2E_ADMIN_NO_BUCKET_ADMINS_USERNAME, passwordHash]
+    );
+    await client.query(
+      `INSERT INTO management_user_bio (management_user_id, display_name) VALUES ($1, $2)`,
+      [E2E_ADMIN_NO_BUCKET_ADMINS_ID, E2E_ADMIN_NO_BUCKET_ADMINS_DISPLAY_NAME]
+    );
+    await client.query(
+      `INSERT INTO admin_permissions (admin_id, admins_crud, users_crud, buckets_crud, bucket_messages_crud, bucket_admins_crud, event_visibility)
+       VALUES ($1, 0, 0, 2, 0, 0, 'all_admins')`,
+      [E2E_ADMIN_NO_BUCKET_ADMINS_ID]
+    );
+
+    console.log(
+      'E2E management-web seed done: super-admin (e2e-superadmin), limited-admin (e2e-limitedadmin), admin-with-bucket-admins (e2e-admin-bucket-admins), admin-without-bucket-admins (e2e-admin-no-bucket-admins).'
+    );
   } finally {
     await client.end();
   }

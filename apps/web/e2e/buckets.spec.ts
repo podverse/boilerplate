@@ -7,12 +7,12 @@ import {
 import { actionAndCapture, capturePageLoad } from './helpers/stepScreenshots';
 import { setE2EUserContext } from './helpers/userContext';
 
-test.describe('This suite verifies the buckets-list-page.', () => {
+test.describe('This suite verifies the buckets-list-page: unauthenticated redirect, list or empty state, add-bucket link, URL state (search/sort/page), and empty-state when no buckets match.', () => {
   test.beforeEach(async ({ page }) => {
     await loginAsWebE2EUserAndExpectDashboard(page);
   });
 
-  test('When an unauthenticated user tries to open the buckets-list-page, they are redirected to the login page.', async ({
+  test('When an unauthenticated user tries to open the buckets-list-page, they are redirected to the login-page.', async ({
     page,
   }, testInfo) => {
     setE2EUserContext(testInfo, 'unauthenticated');
@@ -20,30 +20,30 @@ test.describe('This suite verifies the buckets-list-page.', () => {
     await expectUnauthedRouteRedirectsToLogin(
       page,
       '/buckets',
-      'User navigates to the buckets-list-page while not logged in and is redirected to the login page.',
+      'User navigates to the buckets-list-page while not logged in and is redirected to the login-page.',
       testInfo
     );
   });
 
-  test('When an authenticated user opens the buckets-list-page, they see the list and the add-bucket CTA.', async ({
+  test('When an authenticated user opens the buckets-list-page, they see the list or empty state and the add-bucket link.', async ({
     page,
   }, testInfo) => {
     setE2EUserContext(testInfo, 'seeded-bucket-owner');
     await actionAndCapture(
       page,
       testInfo,
-      'User navigates to the buckets-list-page after login and sees the list and add-bucket CTA.',
+      'User navigates to the buckets-list-page after login and sees the list or empty state and add-bucket link.',
       async () => {
         await page.goto('/buckets');
+        await expect(page).toHaveURL(/\/buckets/);
+        await expect(page.getByRole('link', { name: /add bucket|new bucket/i })).toBeVisible();
+        await expect(page.getByRole('table')).toBeVisible();
       }
     );
-    await expect(page).toHaveURL(/\/buckets/);
-    await expect(page.getByRole('link', { name: /add bucket|new bucket/i })).toBeVisible();
-    await expect(page.getByRole('table')).toBeVisible();
     await capturePageLoad(
       page,
       testInfo,
-      'The buckets-list-page is visible with seed buckets or an empty state and the add-bucket CTA.'
+      'The buckets-list-page is visible with seed buckets or an empty state and the add-bucket link.'
     );
   });
 
@@ -63,7 +63,7 @@ test.describe('This suite verifies the buckets-list-page.', () => {
     );
   });
 
-  test('When the user clicks the add bucket link, they are taken to the new bucket page.', async ({
+  test('When the user clicks the add-bucket link, they are taken to the new-bucket-page.', async ({
     page,
   }, testInfo) => {
     setE2EUserContext(testInfo, 'seeded-bucket-owner');
@@ -72,36 +72,70 @@ test.describe('This suite verifies the buckets-list-page.', () => {
     await actionAndCapture(
       page,
       testInfo,
-      'User clicks the add bucket link and is navigated to the new bucket page.',
+      'User clicks the add-bucket link and is navigated to the new-bucket-page.',
       async () => {
         await page
           .getByRole('link', { name: /add bucket|new bucket/i })
           .first()
           .click();
+        await expect(page).toHaveURL(/\/buckets\/new/);
       }
     );
-    await expect(page).toHaveURL(/\/buckets\/new/);
+    await capturePageLoad(
+      page,
+      testInfo,
+      'The new-bucket-page is visible after clicking add-bucket.'
+    );
   });
 
-  test('When the user opens the buckets page with explicit sort and search query params, the route preserves them.', async ({
+  test('When the user opens the buckets-list-page with explicit search, sort, and page query params, the URL and visible content match.', async ({
     page,
   }, testInfo) => {
     setE2EUserContext(testInfo, 'seeded-bucket-owner');
     await actionAndCapture(
       page,
       testInfo,
-      'User opens the buckets page with explicit sort, search, and page query params.',
+      'User opens the buckets-list-page with explicit search, sort, and page query params.',
       async () => {
         await page.goto('/buckets?search=e2e&sortBy=name&sortOrder=asc&page=1');
+        await expect(page).toHaveURL(/\/buckets\?/);
+        const currentUrl = new URL(page.url());
+        expect(currentUrl.pathname).toBe('/buckets');
+        expect(currentUrl.searchParams.get('search')).toBe('e2e');
+        expect(currentUrl.searchParams.get('sortBy')).toBe('name');
+        expect(currentUrl.searchParams.get('sortOrder')).toBe('asc');
+        expect(currentUrl.searchParams.get('page')).toBe('1');
+        await expect(page.getByRole('table')).toBeVisible();
       }
     );
+    await capturePageLoad(
+      page,
+      testInfo,
+      'The buckets-list-page shows URL params preserved and table visible.'
+    );
+  });
 
-    await expect(page).toHaveURL(/\/buckets\?/);
-    const currentUrl = new URL(page.url());
-    expect(currentUrl.pathname).toBe('/buckets');
-    expect(currentUrl.searchParams.get('search')).toBe('e2e');
-    expect(currentUrl.searchParams.get('sortBy')).toBe('name');
-    expect(currentUrl.searchParams.get('sortOrder')).toBe('asc');
-    expect(currentUrl.searchParams.get('page')).toBe('1');
+  test('When the buckets list has no matching buckets, the user sees the empty-state message and the add-bucket link.', async ({
+    page,
+  }, testInfo) => {
+    setE2EUserContext(testInfo, 'seeded-bucket-owner');
+    await actionAndCapture(
+      page,
+      testInfo,
+      'User opens the buckets-list-page with a search that matches no buckets and sees the empty state.',
+      async () => {
+        await page.goto('/buckets?search=nonexistentbucketxyz999');
+        await expect(page).toHaveURL(/\/buckets\?.*search=nonexistentbucketxyz999/);
+        await expect(
+          page.getByText(/no buckets yet|create one to get started/i).first()
+        ).toBeVisible();
+        await expect(page.getByRole('link', { name: /add bucket|new bucket/i })).toBeVisible();
+      }
+    );
+    await capturePageLoad(
+      page,
+      testInfo,
+      'The buckets-list-page shows the empty-state message and the add-bucket link when no buckets match.'
+    );
   });
 });

@@ -6,15 +6,15 @@ import { setE2EUserContext } from './helpers/userContext';
 const E2E_EMAIL = 'e2e@example.com';
 const E2E_PASSWORD = 'Test!1Aa';
 
-test.describe('This suite verifies the login page.', () => {
-  test('When an unauthenticated user visits the login page, they see the login form.', async ({
+test.describe('This suite verifies the login-page: form visibility, valid and invalid credentials, already-authenticated redirect, and returnUrl handling.', () => {
+  test('When an unauthenticated user visits the login-page, they see the login-form.', async ({
     page,
   }, testInfo) => {
     setE2EUserContext(testInfo, 'unauthenticated');
     await actionAndCapture(
       page,
       testInfo,
-      'User navigates to the login page and sees the form for unauthenticated users.',
+      'User navigates to the login-page and sees the form for unauthenticated users.',
       async () => {
         await page.goto('/login');
       }
@@ -25,7 +25,7 @@ test.describe('This suite verifies the login page.', () => {
     await capturePageLoad(
       page,
       testInfo,
-      'The login form is fully visible with email, password, and submit button.'
+      'The login-form is fully visible with email, password, and submit button.'
     );
   });
 
@@ -36,7 +36,7 @@ test.describe('This suite verifies the login page.', () => {
     await actionAndCapture(
       page,
       testInfo,
-      'User navigates to the login page before entering valid seeded credentials.',
+      'User navigates to the login-page before entering valid seeded credentials.',
       async () => {
         await page.goto('/login');
       }
@@ -52,6 +52,7 @@ test.describe('This suite verifies the login page.', () => {
       }
     );
     await expect(page).toHaveURL(/\/dashboard/);
+    await expect(page.getByRole('heading', { name: /dashboard/i })).toBeVisible();
     await capturePageLoad(
       page,
       testInfo,
@@ -59,14 +60,14 @@ test.describe('This suite verifies the login page.', () => {
     );
   });
 
-  test('When the user submits invalid credentials, an error is shown and they remain on the login page.', async ({
+  test('When the user submits invalid credentials, an error is shown and they remain on the login-page.', async ({
     page,
   }, testInfo) => {
     setE2EUserContext(testInfo, 'unauthenticated');
     await actionAndCapture(
       page,
       testInfo,
-      'User navigates to the login page before entering invalid credentials.',
+      'User navigates to the login-page before entering invalid credentials.',
       async () => {
         await page.goto('/login');
       }
@@ -86,11 +87,11 @@ test.describe('This suite verifies the login page.', () => {
     await capturePageLoad(
       page,
       testInfo,
-      'The login page is still visible with an error message after invalid credentials.'
+      'The login-page is still visible with an error message after invalid credentials.'
     );
   });
 
-  test('When an authenticated user visits the login page, they are redirected to the dashboard.', async ({
+  test('When an authenticated user visits the login-page, they are redirected to the dashboard.', async ({
     page,
   }, testInfo) => {
     setE2EUserContext(testInfo, 'seeded-bucket-owner');
@@ -110,15 +111,21 @@ test.describe('This suite verifies the login page.', () => {
     await actionAndCapture(
       page,
       testInfo,
-      'User navigates to the login page while authenticated and is redirected to the dashboard.',
+      'User navigates to the login-page while authenticated and is redirected to the dashboard.',
       async () => {
         await page.goto('/login');
+        await expect(page).toHaveURL(/\/dashboard/);
+        await expect(page.getByRole('heading', { name: /dashboard/i })).toBeVisible();
       }
     );
-    await expect(page).toHaveURL(/\/dashboard/);
+    await capturePageLoad(
+      page,
+      testInfo,
+      'The dashboard is visible after already-authenticated redirect from the login-page.'
+    );
   });
 
-  test('When the user clicks the sign-up link, they are taken to the sign-up page.', async ({
+  test('When the user clicks the sign-up link, they are taken to the sign-up-page.', async ({
     page,
   }, testInfo) => {
     setE2EUserContext(testInfo, 'unauthenticated');
@@ -127,7 +134,7 @@ test.describe('This suite verifies the login page.', () => {
     await actionAndCapture(
       page,
       testInfo,
-      'User clicks the sign-up link and is navigated to the sign-up page.',
+      'User clicks the sign-up link and is navigated to the sign-up-page.',
       async () => {
         await page.getByRole('link', { name: /sign up/i }).click();
       }
@@ -135,7 +142,7 @@ test.describe('This suite verifies the login page.', () => {
     await expect(page).toHaveURL(/\/signup/);
   });
 
-  test('When the user clicks the forgot-password link, they are taken to the forgot-password page.', async ({
+  test('When the user clicks the forgot-password link, they are taken to the forgot-password-page.', async ({
     page,
   }, testInfo) => {
     setE2EUserContext(testInfo, 'unauthenticated');
@@ -144,7 +151,7 @@ test.describe('This suite verifies the login page.', () => {
     await actionAndCapture(
       page,
       testInfo,
-      'User clicks the forgot-password link and is navigated to the forgot-password page.',
+      'User clicks the forgot-password link and is navigated to the forgot-password-page.',
       async () => {
         await page.getByRole('link', { name: /forgot password/i }).click();
       }
@@ -161,7 +168,7 @@ test.describe('This suite verifies the login page.', () => {
     await actionAndCapture(
       page,
       testInfo,
-      'User logs in with a safe returnUrl and is redirected to the settings page.',
+      'User logs in with a safe returnUrl and is redirected to the settings-page.',
       async () => {
         await page.getByRole('textbox', { name: /email|username/i }).fill(E2E_EMAIL);
         await page.getByLabel(/password/i).fill(E2E_PASSWORD);
@@ -169,6 +176,12 @@ test.describe('This suite verifies the login page.', () => {
       }
     );
     await expect(page).toHaveURL(/\/settings/);
+    await expect(page.getByRole('heading', { name: /settings/i })).toBeVisible();
+    await capturePageLoad(
+      page,
+      testInfo,
+      'The settings-page is visible after login with safe returnUrl.'
+    );
   });
 
   test('When the user logs in with an unsafe returnUrl, it is ignored and they are redirected to the dashboard.', async ({
@@ -188,5 +201,11 @@ test.describe('This suite verifies the login page.', () => {
       }
     );
     await expect(page).toHaveURL(/\/dashboard/);
+    await expect(page.getByRole('heading', { name: /dashboard/i })).toBeVisible();
+    await capturePageLoad(
+      page,
+      testInfo,
+      'The dashboard is visible after login with unsafe returnUrl ignored.'
+    );
   });
 });
