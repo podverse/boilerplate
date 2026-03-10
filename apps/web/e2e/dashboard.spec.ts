@@ -4,8 +4,8 @@ import { actionAndCapture, capturePageLoad } from './helpers/stepScreenshots';
 import { setE2EUserContext } from './helpers/userContext';
 
 /**
- * E2E: unauthenticated redirect from /dashboard; authenticated user sees dashboard.
- * Requires e2e seed (e2e@example.com / Test!1Aa) and API + web running.
+ * Permission: authenticated only. Actor matrix: unauthenticated → login; any authenticated user
+ * → see dashboard. Requires e2e seed (e2e@example.com / Test!1Aa) and API + web running.
  */
 test.describe('This suite verifies the dashboard-page after login and unauthenticated redirect.', () => {
   test('When an unauthenticated user visits the dashboard-page, they are redirected to the login-page.', async ({

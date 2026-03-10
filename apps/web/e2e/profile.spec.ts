@@ -7,8 +7,10 @@ import {
 import { actionAndCapture, capturePageLoad } from './helpers/stepScreenshots';
 import { setE2EUserContext } from './helpers/userContext';
 
-/** Profile is self-only: /profile redirects to /settings; authenticated user sees own profile/settings; no user id in URL. */
-
+/**
+ * Permission: self-only; /profile redirects to /settings. Actor matrix: unauthenticated → login;
+ * any authenticated user → redirect to settings and see own profile.
+ */
 test.describe('This suite verifies the user-profile-page: unauthenticated→redirect, authenticated→own profile visible, and save profile changes→persist.', () => {
   test('When an unauthenticated user tries to open the user-profile-page, they are redirected to the login-page.', async ({
     page,

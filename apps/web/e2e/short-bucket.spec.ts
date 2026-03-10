@@ -8,8 +8,10 @@ import { setE2EUserContext } from './helpers/userContext';
 const E2E_BUCKET1_SHORT_ID = 'e2ebkt000001';
 const E2E_BUCKET2_SHORT_ID = 'e2ebkt000002';
 
-/** Behavior: /b/{shortId} is the public bucket page; no auth required. Public buckets resolve and show content; private or invalid id → not found. */
-
+/**
+ * Permission: public bucket page; no auth required. Actor matrix: unauthenticated and authenticated
+ * → resolve public bucket and see content; invalid id or private bucket → not found.
+ */
 test.describe('This suite verifies the short-bucket (public) URL: unauthenticated and authenticated resolve to public page, destination URL and content, invalid id→not found, private bucket→not found.', () => {
   test('When an unauthenticated user opens a public short-bucket URL by short id, they see the destination URL and bucket name.', async ({
     page,

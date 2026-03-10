@@ -3,6 +3,7 @@ import { expect, test } from '@playwright/test';
 import {
   expectUnauthedRouteRedirectsToLogin,
   loginAsWebE2EAdminWithPermission,
+  loginAsWebE2EAdminWithoutPermission,
   loginAsWebE2ENonAdmin,
   loginAsWebE2EUserAndExpectDashboard,
   nextFixtureName,
@@ -13,8 +14,11 @@ import { setE2EUserContext } from './helpers/userContext';
 
 const E2E_BUCKET1_SHORT_ID = 'e2ebkt000001';
 
-/** Permission: same as parent bucket update / bucket create; owner and non-owner admin with bucket permission can open form; non-admin and invalid parent id → not found. */
-
+/**
+ * Permission: parent bucket create/update (bucket_admin role or owner). Actor matrix: unauthenticated
+ * → login; owner and non-owner admin with bucket create → see form; non-owner admin without
+ * create (read-only) and non-admin → not found; invalid parent id → not found.
+ */
 test.describe('This suite verifies the child-bucket-create-page: unauthenticated redirect, form visibility, validation, Cancel→detail, valid create→detail, list→new flow, and not found for restricted actors.', () => {
   test('When an unauthenticated user tries to open the page to create a new child bucket, they are redirected to the login-page.', async ({
     page,
@@ -195,6 +199,21 @@ test.describe('This suite verifies the child-bucket-create-page: unauthenticated
       'User navigates to the child-bucket-create-page with an invalid parent bucket id and sees not found.',
       async () => {
         await page.goto('/bucket/invalid-parent-99999/new');
+      }
+    );
+  });
+
+  test('When the non-owner admin without bucket create (read-only) opens the child-bucket-create-page, they see not found.', async ({
+    page,
+  }, testInfo) => {
+    setE2EUserContext(testInfo, 'non-owner admin (read-only, no create)');
+    await loginAsWebE2EAdminWithoutPermission(page);
+    await expectInvalidRouteShowsNotFound(
+      page,
+      testInfo,
+      'User opens the child-bucket-create-page without bucket create permission and sees not found.',
+      async () => {
+        await page.goto(`/bucket/${E2E_BUCKET1_SHORT_ID}/new`);
       }
     );
   });

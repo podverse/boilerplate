@@ -8,8 +8,10 @@ import {
 import { actionAndCapture, capturePageLoad } from './helpers/stepScreenshots';
 import { setE2EUserContext } from './helpers/userContext';
 
-/** Permission: any authenticated user can create a top-level bucket; unauthenticated → redirect to login. */
-
+/**
+ * Permission: any authenticated user can create a top-level bucket. Actor matrix: unauthenticated
+ * → login; any authenticated user → see create form and can submit.
+ */
 test.describe('This suite verifies the new-bucket-page: unauthenticated redirect, form visibility, validation, Cancel→buckets-list, valid create→redirect and bucket visible, and buckets-list→new flow.', () => {
   test('When an unauthenticated user tries to open the new-bucket-page, they are redirected to the login-page.', async ({
     page,

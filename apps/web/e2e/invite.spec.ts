@@ -4,8 +4,11 @@ import { loginAsWebE2EUserAndExpectDashboard } from './helpers/advancedFixtures'
 import { actionAndCapture, capturePageLoad } from './helpers/stepScreenshots';
 import { setE2EUserContext } from './helpers/userContext';
 
-/** Invite is token-gated; valid token shows invite-page (login required if unauthenticated); invalid/expired token shows error; authenticated user can accept or reject. */
-
+/**
+ * Permission: token-gated invite; valid token shows invite (login required if unauthenticated).
+ * Actor matrix: invalid/expired token → error; unauthenticated + valid token → login then invite;
+ * authenticated + valid token → accept or reject.
+ */
 async function createInvitationToken(page: import('@playwright/test').Page): Promise<string> {
   await loginAsWebE2EUserAndExpectDashboard(page);
   await page.goto('/bucket/e2ebkt000001/settings/roles/new');

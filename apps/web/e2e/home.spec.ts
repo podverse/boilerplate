@@ -5,7 +5,8 @@ import { actionAndCapture, capturePageLoad } from './helpers/stepScreenshots';
 import { setE2EUserContext } from './helpers/userContext';
 
 /**
- * Home smoke: unauthenticated `/` redirects to login-page; authenticated `/` redirects to dashboard.
+ * Permission: public route; redirect by auth. Actor matrix: unauthenticated `/` → login; authenticated
+ * `/` → redirect to dashboard.
  */
 test.describe('This suite verifies the home-page unauthenticated and authenticated redirect behavior.', () => {
   test('When an unauthenticated user visits the home-page, they are redirected to the login-page.', async ({

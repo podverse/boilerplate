@@ -7,8 +7,10 @@ import { setE2EUserContext } from './helpers/userContext';
 const E2E_BUCKET1_SHORT_ID = 'e2ebkt000001';
 const E2E_BUCKET2_SHORT_ID = 'e2ebkt000002';
 
-/** Permission: public bucket send-message only; no auth required; invalid or private bucket id → not found. */
-
+/**
+ * Permission: public bucket send-message; no auth required. Actor matrix: any user → see form for
+ * public bucket; invalid or private bucket id → not found.
+ */
 test.describe('This suite verifies the public send-message-page: form visibility, invalid and private bucket→not found, validation (required fields), valid submit→redirect to public bucket, and flow from public bucket to send form.', () => {
   test('When the user opens the public send-message-page for a public bucket, they see the destination URL and the send-message form.', async ({
     page,

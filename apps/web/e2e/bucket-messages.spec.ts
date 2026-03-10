@@ -12,6 +12,11 @@ import { setE2EUserContext } from './helpers/userContext';
 
 const E2E_BUCKET1_SHORT_ID = 'e2ebkt000001';
 
+/**
+ * Permission: bucket access via bucket_admin or ownership. Actor matrix: unauthenticated → login;
+ * owner and non-owner admin with bucket access → see messages list or empty state; non-admin →
+ * not found; invalid bucket id → not found.
+ */
 test.describe('This suite verifies the bucket-messages-page: unauthenticated redirect, owner and non-owner admin see list or empty state, non-admin not found.', () => {
   test('When an unauthenticated user tries to open the bucket-messages-page, they are redirected to the login-page.', async ({
     page,

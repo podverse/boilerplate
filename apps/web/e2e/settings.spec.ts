@@ -7,8 +7,10 @@ import {
 import { actionAndCapture, capturePageLoad } from './helpers/stepScreenshots';
 import { setE2EUserContext } from './helpers/userContext';
 
-/** Settings is self-only: authenticated user sees own account settings (profile, password, email tabs); unauthenticated → redirect. */
-
+/**
+ * Permission: self-only; authenticated user sees own account settings. Actor matrix: unauthenticated
+ * → login; any authenticated user → see settings tabs (profile, password, email).
+ */
 test.describe('This suite verifies the user-settings-page: unauthenticated→redirect, authenticated→settings content and tabs visible, password validation, email-tab controls, and profile save→persist.', () => {
   test('When an unauthenticated user tries to open the user-settings-page, they are redirected to the login-page.', async ({
     page,
