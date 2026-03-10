@@ -5,6 +5,8 @@ description: When changing API routes, auth, or env-dependent behavior, add or u
 
 # API Integration Testing (Boilerplate)
 
+When implementing a feature or plan that affects `apps/api` or `apps/management-api`, adding or updating integration tests is **required**. If the change affects behavior in `apps/web` or `apps/management-web`, also add or update the corresponding E2E specs (see e2e-page-tests).
+
 Use this skill when adding or changing auth endpoints, versioned routes, or any API behavior that depends on environment variables. Keep tests in sync and use the correct test file and base URL.
 
 ## Test file layout

@@ -35,6 +35,8 @@ Inside the plan-set directory, use:
 - **01-NN-topic.md** … **NN-topic.md** – One markdown file per topic (e.g. `01-infra-directory.md`, `09-gitflow-test.md`). Each has: Scope, Steps, Key files, Verification.
 - **COPY-PASTA.md** – Copy-paste prompts for parallel agents, referencing the numbered plans.
 
+Implementation of plans that touch **api** or **management-api** must include integration test updates (see api-testing); plans that touch **web** or **management-web** must include E2E test updates (see e2e-page-tests).
+
 Plans stay under ~300 lines each; split into part files (e.g. `22-part-1-dashboard.md`) if a topic grows.
 
 ## How to use COPY-PASTA (execution order)
