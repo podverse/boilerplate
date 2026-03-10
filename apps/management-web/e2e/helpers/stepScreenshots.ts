@@ -1,4 +1,4 @@
-import type { Page, TestInfo } from '@playwright/test';
+import type { Locator, Page, TestInfo } from '@playwright/test';
 import path from 'path';
 
 const stepCounters = new WeakMap<TestInfo, number>();
@@ -37,9 +37,19 @@ const buildFullDescription = (testInfo: TestInfo, label: string): string => {
     .join(' – ');
 };
 
-const captureStep = async (page: Page, testInfo: TestInfo, label: string): Promise<void> => {
+const captureStep = async (
+  page: Page,
+  testInfo: TestInfo,
+  label: string,
+  scrollToElement?: Locator
+): Promise<void> => {
   if (!isStepScreenshotsEnabled()) {
     return;
+  }
+  if (scrollToElement !== undefined) {
+    await scrollToElement.evaluate((el) =>
+      el.scrollIntoView({ behavior: 'auto', block: 'center', inline: 'nearest' })
+    );
   }
   const stepIndex = nextStepIndex(testInfo);
   const shortFileName = `step-${String(stepIndex).padStart(3, '0')}.png`;
@@ -63,17 +73,19 @@ const captureStep = async (page: Page, testInfo: TestInfo, label: string): Promi
 export const capturePageLoad = async (
   page: Page,
   testInfo: TestInfo,
-  label = 'page-load'
+  label = 'page-load',
+  scrollToElement?: Locator
 ): Promise<void> => {
-  await captureStep(page, testInfo, label);
+  await captureStep(page, testInfo, label, scrollToElement);
 };
 
 export const actionAndCapture = async (
   page: Page,
   testInfo: TestInfo,
   label: string,
-  action: () => Promise<void>
+  action: () => Promise<void>,
+  scrollToElement?: Locator
 ): Promise<void> => {
   await action();
-  await captureStep(page, testInfo, label);
+  await captureStep(page, testInfo, label, scrollToElement);
 };

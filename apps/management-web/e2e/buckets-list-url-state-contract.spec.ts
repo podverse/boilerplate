@@ -23,10 +23,12 @@ test.describe('This suite verifies URL-state contracts for the management bucket
         await expect(page.getByRole('heading', { name: /buckets/i })).toBeVisible();
       }
     );
+    const bucketsHeading = page.getByRole('heading', { name: /buckets/i });
     await capturePageLoad(
       page,
       testInfo,
-      'The buckets-list page URL preserves sortBy and sortOrder and the list is visible.'
+      'The buckets-list page URL preserves sortBy and sortOrder and the list is visible.',
+      bucketsHeading
     );
   });
 });

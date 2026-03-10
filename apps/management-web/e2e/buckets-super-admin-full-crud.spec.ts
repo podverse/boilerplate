@@ -20,12 +20,14 @@ test.describe('This suite verifies the management buckets-list page for the supe
       }
     );
     await expect(page).toHaveURL(/\/buckets/);
-    await expect(page.getByRole('heading', { name: /buckets/i })).toBeVisible();
+    const bucketsHeading = page.getByRole('heading', { name: /buckets/i });
+    await expect(bucketsHeading).toBeVisible();
     await expect(page.getByRole('link', { name: /add bucket|new bucket|create/i })).toBeVisible();
     await capturePageLoad(
       page,
       testInfo,
-      'The buckets-list page is visible with heading and add-bucket link.'
+      'The buckets-list page is visible with heading and add-bucket link.',
+      bucketsHeading
     );
   });
 
@@ -48,11 +50,13 @@ test.describe('This suite verifies the management buckets-list page for the supe
       }
     );
     await expect(page).toHaveURL(/\/buckets\/new/);
-    await expect(page.getByRole('heading', { name: /add bucket/i })).toBeVisible();
+    const addBucketHeading = page.getByRole('heading', { name: /add bucket/i });
+    await expect(addBucketHeading).toBeVisible();
     await capturePageLoad(
       page,
       testInfo,
-      'The buckets-new page is visible after clicking the add-bucket link.'
+      'The buckets-new page is visible after clicking the add-bucket link.',
+      addBucketHeading
     );
   });
 

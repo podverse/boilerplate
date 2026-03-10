@@ -28,10 +28,12 @@ test.describe('This suite verifies URL-state contracts for the management bucket
         await expect(page.getByRole('link', { name: /buckets/i }).first()).toBeVisible();
       }
     );
+    const bucketTitle = page.getByText(/E2E Bucket One/);
     await capturePageLoad(
       page,
       testInfo,
-      'The management bucket-detail-page URL preserves tab, sortBy, and sortOrder and the buckets-tab is available.'
+      'The management bucket-detail-page URL preserves tab, sortBy, and sortOrder and the buckets-tab is available.',
+      bucketTitle
     );
   });
 
@@ -53,10 +55,12 @@ test.describe('This suite verifies URL-state contracts for the management bucket
         await expect(page.getByText(/E2E Bucket One/)).toBeVisible();
       }
     );
+    const bucketTitle = page.getByText(/E2E Bucket One/);
     await capturePageLoad(
       page,
       testInfo,
-      'The management bucket-detail-page URL preserves tab=messages and sort=oldest.'
+      'The management bucket-detail-page URL preserves tab=messages and sort=oldest.',
+      bucketTitle
     );
   });
 });

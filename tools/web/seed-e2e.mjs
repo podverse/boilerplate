@@ -127,6 +127,11 @@ async function main() {
        VALUES ($1, $2, $3, 2, 2, NOW())`,
       [E2E_BUCKET1_ID, E2E_USER3_ID, BUCKET_CRUD_READ]
     );
+    await client.query(
+      `INSERT INTO bucket_admin (bucket_id, user_id, bucket_crud, bucket_messages_crud, bucket_admins_crud, created_at)
+       VALUES ($1, $2, $3, 2, 2, NOW())`,
+      [E2E_BUCKET1_ID, E2E_USER_ID, BUCKET_CRUD_FULL]
+    );
     const resetTokenHash = crypto
       .createHash('sha256')
       .update(E2E_RESET_PASSWORD_TOKEN_RAW, 'utf8')
@@ -138,7 +143,7 @@ async function main() {
       [E2E_USER_ID, resetTokenHash, resetExpiresAt]
     );
     console.log(
-      'E2E web seed done: 4 users (owner, admin-with-permission, admin-without-permission, non-admin), 2 buckets, 2 bucket admins for E2E Bucket One.'
+      'E2E web seed done: 4 users (owner, admin-with-permission, admin-without-permission, non-admin), 2 buckets, 3 bucket admins for E2E Bucket One.'
     );
   } finally {
     await client.end();

@@ -100,13 +100,14 @@ test.describe('This suite verifies the bucket-settings-page for the seeded-bucke
     await expect(page).toHaveURL(
       new RegExp(`/bucket/${E2E_BUCKET1_SHORT_ID}/settings\\?tab=admins`)
     );
-    const ownerRow = page.locator('tr', { hasText: /\(owner\)/i }).first();
+    const ownerRow = page.getByRole('listitem').filter({ hasText: /owner/i }).first();
     await expect(ownerRow).toBeVisible();
     await expect(ownerRow.getByRole('button', { name: /delete/i })).toHaveCount(0);
     await capturePageLoad(
       page,
       testInfo,
-      'The owner row on the admins-tab has no delete button (owner protection).'
+      'The owner row on the admins-tab has no delete button (owner protection).',
+      ownerRow
     );
   });
 

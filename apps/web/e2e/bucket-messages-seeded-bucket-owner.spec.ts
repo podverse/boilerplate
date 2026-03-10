@@ -31,10 +31,12 @@ test.describe('This suite verifies the bucket-messages-page for the seeded-bucke
         await expect(page.getByRole('heading', { name: /messages/i })).toBeVisible();
       }
     );
+    const messagesHeading = page.getByRole('heading', { name: /messages/i });
     await capturePageLoad(
       page,
       testInfo,
-      'The bucket-messages-page is visible with a messages-list or empty state.'
+      'The bucket-messages-page is visible with a messages-list or empty state.',
+      messagesHeading
     );
   });
 
@@ -78,10 +80,12 @@ test.describe('This suite verifies the bucket-messages-page for the seeded-bucke
         await expect(page.getByRole('heading', { name: /messages/i })).toBeVisible();
       }
     );
+    const messagesHeading = page.getByRole('heading', { name: /messages/i });
     await capturePageLoad(
       page,
       testInfo,
-      'The messages page is visible after navigating from bucket detail.'
+      'The messages page is visible after navigating from bucket detail.',
+      messagesHeading
     );
   });
 });

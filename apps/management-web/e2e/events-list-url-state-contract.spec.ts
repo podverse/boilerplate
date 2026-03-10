@@ -24,10 +24,12 @@ test.describe('This suite verifies URL-state contracts for the management events
         await expect(page.getByRole('heading', { name: /events/i })).toBeVisible();
       }
     );
+    const eventsHeading = page.getByRole('heading', { name: /events/i });
     await capturePageLoad(
       page,
       testInfo,
-      'The events-list page URL preserves sort, sortBy, and sortOrder and the list is visible.'
+      'The events-list page URL preserves sort, sortBy, and sortOrder and the list is visible.',
+      eventsHeading
     );
   });
 
@@ -50,10 +52,12 @@ test.describe('This suite verifies URL-state contracts for the management events
         await expect(emptyState.first()).toBeVisible();
       }
     );
+    const emptyState = page.getByText(/no events|no results|no matches/i).first();
     await capturePageLoad(
       page,
       testInfo,
-      'The events-list page shows empty state when search matches no events.'
+      'The events-list page shows empty state when search matches no events.',
+      emptyState
     );
   });
 });

@@ -24,7 +24,8 @@ test.describe('This suite verifies the management events-page for the limited-ad
       }
     );
     await expect(page).toHaveURL(/\/events/);
-    await expect(page.getByRole('heading', { name: /events/i })).toBeVisible();
+    const eventsHeading = page.getByRole('heading', { name: /events/i });
+    await expect(eventsHeading).toBeVisible();
     await expect(page.getByRole('table')).toBeVisible();
     await expect(page.getByText(/E2E Limited Admin/i)).toBeVisible();
     await expect(page.getByText(/E2E Admin Bucket Admins/i)).toHaveCount(0);
@@ -32,7 +33,8 @@ test.describe('This suite verifies the management events-page for the limited-ad
     await capturePageLoad(
       page,
       testInfo,
-      'The events-page is visible for limited-admin with list or empty state.'
+      'The events-page is visible for limited-admin with list or empty state.',
+      eventsHeading
     );
   });
 });

@@ -19,13 +19,15 @@ test.describe('This suite verifies the management login-page for the unauthentic
         await page.goto('/login');
       }
     );
+    const loginForm = page.getByRole('button', { name: /log in|sign in|submit/i });
     await expect(page.getByRole('textbox', { name: /username|email/i })).toBeVisible();
     await expect(page.getByLabel(/password/i)).toBeVisible();
-    await expect(page.getByRole('button', { name: /log in|sign in|submit/i })).toBeVisible();
+    await expect(loginForm).toBeVisible();
     await capturePageLoad(
       page,
       testInfo,
-      'The management login-form is fully visible with username, password, and submit button.'
+      'The management login-form is fully visible with username, password, and submit button.',
+      loginForm
     );
   });
 
@@ -47,10 +49,12 @@ test.describe('This suite verifies the management login-page for the unauthentic
         await expect(page.getByText(/invalid credentials/i)).toBeVisible();
       }
     );
+    const errorMessage = page.getByText(/invalid credentials/i);
     await capturePageLoad(
       page,
       testInfo,
-      'The login-page is still visible with an error message after invalid credentials.'
+      'The login-page is still visible with an error message after invalid credentials.',
+      errorMessage
     );
   });
 });

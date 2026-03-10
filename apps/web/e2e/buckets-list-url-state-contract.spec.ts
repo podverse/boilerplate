@@ -25,10 +25,12 @@ test.describe('This suite verifies URL-state contracts for the web buckets-list 
         ).toBeVisible();
       }
     );
+    const listOrEmptyState = page.getByRole('link', { name: /add bucket|new bucket|create/i });
     await capturePageLoad(
       page,
       testInfo,
-      'The buckets-list page URL preserves sortBy and sortOrder and the list or empty state is visible.'
+      'The buckets-list page URL preserves sortBy and sortOrder and the list or empty state is visible.',
+      listOrEmptyState
     );
   });
 });

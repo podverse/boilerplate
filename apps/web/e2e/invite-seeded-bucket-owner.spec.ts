@@ -75,10 +75,14 @@ test.describe('This suite verifies the invite-page for the seeded-bucket-owner u
         ).toBeVisible();
       }
     );
+    const invalidState = page.getByText(
+      /invitation not found|invalid|no longer valid|failed to load/i
+    );
     await capturePageLoad(
       page,
       testInfo,
-      'The invite-page shows invalid state for an authenticated user with an invalid token.'
+      'The invite-page shows invalid state for an authenticated user with an invalid token.',
+      invalidState
     );
   });
 
@@ -101,10 +105,12 @@ test.describe('This suite verifies the invite-page for the seeded-bucket-owner u
         ).not.toBeVisible();
       }
     );
+    const inviteHeading = page.getByRole('heading', { name: /bucket admin invitation/i });
     await capturePageLoad(
       page,
       testInfo,
-      'The invite-page shows accept/reject or final state for the authenticated user.'
+      'The invite-page shows accept/reject or final state for the authenticated user.',
+      inviteHeading
     );
   });
 });

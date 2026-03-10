@@ -23,10 +23,12 @@ test.describe('This suite verifies URL-state contracts for the management users-
         await expect(page.getByRole('heading', { name: /users/i })).toBeVisible();
       }
     );
+    const usersHeading = page.getByRole('heading', { name: /users/i });
     await capturePageLoad(
       page,
       testInfo,
-      'The users-list page URL preserves sortBy and sortOrder and the list is visible.'
+      'The users-list page URL preserves sortBy and sortOrder and the list is visible.',
+      usersHeading
     );
   });
 
@@ -51,10 +53,14 @@ test.describe('This suite verifies URL-state contracts for the management users-
         await expect(emptyState.first()).toBeVisible();
       }
     );
+    const emptyStateEl = page
+      .getByText(/no users|no results|no matches|create one to get started|add user/i)
+      .first();
     await capturePageLoad(
       page,
       testInfo,
-      'The users-list page shows empty state when search matches no users.'
+      'The users-list page shows empty state when search matches no users.',
+      emptyStateEl
     );
   });
 });

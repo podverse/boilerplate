@@ -96,6 +96,10 @@ In **test titles and step labels**, use **hyphens between words** for compound t
 
 Example: "When the user opens the admin-edit-route with the seeded-bucket-owner's user id, they see not found." In variable names and constant comments in code, use camelCase (e.g. `seededBucketOwner`).
 
+## Screenshot shows verified element
+
+When a step documents verification of a **specific element** (e.g. a row, form, or control state), pass that element to the capture helper so the screenshot is taken with it vertically centered. See the **e2e-screenshot-verified-element** skill.
+
 ## Reference
 
 See [apps/web/e2e/bucket-nested-new.spec.ts](apps/web/e2e/bucket-nested-new.spec.ts) for the canonical pattern. Reporter logic: [scripts/e2e-html-steps-reporter.ts](scripts/e2e-html-steps-reporter.ts) (`isRedirectToLoginTest`).

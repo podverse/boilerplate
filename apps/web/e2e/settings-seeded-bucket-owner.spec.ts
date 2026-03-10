@@ -54,10 +54,12 @@ test.describe('This suite verifies the user-settings-page for the seeded-bucket-
         await expect(page.getByText(/match|failed|error/i).first()).toBeVisible();
       }
     );
+    const validationMessage = page.getByText(/match|failed|error/i).first();
     await capturePageLoad(
       page,
       testInfo,
-      'The settings-page password-tab shows validation and user remains on settings.'
+      'The settings-page password-tab shows validation and user remains on settings.',
+      validationMessage
     );
   });
 

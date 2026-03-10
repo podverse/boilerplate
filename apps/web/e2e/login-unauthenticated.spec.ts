@@ -21,13 +21,15 @@ test.describe('This suite verifies the login-page for the unauthenticated user.'
         await page.goto('/login');
       }
     );
+    const loginForm = page.getByRole('button', { name: /log in|sign in|submit/i });
     await expect(page.getByRole('textbox', { name: /email|username/i })).toBeVisible();
     await expect(page.getByLabel(/password/i)).toBeVisible();
-    await expect(page.getByRole('button', { name: /log in|sign in|submit/i })).toBeVisible();
+    await expect(loginForm).toBeVisible();
     await capturePageLoad(
       page,
       testInfo,
-      'The login-form is fully visible with email, password, and submit button.'
+      'The login-form is fully visible with email, password, and submit button.',
+      loginForm
     );
   });
 
@@ -54,11 +56,13 @@ test.describe('This suite verifies the login-page for the unauthenticated user.'
       }
     );
     await expect(page).toHaveURL(/\/dashboard/);
-    await expect(page.getByRole('heading', { name: /dashboard/i })).toBeVisible();
+    const dashboardHeading = page.getByRole('heading', { name: /dashboard/i });
+    await expect(dashboardHeading).toBeVisible();
     await capturePageLoad(
       page,
       testInfo,
-      'The dashboard is visible after successful login with the seeded user.'
+      'The dashboard is visible after successful login with the seeded user.',
+      dashboardHeading
     );
   });
 
@@ -86,10 +90,12 @@ test.describe('This suite verifies the login-page for the unauthenticated user.'
         await expect(page.getByText(/invalid|incorrect|wrong|error/i)).toBeVisible();
       }
     );
+    const errorMessage = page.getByText(/invalid|incorrect|wrong|error/i);
     await capturePageLoad(
       page,
       testInfo,
-      'The login-page is still visible with an error message after invalid credentials.'
+      'The login-page is still visible with an error message after invalid credentials.',
+      errorMessage
     );
   });
 
