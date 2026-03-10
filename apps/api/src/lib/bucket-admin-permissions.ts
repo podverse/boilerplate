@@ -9,9 +9,9 @@ const READ_BIT = CRUD_BITS.read;
  */
 export function normalizeBucketMessageCrud(
   bucketCrud: number,
-  messageCrud: number
-): { bucketCrud: number; messageCrud: number } {
+  bucketMessagesCrud: number
+): { bucketCrud: number; bucketMessagesCrud: number } {
   const bucket = bucketCrud | READ_BIT;
-  const message = messageCrud | READ_BIT | bucket;
-  return { bucketCrud: bucket, messageCrud: message };
+  const bucketMessages = bucketMessagesCrud | READ_BIT | bucket;
+  return { bucketCrud: bucket, bucketMessagesCrud: bucketMessages };
 }

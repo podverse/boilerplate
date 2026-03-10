@@ -59,7 +59,7 @@
     "adminPermissionsLabel": "Permisos de administrador",
     "bucketPermissions": "Permisos de bucket",
     "bucketPermissionsInfo": "Los permisos de bucket se aplican a este cubo y a los cubos anidados.",
-    "messagePermissions": "Permisos de mensajes",
+    "bucketMessagesPermissions": "Permisos de mensajes",
     "crudCreate": "Crear",
     "crudRead": "Leer",
     "crudUpdate": "Actualizar",

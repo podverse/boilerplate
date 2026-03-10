@@ -85,7 +85,7 @@ export function BucketAdminsClient({
     addAdminDescription: t('addAdminDescription'),
     bucketPermissions: t('bucketPermissions'),
     bucketPermissionsInfo: t('bucketPermissionsInfo'),
-    messagePermissions: t('messagePermissions'),
+    bucketMessagesPermissions: t('bucketMessagesPermissions'),
     adminPermissionsLabel: t('adminPermissionsLabel'),
     crudCreate: t('crudCreate'),
     crudRead: t('crudRead'),
@@ -109,8 +109,8 @@ export function BucketAdminsClient({
 
   const handleCreateInvitation = async (body: {
     bucketCrud: number;
-    messageCrud: number;
-    adminCrud: number;
+    bucketMessagesCrud: number;
+    bucketAdminsCrud: number;
   }): Promise<{ token: string } | { error: string }> => {
     const baseUrl = getApiBaseUrl();
     const res = await fetch(`${baseUrl}/buckets/${bucketId}/admin-invitations`, {

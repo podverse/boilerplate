@@ -15,8 +15,8 @@ export class BucketAdminInvitationService {
     bucketId: string;
     token: string;
     bucketCrud: number;
-    messageCrud: number;
-    adminCrud: number;
+    bucketMessagesCrud: number;
+    bucketAdminsCrud: number;
     expiresAt: Date;
   }): Promise<BucketAdminInvitation> {
     const repo = appDataSourceReadWrite.getRepository(BucketAdminInvitation);

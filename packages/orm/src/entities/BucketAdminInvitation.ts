@@ -25,11 +25,11 @@ export class BucketAdminInvitation {
   @Column({ name: 'bucket_crud', type: 'integer', default: 0 })
   bucketCrud!: number;
 
-  @Column({ name: 'message_crud', type: 'integer', default: 0 })
-  messageCrud!: number;
+  @Column({ name: 'bucket_messages_crud', type: 'integer', default: 0 })
+  bucketMessagesCrud!: number;
 
-  @Column({ name: 'admin_crud', type: 'integer', default: 2 })
-  adminCrud!: number;
+  @Column({ name: 'bucket_admins_crud', type: 'integer', default: 2 })
+  bucketAdminsCrud!: number;
 
   @Column({ type: 'varchar', length: 20, default: 'pending' })
   status!: BucketAdminInvitationStatus;

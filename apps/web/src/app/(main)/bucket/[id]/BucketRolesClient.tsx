@@ -114,13 +114,13 @@ export function BucketRolesClient({ bucketId }: { bucketId: string }) {
                 </span>
                 <div>
                   <Text size="sm">
-                    {adminsLabel}: {formatCrud(role.adminCrud, t)}
+                    {adminsLabel}: {formatCrud(role.bucketAdminsCrud, t)}
                   </Text>
                   <Text size="sm">
                     {bucketsLabel}: {formatCrud(role.bucketCrud, t)}
                   </Text>
                   <Text size="sm">
-                    {messagesLabel}: {formatCrud(role.messageCrud, t)}
+                    {messagesLabel}: {formatCrud(role.bucketMessagesCrud, t)}
                   </Text>
                 </div>
               </li>
@@ -154,13 +154,13 @@ export function BucketRolesClient({ bucketId }: { bucketId: string }) {
                   <span style={{ fontWeight: 500, minWidth: '10rem' }}>{role.name}</span>
                   <div>
                     <Text size="sm">
-                      {adminsLabel}: {formatCrud(role.adminCrud, t)}
+                      {adminsLabel}: {formatCrud(role.bucketAdminsCrud, t)}
                     </Text>
                     <Text size="sm">
                       {bucketsLabel}: {formatCrud(role.bucketCrud, t)}
                     </Text>
                     <Text size="sm">
-                      {messagesLabel}: {formatCrud(role.messageCrud, t)}
+                      {messagesLabel}: {formatCrud(role.bucketMessagesCrud, t)}
                     </Text>
                   </div>
                   <CrudButtons

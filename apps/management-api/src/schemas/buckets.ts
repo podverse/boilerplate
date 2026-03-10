@@ -25,25 +25,25 @@ export const updateBucketSchema = Joi.object({
 /** Create bucket admin invitation. Returns token for shareable link. */
 export const createBucketAdminInvitationSchema = Joi.object({
   bucketCrud: crudMask.optional(),
-  messageCrud: crudMask.optional(),
-  adminCrud: crudMask.optional(),
+  bucketMessagesCrud: crudMask.optional(),
+  bucketAdminsCrud: crudMask.optional(),
 });
 
 export const updateBucketAdminSchema = Joi.object({
   bucketCrud: crudMask.optional(),
-  messageCrud: crudMask.optional(),
-  adminCrud: crudMask.optional(),
+  bucketMessagesCrud: crudMask.optional(),
+  bucketAdminsCrud: crudMask.optional(),
 }).min(1);
 
 export type CreateBucketAdminInvitationBody = {
   bucketCrud?: number;
-  messageCrud?: number;
-  adminCrud?: number;
+  bucketMessagesCrud?: number;
+  bucketAdminsCrud?: number;
 };
 export type UpdateBucketAdminBody = {
   bucketCrud?: number;
-  messageCrud?: number;
-  adminCrud?: number;
+  bucketMessagesCrud?: number;
+  bucketAdminsCrud?: number;
 };
 
 const roleName = Joi.string().min(1).max(SHORT_TEXT_MAX_LENGTH);
@@ -51,28 +51,28 @@ const roleName = Joi.string().min(1).max(SHORT_TEXT_MAX_LENGTH);
 export const createBucketRoleSchema = Joi.object({
   name: roleName.required(),
   bucketCrud: crudMask.required(),
-  messageCrud: crudMask.required(),
-  adminCrud: crudMask.required(),
+  bucketMessagesCrud: crudMask.required(),
+  bucketAdminsCrud: crudMask.required(),
 });
 
 export const updateBucketRoleSchema = Joi.object({
   name: roleName.optional(),
   bucketCrud: crudMask.optional(),
-  messageCrud: crudMask.optional(),
-  adminCrud: crudMask.optional(),
+  bucketMessagesCrud: crudMask.optional(),
+  bucketAdminsCrud: crudMask.optional(),
 }).min(1);
 
 export type CreateBucketRoleBody = {
   name: string;
   bucketCrud: number;
-  messageCrud: number;
-  adminCrud: number;
+  bucketMessagesCrud: number;
+  bucketAdminsCrud: number;
 };
 export type UpdateBucketRoleBody = {
   name?: string;
   bucketCrud?: number;
-  messageCrud?: number;
-  adminCrud?: number;
+  bucketMessagesCrud?: number;
+  bucketAdminsCrud?: number;
 };
 
 export type CreateBucketBody = { name: string; isPublic?: boolean; ownerId: string };

@@ -5,7 +5,7 @@ import type { BucketMessage } from '@boilerplate/orm';
 
 /**
  * Bucket permission policy: owner has full CRUD; bucket admins have access per
- * bucket_crud and message_crud bitmasks (create=1, read=2, update=4, delete=8).
+ * bucket_crud and bucket_messages_crud bitmasks (create=1, read=2, update=4, delete=8).
  * Pass null for bucketAdmin when the user is not an admin for the bucket.
  */
 export function canReadBucket(
@@ -57,7 +57,7 @@ export function canReadMessage(
 ): boolean {
   if (message.isPublic) return true;
   if (bucket.ownerId === userId) return true;
-  if (bucketAdmin !== null) return (bucketAdmin.messageCrud & CRUD_BITS.read) !== 0;
+  if (bucketAdmin !== null) return (bucketAdmin.bucketMessagesCrud & CRUD_BITS.read) !== 0;
   return false;
 }
 
@@ -67,7 +67,7 @@ export function canCreateMessage(
   bucketAdmin: BucketAdmin | null
 ): boolean {
   if (bucket.ownerId === userId) return true;
-  if (bucketAdmin !== null) return (bucketAdmin.messageCrud & CRUD_BITS.create) !== 0;
+  if (bucketAdmin !== null) return (bucketAdmin.bucketMessagesCrud & CRUD_BITS.create) !== 0;
   return false;
 }
 
@@ -78,7 +78,7 @@ export function canUpdateMessage(
   _message: BucketMessage
 ): boolean {
   if (bucket.ownerId === userId) return true;
-  if (bucketAdmin !== null) return (bucketAdmin.messageCrud & CRUD_BITS.update) !== 0;
+  if (bucketAdmin !== null) return (bucketAdmin.bucketMessagesCrud & CRUD_BITS.update) !== 0;
   return false;
 }
 
@@ -89,7 +89,7 @@ export function canDeleteMessage(
   _message: BucketMessage
 ): boolean {
   if (bucket.ownerId === userId) return true;
-  if (bucketAdmin !== null) return (bucketAdmin.messageCrud & CRUD_BITS.delete) !== 0;
+  if (bucketAdmin !== null) return (bucketAdmin.bucketMessagesCrud & CRUD_BITS.delete) !== 0;
   return false;
 }
 

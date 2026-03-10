@@ -21,8 +21,8 @@ type AdminRow = {
   bucketId: string;
   userId: string;
   bucketCrud: number;
-  messageCrud: number;
-  adminCrud?: number;
+  bucketMessagesCrud: number;
+  bucketAdminsCrud?: number;
   createdAt: string;
   user: {
     id: string;
@@ -37,8 +37,8 @@ type PendingInvitationRow = {
   id: string;
   token: string;
   bucketCrud: number;
-  messageCrud: number;
-  adminCrud?: number;
+  bucketMessagesCrud: number;
+  bucketAdminsCrud?: number;
   status: string;
   expiresAt: string;
 };

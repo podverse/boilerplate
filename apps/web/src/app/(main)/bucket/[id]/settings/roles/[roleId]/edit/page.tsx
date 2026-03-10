@@ -17,8 +17,8 @@ async function updateRoleAction(
   payload: {
     name: string;
     bucketCrud: number;
-    messageCrud: number;
-    adminCrud: number;
+    bucketMessagesCrud: number;
+    bucketAdminsCrud: number;
   }
 ): Promise<void> {
   'use server';
@@ -73,7 +73,7 @@ export default async function EditBucketRolePage({
     roleName: t('roleName'),
     bucketPermissions: t('bucketPermissions'),
     bucketPermissionsInfo: t('bucketPermissionsInfo'),
-    messagePermissions: t('messagePermissions'),
+    bucketMessagesPermissions: t('bucketMessagesPermissions'),
     adminPermissionsLabel: t('adminPermissionsLabel'),
     crudCreate: t('crudCreate'),
     crudRead: t('crudRead'),
@@ -92,8 +92,8 @@ export default async function EditBucketRolePage({
         roleId={roleId}
         initialName={customRole.name}
         initialBucketCrud={customRole.bucketCrud}
-        initialMessageCrud={customRole.messageCrud}
-        initialAdminCrud={customRole.adminCrud}
+        initialMessageCrud={customRole.bucketMessagesCrud}
+        initialAdminCrud={customRole.bucketAdminsCrud}
         labels={labels}
         submitRoleAction={updateRoleAction.bind(null, bucketId, roleId)}
         successHref={successHref}

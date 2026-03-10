@@ -1,6 +1,6 @@
 ---
 name: feature-implementation-testing
-description: When creating or implementing plans for features that touch api, management-api, web, or management-web, include the corresponding tests—integration tests for api/mgmt-api, E2E tests for web/mgmt-web.
+description: When creating or implementing plans for features that touch api, management-api, web, or management-web, include the corresponding tests—integration tests for api/management-api and E2E tests for web/management-web.
 version: 1.0.0
 ---
 
@@ -20,4 +20,9 @@ When **creating or implementing plans** for features that touch `apps/api`, `app
 - Implementing a plan file that touches any of the four apps.
 - Implementing a feature (with or without a plan) that makes meaningful changes to api, management-api, web, or management-web.
 
-Apply the relevant skill for _how_ to write the tests (api-testing for integration tests, e2e-page-tests and related E2E skills for Playwright specs).
+## Planning vs implementation
+
+- **Plan creation phase:** Do not implement product code or tests. Include explicit testing work in the plan steps (integration tests for api/management-api changes, E2E tests for web/management-web changes).
+- **Implementation phase:** Add or update the actual test files as required by this policy.
+
+Apply the relevant skill for _how_ to write the tests (api-testing for integration tests, e2e-page-tests and related E2E skills for Playwright specs). For URL-state behavior and E2E readability conventions, also see **e2e-url-state-contracts** and **e2e-readability**.

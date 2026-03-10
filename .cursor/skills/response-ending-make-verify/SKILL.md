@@ -63,3 +63,4 @@ Multi-spec input:
 - API gate behavior is controlled by `E2E_API_GATE_MODE`; default `auto` is intended for
   fast day-to-day feedback.
 - If a response includes non-UI/API-internal work, still end with the nearest relevant verification command and briefly explain why it is the best available check.
+- If a verification command requires interactive input, stop and hand off using the **interactive-prompts** skill.

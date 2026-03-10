@@ -82,7 +82,7 @@ export function EditBucketAdminFormClient({
     createRoleOptionLabel: t('customRole'),
     bucketPermissions: t('bucketPermissions'),
     bucketPermissionsInfo: t('bucketPermissionsInfo'),
-    messagePermissions: t('messagePermissions'),
+    bucketMessagesPermissions: t('bucketMessagesPermissions'),
     adminPermissionsLabel: t('adminPermissionsLabel'),
     crudCreate: t('crudCreate'),
     crudRead: t('crudRead'),

@@ -13,8 +13,10 @@ When changing **DB schema** (especially permission-related columns or new resour
 
 1. **Predefined roles** are defined in code (`packages/helpers/src/bucketRoles/constants.ts`) and may need:
    - New entries (e.g. a new predefined role id and nameKey).
-   - Updated bitmasks (`bucketCrud`, `messageCrud`, `adminCrud`) if CRUD semantics change.
+   - Updated bitmasks (`bucketCrud`, `bucketMessagesCrud`, `bucketAdminsCrud`) if CRUD semantics change.
    - i18n keys in apps (e.g. `roles.full`, `roles.noUpdate`) and in management-web/originals.
+
+   Use parent-prefixed names for nested resources (e.g. `bucketMessagesCrud`); see **nested-resource-prefix-naming**.
 
 2. **Custom roles** live in schema tables (`bucket_role`, `management_admin_role`). Adding columns or changing CRUD semantics may require:
    - Migrations and init SQL updates together (keep both in sync):

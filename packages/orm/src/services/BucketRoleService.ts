@@ -24,8 +24,8 @@ export class BucketRoleService {
     bucketId: string;
     name: string;
     bucketCrud: number;
-    messageCrud: number;
-    adminCrud: number;
+    bucketMessagesCrud: number;
+    bucketAdminsCrud: number;
   }): Promise<BucketRole> {
     const repo = appDataSourceReadWrite.getRepository(BucketRole);
     const role = repo.create(data);
@@ -37,17 +37,20 @@ export class BucketRoleService {
     data: {
       name?: string;
       bucketCrud?: number;
-      messageCrud?: number;
-      adminCrud?: number;
+      bucketMessagesCrud?: number;
+      bucketAdminsCrud?: number;
     }
   ): Promise<void> {
     const repo = appDataSourceReadWrite.getRepository(BucketRole);
-    const update: Partial<Pick<BucketRole, 'name' | 'bucketCrud' | 'messageCrud' | 'adminCrud'>> =
-      {};
+    const update: Partial<
+      Pick<BucketRole, 'name' | 'bucketCrud' | 'bucketMessagesCrud' | 'bucketAdminsCrud'>
+    > = {};
     if (data.name !== undefined) update.name = data.name;
     if (data.bucketCrud !== undefined) update.bucketCrud = data.bucketCrud;
-    if (data.messageCrud !== undefined) update.messageCrud = data.messageCrud;
-    if (data.adminCrud !== undefined) update.adminCrud = data.adminCrud;
+    if (data.bucketMessagesCrud !== undefined) {
+      update.bucketMessagesCrud = data.bucketMessagesCrud;
+    }
+    if (data.bucketAdminsCrud !== undefined) update.bucketAdminsCrud = data.bucketAdminsCrud;
     if (Object.keys(update).length > 0) {
       await repo.update({ id }, update);
     }

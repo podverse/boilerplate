@@ -15,8 +15,8 @@ async function createRoleAction(
   payload: {
     name: string;
     bucketCrud: number;
-    messageCrud: number;
-    adminCrud: number;
+    bucketMessagesCrud: number;
+    bucketAdminsCrud: number;
   }
 ): Promise<void> {
   'use server';
@@ -64,7 +64,7 @@ export default async function NewBucketRolePage({
     roleName: t('roleName'),
     bucketPermissions: t('bucketPermissions'),
     bucketPermissionsInfo: t('bucketPermissionsInfo'),
-    messagePermissions: t('messagePermissions'),
+    bucketMessagesPermissions: t('bucketMessagesPermissions'),
     adminPermissionsLabel: t('adminPermissionsLabel'),
     crudCreate: t('crudCreate'),
     crudRead: t('crudRead'),

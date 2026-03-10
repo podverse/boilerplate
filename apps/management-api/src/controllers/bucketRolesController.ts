@@ -11,8 +11,8 @@ function predefinedToJson(role: (typeof PREDEFINED_BUCKET_ROLES)[number]) {
     id: role.id,
     nameKey: role.nameKey,
     bucketCrud: role.bucketCrud,
-    messageCrud: role.messageCrud,
-    adminCrud: role.adminCrud,
+    bucketMessagesCrud: role.bucketMessagesCrud,
+    bucketAdminsCrud: role.bucketAdminsCrud,
     isPredefined: true as const,
     createdAt: null as string | null,
   };
@@ -23,8 +23,8 @@ function customRoleToJson(role: BucketRole) {
     id: role.id,
     name: role.name,
     bucketCrud: role.bucketCrud,
-    messageCrud: role.messageCrud,
-    adminCrud: role.adminCrud,
+    bucketMessagesCrud: role.bucketMessagesCrud,
+    bucketAdminsCrud: role.bucketAdminsCrud,
     isPredefined: false as const,
     createdAt: role.createdAt.toISOString(),
   };
@@ -61,13 +61,16 @@ export async function createBucketRole(req: Request, res: Response): Promise<voi
     return;
   }
   const body = req.body as CreateBucketRoleBody;
-  const { bucketCrud, messageCrud } = normalizeBucketMessageCrud(body.bucketCrud, body.messageCrud);
+  const { bucketCrud, bucketMessagesCrud } = normalizeBucketMessageCrud(
+    body.bucketCrud,
+    body.bucketMessagesCrud
+  );
   const role = await BucketRoleService.create({
     bucketId: effectiveBucket.id,
     name: body.name,
     bucketCrud,
-    messageCrud,
-    adminCrud: body.adminCrud,
+    bucketMessagesCrud,
+    bucketAdminsCrud: body.bucketAdminsCrud,
   });
   res.status(201).json({ role: customRoleToJson(role) });
 }
@@ -93,18 +96,22 @@ export async function updateBucketRole(req: Request, res: Response): Promise<voi
     return;
   }
   const body = req.body as UpdateBucketRoleBody;
-  const update: { name?: string; bucketCrud?: number; messageCrud?: number; adminCrud?: number } =
-    {};
+  const update: {
+    name?: string;
+    bucketCrud?: number;
+    bucketMessagesCrud?: number;
+    bucketAdminsCrud?: number;
+  } = {};
   if (body.name !== undefined) update.name = body.name;
-  if (body.bucketCrud !== undefined || body.messageCrud !== undefined) {
-    const { bucketCrud, messageCrud } = normalizeBucketMessageCrud(
+  if (body.bucketCrud !== undefined || body.bucketMessagesCrud !== undefined) {
+    const { bucketCrud, bucketMessagesCrud } = normalizeBucketMessageCrud(
       body.bucketCrud ?? role.bucketCrud,
-      body.messageCrud ?? role.messageCrud
+      body.bucketMessagesCrud ?? role.bucketMessagesCrud
     );
     update.bucketCrud = bucketCrud;
-    update.messageCrud = messageCrud;
+    update.bucketMessagesCrud = bucketMessagesCrud;
   }
-  if (body.adminCrud !== undefined) update.adminCrud = body.adminCrud;
+  if (body.bucketAdminsCrud !== undefined) update.bucketAdminsCrud = body.bucketAdminsCrud;
   if (Object.keys(update).length > 0) {
     await BucketRoleService.update(roleId, update);
   }

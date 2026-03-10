@@ -6,7 +6,7 @@ Buckets can be nested, but governance is **root-scoped**: descendant buckets inh
 
 ## Owner
 
-- **Full CRUD**: The owner always has full CRUD on the bucket and its messages. This is enforced in **`apps/api/src/lib/bucket-policy.ts`**: every `can*` function returns `true` when `bucket.ownerId === userId`. Admins get access only per their `bucket_crud` and `message_crud` bitmasks.
+- **Full CRUD**: The owner always has full CRUD on the bucket and its messages. This is enforced in **`apps/api/src/lib/bucket-policy.ts`**: every `can*` function returns `true` when `bucket.ownerId === userId`. Admins get access only per their `bucket_crud` and `bucket_messages_crud` bitmasks.
 - **Root-scoped governance**: Owner/admin/settings are managed on the root bucket. Descendant buckets inherit these values.
 - **Cannot be edited or removed**: The owner's abilities are not removable. In **`apps/api/src/controllers/bucketAdminsController.ts`**:
   - **PATCH** (update admin): returns `403` with "Bucket owner cannot be edited" if the target user is the owner.
@@ -23,7 +23,7 @@ See: Bucket settings → **Roles** tab; `/bucket/:id/settings/roles/new`, `/buck
 
 ## Admins
 
-- **Selective CRUD**: Bucket admins have permissions stored per row: `bucket_crud`, `message_crud`, and `admin_crud`. These are bitmasks (create/read/update/delete). Admins and invitations are assigned via **role selection** (the role's CRUD is applied).
+- **Selective CRUD**: Bucket admins have permissions stored per row: `bucket_crud`, `bucket_messages_crud`, and `bucket_admins_crud`. These are bitmasks (create/read/update/delete). Admins and invitations are assigned via **role selection** (the role's CRUD is applied).
 - **Root-only mutation on descendants**: Descendant buckets can be renamed, but admin/role/invitation/settings mutations are rejected and must be performed on the root bucket.
 - **Editable/removable**: Non-owner admins can be updated (change role) or removed by users who have "manage bucket admins" (owner or admin with bucket update).
 

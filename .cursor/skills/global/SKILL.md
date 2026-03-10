@@ -21,10 +21,14 @@ version: 1.0.0
 - Plans go in `.llm/plans/active/` (not `.cursor/plans/`).
 - **300 line limit** per plan. Split into sub-plans in the same directory if larger.
 
+## Documentation
+
+- Documentation naming rules are canonical in **.cursor/skills/documentation-conventions/SKILL.md**.
+
 ## LLM History
 
-- 10-session maximum per history file. See **.cursor/skills/llm-history/SKILL.md** and `.llm/LLM.md`.
-- When modifying code, update `.llm/history/active/[feature]/[feature]-part-NN.md`.
+- Follow **.cursor/skills/llm-history/SKILL.md** as the canonical history process (timing, format, and split rules).
+- See `.llm/LLM.md` for the full system documentation.
 
 ## Code Quality
 

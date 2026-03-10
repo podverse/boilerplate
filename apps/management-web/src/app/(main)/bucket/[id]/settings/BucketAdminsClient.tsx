@@ -30,8 +30,8 @@ function toAdminRow(a: ManagementBucketAdmin): BucketAdminRow {
     bucketId: a.bucketId,
     userId: a.userId,
     bucketCrud: a.bucketCrud,
-    messageCrud: a.messageCrud,
-    adminCrud: a.adminCrud,
+    bucketMessagesCrud: a.bucketMessagesCrud,
+    bucketAdminsCrud: a.bucketAdminsCrud,
     createdAt: a.createdAt,
     user: a.user,
   };
@@ -42,8 +42,8 @@ function toInvitationRow(inv: ManagementBucketAdminInvitation): BucketAdminInvit
     id: inv.id,
     token: inv.token,
     bucketCrud: inv.bucketCrud,
-    messageCrud: inv.messageCrud,
-    adminCrud: inv.adminCrud,
+    bucketMessagesCrud: inv.bucketMessagesCrud,
+    bucketAdminsCrud: inv.bucketAdminsCrud,
     status: inv.status,
     expiresAt: inv.expiresAt,
   };
@@ -76,7 +76,8 @@ export function BucketAdminsClient({ bucketId, ownerId }: { bucketId: string; ow
       managementWebBucketRoles.listBucketRoles(baseUrl, bucketId, null),
     ]);
     if (adminsRes.ok && adminsRes.data !== undefined) {
-      setAdmins(adminsRes.data.admins.map(toAdminRow));
+      const bucketAdmins = adminsRes.data.admins;
+      setAdmins(Array.isArray(bucketAdmins) ? bucketAdmins.map(toAdminRow) : []);
     }
     if (invRes.ok && invRes.data !== undefined) {
       setPendingInvitations(invRes.data.invitations.map(toInvitationRow));
@@ -110,7 +111,7 @@ export function BucketAdminsClient({ bucketId, ownerId }: { bucketId: string; ow
     addAdminDescription: t('addAdminDescription'),
     bucketPermissions: t('bucketPermissions'),
     bucketPermissionsInfo: t('bucketPermissionsInfo'),
-    messagePermissions: t('messagePermissions'),
+    bucketMessagesPermissions: t('bucketMessagesPermissions'),
     adminPermissionsLabel: t('adminPermissionsLabel'),
     crudCreate: t('crudCreate'),
     crudRead: t('crudRead'),
@@ -135,8 +136,8 @@ export function BucketAdminsClient({ bucketId, ownerId }: { bucketId: string; ow
   const handleCreateInvitation = useCallback(
     async (body: {
       bucketCrud: number;
-      messageCrud: number;
-      adminCrud: number;
+      bucketMessagesCrud: number;
+      bucketAdminsCrud: number;
     }): Promise<{ token: string } | { error: string }> => {
       const res = await managementWebBucketAdmins.createBucketAdminInvitation(
         baseUrl,

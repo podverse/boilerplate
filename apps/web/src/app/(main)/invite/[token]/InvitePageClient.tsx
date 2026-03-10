@@ -24,7 +24,7 @@ type Invitation = {
   bucketShortId?: string;
   bucketName?: string;
   bucketCrud: number;
-  messageCrud: number;
+  bucketMessagesCrud: number;
   status: string;
 };
 

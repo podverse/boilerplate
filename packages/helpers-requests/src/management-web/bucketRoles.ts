@@ -6,8 +6,8 @@ export type PredefinedBucketRoleItem = {
   id: string;
   nameKey: string;
   bucketCrud: number;
-  messageCrud: number;
-  adminCrud: number;
+  bucketMessagesCrud: number;
+  bucketAdminsCrud: number;
   isPredefined: true;
   createdAt: null;
 };
@@ -17,8 +17,8 @@ export type CustomBucketRoleItem = {
   id: string;
   name: string;
   bucketCrud: number;
-  messageCrud: number;
-  adminCrud: number;
+  bucketMessagesCrud: number;
+  bucketAdminsCrud: number;
   isPredefined: false;
   createdAt: string;
 };
@@ -33,15 +33,15 @@ export function isPredefinedRole(role: BucketRoleItem): role is PredefinedBucket
 export type CreateBucketRoleBody = {
   name: string;
   bucketCrud: number;
-  messageCrud: number;
-  adminCrud: number;
+  bucketMessagesCrud: number;
+  bucketAdminsCrud: number;
 };
 
 export type UpdateBucketRoleBody = {
   name?: string;
   bucketCrud?: number;
-  messageCrud?: number;
-  adminCrud?: number;
+  bucketMessagesCrud?: number;
+  bucketAdminsCrud?: number;
 };
 
 export async function listBucketRoles(

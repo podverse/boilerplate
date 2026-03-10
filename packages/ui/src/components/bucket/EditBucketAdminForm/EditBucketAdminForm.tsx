@@ -26,7 +26,7 @@ export type EditBucketAdminFormLabels = {
   /** When using CRUD checkboxes (roleOptions empty). */
   bucketPermissions?: string;
   bucketPermissionsInfo?: string;
-  messagePermissions?: string;
+  bucketMessagesPermissions?: string;
   adminPermissionsLabel?: string;
   crudCreate?: string;
   crudRead?: string;
@@ -36,8 +36,8 @@ export type EditBucketAdminFormLabels = {
 
 export type EditBucketAdminFormPayload = {
   bucketCrud: number;
-  messageCrud: number;
-  adminCrud: number;
+  bucketMessagesCrud: number;
+  bucketAdminsCrud: number;
 };
 
 export type EditBucketAdminFormProps = {
@@ -57,12 +57,14 @@ export type EditBucketAdminFormProps = {
   readOnly?: boolean;
 };
 
-function adminCrudWithRead(crud: number): number {
+function bucketAdminsCrudWithRead(crud: number): number {
   return crud | CRUD_BITS.read;
 }
 
 function rolePermissionScore(role: BucketAdminRoleOption): number {
-  return role.bucketCrud + role.messageCrud + adminCrudWithRead(role.adminCrud);
+  return (
+    role.bucketCrud + role.bucketMessagesCrud + bucketAdminsCrudWithRead(role.bucketAdminsCrud)
+  );
 }
 
 export function EditBucketAdminForm({
@@ -120,7 +122,7 @@ export function EditBucketAdminForm({
     });
   };
 
-  const initialAdminCrudNorm = adminCrudWithRead(initialAdminCrud);
+  const initialAdminCrudNorm = bucketAdminsCrudWithRead(initialAdminCrud);
   const highestRole =
     roleOptions.length > 0
       ? roleOptions.reduce((best, role) =>
@@ -145,8 +147,8 @@ export function EditBucketAdminForm({
         id: EDIT_ADMIN_CUSTOM_ROLE_ID,
         label: customLabel,
         bucketCrud: initialBucketCrud,
-        messageCrud: initialMessageCrud,
-        adminCrud: initialAdminCrudNorm,
+        bucketMessagesCrud: initialMessageCrud,
+        bucketAdminsCrud: initialAdminCrudNorm,
       },
       selectedId: EDIT_ADMIN_CUSTOM_ROLE_ID,
     };
@@ -179,14 +181,14 @@ export function EditBucketAdminForm({
     if (!useRoleDropdown) return;
     if (selectedRoleId === EDIT_ADMIN_CUSTOM_ROLE_ID && customOption !== null) {
       setBucketFlags({ ...bitmaskToFlags(customOption.bucketCrud), read: true });
-      setMessageFlags({ ...bitmaskToFlags(customOption.messageCrud), read: true });
-      setAdminFlags(bitmaskToFlags(customOption.adminCrud));
+      setMessageFlags({ ...bitmaskToFlags(customOption.bucketMessagesCrud), read: true });
+      setAdminFlags(bitmaskToFlags(customOption.bucketAdminsCrud));
       return;
     }
     if (selectedRole !== undefined) {
       setBucketFlags({ ...bitmaskToFlags(selectedRole.bucketCrud), read: true });
-      setMessageFlags({ ...bitmaskToFlags(selectedRole.messageCrud), read: true });
-      setAdminFlags(bitmaskToFlags(adminCrudWithRead(selectedRole.adminCrud)));
+      setMessageFlags({ ...bitmaskToFlags(selectedRole.bucketMessagesCrud), read: true });
+      setAdminFlags(bitmaskToFlags(bucketAdminsCrudWithRead(selectedRole.bucketAdminsCrud)));
     }
   }, [useRoleDropdown, selectedRoleId, selectedRole, customOption]);
 
@@ -222,8 +224,8 @@ export function EditBucketAdminForm({
         if (selectedRoleId === EDIT_ADMIN_CUSTOM_ROLE_ID && customOption !== null) {
           payload = {
             bucketCrud: customOption.bucketCrud,
-            messageCrud: customOption.messageCrud,
-            adminCrud: customOption.adminCrud,
+            bucketMessagesCrud: customOption.bucketMessagesCrud,
+            bucketAdminsCrud: customOption.bucketAdminsCrud,
           };
         } else {
           const role = roleOptions.find((r) => r.id === selectedRoleId);
@@ -234,17 +236,17 @@ export function EditBucketAdminForm({
           }
           payload = {
             bucketCrud: role.bucketCrud,
-            messageCrud: role.messageCrud,
-            adminCrud: adminCrudWithRead(role.adminCrud),
+            bucketMessagesCrud: role.bucketMessagesCrud,
+            bucketAdminsCrud: bucketAdminsCrudWithRead(role.bucketAdminsCrud),
           };
         }
       } else {
         const bucketCrud = flagsToBitmask(bucketFlags) | CRUD_BITS.read;
-        const messageCrud = flagsToBitmask(messageFlags) | CRUD_BITS.read | bucketCrud;
+        const bucketMessagesCrud = flagsToBitmask(messageFlags) | CRUD_BITS.read | bucketCrud;
         payload = {
           bucketCrud,
-          messageCrud,
-          adminCrud: flagsToBitmask(adminFlags) | CRUD_BITS.read,
+          bucketMessagesCrud,
+          bucketAdminsCrud: flagsToBitmask(adminFlags) | CRUD_BITS.read,
         };
       }
       await Promise.resolve(onSubmit(payload));
@@ -307,7 +309,7 @@ export function EditBucketAdminForm({
           selectAllInfo={labels.bucketPermissionsInfo}
         />
         <CrudCheckboxes
-          label={labels.messagePermissions ?? 'Message permissions'}
+          label={labels.bucketMessagesPermissions ?? 'Message permissions'}
           labels={crudLabels}
           flags={messageFlags}
           onChange={setMessageFlagsWithReadForced}

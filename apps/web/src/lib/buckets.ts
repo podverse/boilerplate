@@ -116,8 +116,8 @@ export type BucketAdminRow = {
   bucketId: string;
   userId: string;
   bucketCrud: number;
-  messageCrud: number;
-  adminCrud?: number;
+  bucketMessagesCrud: number;
+  bucketAdminsCrud?: number;
   createdAt: string;
   user: {
     id: string;
@@ -142,15 +142,16 @@ export async function fetchAdmins(bucketId: string): Promise<BucketAdminRow[]> {
     return [];
   }
   const data = res.data as { admins?: BucketAdminRow[] };
-  return Array.isArray(data.admins) ? data.admins : [];
+  const bucketAdmins = Array.isArray(data.admins) ? data.admins : [];
+  return bucketAdmins;
 }
 
 export type BucketAdminInvitationRow = {
   id: string;
   token: string;
   bucketCrud: number;
-  messageCrud: number;
-  adminCrud?: number;
+  bucketMessagesCrud: number;
+  bucketAdminsCrud?: number;
   status: string;
   expiresAt: string;
 };

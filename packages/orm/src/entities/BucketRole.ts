@@ -25,11 +25,11 @@ export class BucketRole {
   @Column({ name: 'bucket_crud', type: 'integer' })
   bucketCrud!: number;
 
-  @Column({ name: 'message_crud', type: 'integer' })
-  messageCrud!: number;
+  @Column({ name: 'bucket_messages_crud', type: 'integer' })
+  bucketMessagesCrud!: number;
 
-  @Column({ name: 'admin_crud', type: 'integer' })
-  adminCrud!: number;
+  @Column({ name: 'bucket_admins_crud', type: 'integer' })
+  bucketAdminsCrud!: number;
 
   @CreateDateColumn({ name: 'created_at' })
   createdAt!: Date;

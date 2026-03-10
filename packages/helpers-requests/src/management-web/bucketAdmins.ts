@@ -14,8 +14,8 @@ export type ManagementBucketAdmin = {
   bucketId: string;
   userId: string;
   bucketCrud: number;
-  messageCrud: number;
-  adminCrud: number;
+  bucketMessagesCrud: number;
+  bucketAdminsCrud: number;
   createdAt: string;
   user: BucketAdminUser | null;
 };
@@ -24,22 +24,22 @@ export type ManagementBucketAdminInvitation = {
   id: string;
   token: string;
   bucketCrud: number;
-  messageCrud: number;
-  adminCrud: number;
+  bucketMessagesCrud: number;
+  bucketAdminsCrud: number;
   status: string;
   expiresAt: string;
 };
 
 export type CreateBucketAdminInvitationBody = {
   bucketCrud?: number;
-  messageCrud?: number;
-  adminCrud?: number;
+  bucketMessagesCrud?: number;
+  bucketAdminsCrud?: number;
 };
 
 export type UpdateBucketAdminBody = {
   bucketCrud?: number;
-  messageCrud?: number;
-  adminCrud?: number;
+  bucketMessagesCrud?: number;
+  bucketAdminsCrud?: number;
 };
 
 export async function listBucketAdmins(

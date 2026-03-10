@@ -55,7 +55,7 @@ export default async function NewBucketRolePage({
     roleName: t('roleName'),
     bucketPermissions: t('bucketPermissions'),
     bucketPermissionsInfo: t('bucketPermissionsInfo'),
-    messagePermissions: t('messagePermissions'),
+    bucketMessagesPermissions: t('bucketMessagesPermissions'),
     adminPermissionsLabel: t('adminPermissionsLabel'),
     crudCreate: t('crudCreate'),
     crudRead: t('crudRead'),
@@ -68,8 +68,8 @@ export default async function NewBucketRolePage({
   async function handleSubmit(payload: {
     name: string;
     bucketCrud: number;
-    messageCrud: number;
-    adminCrud: number;
+    bucketMessagesCrud: number;
+    bucketAdminsCrud: number;
   }) {
     'use server';
     const cookieHeader = await getCookieHeader();

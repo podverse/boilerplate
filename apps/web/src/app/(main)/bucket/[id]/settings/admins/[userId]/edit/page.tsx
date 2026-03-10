@@ -21,8 +21,8 @@ type AdminRow = {
   bucketId: string;
   userId: string;
   bucketCrud: number;
-  messageCrud: number;
-  adminCrud?: number;
+  bucketMessagesCrud: number;
+  bucketAdminsCrud?: number;
   user?: AdminUser | null;
 };
 
@@ -39,16 +39,17 @@ async function fetchAdmin(
   });
   if (!res.ok || res.data === undefined) return null;
   const data = res.data as { admin?: AdminRow };
-  const admin = data.admin;
+  const bucketAdmin = data.admin;
   if (
-    admin === undefined ||
-    typeof admin.bucketCrud !== 'number' ||
-    typeof admin.messageCrud !== 'number'
+    bucketAdmin === undefined ||
+    typeof bucketAdmin.bucketCrud !== 'number' ||
+    typeof bucketAdmin.bucketMessagesCrud !== 'number'
   ) {
     return null;
   }
-  const adminCrud = typeof admin.adminCrud === 'number' ? admin.adminCrud : 2;
-  return { admin: { ...admin, adminCrud } };
+  const bucketAdminsCrud =
+    typeof bucketAdmin.bucketAdminsCrud === 'number' ? bucketAdmin.bucketAdminsCrud : 2;
+  return { admin: { ...bucketAdmin, bucketAdminsCrud } };
 }
 
 export default async function EditBucketAdminPage({
@@ -73,17 +74,18 @@ export default async function EditBucketAdminPage({
   const adminsHref = bucketSettingsAdminsRoute(bucketId);
 
   const fullCrud = CRUD_BITS.create | CRUD_BITS.read | CRUD_BITS.update | CRUD_BITS.delete;
-  const admin = result?.admin;
-  const initialBucketCrud = admin?.bucketCrud ?? fullCrud;
-  const initialMessageCrud = admin?.messageCrud ?? fullCrud;
-  const initialAdminCrud = admin?.adminCrud ?? (isOwner ? fullCrud : 2 | CRUD_BITS.read);
+  const bucketAdmin = result?.admin;
+  const initialBucketCrud = bucketAdmin?.bucketCrud ?? fullCrud;
+  const initialMessageCrud = bucketAdmin?.bucketMessagesCrud ?? fullCrud;
+  const initialAdminCrud =
+    bucketAdmin?.bucketAdminsCrud ?? (isOwner ? fullCrud : 2 | CRUD_BITS.read);
 
   const userLabel =
-    admin?.user !== undefined && admin.user !== null
+    bucketAdmin?.user !== undefined && bucketAdmin.user !== null
       ? formatUserLabel({
-          username: admin.user.username,
-          email: admin.user.email,
-          displayName: admin.user.displayName,
+          username: bucketAdmin.user.username,
+          email: bucketAdmin.user.email,
+          displayName: bucketAdmin.user.displayName,
         })
       : null;
 

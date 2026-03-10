@@ -59,7 +59,7 @@
     "adminPermissionsLabel": "",
     "bucketPermissions": "",
     "bucketPermissionsInfo": "",
-    "messagePermissions": "",
+    "bucketMessagesPermissions": "",
     "crudCreate": "",
     "crudRead": "",
     "crudUpdate": "",

@@ -24,35 +24,35 @@ export const createChildBucketSchema = Joi.object({
 export const createBucketAdminSchema = Joi.object({
   userId: Joi.string().min(10).max(36).required(),
   bucketCrud: crudMask.optional(),
-  messageCrud: crudMask.optional(),
-  adminCrud: crudMask.optional(),
+  bucketMessagesCrud: crudMask.optional(),
+  bucketAdminsCrud: crudMask.optional(),
 });
 
 /** Create admin invitation (no userId); returns token for shareable link. */
 export const createBucketAdminInvitationSchema = Joi.object({
   bucketCrud: crudMask.optional(),
-  messageCrud: crudMask.optional(),
-  adminCrud: crudMask.optional(),
+  bucketMessagesCrud: crudMask.optional(),
+  bucketAdminsCrud: crudMask.optional(),
 });
 
 export const updateBucketAdminSchema = Joi.object({
   bucketCrud: crudMask.optional(),
-  messageCrud: crudMask.optional(),
-  adminCrud: crudMask.optional(),
+  bucketMessagesCrud: crudMask.optional(),
+  bucketAdminsCrud: crudMask.optional(),
 }).min(1);
 
 const roleName = Joi.string().min(1).max(SHORT_TEXT_MAX_LENGTH);
 export const createBucketRoleSchema = Joi.object({
   name: roleName.required(),
   bucketCrud: crudMask.required(),
-  messageCrud: crudMask.required(),
-  adminCrud: crudMask.required(),
+  bucketMessagesCrud: crudMask.required(),
+  bucketAdminsCrud: crudMask.required(),
 });
 export const updateBucketRoleSchema = Joi.object({
   name: roleName.optional(),
   bucketCrud: crudMask.optional(),
-  messageCrud: crudMask.optional(),
-  adminCrud: crudMask.optional(),
+  bucketMessagesCrud: crudMask.optional(),
+  bucketAdminsCrud: crudMask.optional(),
 }).min(1);
 
 export const createMessageSchema = Joi.object({
@@ -83,30 +83,30 @@ export type CreateChildBucketBody = { name: string; isPublic?: boolean };
 export type CreateBucketAdminBody = {
   userId: string;
   bucketCrud?: number;
-  messageCrud?: number;
-  adminCrud?: number;
+  bucketMessagesCrud?: number;
+  bucketAdminsCrud?: number;
 };
 export type CreateBucketAdminInvitationBody = {
   bucketCrud?: number;
-  messageCrud?: number;
-  adminCrud?: number;
+  bucketMessagesCrud?: number;
+  bucketAdminsCrud?: number;
 };
 export type UpdateBucketAdminBody = {
   bucketCrud?: number;
-  messageCrud?: number;
-  adminCrud?: number;
+  bucketMessagesCrud?: number;
+  bucketAdminsCrud?: number;
 };
 export type CreateBucketRoleBody = {
   name: string;
   bucketCrud: number;
-  messageCrud: number;
-  adminCrud: number;
+  bucketMessagesCrud: number;
+  bucketAdminsCrud: number;
 };
 export type UpdateBucketRoleBody = {
   name?: string;
   bucketCrud?: number;
-  messageCrud?: number;
-  adminCrud?: number;
+  bucketMessagesCrud?: number;
+  bucketAdminsCrud?: number;
 };
 export type CreateMessageBody = { senderName: string; body: string; isPublic?: boolean };
 export type UpdateMessageBody = { body?: string; isPublic?: boolean };

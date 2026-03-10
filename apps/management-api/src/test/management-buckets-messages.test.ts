@@ -171,15 +171,15 @@ describe('management-api buckets and messages', () => {
         .send({
           name: 'Custom Role A',
           bucketCrud: 7,
-          messageCrud: 7,
-          adminCrud: 7,
+          bucketMessagesCrud: 7,
+          bucketAdminsCrud: 7,
         })
         .expect(201);
       expect(createRes.body.role).toHaveProperty('id');
       expect(createRes.body.role.name).toBe('Custom Role A');
       expect(createRes.body.role.isPredefined).toBe(false);
       expect(createRes.body.role.bucketCrud).toBe(7);
-      expect(createRes.body.role.messageCrud).toBe(7);
+      expect(createRes.body.role.bucketMessagesCrud).toBe(7);
 
       const listRes = await superAdminAgent.get(`${API}/buckets/${bucketId}/roles`).expect(200);
       const custom = listRes.body.roles.filter((r: { isPredefined: boolean }) => !r.isPredefined);
@@ -216,8 +216,8 @@ describe('management-api buckets and messages', () => {
         .send({
           name: '',
           bucketCrud: 0,
-          messageCrud: 0,
-          adminCrud: 0,
+          bucketMessagesCrud: 0,
+          bucketAdminsCrud: 0,
         })
         .expect(400);
 
@@ -226,8 +226,8 @@ describe('management-api buckets and messages', () => {
         .send({
           name: 'Bad Crud',
           bucketCrud: 16,
-          messageCrud: 0,
-          adminCrud: 0,
+          bucketMessagesCrud: 0,
+          bucketAdminsCrud: 0,
         })
         .expect(400);
     });
@@ -482,8 +482,8 @@ describe('management-api buckets and messages', () => {
         bucketId: testBucketId,
         userId: adminUserId,
         bucketCrud: 0,
-        messageCrud: 2,
-        adminCrud: 2,
+        bucketMessagesCrud: 2,
+        bucketAdminsCrud: 2,
       });
     });
 
@@ -502,7 +502,7 @@ describe('management-api buckets and messages', () => {
     it('POST /buckets/:id/admin-invitations returns 403 when bucketAdminsCrud create is 0', async () => {
       await noBucketAdminsAgent
         .post(`${API}/buckets/${testBucketId}/admin-invitations`)
-        .send({ bucketCrud: 0, messageCrud: 0, adminCrud: 2 })
+        .send({ bucketCrud: 0, bucketMessagesCrud: 0, bucketAdminsCrud: 2 })
         .expect(403, { message: 'Insufficient permissions' });
     });
 
@@ -525,12 +525,12 @@ describe('management-api buckets and messages', () => {
     it('POST /buckets/:id/admin-invitations creates invitation when bucketAdminsCrud create is set', async () => {
       const res = await withBucketAdminsAgent
         .post(`${API}/buckets/${testBucketId}/admin-invitations`)
-        .send({ bucketCrud: 0, messageCrud: 2, adminCrud: 2 })
+        .send({ bucketCrud: 0, bucketMessagesCrud: 2, bucketAdminsCrud: 2 })
         .expect(201);
       expect(res.body.invitation).toHaveProperty('id');
       expect(res.body.invitation).toHaveProperty('token');
       expect(res.body.invitation.bucketCrud).toBe(2);
-      expect(res.body.invitation.messageCrud).toBe(2);
+      expect(res.body.invitation.bucketMessagesCrud).toBe(2);
       invitationId = res.body.invitation.id;
     });
 
@@ -545,18 +545,18 @@ describe('management-api buckets and messages', () => {
         .get(`${API}/buckets/${testBucketId}/admins/${adminUserId}`)
         .expect(200);
       expect(res.body.admin).toHaveProperty('userId', adminUserId);
-      expect(res.body.admin.messageCrud).toBe(2);
+      expect(res.body.admin.bucketMessagesCrud).toBe(2);
     });
 
     it('PATCH /buckets/:id/admins/:userId returns 200 when bucketAdminsCrud update is set', async () => {
       await withBucketAdminsAgent
         .patch(`${API}/buckets/${testBucketId}/admins/${adminUserId}`)
-        .send({ messageCrud: 4 })
+        .send({ bucketMessagesCrud: 4 })
         .expect(200);
       const res = await withBucketAdminsAgent
         .get(`${API}/buckets/${testBucketId}/admins/${adminUserId}`)
         .expect(200);
-      expect(res.body.admin.messageCrud).toBe(6);
+      expect(res.body.admin.bucketMessagesCrud).toBe(6);
     });
 
     it('GET /buckets/:id/admins/:userId returns 403 when bucketAdminsCrud read is 0', async () => {
@@ -568,7 +568,7 @@ describe('management-api buckets and messages', () => {
     it('PATCH /buckets/:id/admins/:userId returns 403 when bucketAdminsCrud update is 0', async () => {
       await noBucketAdminsAgent
         .patch(`${API}/buckets/${testBucketId}/admins/${adminUserId}`)
-        .send({ messageCrud: 4 })
+        .send({ bucketMessagesCrud: 4 })
         .expect(403, { message: 'Insufficient permissions' });
     });
 

@@ -102,7 +102,7 @@ export async function createBucketRoleFixture(
 ): Promise<{ id: string; name: string }> {
   const name = nextFixtureName('e2e-web-bucket-role');
   const response = await request.post(`/api/buckets/${bucketShortId}/roles`, {
-    data: { name, bucketCrud: 2, messageCrud: 2, adminCrud: 2 },
+    data: { name, bucketCrud: 2, bucketMessagesCrud: 2, bucketAdminsCrud: 2 },
   });
   if (!response.ok()) {
     throw new Error(
@@ -123,7 +123,7 @@ export async function createAdminInvitationFixture(
   email: string
 ): Promise<{ token: string }> {
   const response = await request.post(`/api/buckets/${bucketShortId}/invitations`, {
-    data: { email, bucketCrud: 2, messageCrud: 2 },
+    data: { email, bucketCrud: 2, bucketMessagesCrud: 2 },
   });
   if (!response.ok()) {
     throw new Error(

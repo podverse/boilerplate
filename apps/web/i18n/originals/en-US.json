@@ -114,7 +114,7 @@
     "adminPermissionsLabel": "Admin permissions",
     "bucketPermissions": "Bucket Permissions",
     "bucketPermissionsInfo": "Bucket permissions apply to this bucket and nested buckets.",
-    "messagePermissions": "Message permissions",
+    "bucketMessagesPermissions": "Message permissions",
     "addAdmin": "Add admin",
     "addAdminDescription": "Select the permissions you want to assign to the new admin. Pressing \"Add admin\" creates a link you can send to them; when they open it, they can accept or decline the invitation.",
     "inviteLinkCopy": "Share this link. When they open it, they can accept or decline.",

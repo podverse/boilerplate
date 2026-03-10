@@ -118,12 +118,12 @@ async function main() {
       [E2E_BUCKET2_ID, E2E_USER_ID, E2E_BUCKET2_SHORT_ID]
     );
     await client.query(
-      `INSERT INTO bucket_admin (bucket_id, user_id, bucket_crud, message_crud, admin_crud, created_at)
+      `INSERT INTO bucket_admin (bucket_id, user_id, bucket_crud, bucket_messages_crud, bucket_admins_crud, created_at)
        VALUES ($1, $2, $3, 2, 2, NOW())`,
       [E2E_BUCKET1_ID, E2E_USER2_ID, BUCKET_CRUD_FULL]
     );
     await client.query(
-      `INSERT INTO bucket_admin (bucket_id, user_id, bucket_crud, message_crud, admin_crud, created_at)
+      `INSERT INTO bucket_admin (bucket_id, user_id, bucket_crud, bucket_messages_crud, bucket_admins_crud, created_at)
        VALUES ($1, $2, $3, 2, 2, NOW())`,
       [E2E_BUCKET1_ID, E2E_USER3_ID, BUCKET_CRUD_READ]
     );

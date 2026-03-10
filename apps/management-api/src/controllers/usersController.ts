@@ -211,16 +211,16 @@ export async function createUser(req: Request, res: Response): Promise<void> {
     delete: true,
   });
   const bucketCrud = fullCrud;
-  const messageCrud = fullCrud;
-  const adminCrud = fullCrud;
+  const bucketMessagesCrud = fullCrud;
+  const bucketAdminsCrud = fullCrud;
   const bucketIds = body.initialBucketAdminIds ?? [];
   for (const bucketId of bucketIds) {
     await BucketAdminService.create({
       bucketId,
       userId: user.id,
       bucketCrud,
-      messageCrud,
-      adminCrud,
+      bucketMessagesCrud,
+      bucketAdminsCrud,
     });
   }
 

@@ -6,7 +6,7 @@ version: 1.1.0
 
 # E2E Page Tests (Web and Management-Web)
 
-When implementing a feature or plan that affects `apps/web` or `apps/management-web`, adding or updating E2E tests is a **required** part of the implementation, not optional.
+Testing requirement policy lives in **feature-implementation-testing**. This skill focuses on **how** to add or update E2E coverage for web and management-web changes.
 
 Current E2E bar: **Confident**. Use this skill when you change **layout**, **functionality**, or **conditions** (e.g. redirects, auth checks, visibility, error states) in `apps/web` or `apps/management-web`. Always add or update an E2E test so the change is covered and regressions are caught.
 
@@ -17,6 +17,8 @@ Current E2E bar: **Confident**. Use this skill when you change **layout**, **fun
 - **Condition changes** – New or changed redirects, auth guards, visibility rules, or error/empty states.
 
 For CRUD and permission-gated flows, also apply **e2e-crud-state-matrix** and, for permission-gated pages, **e2e-permission-actor-matrix**.
+For query-param state behavior, also apply **e2e-url-state-contracts**.
+For test-title/step readability and report behavior, also apply **e2e-readability**.
 
 If the change is in **web**, add or update a spec in `apps/web/e2e/`. If it is in **management-web**, add or update a spec in `apps/management-web/e2e/`.
 
@@ -63,8 +65,8 @@ When adding or updating screenshot steps in E2E specs:
 
 Good label examples:
 
-- `navigate-to-home-route-and-expect-redirect-to-login-page-for-unauthenticated-user`
-- `dashboard-screen-is-visible-with-primary-heading-after-successful-login`
+- `User navigates to the home route and is redirected to the login page for an unauthenticated session.`
+- `The dashboard screen is visible with the primary heading after successful login.`
 
 Avoid labels like:
 

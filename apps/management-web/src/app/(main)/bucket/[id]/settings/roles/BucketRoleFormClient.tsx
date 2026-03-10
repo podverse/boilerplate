@@ -27,7 +27,7 @@ export type BucketRoleFormClientProps = {
     roleName: string;
     bucketPermissions: string;
     bucketPermissionsInfo?: string;
-    messagePermissions: string;
+    bucketMessagesPermissions: string;
     adminPermissionsLabel: string;
     crudCreate: string;
     crudRead: string;
@@ -39,8 +39,8 @@ export type BucketRoleFormClientProps = {
   submitRoleAction: (payload: {
     name: string;
     bucketCrud: number;
-    messageCrud: number;
-    adminCrud: number;
+    bucketMessagesCrud: number;
+    bucketAdminsCrud: number;
   }) => Promise<void>;
   successHref: string;
   cancelHref: string;
@@ -114,12 +114,12 @@ export function BucketRoleFormClient({
     setLoading(true);
     try {
       const bucketCrud = flagsToBitmask(bucketFlags) | CRUD_BITS.read;
-      const messageCrud = flagsToBitmask(messageFlags) | CRUD_BITS.read | bucketCrud;
+      const bucketMessagesCrud = flagsToBitmask(messageFlags) | CRUD_BITS.read | bucketCrud;
       await submitRoleAction({
         name: trimmed,
         bucketCrud,
-        messageCrud,
-        adminCrud: flagsToBitmask(adminFlags) | CRUD_BITS.read,
+        bucketMessagesCrud,
+        bucketAdminsCrud: flagsToBitmask(adminFlags) | CRUD_BITS.read,
       });
       window.location.href = successHref;
     } catch (err) {
@@ -156,7 +156,7 @@ export function BucketRoleFormClient({
           selectAllInfo={labels.bucketPermissionsInfo}
         />
         <CrudCheckboxes
-          label={labels.messagePermissions}
+          label={labels.bucketMessagesPermissions}
           labels={crudLabels}
           flags={messageFlags}
           onChange={setMessageFlagsWithReadForced}

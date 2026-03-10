@@ -38,8 +38,8 @@ async function fetchRole(bucketId: string, roleId: string): Promise<CustomBucket
       isPredefined?: boolean;
       name?: string;
       bucketCrud: number;
-      messageCrud: number;
-      adminCrud: number;
+      bucketMessagesCrud: number;
+      bucketAdminsCrud: number;
     }>;
   };
   const roles = data.roles ?? [];
@@ -49,8 +49,8 @@ async function fetchRole(bucketId: string, roleId: string): Promise<CustomBucket
     role.isPredefined === true ||
     typeof role.name !== 'string' ||
     typeof role.bucketCrud !== 'number' ||
-    typeof role.messageCrud !== 'number' ||
-    typeof role.adminCrud !== 'number'
+    typeof role.bucketMessagesCrud !== 'number' ||
+    typeof role.bucketAdminsCrud !== 'number'
   ) {
     return null;
   }
@@ -58,8 +58,8 @@ async function fetchRole(bucketId: string, roleId: string): Promise<CustomBucket
     id: role.id,
     name: role.name,
     bucketCrud: role.bucketCrud,
-    messageCrud: role.messageCrud,
-    adminCrud: role.adminCrud,
+    bucketMessagesCrud: role.bucketMessagesCrud,
+    bucketAdminsCrud: role.bucketAdminsCrud,
     isPredefined: false,
     createdAt: '',
   };
@@ -100,7 +100,7 @@ export default async function EditBucketRolePage({
     roleName: t('roleName'),
     bucketPermissions: t('bucketPermissions'),
     bucketPermissionsInfo: t('bucketPermissionsInfo'),
-    messagePermissions: t('messagePermissions'),
+    bucketMessagesPermissions: t('bucketMessagesPermissions'),
     adminPermissionsLabel: t('adminPermissionsLabel'),
     crudCreate: t('crudCreate'),
     crudRead: t('crudRead'),
@@ -113,8 +113,8 @@ export default async function EditBucketRolePage({
   async function handleSubmit(payload: {
     name: string;
     bucketCrud: number;
-    messageCrud: number;
-    adminCrud: number;
+    bucketMessagesCrud: number;
+    bucketAdminsCrud: number;
   }) {
     'use server';
     const cookieHeader = await getCookieHeader();
@@ -142,8 +142,8 @@ export default async function EditBucketRolePage({
         roleId={roleId}
         initialName={role.name}
         initialBucketCrud={role.bucketCrud}
-        initialMessageCrud={role.messageCrud}
-        initialAdminCrud={role.adminCrud}
+        initialMessageCrud={role.bucketMessagesCrud}
+        initialAdminCrud={role.bucketAdminsCrud}
         labels={labels}
         submitRoleAction={handleSubmit}
         successHref={successHref}

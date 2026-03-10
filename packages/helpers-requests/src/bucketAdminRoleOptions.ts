@@ -10,8 +10,8 @@ export interface BucketAdminRoleOptionShape {
   label: string;
   description?: string;
   bucketCrud: number;
-  messageCrud: number;
-  adminCrud: number;
+  bucketMessagesCrud: number;
+  bucketAdminsCrud: number;
 }
 
 export interface BuildBucketAdminRoleOptionsI18n {
@@ -48,8 +48,8 @@ export function buildBucketAdminRoleOptions(
       label: i18n.getLabel(role),
       description: i18n.getDescription(role.id),
       bucketCrud: role.bucketCrud,
-      messageCrud: role.messageCrud,
-      adminCrud: role.adminCrud,
+      bucketMessagesCrud: role.bucketMessagesCrud,
+      bucketAdminsCrud: role.bucketAdminsCrud,
     };
   });
 
@@ -58,8 +58,8 @@ export function buildBucketAdminRoleOptions(
     label: i18n.getLabel(role),
     description: i18n.getDescription(role.id),
     bucketCrud: role.bucketCrud,
-    messageCrud: role.messageCrud,
-    adminCrud: role.adminCrud,
+    bucketMessagesCrud: role.bucketMessagesCrud,
+    bucketAdminsCrud: role.bucketAdminsCrud,
   }));
 
   return [...predefinedOptions, ...customOptions];

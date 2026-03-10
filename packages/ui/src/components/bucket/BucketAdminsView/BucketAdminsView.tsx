@@ -25,8 +25,8 @@ export type BucketAdminRoleOption = {
   label: string;
   description?: string;
   bucketCrud: number;
-  messageCrud: number;
-  adminCrud: number;
+  bucketMessagesCrud: number;
+  bucketAdminsCrud: number;
 };
 
 export type BucketAdminRow = {
@@ -34,8 +34,8 @@ export type BucketAdminRow = {
   bucketId: string;
   userId: string;
   bucketCrud: number;
-  messageCrud: number;
-  adminCrud?: number;
+  bucketMessagesCrud: number;
+  bucketAdminsCrud?: number;
   createdAt: string;
   user: {
     id: string;
@@ -50,8 +50,8 @@ export type BucketAdminInvitationRow = {
   id: string;
   token: string;
   bucketCrud: number;
-  messageCrud: number;
-  adminCrud?: number;
+  bucketMessagesCrud: number;
+  bucketAdminsCrud?: number;
   status: string;
   expiresAt: string;
 };
@@ -60,7 +60,7 @@ export type BucketAdminsViewLabels = {
   addAdmin: string;
   addAdminDescription: string;
   bucketPermissions: string;
-  messagePermissions: string;
+  bucketMessagesPermissions: string;
   adminPermissionsLabel: string;
   bucketPermissionsInfo?: string;
   crudCreate: string;
@@ -109,8 +109,8 @@ export type BucketAdminsViewProps = {
   /** Create invitation; returns token on success or error message. */
   onCreateInvitation: (body: {
     bucketCrud: number;
-    messageCrud: number;
-    adminCrud: number;
+    bucketMessagesCrud: number;
+    bucketAdminsCrud: number;
   }) => Promise<{ token: string } | { error: string }>;
   /**
    * Best-effort delete of a bucket admin. May return { ok: false, error } on failure;
@@ -147,7 +147,7 @@ function formatExpiresAt(locale: string, expiresAt: string): string {
 }
 
 function rolePermissionScore(role: BucketAdminRoleOption): number {
-  return role.bucketCrud + role.messageCrud + role.adminCrud;
+  return role.bucketCrud + role.bucketMessagesCrud + role.bucketAdminsCrud;
 }
 
 export function BucketAdminsView({
@@ -248,8 +248,8 @@ export function BucketAdminsView({
   useEffect(() => {
     if (!useRoleDropdown || selectedRole === undefined) return;
     setBucketFlags(bitmaskToFlags(selectedRole.bucketCrud));
-    setMessageFlags(bitmaskToFlags(selectedRole.messageCrud));
-    setAdminFlags(bitmaskToFlags(selectedRole.adminCrud));
+    setMessageFlags(bitmaskToFlags(selectedRole.bucketMessagesCrud));
+    setAdminFlags(bitmaskToFlags(selectedRole.bucketAdminsCrud));
   }, [selectedRole, useRoleDropdown]);
 
   useEffect(() => {
@@ -280,8 +280,8 @@ export function BucketAdminsView({
       try {
         const result = await onCreateInvitation({
           bucketCrud: role.bucketCrud,
-          messageCrud: role.messageCrud,
-          adminCrud: role.adminCrud | CRUD_BITS.read,
+          bucketMessagesCrud: role.bucketMessagesCrud,
+          bucketAdminsCrud: role.bucketAdminsCrud | CRUD_BITS.read,
         });
         if ('token' in result) {
           setInviteLink(getInviteLinkUrl(result.token));
@@ -297,11 +297,11 @@ export function BucketAdminsView({
       setLoading(true);
       try {
         const bucketCrud = flagsToBitmask(bucketFlags) | CRUD_BITS.read;
-        const messageCrud = flagsToBitmask(messageFlags) | CRUD_BITS.read | bucketCrud;
+        const bucketMessagesCrud = flagsToBitmask(messageFlags) | CRUD_BITS.read | bucketCrud;
         const result = await onCreateInvitation({
           bucketCrud,
-          messageCrud,
-          adminCrud: flagsToBitmask(adminFlags) | CRUD_BITS.read,
+          bucketMessagesCrud,
+          bucketAdminsCrud: flagsToBitmask(adminFlags) | CRUD_BITS.read,
         });
         if ('token' in result) {
           setInviteLink(getInviteLinkUrl(result.token));
@@ -394,7 +394,7 @@ export function BucketAdminsView({
             selectAllInfo={labels.bucketPermissionsInfo}
           />
           <CrudCheckboxes
-            label={labels.messagePermissions}
+            label={labels.bucketMessagesPermissions}
             labels={crudLabels}
             flags={messageFlags}
             onChange={setMessageFlagsWithReadForced}
@@ -458,12 +458,12 @@ export function BucketAdminsView({
                           })
                         : a.userId}
                     </Text>
-                    <Text variant="muted" as="p" className={styles.adminCrudMeta}>
+                    <Text variant="muted" as="p" className={styles.bucketAdminsCrudMeta}>
                       Bucket: {formatCrudMask(a.bucketCrud, crudLabels)}
                       <br />
-                      Message: {formatCrudMask(a.messageCrud, crudLabels)}
+                      Message: {formatCrudMask(a.bucketMessagesCrud, crudLabels)}
                       <br />
-                      Admin: {formatCrudMask(a.adminCrud ?? CRUD_BITS.read, crudLabels)}
+                      Admin: {formatCrudMask(a.bucketAdminsCrud ?? CRUD_BITS.read, crudLabels)}
                     </Text>
                   </div>
                   <div className={styles.actions}>

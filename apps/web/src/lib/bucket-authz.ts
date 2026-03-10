@@ -8,8 +8,8 @@ import { getCookieHeader, getServerApiBaseUrl } from './server-request';
 
 type BucketAdminRow = {
   bucketCrud: number;
-  messageCrud: number;
-  adminCrud?: number;
+  bucketMessagesCrud: number;
+  bucketAdminsCrud?: number;
 };
 
 type BucketAdminResponse = {
@@ -19,8 +19,8 @@ type BucketAdminResponse = {
 type BucketViewerAccess = {
   isOwner: boolean;
   bucketCrud: number;
-  messageCrud: number;
-  adminCrud: number;
+  bucketMessagesCrud: number;
+  bucketAdminsCrud: number;
 };
 
 const FULL_CRUD = CRUD_BITS.create | CRUD_BITS.read | CRUD_BITS.update | CRUD_BITS.delete;
@@ -51,13 +51,13 @@ async function fetchViewerBucketAdmin(
     }
 
     const data = res.data as BucketAdminResponse;
-    const admin = data.admin;
+    const bucketAdmin = data.admin;
     if (
-      admin !== undefined &&
-      typeof admin.bucketCrud === 'number' &&
-      typeof admin.messageCrud === 'number'
+      bucketAdmin !== undefined &&
+      typeof bucketAdmin.bucketCrud === 'number' &&
+      typeof bucketAdmin.bucketMessagesCrud === 'number'
     ) {
-      return admin;
+      return bucketAdmin;
     }
   }
 
@@ -73,21 +73,21 @@ async function getBucketViewerAccess(
     return {
       isOwner: true,
       bucketCrud: FULL_CRUD,
-      messageCrud: FULL_CRUD,
-      adminCrud: FULL_CRUD,
+      bucketMessagesCrud: FULL_CRUD,
+      bucketAdminsCrud: FULL_CRUD,
     };
   }
 
-  const admin = await fetchViewerBucketAdmin(bucketId, user);
-  if (admin === null) {
+  const bucketAdmin = await fetchViewerBucketAdmin(bucketId, user);
+  if (bucketAdmin === null) {
     return null;
   }
 
   return {
     isOwner: false,
-    bucketCrud: normalizeCrud(admin.bucketCrud),
-    messageCrud: normalizeCrud(admin.messageCrud),
-    adminCrud: normalizeCrud(admin.adminCrud),
+    bucketCrud: normalizeCrud(bucketAdmin.bucketCrud),
+    bucketMessagesCrud: normalizeCrud(bucketAdmin.bucketMessagesCrud),
+    bucketAdminsCrud: normalizeCrud(bucketAdmin.bucketAdminsCrud),
   };
 }
 
@@ -148,5 +148,5 @@ export async function canEditBucketMessages(
   if (access === null) {
     return false;
   }
-  return access.isOwner || hasCrudBit(access.messageCrud, CRUD_BITS.update);
+  return access.isOwner || hasCrudBit(access.bucketMessagesCrud, CRUD_BITS.update);
 }

@@ -20,8 +20,8 @@ function invitationToJson(inv: {
   id: string;
   token: string;
   bucketCrud: number;
-  messageCrud: number;
-  adminCrud: number;
+  bucketMessagesCrud: number;
+  bucketAdminsCrud: number;
   status: string;
   expiresAt: Date;
 }) {
@@ -29,8 +29,8 @@ function invitationToJson(inv: {
     id: inv.id,
     token: inv.token,
     bucketCrud: inv.bucketCrud,
-    messageCrud: inv.messageCrud,
-    adminCrud: inv.adminCrud,
+    bucketMessagesCrud: inv.bucketMessagesCrud,
+    bucketAdminsCrud: inv.bucketAdminsCrud,
     status: inv.status,
     expiresAt: inv.expiresAt.toISOString(),
   };
@@ -55,17 +55,17 @@ export async function createBucketAdminInvitation(req: Request, res: Response): 
   const expiresAt = new Date(
     Date.now() + BUCKET_ADMIN_INVITATION_EXPIRY_DAYS * 24 * 60 * 60 * 1000
   );
-  const adminCrud = (body.adminCrud ?? ADMIN_CRUD_READ) | ADMIN_CRUD_READ;
-  const { bucketCrud, messageCrud } = normalizeBucketMessageCrud(
+  const bucketAdminsCrud = (body.bucketAdminsCrud ?? ADMIN_CRUD_READ) | ADMIN_CRUD_READ;
+  const { bucketCrud, bucketMessagesCrud } = normalizeBucketMessageCrud(
     body.bucketCrud ?? 0,
-    body.messageCrud ?? 0
+    body.bucketMessagesCrud ?? 0
   );
   const inv = await BucketAdminInvitationService.create({
     bucketId: effectiveBucket.id,
     token,
     bucketCrud,
-    messageCrud,
-    adminCrud,
+    bucketMessagesCrud,
+    bucketAdminsCrud,
     expiresAt,
   });
   res.status(201).json({
@@ -73,8 +73,8 @@ export async function createBucketAdminInvitation(req: Request, res: Response): 
       id: inv.id,
       token: inv.token,
       bucketCrud: inv.bucketCrud,
-      messageCrud: inv.messageCrud,
-      adminCrud: inv.adminCrud,
+      bucketMessagesCrud: inv.bucketMessagesCrud,
+      bucketAdminsCrud: inv.bucketAdminsCrud,
       status: inv.status,
       expiresAt: inv.expiresAt.toISOString(),
     },

@@ -7,6 +7,8 @@ description: Persist sort preferences in a cookie keyed by path (not resource ID
 
 Use this skill when adding or changing sort UI (messages recent/oldest, table sortBy/sortOrder). Persist the user's last choice in a cookie keyed by **path** (e.g. `bucket-detail-messages`, `bucket-detail-buckets`), not by resource ID. Restore when the URL has no sort param(s).
 
+This file is the authority for sort preference persistence and restore behavior.
+
 **First-paint / no flash:** Prefer restoring from the cookie on the **server** (redirect when URL has no sort params) so the first paint shows the correct sort and there is no flash of unsorted content. Use server-safe helpers (`getMessagesSortFromCookieValue`, `getSortPrefsFromCookieValue`) in the page and `redirect()` before fetching data. Keep client-side restore in TableWithSort and MessagesSortSelect for in-app navigation.
 
 ## Path-based keys

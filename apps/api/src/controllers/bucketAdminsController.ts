@@ -18,27 +18,27 @@ async function resolveUser(idOrShortId: string): Promise<UserWithRelations | nul
   return UserService.findById(idOrShortId);
 }
 
-function adminToJson(
-  admin: {
+function bucketAdminToJson(
+  bucketAdmin: {
     id: string;
     bucketId: string;
     userId: string;
     bucketCrud: number;
-    messageCrud: number;
-    adminCrud: number;
+    bucketMessagesCrud: number;
+    bucketAdminsCrud: number;
     createdAt: Date;
   },
   user: UserWithRelations | null
 ) {
-  const adminCrud = admin.adminCrud | ADMIN_CRUD_READ;
+  const bucketAdminsCrud = bucketAdmin.bucketAdminsCrud | ADMIN_CRUD_READ;
   return {
-    id: admin.id,
-    bucketId: admin.bucketId,
-    userId: admin.userId,
-    bucketCrud: admin.bucketCrud,
-    messageCrud: admin.messageCrud,
-    adminCrud,
-    createdAt: admin.createdAt,
+    id: bucketAdmin.id,
+    bucketId: bucketAdmin.bucketId,
+    userId: bucketAdmin.userId,
+    bucketCrud: bucketAdmin.bucketCrud,
+    bucketMessagesCrud: bucketAdmin.bucketMessagesCrud,
+    bucketAdminsCrud,
+    createdAt: bucketAdmin.createdAt,
     user: user !== null ? userToJson(user) : null,
   };
 }
@@ -61,13 +61,15 @@ export async function listBucketAdmins(req: Request, res: Response): Promise<voi
     res.status(403).json({ message: 'Forbidden' });
     return;
   }
-  const admins = await BucketAdminService.findByBucketId(effectiveBucket.id);
-  const withUser = admins.map((a) => {
+  const bucketAdmins = await BucketAdminService.findByBucketId(effectiveBucket.id);
+  const withUser = bucketAdmins.map((bucketAdmin) => {
     const u =
-      a.user !== undefined && a.user !== null && 'credentials' in a.user
-        ? (a.user as UserWithRelations)
+      bucketAdmin.user !== undefined &&
+      bucketAdmin.user !== null &&
+      'credentials' in bucketAdmin.user
+        ? (bucketAdmin.user as UserWithRelations)
         : null;
-    return adminToJson(a, u);
+    return bucketAdminToJson(bucketAdmin, u);
   });
   res.status(200).json({ admins: withUser });
 }
@@ -104,11 +106,11 @@ export async function getBucketAdmin(req: Request, res: Response): Promise<void>
       bucketId: effectiveBucket.id,
       userId: targetUser.id,
       bucketCrud: fullCrud,
-      messageCrud: fullCrud,
-      adminCrud: fullCrud,
+      bucketMessagesCrud: fullCrud,
+      bucketAdminsCrud: fullCrud,
       createdAt: effectiveBucket.createdAt,
     };
-    res.status(200).json({ admin: adminToJson(syntheticOwnerAdmin, targetUser) });
+    res.status(200).json({ admin: bucketAdminToJson(syntheticOwnerAdmin, targetUser) });
     return;
   }
   const existing = await BucketAdminService.findByBucketAndUser(effectiveBucket.id, targetUser.id);
@@ -116,7 +118,7 @@ export async function getBucketAdmin(req: Request, res: Response): Promise<void>
     res.status(404).json({ message: 'Bucket admin not found' });
     return;
   }
-  res.status(200).json({ admin: adminToJson(existing, targetUser) });
+  res.status(200).json({ admin: bucketAdminToJson(existing, targetUser) });
 }
 
 export async function createBucketAdmin(req: Request, res: Response): Promise<void> {
@@ -154,19 +156,19 @@ export async function createBucketAdmin(req: Request, res: Response): Promise<vo
     res.status(409).json({ message: 'User is already an admin for this bucket' });
     return;
   }
-  const adminCrud = (body.adminCrud ?? ADMIN_CRUD_READ) | ADMIN_CRUD_READ;
-  const { bucketCrud, messageCrud } = normalizeBucketMessageCrud(
+  const bucketAdminsCrud = (body.bucketAdminsCrud ?? ADMIN_CRUD_READ) | ADMIN_CRUD_READ;
+  const { bucketCrud, bucketMessagesCrud } = normalizeBucketMessageCrud(
     body.bucketCrud ?? 0,
-    body.messageCrud ?? 0
+    body.bucketMessagesCrud ?? 0
   );
-  const admin = await BucketAdminService.create({
+  const createdBucketAdmin = await BucketAdminService.create({
     bucketId: effectiveBucket.id,
     userId: targetUser.id,
     bucketCrud,
-    messageCrud,
-    adminCrud,
+    bucketMessagesCrud,
+    bucketAdminsCrud,
   });
-  res.status(201).json({ admin: adminToJson(admin, targetUser) });
+  res.status(201).json({ admin: bucketAdminToJson(createdBucketAdmin, targetUser) });
 }
 
 export async function updateBucketAdmin(req: Request, res: Response): Promise<void> {
@@ -209,16 +211,18 @@ export async function updateBucketAdmin(req: Request, res: Response): Promise<vo
     return;
   }
   const body = req.body as UpdateBucketAdminBody;
-  const update: { bucketCrud?: number; messageCrud?: number; adminCrud?: number } = {};
-  if (body.bucketCrud !== undefined || body.messageCrud !== undefined) {
-    const { bucketCrud, messageCrud } = normalizeBucketMessageCrud(
+  const update: { bucketCrud?: number; bucketMessagesCrud?: number; bucketAdminsCrud?: number } =
+    {};
+  if (body.bucketCrud !== undefined || body.bucketMessagesCrud !== undefined) {
+    const { bucketCrud, bucketMessagesCrud } = normalizeBucketMessageCrud(
       body.bucketCrud ?? existing.bucketCrud,
-      body.messageCrud ?? existing.messageCrud
+      body.bucketMessagesCrud ?? existing.bucketMessagesCrud
     );
     update.bucketCrud = bucketCrud;
-    update.messageCrud = messageCrud;
+    update.bucketMessagesCrud = bucketMessagesCrud;
   }
-  if (body.adminCrud !== undefined) update.adminCrud = body.adminCrud | ADMIN_CRUD_READ;
+  if (body.bucketAdminsCrud !== undefined)
+    update.bucketAdminsCrud = body.bucketAdminsCrud | ADMIN_CRUD_READ;
   if (Object.keys(update).length > 0) {
     await BucketAdminService.update(effectiveBucket.id, targetUser.id, update);
   }
@@ -227,7 +231,7 @@ export async function updateBucketAdmin(req: Request, res: Response): Promise<vo
     res.status(500).json({ message: 'Failed to load updated admin' });
     return;
   }
-  res.status(200).json({ admin: adminToJson(updated, targetUser) });
+  res.status(200).json({ admin: bucketAdminToJson(updated, targetUser) });
 }
 
 export async function deleteBucketAdmin(req: Request, res: Response): Promise<void> {

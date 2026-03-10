@@ -32,10 +32,10 @@ Inside the plan-set directory, use:
 
 - **00-EXECUTION-ORDER.md** – Phase order, parallel groups, and pointers to each numbered plan.
 - **00-SUMMARY.md** – Scope summary, list of plan files, dependency map, and recorded decisions.
-- **01-NN-topic.md** … **NN-topic.md** – One markdown file per topic (e.g. `01-infra-directory.md`, `09-gitflow-test.md`). Each has: Scope, Steps, Key files, Verification.
+- **01-topic.md** … **NN-topic.md** – One markdown file per topic (e.g. `01-infra-directory.md`, `09-gitflow-test.md`). Each has: Scope, Steps, Key files, Verification.
 - **COPY-PASTA.md** – Copy-paste prompts for parallel agents, referencing the numbered plans.
 
-Implementation of plans that touch **api** or **management-api** must include integration test updates (see api-testing); plans that touch **web** or **management-web** must include E2E test updates (see e2e-page-tests).
+During **plan creation**, do not modify product code or test files. For plans that touch **api** or **management-api**, include explicit integration-test steps (see api-testing). For plans that touch **web** or **management-web**, include explicit E2E-test steps (see e2e-page-tests).
 
 Plans stay under ~300 lines each; split into part files (e.g. `22-part-1-dashboard.md`) if a topic grows.
 
@@ -56,7 +56,7 @@ Plans stay under ~300 lines each; split into part files (e.g. `22-part-1-dashboa
 2. Add 00-EXECUTION-ORDER.md and 00-SUMMARY.md first.
 3. Add one file per topic (01, 02, …) with scope, steps, key files, verification.
 4. Add COPY-PASTA.md with copy-paste prompts that **reference** the numbered plan files (so the user can request implementation one-by-one or in parallel as allowed by the execution order).
-5. **Stop when the plan files are saved.** Do not implement the plans in this pass. Implementation happens when the user uses COPY-PASTA.md to ask you to execute each plan (sequentially or in parallel per the execution order).
+5. **Stop when the plan files are saved.** Do not implement product code or test files in this pass. Implementation happens when the user uses COPY-PASTA.md to ask you to execute each plan (sequentially or in parallel per the execution order).
 
 ## When a Plan Set Is Complete
 

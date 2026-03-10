@@ -59,7 +59,7 @@
     "adminPermissionsLabel": "Admin permissions",
     "bucketPermissions": "Bucket Permissions",
     "bucketPermissionsInfo": "Bucket permissions apply to this bucket and nested buckets.",
-    "messagePermissions": "Message permissions",
+    "bucketMessagesPermissions": "Message permissions",
     "crudCreate": "Create",
     "crudRead": "Read",
     "crudUpdate": "Update",

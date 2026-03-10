@@ -42,8 +42,8 @@ function roleToOption(
               ? tRoles('descriptionBucketRead')
               : tRoles('descriptionCustomRole'),
     bucketCrud: role.bucketCrud,
-    messageCrud: role.messageCrud,
-    adminCrud: role.adminCrud,
+    bucketMessagesCrud: role.bucketMessagesCrud,
+    bucketAdminsCrud: role.bucketAdminsCrud,
   };
 }
 
@@ -92,7 +92,7 @@ export function EditBucketAdminFormClient({
     createRoleOptionLabel: t('customRole'),
     bucketPermissions: t('bucketPermissions'),
     bucketPermissionsInfo: t('bucketPermissionsInfo'),
-    messagePermissions: t('messagePermissions'),
+    bucketMessagesPermissions: t('bucketMessagesPermissions'),
     adminPermissionsLabel: t('adminPermissionsLabel'),
     crudCreate: t('crudCreate'),
     crudRead: t('crudRead'),

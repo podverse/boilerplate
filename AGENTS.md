@@ -38,7 +38,7 @@ Node and npm are provided by the repo's Nix flake, not a global install. When ru
 
 See [.llm/LLM.md](.llm/LLM.md) for full guidelines. Use the **llm-history** skill when updating history or starting feature work.
 
-- **Before file-modifying work:** If the current branch matches an existing `.llm/history/active/[feature]/` (e.g. branch `chore/first-test-issue` → `first-test-issue`), update that history file; no exception for small changes.
+- Follow `.cursor/skills/llm-history/SKILL.md` as the canonical process for history timing and format.
 
 ## Testing
 

@@ -16,21 +16,39 @@ export interface PredefinedBucketRole {
   id: PredefinedBucketRoleId;
   nameKey: string;
   bucketCrud: number;
-  messageCrud: number;
-  adminCrud: number;
+  bucketMessagesCrud: number;
+  bucketAdminsCrud: number;
 }
 
 export const PREDEFINED_BUCKET_ROLES: PredefinedBucketRole[] = [
-  { id: 'everything', nameKey: 'roles.adminFull', bucketCrud: 15, messageCrud: 15, adminCrud: 15 },
+  {
+    id: 'everything',
+    nameKey: 'roles.adminFull',
+    bucketCrud: 15,
+    bucketMessagesCrud: 15,
+    bucketAdminsCrud: 15,
+  },
   {
     id: 'read_everything',
     nameKey: 'roles.adminRead',
     bucketCrud: 2,
-    messageCrud: 2,
-    adminCrud: 2,
+    bucketMessagesCrud: 2,
+    bucketAdminsCrud: 2,
   },
-  { id: 'bucket_full', nameKey: 'roles.bucketFull', bucketCrud: 15, messageCrud: 15, adminCrud: 0 },
-  { id: 'bucket_read', nameKey: 'roles.bucketRead', bucketCrud: 2, messageCrud: 2, adminCrud: 0 },
+  {
+    id: 'bucket_full',
+    nameKey: 'roles.bucketFull',
+    bucketCrud: 15,
+    bucketMessagesCrud: 15,
+    bucketAdminsCrud: 0,
+  },
+  {
+    id: 'bucket_read',
+    nameKey: 'roles.bucketRead',
+    bucketCrud: 2,
+    bucketMessagesCrud: 2,
+    bucketAdminsCrud: 0,
+  },
 ];
 
 export function getPredefinedRoleById(

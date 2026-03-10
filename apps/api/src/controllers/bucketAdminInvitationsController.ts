@@ -41,8 +41,8 @@ export async function getInvitationByToken(req: Request, res: Response): Promise
       bucketShortId: bucket?.shortId ?? undefined,
       bucketName: bucket?.name ?? undefined,
       bucketCrud: inv.bucketCrud,
-      messageCrud: inv.messageCrud,
-      adminCrud: inv.adminCrud | ADMIN_CRUD_READ,
+      bucketMessagesCrud: inv.bucketMessagesCrud,
+      bucketAdminsCrud: inv.bucketAdminsCrud | ADMIN_CRUD_READ,
       status: inv.status,
     },
   });
@@ -78,17 +78,17 @@ export async function createBucketAdminInvitation(req: Request, res: Response): 
   const expiresAt = new Date(
     Date.now() + BUCKET_ADMIN_INVITATION_EXPIRY_DAYS * 24 * 60 * 60 * 1000
   );
-  const adminCrud = (body.adminCrud ?? ADMIN_CRUD_READ) | ADMIN_CRUD_READ;
-  const { bucketCrud, messageCrud } = normalizeBucketMessageCrud(
+  const bucketAdminsCrud = (body.bucketAdminsCrud ?? ADMIN_CRUD_READ) | ADMIN_CRUD_READ;
+  const { bucketCrud, bucketMessagesCrud } = normalizeBucketMessageCrud(
     body.bucketCrud ?? 0,
-    body.messageCrud ?? 0
+    body.bucketMessagesCrud ?? 0
   );
   const inv = await BucketAdminInvitationService.create({
     bucketId: effectiveBucket.id,
     token,
     bucketCrud,
-    messageCrud,
-    adminCrud,
+    bucketMessagesCrud,
+    bucketAdminsCrud,
     expiresAt,
   });
   res.status(201).json({
@@ -96,8 +96,8 @@ export async function createBucketAdminInvitation(req: Request, res: Response): 
       id: inv.id,
       token: inv.token,
       bucketCrud: inv.bucketCrud,
-      messageCrud: inv.messageCrud,
-      adminCrud: inv.adminCrud,
+      bucketMessagesCrud: inv.bucketMessagesCrud,
+      bucketAdminsCrud: inv.bucketAdminsCrud,
       status: inv.status,
       expiresAt: inv.expiresAt.toISOString(),
     },
@@ -108,8 +108,8 @@ function invitationToJson(inv: {
   id: string;
   token: string;
   bucketCrud: number;
-  messageCrud: number;
-  adminCrud: number;
+  bucketMessagesCrud: number;
+  bucketAdminsCrud: number;
   status: string;
   expiresAt: Date;
 }) {
@@ -117,8 +117,8 @@ function invitationToJson(inv: {
     id: inv.id,
     token: inv.token,
     bucketCrud: inv.bucketCrud,
-    messageCrud: inv.messageCrud,
-    adminCrud: inv.adminCrud,
+    bucketMessagesCrud: inv.bucketMessagesCrud,
+    bucketAdminsCrud: inv.bucketAdminsCrud,
     status: inv.status,
     expiresAt: inv.expiresAt.toISOString(),
   };
@@ -230,13 +230,13 @@ export async function acceptInvitation(req: Request, res: Response): Promise<voi
     });
     return;
   }
-  const adminCrud = inv.adminCrud | ADMIN_CRUD_READ;
+  const bucketAdminsCrud = inv.bucketAdminsCrud | ADMIN_CRUD_READ;
   await BucketAdminService.create({
     bucketId: inv.bucketId,
     userId: user.id,
     bucketCrud: inv.bucketCrud,
-    messageCrud: inv.messageCrud,
-    adminCrud,
+    bucketMessagesCrud: inv.bucketMessagesCrud,
+    bucketAdminsCrud,
   });
   await BucketAdminInvitationService.updateStatus(inv.id, 'accepted');
   res.status(200).json({ message: 'You have been added as an admin', accepted: true });

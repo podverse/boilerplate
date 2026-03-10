@@ -82,7 +82,7 @@ export async function createBucketRoleFixture(
   const name = nextFixtureName('e2e-bucket-role');
   const endpoint = `/api/management/v1/buckets/${bucketId}/roles`;
   const response = await request.post(endpoint, {
-    data: { name, bucketCrud: 2, messageCrud: 2, adminCrud: 2 },
+    data: { name, bucketCrud: 2, bucketMessagesCrud: 2, bucketAdminsCrud: 2 },
   });
   if (!response.ok()) {
     const responseText = await response.text();
