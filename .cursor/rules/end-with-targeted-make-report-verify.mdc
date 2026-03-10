@@ -7,7 +7,7 @@ alwaysApply: true
 
 For implementation responses in this repo:
 
-1. End the response with one or more runnable `make` commands.
+1. **Give the user** one or more runnable `make` commands they can copy and run to verify the change; place them in a fenced `bash` code block at the end of your response.
 2. Prefer screenshot-report targets scoped to the changed feature area.
 3. Avoid suggesting unrelated full-suite runs by default.
 4. Use full-suite report mode only when the change scope is broad or cross-cutting.

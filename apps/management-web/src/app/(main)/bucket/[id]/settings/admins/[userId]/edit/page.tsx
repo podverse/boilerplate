@@ -87,6 +87,7 @@ export default async function EditBucketAdminPage({
   const result = await fetchAdmin(bucketId, userId);
   const isOwner = userId === bucket.ownerId;
   if (result === null && !isOwner) notFound();
+  if (result !== null && result.admin.user?.id === bucket.ownerId) notFound();
 
   const t = await getTranslations('buckets');
   const adminsHref = bucketSettingsAdminsRoute(bucketId);

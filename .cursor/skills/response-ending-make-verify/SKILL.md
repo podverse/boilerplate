@@ -12,12 +12,13 @@ Use this skill when answering implementation requests in this repo.
 
 ## Required response behavior
 
-1. End every implementation response with one or more runnable `make` commands.
-2. Prefer feature-scoped screenshot report commands over full-suite commands.
-3. Choose the smallest command set that verifies the changed behavior.
-4. Only recommend full-suite report mode when scope is broad or cross-cutting.
-5. Render final verification commands inside a fenced `bash` code block so the UI shows a copy button.
-6. Inside the fenced block, keep one command per line and avoid bullets/backticks.
+1. Give the user a runnable make command they can copy and run to verify the change; include it in a fenced `bash` code block at the end of the response.
+2. End every implementation response with one or more runnable `make` commands.
+3. Prefer feature-scoped screenshot report commands over full-suite commands.
+4. Choose the smallest command set that verifies the changed behavior.
+5. Only recommend full-suite report mode when scope is broad or cross-cutting.
+6. Render final verification commands inside a fenced `bash` code block so the UI shows a copy button.
+7. Inside the fenced block, keep one command per line and avoid bullets/backticks.
 
 ## Command selection decision tree
 
