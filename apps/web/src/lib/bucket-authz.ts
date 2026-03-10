@@ -114,3 +114,39 @@ export async function canCreateBucketRoles(
   }
   return access.isOwner || hasCrudBit(access.bucketCrud, CRUD_BITS.update);
 }
+
+export async function canCreateChildBuckets(
+  bucketId: string,
+  bucketOwnerId: string,
+  user: ServerUser
+): Promise<boolean> {
+  const access = await getBucketViewerAccess(bucketId, bucketOwnerId, user);
+  if (access === null) {
+    return false;
+  }
+  return access.isOwner || hasCrudBit(access.bucketCrud, CRUD_BITS.create);
+}
+
+export async function canEditBucketRoles(
+  bucketId: string,
+  bucketOwnerId: string,
+  user: ServerUser
+): Promise<boolean> {
+  const access = await getBucketViewerAccess(bucketId, bucketOwnerId, user);
+  if (access === null) {
+    return false;
+  }
+  return access.isOwner;
+}
+
+export async function canEditBucketMessages(
+  bucketId: string,
+  bucketOwnerId: string,
+  user: ServerUser
+): Promise<boolean> {
+  const access = await getBucketViewerAccess(bucketId, bucketOwnerId, user);
+  if (access === null) {
+    return false;
+  }
+  return access.isOwner || hasCrudBit(access.messageCrud, CRUD_BITS.update);
+}

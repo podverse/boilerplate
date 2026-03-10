@@ -6,7 +6,7 @@ version: 1.0.0
 
 # E2E URL State Contracts
 
-Use this skill for pages with query-param state.
+Current E2E bar: **Confident**. Use this skill for pages with query-param state.
 
 ## Contract checklist
 

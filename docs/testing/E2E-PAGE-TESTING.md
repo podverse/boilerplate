@@ -20,7 +20,7 @@ outcomes via fixed seed data.
 - Nix users: run commands via `./scripts/nix/with-env <command>` from repo root.
 - Playwright browser binaries installed locally (e.g. `./scripts/nix/with-env npx playwright install chromium`).
 
-For a copy-paste list of **one-spec report commands** (run each spec in isolation with reports), see [E2E-SPEC-REPORT-COMMANDS.md](E2E-SPEC-REPORT-COMMANDS.md).
+For a copy-paste list of **one-spec report commands** (run each spec in isolation with reports), see [E2E-SPEC-REPORT-COMMANDS.md](E2E-SPEC-REPORT-COMMANDS.md). CRUD/state/auth checklists (Confident bar): [E2E-CRUD-STATE-AUTH-MATRICES.md](E2E-CRUD-STATE-AUTH-MATRICES.md).
 
 ## Make targets
 

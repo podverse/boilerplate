@@ -109,9 +109,8 @@ test.describe('This suite verifies the management buckets-new page for the super
     await page.getByRole('textbox', { name: /name|bucket/i }).fill(bucketName);
 
     const ownerSelect = page.getByLabel(/owner/i);
-    if ((await ownerSelect.count()) > 0) {
-      await ownerSelect.selectOption({ index: 1 });
-    }
+    await expect(ownerSelect).toBeVisible();
+    await ownerSelect.selectOption({ index: 1 });
 
     await actionAndCapture(
       page,
@@ -119,7 +118,12 @@ test.describe('This suite verifies the management buckets-new page for the super
       'User submits the valid management bucket create form and is redirected.',
       async () => {
         await page.getByRole('button', { name: /create bucket|add bucket|create|save/i }).click();
-        await expect(page).toHaveURL(/\/bucket\/|\/buckets$/);
+        await expect
+          .poll(() => {
+            const pathname = new URL(page.url()).pathname;
+            return pathname.startsWith('/bucket/') || pathname === '/buckets';
+          })
+          .toBe(true);
       }
     );
     await expect(page.getByText(new RegExp(bucketName, 'i')).first()).toBeVisible();

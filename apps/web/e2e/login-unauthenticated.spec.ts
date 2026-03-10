@@ -6,6 +6,8 @@ import { setE2EUserContext } from './helpers/userContext';
 const E2E_EMAIL = 'e2e@example.com';
 const E2E_PASSWORD = 'Test!1Aa';
 
+// 429/rate-limit handling is not asserted in E2E; deferred until the test environment can trigger 429 deterministically.
+
 test.describe('This suite verifies the login-page for the unauthenticated user.', () => {
   test('When an unauthenticated user visits the login-page, they see the login-form.', async ({
     page,

@@ -6,7 +6,7 @@ version: 1.1.0
 
 # E2E Page Tests (Web and Management-Web)
 
-Use this skill when you change **layout**, **functionality**, or **conditions** (e.g. redirects, auth checks, visibility, error states) in `apps/web` or `apps/management-web`. Always add or update an E2E test so the change is covered and regressions are caught.
+Current E2E bar: **Confident**. Use this skill when you change **layout**, **functionality**, or **conditions** (e.g. redirects, auth checks, visibility, error states) in `apps/web` or `apps/management-web`. Always add or update an E2E test so the change is covered and regressions are caught.
 
 ## When to add or update a test
 

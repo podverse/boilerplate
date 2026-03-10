@@ -91,6 +91,25 @@ test.describe('This suite verifies the bucket-settings-page for the seeded-bucke
     await capturePageLoad(page, testInfo, 'The admins-tab is visible and URL has tab=admins.');
   });
 
+  test('When the user is on the admins-tab, the owner row does not show a delete button.', async ({
+    page,
+  }, testInfo) => {
+    setE2EUserContext(testInfo, 'seeded-bucket-owner');
+    await loginAsWebE2EUserAndExpectDashboard(page);
+    await page.goto(`/bucket/${E2E_BUCKET1_SHORT_ID}/settings?tab=admins`);
+    await expect(page).toHaveURL(
+      new RegExp(`/bucket/${E2E_BUCKET1_SHORT_ID}/settings\\?tab=admins`)
+    );
+    const ownerRow = page.locator('tr', { hasText: /\(owner\)/i }).first();
+    await expect(ownerRow).toBeVisible();
+    await expect(ownerRow.getByRole('button', { name: /delete/i })).toHaveCount(0);
+    await capturePageLoad(
+      page,
+      testInfo,
+      'The owner row on the admins-tab has no delete button (owner protection).'
+    );
+  });
+
   test('When the user is on the admins-tab, they can generate an invitation link.', async ({
     page,
   }, testInfo) => {

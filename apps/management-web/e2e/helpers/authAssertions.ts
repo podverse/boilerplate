@@ -11,7 +11,8 @@ export async function expectUnauthedRouteRedirectsToLogin(
 ): Promise<void> {
   await actionAndCapture(page, testInfo, stepLabel, async () => {
     await action();
-    await expect(page).toHaveURL(/\/login/);
+    // Contract: unauthenticated route access ends on the canonical /login path.
+    await expect.poll(() => new URL(page.url()).pathname, { timeout: 10000 }).toBe('/login');
     await expect(page.getByRole('textbox', { name: /username|email/i })).toBeVisible();
   });
 }

@@ -5,14 +5,16 @@ import { actionAndCapture, capturePageLoad } from './helpers/stepScreenshots';
 import { setE2EUserContext } from './helpers/userContext';
 
 async function expectInviteActionOrFinalState(
-  page: import('@playwright/test').Page
+  page: import('@playwright/test').Page,
+  allowInvalidFinalState: boolean = false
 ): Promise<void> {
   await expect(page.getByRole('heading', { name: /bucket admin invitation/i })).toBeVisible();
   const acceptButton = page.getByRole('button', { name: /accept/i });
   const declineButton = page.getByRole('button', { name: /decline|reject/i });
-  const finalState = page
-    .getByText(/already admin|you are owner|accepted|declined|rejected|invalid/i)
-    .first();
+  const finalStatePattern = allowInvalidFinalState
+    ? /already admin|you are owner|accepted|declined|rejected|invalid/i
+    : /already admin|you are owner|accepted|declined|rejected/i;
+  const finalState = page.getByText(finalStatePattern).first();
 
   await expect
     .poll(
@@ -53,6 +55,8 @@ async function createInvitationToken(page: import('@playwright/test').Page): Pro
   return tokenMatch[1];
 }
 
+// Expired invite-token check is deferred until seed or API supports producing an expired token deterministically.
+
 test.describe('This suite verifies the invite-page for the seeded-bucket-owner user.', () => {
   test('When an authenticated user opens the invite-page with an invalid token, they still see the invalid state.', async ({
     page,
@@ -92,6 +96,9 @@ test.describe('This suite verifies the invite-page for the seeded-bucket-owner u
         await page.goto(`/invite/${token}`);
         await expect(page).toHaveURL(new RegExp(`/invite/${token}`));
         await expectInviteActionOrFinalState(page);
+        await expect(
+          page.getByText(/invitation not found|invalid|no longer valid|failed to load/i)
+        ).not.toBeVisible();
       }
     );
     await capturePageLoad(

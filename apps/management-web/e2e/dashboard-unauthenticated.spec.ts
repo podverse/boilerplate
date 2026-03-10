@@ -1,6 +1,7 @@
-import { test, expect } from '@playwright/test';
+import { expect, test } from '@playwright/test';
 
-import { actionAndCapture, capturePageLoad } from './helpers/stepScreenshots';
+import { expectUnauthedRouteRedirectsToLogin } from './helpers/authAssertions';
+import { capturePageLoad } from './helpers/stepScreenshots';
 import { setE2EUserContext } from './helpers/userContext';
 
 test.describe('This suite verifies the management dashboard-page for the unauthenticated user.', () => {
@@ -8,17 +9,15 @@ test.describe('This suite verifies the management dashboard-page for the unauthe
     page,
   }, testInfo) => {
     setE2EUserContext(testInfo, 'unauthenticated');
-    await actionAndCapture(
+    await expectUnauthedRouteRedirectsToLogin(
       page,
       testInfo,
       'User visits the dashboard-page while unauthenticated and is redirected to the login-page.',
       async () => {
         await page.goto('/dashboard');
-        await expect(page).toHaveURL(/\/login/);
-        await expect(page.getByRole('textbox', { name: /username|email/i })).toBeVisible();
-        await expect(page.getByRole('button', { name: /log in|sign in|submit/i })).toBeVisible();
       }
     );
+    await expect(page.getByRole('button', { name: /log in|sign in|submit/i })).toBeVisible();
     await capturePageLoad(
       page,
       testInfo,

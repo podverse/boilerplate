@@ -100,6 +100,44 @@ test.describe('This suite verifies the management admins-list-page for the super
     );
   });
 
+  test('When the user opens the delete confirmation for a created admin on the admins-list-page and cancels, the row remains.', async ({
+    page,
+  }, testInfo) => {
+    setE2EUserContext(testInfo, 'super-admin (full CRUD)');
+    await loginAsManagementSuperAdmin(page);
+    await page.goto('/admins/new');
+    await expect(page.getByRole('textbox', { name: /display name/i })).toBeVisible();
+
+    const username = nextFixtureName('e2e-admin-cancel-delete');
+    const displayName = `E2E ${username}`;
+    await page.getByRole('textbox', { name: /display name/i }).fill(displayName);
+    await page.getByRole('textbox', { name: /^username$/i }).fill(username);
+    await page.getByLabel(/^password/i).fill('Test!1Aa');
+    await page.getByRole('button', { name: /add admin|create|save/i }).click();
+    await expect(page).toHaveURL(/\/admins(\?|$)/);
+
+    await page.goto(`/admins?search=${encodeURIComponent(username)}`);
+    const row = page.locator('tr', { hasText: username }).first();
+    await expect(row).toBeVisible();
+
+    await actionAndCapture(
+      page,
+      testInfo,
+      'User opens the admin delete confirmation and clicks cancel.',
+      async () => {
+        await row.getByRole('button', { name: /delete/i }).click();
+        const cancelButton = page
+          .locator('button')
+          .filter({ hasText: /cancel/i })
+          .last();
+        await expect(cancelButton).toBeVisible();
+        await cancelButton.click();
+      }
+    );
+
+    await expect(page.locator('tr', { hasText: username })).toHaveCount(1);
+  });
+
   test('When the user deletes a created admin from the admins-list-page, the admin is removed.', async ({
     page,
   }, testInfo) => {

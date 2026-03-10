@@ -43,8 +43,8 @@ test.describe('This suite verifies the management login-page for the unauthentic
         await page.getByRole('textbox', { name: /username|email/i }).fill(E2E_USERNAME);
         await page.getByLabel(/password/i).fill('WrongPassword1!');
         await page.getByRole('button', { name: /log in|sign in|submit/i }).click();
-        await expect(page).toHaveURL(/\/login/);
-        await expect(page.getByText(/invalid|incorrect|wrong|error/i)).toBeVisible();
+        await expect.poll(() => new URL(page.url()).pathname, { timeout: 10000 }).toBe('/login');
+        await expect(page.getByText(/invalid credentials/i)).toBeVisible();
       }
     );
     await capturePageLoad(

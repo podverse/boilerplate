@@ -3,6 +3,7 @@ import { getTranslations } from 'next-intl/server';
 import { Breadcrumbs, Container, Link, SectionWithHeading } from '@boilerplate/ui';
 import type { BreadcrumbItem } from '@boilerplate/ui';
 
+import { canCreateChildBuckets } from '../../../../../../lib/bucket-authz';
 import { fetchBucket, fetchBucketAncestry } from '../../../../../../lib/buckets';
 import { getServerUser } from '../../../../../../lib/server-auth';
 import { ROUTES, bucketDetailRoute } from '../../../../../../lib/routes';
@@ -33,6 +34,10 @@ export default async function NewChildBucketPage({ params }: { params: Promise<{
   const { id: bucketId } = await params;
   const { bucket } = await fetchBucket(bucketId);
   if (bucket === null) {
+    notFound();
+  }
+  const canCreate = await canCreateChildBuckets(bucket.id, bucket.ownerId, user);
+  if (!canCreate) {
     notFound();
   }
 

@@ -6,12 +6,12 @@ version: 1.0.0
 
 # E2E Permission Actor Matrix
 
-Use this skill when implementing or reviewing E2E tests for any permission-gated surface (bucket admin edit, role edit, message edit, settings, management resource edit/detail, etc.). The goal is to bring every such spec into alignment with the same thorough, CRUD-permutation approach used in `bucket-admin-edit.spec.ts`.
+Current E2E bar: **Confident**. Use this skill when implementing or reviewing E2E tests for any permission-gated surface (bucket admin edit, role edit, message edit, settings, management resource edit/detail, etc.). The goal is to bring every such spec into alignment with the same thorough, CRUD-permutation approach used in the web bucket-admin-edit specs.
 
 ## Reference implementation
 
-- **Spec:** [apps/web/e2e/bucket-admin-edit.spec.ts](apps/web/e2e/bucket-admin-edit.spec.ts)
-- **Pattern:** API/source-of-truth → actor matrix table → seed + login helpers → tests per actor × outcome + flow tests.
+- **Specs (web, split by actor):** The actor × outcome matrix for bucket-admin-edit is implemented across [bucket-admin-edit-unauthenticated.spec.ts](apps/web/e2e/bucket-admin-edit-unauthenticated.spec.ts), [bucket-admin-edit-seeded-bucket-owner.spec.ts](apps/web/e2e/bucket-admin-edit-seeded-bucket-owner.spec.ts), [bucket-admin-edit-seeded-bucket-admin.spec.ts](apps/web/e2e/bucket-admin-edit-seeded-bucket-admin.spec.ts), [bucket-admin-edit-admin-without-permission.spec.ts](apps/web/e2e/bucket-admin-edit-admin-without-permission.spec.ts), and [bucket-admin-edit-non-admin.spec.ts](apps/web/e2e/bucket-admin-edit-non-admin.spec.ts). Together they cover unauthenticated, owner, admin with permission, admin without permission, and non-admin.
+- **Pattern:** API/source-of-truth → actor matrix table → seed + login helpers → tests per actor × outcome + flow tests (one spec per actor or combined as needed).
 
 ## Process (apply to each permission-gated spec)
 

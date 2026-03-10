@@ -156,8 +156,9 @@ test.describe('This suite verifies the bucket-role-new-page for the seeded-bucke
     await page.goto(`/bucket/${E2E_BUCKET1_SHORT_ID}/settings/roles/new`);
     await expect(page.getByRole('textbox', { name: /role name|name/i })).toBeVisible();
 
-    const bucketCreate = page.getByLabel('Create').nth(1);
-    const messageCreate = page.getByLabel('Create').nth(2);
+    const createCheckboxes = page.getByRole('checkbox', { name: /^create$/i });
+    const bucketCreate = createCheckboxes.nth(1);
+    const messageCreate = createCheckboxes.nth(2);
 
     await expect(bucketCreate).toBeVisible();
     await expect(messageCreate).toBeVisible();

@@ -1,6 +1,9 @@
 import { expect, test } from '@playwright/test';
 
-import { loginAsLimitedAdmin } from './helpers/advancedFixtures';
+import {
+  loginAsLimitedAdmin,
+  loginAsManagementAdminWithBucketAdmins,
+} from './helpers/advancedFixtures';
 import { actionAndCapture, capturePageLoad } from './helpers/stepScreenshots';
 import { setE2EUserContext } from './helpers/userContext';
 
@@ -9,6 +12,8 @@ test.describe('This suite verifies the management events-page for the limited-ad
     page,
   }, testInfo) => {
     setE2EUserContext(testInfo, 'limited-admin (no buckets, events own only)');
+    await loginAsManagementAdminWithBucketAdmins(page);
+    await page.context().clearCookies();
     await loginAsLimitedAdmin(page);
     await actionAndCapture(
       page,
@@ -20,13 +25,10 @@ test.describe('This suite verifies the management events-page for the limited-ad
     );
     await expect(page).toHaveURL(/\/events/);
     await expect(page.getByRole('heading', { name: /events/i })).toBeVisible();
-    const table = page.getByRole('table');
-    const emptyState = page.getByText(/no events found|no events/i);
-    if ((await emptyState.count()) > 0) {
-      await expect(emptyState.first()).toBeVisible();
-    } else {
-      await expect(table).toBeVisible();
-    }
+    await expect(page.getByRole('table')).toBeVisible();
+    await expect(page.getByText(/E2E Limited Admin/i)).toBeVisible();
+    await expect(page.getByText(/E2E Admin Bucket Admins/i)).toHaveCount(0);
+    await expect(page.getByText(/E2E Super Admin/i)).toHaveCount(0);
     await capturePageLoad(
       page,
       testInfo,

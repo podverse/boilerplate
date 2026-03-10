@@ -76,13 +76,61 @@ test.describe('This suite verifies the management buckets-list page for the supe
     expect(currentUrl.searchParams.get('sortBy')).toBe('name');
     expect(currentUrl.searchParams.get('sortOrder')).toBe('asc');
     await expect(page.getByRole('heading', { name: /buckets/i })).toBeVisible();
-    const tableOrEmpty = page.getByRole('table').or(page.getByText(/no buckets|no buckets yet/i));
-    await expect(tableOrEmpty).toBeVisible();
+    const emptyState = page.getByText(/no buckets|no buckets yet/i);
+    if ((await emptyState.count()) > 0) {
+      await expect(emptyState.first()).toBeVisible();
+    } else {
+      await expect(page.getByRole('table')).toBeVisible();
+    }
     await capturePageLoad(
       page,
       testInfo,
       'The buckets-list shows URL state and visible table or empty content.'
     );
+  });
+
+  test('When the user opens the delete confirmation for a created bucket on the buckets-list-page and cancels, the row remains.', async ({
+    page,
+  }, testInfo) => {
+    setE2EUserContext(testInfo, 'super-admin (full CRUD)');
+    await loginAsManagementSuperAdmin(page);
+    await page.goto('/buckets/new');
+    await expect(page.getByRole('textbox', { name: /name|bucket/i })).toBeVisible();
+
+    const bucketName = nextFixtureName('e2e-mgmt-bucket-cancel-delete');
+    await page.getByRole('textbox', { name: /name|bucket/i }).fill(bucketName);
+    const ownerSelect = page.getByLabel(/owner/i);
+    await expect(ownerSelect).toBeVisible();
+    await ownerSelect.selectOption({ index: 1 });
+
+    await page.getByRole('button', { name: /create bucket|add bucket|create|save/i }).click();
+    await expect
+      .poll(() => {
+        const pathname = new URL(page.url()).pathname;
+        return pathname.startsWith('/bucket/') || pathname === '/buckets';
+      })
+      .toBe(true);
+
+    await page.goto(`/buckets?search=${encodeURIComponent(bucketName)}`);
+    const row = page.locator('tr', { hasText: bucketName }).first();
+    await expect(row).toBeVisible();
+
+    await actionAndCapture(
+      page,
+      testInfo,
+      'User opens the bucket delete confirmation and clicks cancel.',
+      async () => {
+        await row.getByRole('button', { name: /delete/i }).click();
+        const cancelButton = page
+          .locator('button')
+          .filter({ hasText: /cancel/i })
+          .last();
+        await expect(cancelButton).toBeVisible();
+        await cancelButton.click();
+      }
+    );
+
+    await expect(page.locator('tr', { hasText: bucketName })).toHaveCount(1);
   });
 
   test('When the user deletes a bucket from the buckets-list, the bucket is removed from the list.', async ({
@@ -96,12 +144,16 @@ test.describe('This suite verifies the management buckets-list page for the supe
     const bucketName = nextFixtureName('e2e-mgmt-bucket-delete');
     await page.getByRole('textbox', { name: /name|bucket/i }).fill(bucketName);
     const ownerSelect = page.getByLabel(/owner/i);
-    if ((await ownerSelect.count()) > 0) {
-      await ownerSelect.selectOption({ index: 1 });
-    }
+    await expect(ownerSelect).toBeVisible();
+    await ownerSelect.selectOption({ index: 1 });
 
     await page.getByRole('button', { name: /create bucket|add bucket|create|save/i }).click();
-    await expect(page).toHaveURL(/\/bucket\/|\/buckets$/);
+    await expect
+      .poll(() => {
+        const pathname = new URL(page.url()).pathname;
+        return pathname.startsWith('/bucket/') || pathname === '/buckets';
+      })
+      .toBe(true);
 
     await page.goto(`/buckets?search=${encodeURIComponent(bucketName)}`);
     const row = page.locator('tr', { hasText: bucketName }).first();

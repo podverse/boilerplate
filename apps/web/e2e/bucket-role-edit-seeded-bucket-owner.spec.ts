@@ -143,4 +143,36 @@ test.describe('This suite verifies the bucket-role-edit-page for the seeded-buck
 
     await expect(page.getByText(new RegExp(createdName, 'i')).first()).toHaveCount(0);
   });
+
+  test('When the user opens the delete confirmation for a custom role and cancels the browser dialog, the role remains in the roles-list.', async ({
+    page,
+  }, testInfo) => {
+    setE2EUserContext(testInfo, 'seeded-bucket-owner');
+    await loginAsWebE2EUserAndExpectDashboard(page);
+    const createdName = nextFixtureName('e2e-web-role-delete-cancel');
+
+    await page.goto(`/bucket/${E2E_BUCKET1_SHORT_ID}/settings/roles/new`);
+    await expect(page.getByRole('textbox', { name: /role name|name/i })).toBeVisible();
+    await page.getByRole('textbox', { name: /role name|name/i }).fill(createdName);
+    await page.getByRole('button', { name: /save|create/i }).click();
+    await expect(page).toHaveURL(
+      new RegExp(`/bucket/${E2E_BUCKET1_SHORT_ID}/settings\\?tab=roles`)
+    );
+
+    const roleRow = page.locator('li', { hasText: createdName }).first();
+    await expect(roleRow).toBeVisible();
+
+    page.once('dialog', (dialog) => dialog.dismiss());
+
+    await actionAndCapture(
+      page,
+      testInfo,
+      'User clicks delete on the custom role and cancels the browser dialog.',
+      async () => {
+        await roleRow.getByRole('button', { name: /delete/i }).click();
+      }
+    );
+
+    await expect(page.getByText(new RegExp(createdName, 'i')).first()).toBeVisible();
+  });
 });

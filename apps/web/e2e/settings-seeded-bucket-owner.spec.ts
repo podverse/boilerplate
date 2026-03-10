@@ -61,6 +61,52 @@ test.describe('This suite verifies the user-settings-page for the seeded-bucket-
     );
   });
 
+  test('When the user opens the settings-page with tab=password, the URL preserves the param and the password tab content is visible.', async ({
+    page,
+  }, testInfo) => {
+    setE2EUserContext(testInfo, 'seeded-bucket-owner');
+    await loginAsWebE2EUserAndExpectDashboard(page);
+    await actionAndCapture(
+      page,
+      testInfo,
+      'User navigates to settings with tab=password and sees URL and password tab content.',
+      async () => {
+        await page.goto('/settings?tab=password');
+        await expect(page).toHaveURL(/\/settings\?tab=password/);
+        await expect(page.getByRole('link', { name: /password/i })).toBeVisible();
+        await expect(page.locator('input[type="password"]').first()).toBeVisible();
+      }
+    );
+    await capturePageLoad(
+      page,
+      testInfo,
+      'The settings-page shows the password tab and password content visible.'
+    );
+  });
+
+  test('When the user opens the settings-page with tab=profile, the URL preserves the param and the profile tab content is visible.', async ({
+    page,
+  }, testInfo) => {
+    setE2EUserContext(testInfo, 'seeded-bucket-owner');
+    await loginAsWebE2EUserAndExpectDashboard(page);
+    await actionAndCapture(
+      page,
+      testInfo,
+      'User navigates to settings with tab=profile and sees URL and profile tab content.',
+      async () => {
+        await page.goto('/settings?tab=profile');
+        await expect(page).toHaveURL(/\/settings\?tab=profile/);
+        await expect(page.getByRole('link', { name: /profile/i })).toBeVisible();
+        await expect(page.getByRole('textbox', { name: /display name/i })).toBeVisible();
+      }
+    );
+    await capturePageLoad(
+      page,
+      testInfo,
+      'The settings-page shows the profile tab and profile content visible.'
+    );
+  });
+
   test('When the user opens the email-tab, they see the new-email form controls.', async ({
     page,
   }, testInfo) => {

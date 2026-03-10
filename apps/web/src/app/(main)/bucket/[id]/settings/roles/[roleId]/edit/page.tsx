@@ -3,6 +3,7 @@ import { getTranslations } from 'next-intl/server';
 import { PageHeader } from '@boilerplate/ui';
 
 import { BucketRoleFormClient } from '../../../../BucketRoleFormClient';
+import { canEditBucketRoles } from '../../../../../../../../lib/bucket-authz';
 import { fetchBucket, fetchBucketRoles } from '../../../../../../../../lib/buckets';
 import { getServerUser } from '../../../../../../../../lib/server-auth';
 import { getCookieHeader, getServerApiBaseUrl } from '../../../../../../../../lib/server-request';
@@ -52,6 +53,10 @@ export default async function EditBucketRolePage({
   if (bucket === null) notFound();
   if (bucket.parentBucketId !== null) {
     redirect(bucketSettingsRolesRoute(bucket.parentBucketId));
+  }
+  const canEditRoles = await canEditBucketRoles(bucket.id, bucket.ownerId, user);
+  if (!canEditRoles) {
+    notFound();
   }
 
   const roles = await fetchBucketRoles(bucketId);

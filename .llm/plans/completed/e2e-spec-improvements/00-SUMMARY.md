@@ -14,7 +14,7 @@ Skills: e2e-readability, e2e-permission-actor-matrix, e2e-authz-matrix, e2e-crud
 ## Related plans
 
 - [e2e-crud-permission-permutations-alignment.md](../e2e-crud-permission-permutations-alignment.md) – alignment snapshot per spec
-- [e2e-bulletproof-matrices/](../e2e-bulletproof-matrices/) – CRUD/state/auth matrices for web and management-web
+- [E2E-CRUD-STATE-AUTH-MATRICES.md](../../../docs/testing/E2E-CRUD-STATE-AUTH-MATRICES.md) – CRUD/state/auth matrices for web and management-web
 
 ## Plan files (48)
 

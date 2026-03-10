@@ -8,6 +8,10 @@ version: 1.0.0
 
 Use this skill before marking E2E work complete.
 
+## Current E2E bar: Confident
+
+The project targets **Confident** coverage: happy paths and auth boundaries covered; permission matrix on important surfaces (e.g. bucket admin edit, role edit, message edit); URL-state where it matters; deny tests use real seeded resources so breaking permission checks fails the test. Cells in the CRUD/state/auth matrices marked Gap are backlog—fix when touching that feature, not as a single "close all gaps" pass. Matrix checklists: [docs/testing/E2E-CRUD-STATE-AUTH-MATRICES.md](docs/testing/E2E-CRUD-STATE-AUTH-MATRICES.md) (index), [E2E-CRUD-STATE-AUTH-MATRIX-WEB.md](docs/testing/E2E-CRUD-STATE-AUTH-MATRIX-WEB.md), [E2E-CRUD-STATE-AUTH-MATRIX-MANAGEMENT-WEB.md](docs/testing/E2E-CRUD-STATE-AUTH-MATRIX-MANAGEMENT-WEB.md).
+
 ## Required matrix per surface
 
 For each tested page/component surface, explicitly track:

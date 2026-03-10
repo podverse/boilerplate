@@ -20,8 +20,7 @@ test.describe('This suite verifies the management events-page for the super-admi
     );
     await expect(page).toHaveURL(/\/events/);
     await expect(page.getByRole('heading', { name: /events/i })).toBeVisible();
-    const tableOrEmpty = page.getByRole('table').or(page.getByText(/no events found|no events/i));
-    await expect(tableOrEmpty).toBeVisible();
+    await expect(page.getByRole('table')).toBeVisible();
     await capturePageLoad(page, testInfo, 'The events-page is visible with list or empty state.');
   });
 
@@ -59,8 +58,7 @@ test.describe('This suite verifies the management events-page for the super-admi
       }
     }
     await expect(page.getByRole('heading', { name: /events/i })).toBeVisible();
-    const tableOrEmpty = page.getByRole('table').or(page.getByText(/no events found|no events/i));
-    await expect(tableOrEmpty).toBeVisible();
+    await expect(page.getByRole('table')).toBeVisible();
     await capturePageLoad(
       page,
       testInfo,

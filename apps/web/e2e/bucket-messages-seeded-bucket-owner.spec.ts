@@ -19,7 +19,15 @@ test.describe('This suite verifies the bucket-messages-page for the seeded-bucke
       'User navigates to the bucket-messages-page and sees the messages-list or empty state.',
       async () => {
         await page.goto(`/bucket/${E2E_BUCKET1_SHORT_ID}/messages`);
-        await expect(page).toHaveURL(new RegExp(`/bucket/${E2E_BUCKET1_SHORT_ID}(/messages)?`));
+        await expect
+          .poll(() => {
+            const url = new URL(page.url());
+            return (
+              url.pathname === `/bucket/${E2E_BUCKET1_SHORT_ID}/messages` ||
+              url.pathname === `/bucket/${E2E_BUCKET1_SHORT_ID}`
+            );
+          })
+          .toBe(true);
         await expect(page.getByRole('heading', { name: /messages/i })).toBeVisible();
       }
     );
@@ -58,7 +66,15 @@ test.describe('This suite verifies the bucket-messages-page for the seeded-bucke
         await page.goto(`/bucket/${E2E_BUCKET1_SHORT_ID}`);
         await expect(page).toHaveURL(new RegExp(`/bucket/${E2E_BUCKET1_SHORT_ID}`));
         await page.getByRole('link', { name: /messages/i }).click();
-        await expect(page).toHaveURL(new RegExp(`/bucket/${E2E_BUCKET1_SHORT_ID}(?:/|$)`));
+        await expect
+          .poll(() => {
+            const url = new URL(page.url());
+            return (
+              url.pathname === `/bucket/${E2E_BUCKET1_SHORT_ID}/messages` ||
+              url.pathname === `/bucket/${E2E_BUCKET1_SHORT_ID}`
+            );
+          })
+          .toBe(true);
         await expect(page.getByRole('heading', { name: /messages/i })).toBeVisible();
       }
     );

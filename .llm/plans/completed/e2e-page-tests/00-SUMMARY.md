@@ -68,7 +68,7 @@ lightweight placeholder) and includes:
 - Implementation notes (spec path, page path, test case list)
 
 Conditional UI (hidden, disabled, visibility by permission), different users/admins,
-and CRUD permissions are called out so tests can be bulletproof as development continues.
+and CRUD permissions are called out so tests stay confident as development continues.
 
 ## Cross-cutting requirements for detailed plans
 

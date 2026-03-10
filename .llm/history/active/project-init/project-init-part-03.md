@@ -164,7 +164,7 @@ To-do's from the plan have already been created. Do not create them again. Mark 
 #### Key Decisions
 
 - Created strict, explicit web and management-web CRUD/state/auth matrices as
-  the single source of truth under `.llm/plans/active/e2e-bulletproof-matrices/`.
+  the single source of truth under `docs/testing/` (E2E-CRUD-STATE-AUTH-MATRICES.md, E2E-CRUD-STATE-AUTH-MATRIX-WEB.md, E2E-CRUD-STATE-AUTH-MATRIX-MANAGEMENT-WEB.md).
 - Implemented high-risk web gaps for delete lifecycle, permission/state contracts,
   and URL-state assertions in focused existing specs.
 - Implemented high-risk management-web gaps for delete lifecycle, authZ row-action
@@ -177,8 +177,8 @@ To-do's from the plan have already been created. Do not create them again. Mark 
 #### Files Modified
 
 - .llm/history/active/project-init/project-init-part-03.md
-- .llm/plans/active/e2e-bulletproof-matrices/web-crud-state-auth-matrix.md
-- .llm/plans/active/e2e-bulletproof-matrices/management-web-crud-state-auth-matrix.md
+- docs/testing/E2E-CRUD-STATE-AUTH-MATRIX-WEB.md
+- docs/testing/E2E-CRUD-STATE-AUTH-MATRIX-MANAGEMENT-WEB.md
 - .cursor/skills/e2e-crud-state-matrix/SKILL.md
 - .cursor/skills/e2e-authz-matrix/SKILL.md
 - .cursor/skills/e2e-url-state-contracts/SKILL.md

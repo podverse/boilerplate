@@ -45,6 +45,159 @@ To-do's from the plan have already been created. Do not create them again. Mark 
 #### Files Modified
 
 - .llm/history/active/project-init/project-init-part-05.md
+
+### Session 67 - 2026-03-10
+
+#### Prompt (Developer)
+
+implement @boilerplate/.llm/plans/active/e2e-hardening-followup/03-shared-e2e-helper-selector-hardening.md
+
+#### Key Decisions
+
+- Refactored management-web delete-confirm helper to use semantic modal anchors first
+  (`dialog`/`alertdialog` or confirmation text with Cancel/Delete controls), with a deterministic
+  visible-button fallback and no class-fragment targeting.
+- Kept unauthenticated redirect helper strict (`/login` pathname) and documented helper contract.
+- Tightened invalid-login assertion to the specific `invalid credentials` message.
+- Tightened web messages route assertions by removing redundant permissive URL branches.
+- Ran scoped suite checks for changed management-web and web specs, then ran full cross-app
+  report because shared helper files were modified.
+
+#### Files Modified
+
+- .llm/history/active/project-init/project-init-part-05.md
+- apps/management-web/e2e/helpers/flowHelpers.ts
+- apps/management-web/e2e/helpers/authAssertions.ts
+- apps/management-web/e2e/login-unauthenticated.spec.ts
+- apps/web/e2e/helpers/flowHelpers.ts
+- apps/web/e2e/bucket-messages-seeded-bucket-owner.spec.ts
+- apps/web/e2e/bucket-messages-seeded-bucket-admin.spec.ts
+
+### Session 67 - 2026-03-10
+
+#### Prompt (Developer)
+
+implement @boilerplate/.llm/plans/active/e2e-hardening-followup/03-shared-e2e-helper-selector-hardening.md
+
+#### Key Decisions
+
+- Started implementation of Plan 03 by tightening shared E2E helper selector contracts and
+  reducing permissive assertions.
+
+#### Files Modified
+
+- .llm/history/active/project-init/project-init-part-05.md
+
+### Session 66 - 2026-03-10
+
+#### Prompt (Developer)
+
+implement @boilerplate/.llm/plans/active/e2e-hardening-followup/02-management-web-e2e-authz-and-events-matrix.md
+
+#### Key Decisions
+
+- Replaced fabricated-ID deny checks in management bucket-message-edit authz coverage with
+  real seeded message IDs created as super-admin, then asserted redirect + protected form
+  absence for restricted admin users.
+- Strengthened limited-admin bucket-admin-edit deny coverage by asserting dashboard content is
+  visible and edit-admin content is absent after redirect.
+- Hardened events own-only coverage by pre-creating a non-owned admin actor event and then
+  asserting the limited-admin sees only own actor rows.
+- Added two missing admin-tier events permutations for all-admins visibility (admin-with- and
+  admin-without-bucket-admins-crud), asserting admin actor events are visible while
+  super-admin actor events are excluded.
+- Tightened broad events and bucket-create redirect assertions to deterministic table/pathname
+  checks where seeded data and route contracts allow.
+- Verified the full scoped management-web cluster from Plan 02 passes.
+
+#### Files Modified
+
+- .llm/history/active/project-init/project-init-part-05.md
+- apps/management-web/e2e/bucket-message-edit-admin-with-buckets-read-no-message-update.spec.ts
+- apps/management-web/e2e/bucket-admin-edit-limited-admin-no-buckets-read.spec.ts
+- apps/management-web/e2e/events-limited-admin-no-buckets-events-own-only.spec.ts
+- apps/management-web/e2e/events-super-admin-full-crud.spec.ts
+- apps/management-web/e2e/events-admin-with-bucket-admins-crud.spec.ts
+- apps/management-web/e2e/events-admin-without-bucket-admins-crud.spec.ts
+- apps/management-web/e2e/buckets-super-admin-full-crud.spec.ts
+- apps/management-web/e2e/buckets-new-super-admin-full-crud.spec.ts
+
+### Session 66 - 2026-03-10
+
+#### Prompt (Developer)
+
+implement @boilerplate/.llm/plans/active/e2e-hardening-followup/02-management-web-e2e-authz-and-events-matrix.md
+
+#### Key Decisions
+
+- Started implementation of Plan 02 by hardening management-web authz and events matrix
+  scenarios.
+
+#### Files Modified
+
+- .llm/history/active/project-init/project-init-part-05.md
+
+### Session 65 - 2026-03-10
+
+#### Prompt (Developer)
+
+implement @boilerplate/.llm/plans/active/e2e-hardening-followup/01-web-e2e-false-pass-and-authz-contracts.md
+
+#### Key Decisions
+
+- Implemented server-side create-permission gating for child and nested bucket create routes.
+- Implemented server-side authz gating for bucket role edit (owner-only) and message edit
+  (owner or message-update) routes to remove false-pass permission coverage.
+- Hardened invite valid-token tests so invalid terminal states are not accepted.
+- Reworked denied-actor role/message edit specs to use real existing resource IDs created
+  during test setup rather than invalid IDs.
+- Tightened bucket-messages route assertions to avoid over-broad URL matching while allowing
+  the current app contract where messages can resolve on bucket detail route.
+- Kept create-permission checkbox dependency assertions deterministic by targeting the
+  relevant create checkboxes in a stable order.
+- Verified changes with scoped web E2E report runs; all targeted specs passed.
+
+#### Files Modified
+
+- .llm/history/active/project-init/project-init-part-05.md
+- apps/web/src/lib/bucket-authz.ts
+- apps/web/src/app/(main)/bucket/[id]/new/page.tsx
+- apps/web/src/app/(main)/bucket/[id]/bucket/new/page.tsx
+- apps/web/src/app/(main)/bucket/[id]/messages/[messageId]/edit/page.tsx
+- apps/web/src/app/(main)/bucket/[id]/settings/roles/[roleId]/edit/page.tsx
+- apps/web/e2e/invite-seeded-bucket-owner.spec.ts
+- apps/web/e2e/invite-seeded-bucket-admin.spec.ts
+- apps/web/e2e/invite-non-admin.spec.ts
+- apps/web/e2e/bucket-child-new-non-owner-admin-read-only-no-create.spec.ts
+- apps/web/e2e/bucket-nested-new-non-owner-admin-read-only-no-create.spec.ts
+- apps/web/e2e/bucket-role-edit-admin-without-permission.spec.ts
+- apps/web/e2e/bucket-role-edit-non-admin.spec.ts
+- apps/web/e2e/bucket-role-edit-seeded-bucket-admin.spec.ts
+- apps/web/e2e/bucket-message-edit-admin-without-permission.spec.ts
+- apps/web/e2e/bucket-message-edit-non-admin.spec.ts
+- apps/web/e2e/bucket-messages-seeded-bucket-owner.spec.ts
+- apps/web/e2e/bucket-messages-seeded-bucket-admin.spec.ts
+- apps/web/e2e/bucket-role-new-seeded-bucket-owner.spec.ts
+
+### Session 65 - 2026-03-10
+
+#### Prompt (Developer)
+
+implement @boilerplate/.llm/plans/active/e2e-hardening-followup/01-web-e2e-false-pass-and-authz-contracts.md
+
+#### Key Decisions
+
+- Started implementation of Plan 01 by hardening web E2E authz and false-pass contracts.
+
+#### Files Modified
+
+- .llm/history/active/project-init/project-init-part-05.md
+- .llm/plans/active/e2e-hardening-followup/00-SUMMARY.md
+- .llm/plans/active/e2e-hardening-followup/00-EXECUTION-ORDER.md
+- .llm/plans/active/e2e-hardening-followup/01-web-e2e-false-pass-and-authz-contracts.md
+- .llm/plans/active/e2e-hardening-followup/02-management-web-e2e-authz-and-events-matrix.md
+- .llm/plans/active/e2e-hardening-followup/03-shared-e2e-helper-selector-hardening.md
+- .llm/plans/active/e2e-hardening-followup/COPY-PASTA.md
 - apps/management-web/e2e/helpers/advancedFixtures.ts
 - apps/management-web/e2e/admin-detail-admin-with-buckets-read-no-admins-crud.spec.ts
 - apps/management-web/e2e/admin-edit-admin-with-buckets-read-no-admins-crud.spec.ts
@@ -172,3 +325,55 @@ To-do's from the plan have already been created. Do not create them again. Mark 
 - apps/web/src/app/(main)/bucket/[id]/settings/roles/new/page.tsx
 - apps/web/e2e/bucket-settings-admin-without-permission.spec.ts
 - apps/web/e2e/bucket-role-new-admin-without-permission.spec.ts
+
+### Session 63 - 2026-03-10
+
+#### Prompt (Developer)
+
+Management-Web E2E Hardening Plan
+
+Implement the plan as specified, it is attached for your reference. Do NOT edit the plan file itself.
+
+To-do's from the plan have already been created. Do not create them again. Mark them as in_progress as you work, starting with the first one. Don't stop until you have completed all the to-dos.
+
+#### Key Decisions
+
+- Logged the exact developer prompt before implementation edits.
+- Hardened delete-confirm interaction by scoping to the confirm-delete modal body before
+  clicking the destructive action to avoid background-list button interception.
+- Removed optional-control false-pass branches in super-admin bucket CRUD specs by requiring
+  owner select visibility where owner assignment is expected.
+- Added missing limited-admin coverage for bucket-admin-edit route family.
+- Standardized unauth login-route contract checks by tightening auth helper to assert
+  pathname `/login` and reused the helper in home/dashboard unauthenticated specs.
+- Verified scoped management-web hardening cluster and full management-web/full cross-app
+  report suites all pass.
+
+#### Files Modified
+
+- .llm/history/active/project-init/project-init-part-05.md
+- apps/management-web/e2e/helpers/flowHelpers.ts
+- apps/management-web/e2e/buckets-super-admin-full-crud.spec.ts
+- apps/management-web/e2e/buckets-new-super-admin-full-crud.spec.ts
+- apps/management-web/e2e/bucket-admin-edit-limited-admin-no-buckets-read.spec.ts
+- apps/management-web/e2e/helpers/authAssertions.ts
+- apps/management-web/e2e/home-unauthenticated.spec.ts
+- apps/management-web/e2e/dashboard-unauthenticated.spec.ts
+- apps/management-web/e2e/login-unauthenticated.spec.ts
+
+### Session 64 - 2026-03-10
+
+#### Prompt (Developer)
+
+create separate plan files to address your findings, and save those files locally
+
+#### Key Decisions
+
+- Created a new follow-up plan set under `.llm/plans/active/e2e-hardening-followup/`
+  with separate web and management-web hardening plans.
+- Added execution-order and copy-pasta orchestration files so plans can be run in the
+  intended sequence.
+
+#### Files Modified
+
+- .llm/history/active/project-init/project-init-part-05.md
