@@ -1,0 +1,26 @@
+import { expect, test } from '@playwright/test';
+
+import {
+  loginAsLimitedAdmin,
+  loginAsManagementAdminWithBucketAdmins,
+  loginAsManagementSuperAdmin,
+} from './helpers/advancedFixtures';
+import { expectUnauthedRouteRedirectsToLogin } from './helpers/authAssertions';
+import { actionAndCapture, capturePageLoad } from './helpers/stepScreenshots';
+import { setE2EUserContext } from './helpers/userContext';
+
+test.describe('This suite verifies the management users-list-page for the admin with buckets read, no users CRUD user.', () => {
+  test('When an admin without usersCrud (e.g. admin-with-bucket-admins) opens the users-list-page, they are redirected to the dashboard.', async ({
+    page,
+  }, testInfo) => {
+    setE2EUserContext(testInfo, 'admin with buckets read, no users CRUD');
+    await loginAsManagementAdminWithBucketAdmins(page);
+    await page.goto('/users');
+    await expect(page).toHaveURL(/\/dashboard/);
+    await capturePageLoad(
+      page,
+      testInfo,
+      'The admin without users read is redirected to the dashboard when opening the users-list-page.'
+    );
+  });
+});

@@ -1,12 +1,23 @@
 ---
 name: plan-files-convention
 description: Where and how to save LLM plan files locally. Use when creating, saving, or completing plan sets (e.g. multi-phase plans). Aligns with Podverse monorepo convention.
-version: 1.0.0
+version: 1.1.0
 ---
 
 # Plan Files Convention
 
 This skill describes how to save plan files locally in the Boilerplate repo, following the same convention as the Podverse monorepo.
+
+## When Asked to Create a Plan That Is Too Big for One Pass
+
+If the user asks you to create a plan and the plan is **too large to implement in a single pass**:
+
+1. **First goal**: Treat the deliverable as **creating detailed plan files and saving them locally**. Do not attempt to implement the full plan in one go.
+2. **Produce and save**:
+   - A plan-set directory under `.llm/plans/active/[plan-set-name]/`
+   - `00-EXECUTION-ORDER.md`, `00-SUMMARY.md`, numbered plan files (e.g. `01-topic.md` …), and `COPY-PASTA.md` as described below.
+3. **After the plan files exist**: The user will use the **COPY-PASTA.md** (copy-pasta doc) to ask you to implement the plans—typically **one after another**, or **in parallel** when the execution order doc says it is safe (e.g. within a phase marked as parallel). Do not start implementation until the user requests it via those prompts.
+4. When the user pastes a prompt from COPY-PASTA.md, execute that plan immediately (see parallel-plan-execution skill for copy-pasta behavior).
 
 ## Where to Save Plans
 
@@ -42,8 +53,8 @@ Plans stay under ~300 lines each; split into part files (e.g. `22-part-1-dashboa
 1. Create the directory: `.llm/plans/active/[plan-set-name]/`.
 2. Add 00-EXECUTION-ORDER.md and 00-SUMMARY.md first.
 3. Add one file per topic (01, 02, …) with scope, steps, key files, verification.
-4. Add COPY-PASTA.md for any parallel execution groups.
-5. Do not implement until the user asks; plans are executed incrementally (see plan-creation rule).
+4. Add COPY-PASTA.md with copy-paste prompts that **reference** the numbered plan files (so the user can request implementation one-by-one or in parallel as allowed by the execution order).
+5. **Stop when the plan files are saved.** Do not implement the plans in this pass. Implementation happens when the user uses COPY-PASTA.md to ask you to execute each plan (sequentially or in parallel per the execution order).
 
 ## When a Plan Set Is Complete
 

@@ -1,0 +1,68 @@
+import { expect, test } from '@playwright/test';
+
+import { loginAsManagementAdminWithBucketAdmins } from './helpers/advancedFixtures';
+import { expectInvalidRouteShowsNotFound } from './helpers/flowHelpers';
+import { actionAndCapture, capturePageLoad } from './helpers/stepScreenshots';
+import { setE2EUserContext } from './helpers/userContext';
+
+/** UUID from tools/web/seed-e2e.mjs E2E_BUCKET1_ID (main DB; management E2E runs after full seed). */
+const E2E_BUCKET1_ID = '22222222-2222-4222-a222-222222222222';
+
+test.describe('This suite verifies the management bucket-detail-page for the admin with buckets read (bucket-admins permission) user.', () => {
+  test('When an admin with buckets read opens the bucket-detail-page with an invalid bucket id, they see not found.', async ({
+    page,
+  }, testInfo) => {
+    setE2EUserContext(testInfo, 'admin with buckets read (bucket-admins permission)');
+    await loginAsManagementAdminWithBucketAdmins(page);
+    await expectInvalidRouteShowsNotFound(
+      page,
+      testInfo,
+      'User navigates to the bucket-detail-page with an invalid bucket id and sees not found.',
+      async () => {
+        await page.goto('/bucket/99999999-9999-4999-a999-999999999999');
+      }
+    );
+  });
+
+  test('When an admin with buckets read opens the bucket-detail-page, they see the bucket name and Messages, Buckets, and Settings tab links.', async ({
+    page,
+  }, testInfo) => {
+    setE2EUserContext(testInfo, 'admin with buckets read (bucket-admins permission)');
+    await loginAsManagementAdminWithBucketAdmins(page);
+    await page.goto(`/bucket/${E2E_BUCKET1_ID}`);
+    await expect(page).toHaveURL(new RegExp(`/bucket/${E2E_BUCKET1_ID}`));
+    await expect(page.getByText(/E2E Bucket One/)).toBeVisible();
+    await expect(page.getByRole('link', { name: /messages/i })).toBeVisible();
+    await capturePageLoad(
+      page,
+      testInfo,
+      'The admin with buckets read sees the bucket-detail-page with tabs.'
+    );
+  });
+
+  test('When an admin with buckets read navigates from the buckets-list-page to bucket-detail via a bucket link, the bucket detail loads.', async ({
+    page,
+  }, testInfo) => {
+    setE2EUserContext(testInfo, 'admin with buckets read (bucket-admins permission)');
+    await loginAsManagementAdminWithBucketAdmins(page);
+    await page.goto('/buckets');
+    await expect(page).toHaveURL(/\/buckets/);
+    const detailLink = page.locator(`a[href="/bucket/${E2E_BUCKET1_ID}"]`).first();
+    await expect(detailLink).toBeVisible();
+    await actionAndCapture(
+      page,
+      testInfo,
+      'User clicks a bucket link on the buckets-list-page and reaches the bucket-detail-page.',
+      async () => {
+        await detailLink.click();
+      }
+    );
+    await expect(page).toHaveURL(new RegExp(`/bucket/${E2E_BUCKET1_ID}(?:/|$)`));
+    await expect(page.getByText(/E2E Bucket One/)).toBeVisible();
+    await capturePageLoad(
+      page,
+      testInfo,
+      'The bucket-detail-page is visible after navigating from the buckets-list-page.'
+    );
+  });
+});

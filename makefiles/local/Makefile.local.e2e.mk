@@ -122,7 +122,7 @@ e2e_test_report:
 
 # Scoped report mode for one or more web E2E specs. Requires SPEC.
 # SPEC supports a single path or comma-separated paths
-# (example: SPEC=e2e/buckets.spec.ts,e2e/invite.spec.ts).
+# (example: SPEC=e2e/buckets-unauthenticated.spec.ts,e2e/invite-unauthenticated.spec.ts).
 # Runs API gate decision first, re-seeds web, captures step screenshots, writes timestamped report, rotates to 10 runs.
 e2e_test_web_report_spec:
 	@$(call e2e_run_api_gate)
@@ -166,7 +166,7 @@ e2e_test_web_report_spec:
 
 # Scoped report mode for one or more management-web E2E specs. Requires SPEC.
 # SPEC supports a single path or comma-separated paths
-# (example: SPEC=e2e/buckets.spec.ts,e2e/events.spec.ts).
+# (example: SPEC=e2e/buckets-unauthenticated.spec.ts,e2e/events-unauthenticated.spec.ts).
 # Runs API gate decision first, re-seeds both E2E datasets, captures step screenshots, writes timestamped report, rotates to 10 runs.
 e2e_test_management_web_report_spec:
 	@$(call e2e_run_api_gate)

@@ -1,0 +1,27 @@
+import { test } from '@playwright/test';
+
+import { loginAsWebE2EAdminWithoutPermission } from './helpers/advancedFixtures';
+import { expectInvalidRouteShowsNotFound } from './helpers/flowHelpers';
+import { setE2EUserContext } from './helpers/userContext';
+
+const E2E_BUCKET1_SHORT_ID = 'e2ebkt000001';
+const E2E_USER_SHORT_ID = 'e2eusr000001';
+
+test.describe('This suite verifies the bucket-admin-edit-page for the admin-without-permission user.', () => {
+  test('When the non-owner admin without bucket-admins permission opens the bucket-admin-edit-page, they see not found.', async ({
+    page,
+  }, testInfo) => {
+    setE2EUserContext(testInfo, 'admin-without-permission');
+    await loginAsWebE2EAdminWithoutPermission(page);
+    await expectInvalidRouteShowsNotFound(
+      page,
+      testInfo,
+      'User navigates to the bucket-admin-edit-page and sees not found (no bucket update permission).',
+      async () => {
+        await page.goto(
+          `/bucket/${E2E_BUCKET1_SHORT_ID}/settings/admins/${E2E_USER_SHORT_ID}/edit`
+        );
+      }
+    );
+  });
+});
