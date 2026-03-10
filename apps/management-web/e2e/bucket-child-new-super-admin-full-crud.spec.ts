@@ -11,7 +11,7 @@ import { expectInvalidRouteShowsNotFound } from './helpers/flowHelpers';
 import { actionAndCapture, capturePageLoad } from './helpers/stepScreenshots';
 import { setE2EUserContext } from './helpers/userContext';
 
-const E2E_BUCKET1_ID = '22222222-2222-4222-a222-222222222222';
+const E2E_BUCKET1_ID = 'e2ebkt000001';
 
 test.describe('This suite verifies the management bucket-child-new-page for the super-admin (full CRUD) user.', () => {
   test('When the super-admin opens the bucket-child-new page with an invalid parent bucket id, they see not found.', async ({

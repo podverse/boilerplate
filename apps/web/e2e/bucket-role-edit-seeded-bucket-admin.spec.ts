@@ -2,7 +2,7 @@ import { expect, test } from '@playwright/test';
 
 import { loginAsWebE2EAdminWithPermission } from './helpers/advancedFixtures';
 import { expectInvalidRouteShowsNotFound } from './helpers/flowHelpers';
-import { actionAndCapture, capturePageLoad } from './helpers/stepScreenshots';
+import { capturePageLoad } from './helpers/stepScreenshots';
 import { setE2EUserContext } from './helpers/userContext';
 
 const E2E_BUCKET1_SHORT_ID = 'e2ebkt000001';
@@ -23,7 +23,7 @@ test.describe('This suite verifies the bucket-role-edit-page for the seeded-buck
     );
   });
 
-  test('When the non-owner admin with bucket roles permission navigates from the roles-list to edit a role, the bucket-role-edit-form is visible.', async ({
+  test('When the non-owner admin with bucket roles permission opens the roles-list, edit links are not shown.', async ({
     page,
   }, testInfo) => {
     setE2EUserContext(testInfo, 'seeded-bucket-admin');
@@ -32,52 +32,25 @@ test.describe('This suite verifies the bucket-role-edit-page for the seeded-buck
     await expect(page).toHaveURL(
       new RegExp(`/bucket/${E2E_BUCKET1_SHORT_ID}/settings\\?tab=roles`)
     );
-    const editLink = page.locator('a[href*="/settings/roles/"][href*="/edit"]').first();
-    await expect(editLink).toBeVisible();
-    await actionAndCapture(
-      page,
-      testInfo,
-      'User clicks the edit link for a role and reaches the bucket-role-edit-page.',
-      async () => {
-        await editLink.click();
-      }
-    );
-    await expect(page).toHaveURL(
-      new RegExp(`/bucket/${E2E_BUCKET1_SHORT_ID}/settings/roles/[^/]+/edit`)
-    );
-    await expect(page.getByRole('textbox', { name: /role name|name/i })).toBeVisible();
-    await expect(page.getByRole('button', { name: /save|create/i })).toBeVisible();
+    await expect(page.locator('a[href*="/settings/roles/"][href*="/edit"]')).toHaveCount(0);
+    await expect(page.getByText(/no custom roles yet/i)).toBeVisible();
     await capturePageLoad(
       page,
       testInfo,
-      'The bucket-role-edit-form is visible for the seeded-bucket-admin.'
+      'The roles-list is visible and edit links are not shown for the seeded-bucket-admin.'
     );
   });
 
-  test('When the non-owner admin with bucket roles permission clicks Cancel on the bucket-role-edit-page, they return to the roles-list.', async ({
+  test('When the non-owner admin with bucket roles permission opens the roles-list, the create role link is visible.', async ({
     page,
   }, testInfo) => {
     setE2EUserContext(testInfo, 'seeded-bucket-admin');
     await loginAsWebE2EAdminWithPermission(page);
     await page.goto(`/bucket/${E2E_BUCKET1_SHORT_ID}/settings?tab=roles`);
-    const editLink = page.locator('a[href*="/settings/roles/"][href*="/edit"]').first();
-    await expect(editLink).toBeVisible();
-    await editLink.click();
-    await expect(page).toHaveURL(
-      new RegExp(`/bucket/${E2E_BUCKET1_SHORT_ID}/settings/roles/[^/]+/edit`)
-    );
-    await expect(page.getByRole('link', { name: /cancel/i })).toBeVisible();
-    await actionAndCapture(
-      page,
-      testInfo,
-      'User clicks Cancel on the bucket-role-edit-page and returns to the roles-list.',
-      async () => {
-        await page.getByRole('link', { name: /cancel/i }).click();
-      }
-    );
     await expect(page).toHaveURL(
       new RegExp(`/bucket/${E2E_BUCKET1_SHORT_ID}/settings\\?tab=roles`)
     );
-    await capturePageLoad(page, testInfo, 'The roles-list is visible after Cancel.');
+    await expect(page.getByRole('link', { name: /create role/i })).toBeVisible();
+    await capturePageLoad(page, testInfo, 'The roles-list is visible with create-role link.');
   });
 });

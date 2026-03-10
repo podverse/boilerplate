@@ -1,22 +1,18 @@
-import { test } from '@playwright/test';
+import { expect, test } from '@playwright/test';
 
 import { loginAsWebE2ENonAdmin } from './helpers/advancedFixtures';
-import { expectInvalidRouteShowsNotFound } from './helpers/flowHelpers';
 import { setE2EUserContext } from './helpers/userContext';
 
 test.describe('This suite verifies the new-bucket-page for the non-admin user.', () => {
-  test('When the non-admin opens the new-bucket-page, they see not found (no permission to create root bucket).', async ({
+  test('When the non-admin opens the new-bucket-page, they see the new-bucket form.', async ({
     page,
   }, testInfo) => {
     setE2EUserContext(testInfo, 'non-admin');
     await loginAsWebE2ENonAdmin(page);
-    await expectInvalidRouteShowsNotFound(
-      page,
-      testInfo,
-      'User navigates to the new-bucket-page and sees not found.',
-      async () => {
-        await page.goto('/buckets/new');
-      }
-    );
+    await page.goto('/buckets/new');
+    await expect(page).toHaveURL(/\/buckets\/new/);
+    await expect(page.getByRole('heading', { name: /new bucket/i })).toBeVisible();
+    await expect(page.getByRole('textbox', { name: /name/i })).toBeVisible();
+    await expect(page.getByRole('button', { name: /add bucket|create|save/i })).toBeVisible();
   });
 });

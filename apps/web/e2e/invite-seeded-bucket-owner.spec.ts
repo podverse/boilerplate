@@ -4,6 +4,29 @@ import { loginAsWebE2EUserAndExpectDashboard } from './helpers/advancedFixtures'
 import { actionAndCapture, capturePageLoad } from './helpers/stepScreenshots';
 import { setE2EUserContext } from './helpers/userContext';
 
+async function expectInviteActionOrFinalState(
+  page: import('@playwright/test').Page
+): Promise<void> {
+  await expect(page.getByRole('heading', { name: /bucket admin invitation/i })).toBeVisible();
+  const acceptButton = page.getByRole('button', { name: /accept/i });
+  const declineButton = page.getByRole('button', { name: /decline|reject/i });
+  const finalState = page
+    .getByText(/already admin|you are owner|accepted|declined|rejected|invalid/i)
+    .first();
+
+  await expect
+    .poll(
+      async () => {
+        const hasAccept = await acceptButton.isVisible().catch(() => false);
+        const hasDeclineOrReject = await declineButton.isVisible().catch(() => false);
+        const hasFinalState = await finalState.isVisible().catch(() => false);
+        return (hasAccept && hasDeclineOrReject) || hasFinalState;
+      },
+      { timeout: 10000 }
+    )
+    .toBe(true);
+}
+
 async function createInvitationToken(page: import('@playwright/test').Page): Promise<string> {
   await loginAsWebE2EUserAndExpectDashboard(page);
   await page.goto('/bucket/e2ebkt000001/settings/roles/new');
@@ -68,20 +91,7 @@ test.describe('This suite verifies the invite-page for the seeded-bucket-owner u
       async () => {
         await page.goto(`/invite/${token}`);
         await expect(page).toHaveURL(new RegExp(`/invite/${token}`));
-        const hasAccept = await page
-          .getByRole('button', { name: /accept/i })
-          .isVisible()
-          .catch(() => false);
-        const hasReject = await page
-          .getByRole('button', { name: /reject/i })
-          .isVisible()
-          .catch(() => false);
-        const hasFinalState = await page
-          .getByText(/already admin|you are owner|accepted|rejected|invalid/i)
-          .first()
-          .isVisible()
-          .catch(() => false);
-        expect(hasAccept || hasReject || hasFinalState).toBe(true);
+        await expectInviteActionOrFinalState(page);
       }
     );
     await capturePageLoad(

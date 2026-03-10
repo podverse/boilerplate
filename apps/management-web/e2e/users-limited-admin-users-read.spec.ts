@@ -4,7 +4,7 @@ import { loginAsLimitedAdmin } from './helpers/advancedFixtures';
 import { actionAndCapture, capturePageLoad } from './helpers/stepScreenshots';
 import { setE2EUserContext } from './helpers/userContext';
 
-const E2E_MAIN_USER_ID = '11111111-1111-4111-a111-111111111112';
+const E2E_MAIN_USER_ID = '11111111-1111-4111-a111-111111111111';
 
 test.describe('This suite verifies the management users-list-page for the limited-admin (users read) user.', () => {
   test('When a limited-admin (with users read) opens the users-list-page, they see the users heading and list.', async ({

@@ -2,6 +2,7 @@ import { redirect, notFound } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
 import type { BreadcrumbItem } from '@boilerplate/ui';
 import { fetchBucket, fetchBucketAncestry } from '../../../../../lib/buckets';
+import { canViewBucketSettings } from '../../../../../lib/bucket-authz';
 import { getServerUser } from '../../../../../lib/server-auth';
 import { ROUTES, bucketDetailRoute } from '../../../../../lib/routes';
 import { BucketSettingsLayoutClient } from './BucketSettingsLayoutClient';
@@ -21,6 +22,10 @@ export default async function BucketSettingsLayout({
   const { id } = await params;
   const { bucket } = await fetchBucket(id);
   if (bucket === null) {
+    notFound();
+  }
+  const canAccessSettings = await canViewBucketSettings(bucket.id, bucket.ownerId, user);
+  if (!canAccessSettings) {
     notFound();
   }
 

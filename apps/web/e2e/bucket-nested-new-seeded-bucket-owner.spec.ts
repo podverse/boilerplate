@@ -93,9 +93,10 @@ test.describe('This suite verifies the nested-bucket-create-page for the seeded-
         await expect(page).toHaveURL(
           new RegExp(`/bucket/${E2E_BUCKET1_SHORT_ID}(\\?tab=buckets)?$`)
         );
-        await expect(page.getByText(new RegExp(bucketName, 'i')).first()).toBeVisible();
       }
     );
+    await page.goto(`/bucket/${E2E_BUCKET1_SHORT_ID}?tab=buckets`);
+    await expect(page.getByText(new RegExp(bucketName, 'i')).first()).toBeVisible();
     await capturePageLoad(
       page,
       testInfo,

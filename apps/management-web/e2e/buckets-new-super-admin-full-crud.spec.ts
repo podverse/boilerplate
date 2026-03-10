@@ -72,9 +72,8 @@ test.describe('This suite verifies the management buckets-new page for the super
       }
     );
     await expect(page).toHaveURL(/\/buckets\/new/);
-    await expect(
-      page.getByRole('alert').or(page.getByText(/required|name|owner/i).first())
-    ).toBeVisible();
+    await expect(page.getByText(/name is required/i)).toBeVisible();
+    await expect(page.getByText(/owner is required/i)).toBeVisible();
     await capturePageLoad(page, testInfo, 'The form remains on the page with validation visible.');
   });
 

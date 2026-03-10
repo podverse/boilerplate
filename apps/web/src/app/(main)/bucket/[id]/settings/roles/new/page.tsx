@@ -3,6 +3,7 @@ import { getTranslations } from 'next-intl/server';
 import { PageHeader } from '@boilerplate/ui';
 
 import { BucketRoleFormClient } from '../../../BucketRoleFormClient';
+import { canCreateBucketRoles } from '../../../../../../../lib/bucket-authz';
 import { fetchBucket } from '../../../../../../../lib/buckets';
 import { getServerUser } from '../../../../../../../lib/server-auth';
 import { getCookieHeader, getServerApiBaseUrl } from '../../../../../../../lib/server-request';
@@ -46,6 +47,10 @@ export default async function NewBucketRolePage({
   if (bucket === null) notFound();
   if (bucket.parentBucketId !== null) {
     redirect(bucketSettingsRolesRoute(bucket.parentBucketId));
+  }
+  const canCreateRoles = await canCreateBucketRoles(bucket.id, bucket.ownerId, user);
+  if (!canCreateRoles) {
+    notFound();
   }
 
   const resolvedSearch = searchParams !== undefined ? await searchParams : {};

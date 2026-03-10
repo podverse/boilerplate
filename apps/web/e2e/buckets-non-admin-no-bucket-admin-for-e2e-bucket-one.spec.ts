@@ -13,9 +13,12 @@ test.describe('This suite verifies the buckets-list-page for the non-admin (no b
     await loginAsWebE2ENonAdmin(page);
     await page.goto('/buckets');
     await expect(page).toHaveURL(/\/buckets/);
-    await expect(
-      page.getByRole('table').or(page.getByText(/no buckets yet|create one to get started/i))
-    ).toBeVisible();
+    const emptyState = page.getByText(/no buckets yet|create one to get started/i);
+    if ((await emptyState.count()) > 0) {
+      await expect(emptyState.first()).toBeVisible();
+    } else {
+      await expect(page.getByRole('table')).toBeVisible();
+    }
     await capturePageLoad(
       page,
       testInfo,

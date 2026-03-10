@@ -51,12 +51,14 @@ export async function createChildBucketFixture(
   parentBucketId: string
 ): Promise<{ id: string; shortId: string; name: string }> {
   const name = nextFixtureName('e2e-child-bucket');
-  const response = await request.post(`/api/management/buckets/${parentBucketId}/buckets`, {
+  const endpoint = `/api/management/v1/buckets/${parentBucketId}/buckets`;
+  const response = await request.post(endpoint, {
     data: { name, isPublic: true },
   });
   if (!response.ok()) {
+    const responseText = await response.text();
     throw new Error(
-      `Failed to create child bucket fixture: ${response.status()} ${response.statusText()}`
+      `Failed to create child bucket fixture at ${endpoint}: ${response.status()} ${response.statusText()}${responseText !== '' ? ` | ${responseText.slice(0, 300)}` : ''}`
     );
   }
   const data = (await response.json()) as {
@@ -78,12 +80,14 @@ export async function createBucketRoleFixture(
   bucketId: string
 ): Promise<{ id: string; name: string }> {
   const name = nextFixtureName('e2e-bucket-role');
-  const response = await request.post(`/api/management/buckets/${bucketId}/roles`, {
+  const endpoint = `/api/management/v1/buckets/${bucketId}/roles`;
+  const response = await request.post(endpoint, {
     data: { name, bucketCrud: 2, messageCrud: 2, adminCrud: 2 },
   });
   if (!response.ok()) {
+    const responseText = await response.text();
     throw new Error(
-      `Failed to create bucket role fixture: ${response.status()} ${response.statusText()}`
+      `Failed to create bucket role fixture at ${endpoint}: ${response.status()} ${response.statusText()}${responseText !== '' ? ` | ${responseText.slice(0, 300)}` : ''}`
     );
   }
   const data = (await response.json()) as { role?: { id: string; name?: string } };
@@ -102,13 +106,15 @@ export async function createBucketMessageFixture(
 ): Promise<{ id: string }> {
   const headers =
     options?.cookieHeader !== undefined ? { Cookie: options.cookieHeader } : undefined;
-  const response = await request.post(`/api/management/buckets/${bucketId}/messages`, {
+  const endpoint = `/api/management/v1/buckets/${bucketId}/messages`;
+  const response = await request.post(endpoint, {
     data: { body: body.body, senderName: body.senderName, isPublic: body.isPublic ?? true },
     headers,
   });
   if (!response.ok()) {
+    const responseText = await response.text();
     throw new Error(
-      `Failed to create bucket message fixture: ${response.status()} ${response.statusText()}`
+      `Failed to create bucket message fixture at ${endpoint}: ${response.status()} ${response.statusText()}${responseText !== '' ? ` | ${responseText.slice(0, 300)}` : ''}`
     );
   }
   const data = (await response.json()) as { message?: { id: string } };
@@ -123,7 +129,8 @@ export async function createAdminRoleFixture(
   request: APIRequestContext
 ): Promise<{ id: string; name: string }> {
   const name = nextFixtureName('e2e-admin-role');
-  const response = await request.post('/api/management/admin-roles', {
+  const endpoint = '/api/management/v1/admin-roles';
+  const response = await request.post(endpoint, {
     data: {
       name,
       adminsCrud: 2,
@@ -135,8 +142,9 @@ export async function createAdminRoleFixture(
     },
   });
   if (!response.ok()) {
+    const responseText = await response.text();
     throw new Error(
-      `Failed to create admin role fixture: ${response.status()} ${response.statusText()}`
+      `Failed to create admin role fixture at ${endpoint}: ${response.status()} ${response.statusText()}${responseText !== '' ? ` | ${responseText.slice(0, 300)}` : ''}`
     );
   }
   const data = (await response.json()) as { role?: { id: string; name?: string } };

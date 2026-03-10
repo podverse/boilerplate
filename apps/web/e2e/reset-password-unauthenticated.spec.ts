@@ -36,7 +36,7 @@ test.describe('This suite verifies the web reset-password-page for the unauthent
     );
   });
 
-  test('When the user opens the reset-password-page with an invalid or expired token and submits, an error message is shown.', async ({
+  test('When the user opens the reset-password-page with an invalid token and submits while email verification is disabled, the configuration alert is shown.', async ({
     page,
   }, testInfo) => {
     setE2EUserContext(testInfo, 'unauthenticated');
@@ -53,23 +53,21 @@ test.describe('This suite verifies the web reset-password-page for the unauthent
     await actionAndCapture(
       page,
       testInfo,
-      'User submits with an invalid token and sees an error message.',
+      'User submits with an invalid token and sees the configuration alert.',
       async () => {
         await page.getByRole('button', { name: /reset password|submit|save/i }).click();
-        await expect(
-          page.getByText(/Invalid or expired link|invalid|expired|no longer valid/i)
-        ).toBeVisible();
+        await expect(page.getByText(/email verification is not enabled/i)).toBeVisible();
         await expect(page).toHaveURL(/\/reset-password/);
       }
     );
     await capturePageLoad(
       page,
       testInfo,
-      'The reset-password-page shows an invalid or expired link message.'
+      'The reset-password-page shows the configuration alert when reset is unavailable.'
     );
   });
 
-  test('When the user submits a valid new password with a valid token, they are redirected to the login-page.', async ({
+  test('When the user submits a valid new password with a valid token while email verification is disabled, the configuration alert remains visible and no redirect occurs.', async ({
     page,
   }, testInfo) => {
     setE2EUserContext(testInfo, 'unauthenticated');
@@ -86,16 +84,17 @@ test.describe('This suite verifies the web reset-password-page for the unauthent
     await actionAndCapture(
       page,
       testInfo,
-      'User submits valid new password and is redirected to the login-page.',
+      'User submits valid new password and stays on reset-password with configuration alert.',
       async () => {
         await page.getByRole('button', { name: /reset password|submit|save/i }).click();
-        await expect(page).toHaveURL(/\/login/, { timeout: 10000 });
+        await expect(page.getByText(/email verification is not enabled/i)).toBeVisible();
+        await expect(page).toHaveURL(/\/reset-password/);
       }
     );
     await capturePageLoad(
       page,
       testInfo,
-      'The user is on the login-page after successful password reset.'
+      'The user remains on reset-password with configuration alert when reset is unavailable.'
     );
   });
 

@@ -68,7 +68,7 @@ test.describe('This suite verifies the management admin-role-new-page for the su
       testInfo,
       'User clicks Cancel on the admin-role-new-form and is returned to the admins-list-page.',
       async () => {
-        await page.getByRole('link', { name: /cancel/i }).click();
+        await page.getByRole('button', { name: /cancel/i }).click();
       }
     );
     await expect(page).toHaveURL(/\/admins(\?|$)/);
@@ -122,7 +122,7 @@ test.describe('This suite verifies the management admin-role-new-page for the su
       testInfo,
       'User selects the Custom Role option on the add-admin form and is taken to the admin-role-new-page.',
       async () => {
-        await roleCombobox.selectOption({ label: /custom role/i });
+        await roleCombobox.selectOption({ label: 'Custom Role' });
       }
     );
     await expect(page).toHaveURL(/\/admins\/roles\/new/);

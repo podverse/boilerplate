@@ -20,8 +20,13 @@ test.describe('This suite verifies the management events-page for the limited-ad
     );
     await expect(page).toHaveURL(/\/events/);
     await expect(page.getByRole('heading', { name: /events/i })).toBeVisible();
-    const tableOrEmpty = page.getByRole('table').or(page.getByText(/no events found|no events/i));
-    await expect(tableOrEmpty).toBeVisible();
+    const table = page.getByRole('table');
+    const emptyState = page.getByText(/no events found|no events/i);
+    if ((await emptyState.count()) > 0) {
+      await expect(emptyState.first()).toBeVisible();
+    } else {
+      await expect(table).toBeVisible();
+    }
     await capturePageLoad(
       page,
       testInfo,

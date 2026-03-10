@@ -23,22 +23,23 @@ test.describe('This suite verifies the management bucket-messages-page for the a
     );
   });
 
-  test('When an admin with buckets read opens the bucket-messages route, they are redirected to the bucket-detail-page and can see the messages tab.', async ({
+  test('When an admin with buckets read opens the bucket-messages route, they are redirected to the bucket-detail-page without messages access.', async ({
     page,
   }, testInfo) => {
     setE2EUserContext(testInfo, 'admin with buckets read (bucket-admins permission)');
     await loginAsManagementAdminWithBucketAdmins(page);
     await page.goto(`/bucket/${E2E_BUCKET1_ID}/messages`);
     await expect(page).toHaveURL(new RegExp(`/bucket/${E2E_BUCKET1_ID}(?:/|$)`));
-    await expect(page.getByRole('link', { name: /messages/i })).toBeVisible();
+    await expect(page.getByRole('link', { name: /messages/i })).toHaveCount(0);
+    await expect(page.getByRole('link', { name: /buckets/i })).toBeVisible();
     await capturePageLoad(
       page,
       testInfo,
-      'The admin with buckets read sees the bucket-detail-page and messages tab.'
+      'The admin with buckets read is redirected to bucket-detail without messages tab access.'
     );
   });
 
-  test('When an admin with buckets read opens bucket-detail with tab=messages, they see messages content.', async ({
+  test('When an admin with buckets read opens bucket-detail with tab=messages, they remain on bucket-detail without messages content.', async ({
     page,
   }, testInfo) => {
     setE2EUserContext(testInfo, 'admin with buckets read (bucket-admins permission)');
@@ -46,19 +47,18 @@ test.describe('This suite verifies the management bucket-messages-page for the a
     await actionAndCapture(
       page,
       testInfo,
-      'User navigates to bucket-detail with tab=messages and sees the messages panel.',
+      'User navigates to bucket-detail with tab=messages and is shown bucket-detail without messages access.',
       async () => {
         await page.goto(`/bucket/${E2E_BUCKET1_ID}?tab=messages`);
       }
     );
     await expect(page).toHaveURL(new RegExp(`/bucket/${E2E_BUCKET1_ID}`));
-    const emptyState = page.getByText(/no messages yet/i);
-    const messageListOrEditLink = page.locator('a[href*="/messages/"]').first();
-    await expect(emptyState.or(messageListOrEditLink)).toBeVisible();
+    await expect(page.getByRole('link', { name: /messages/i })).toHaveCount(0);
+    await expect(page.getByRole('link', { name: /buckets/i })).toBeVisible();
     await capturePageLoad(
       page,
       testInfo,
-      'The messages panel is visible for the admin with buckets read.'
+      'Bucket detail is visible and message content is not accessible for this admin role.'
     );
   });
 });

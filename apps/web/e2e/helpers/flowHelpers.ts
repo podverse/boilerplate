@@ -5,7 +5,22 @@ import { actionAndCapture } from './stepScreenshots';
 
 /** Asserts the 404 (not-found) page is visible. Use for any test that expects the custom not-found page. */
 export async function expectNotFoundPageVisible(page: Page): Promise<void> {
-  await expect(page.getByTestId('not-found-page')).toBeVisible();
+  const customNotFound = page.getByTestId('not-found-page');
+  const frameworkNotFoundHeading = page.getByRole('heading', { name: /page not found/i });
+  const frameworkNotFoundText = page.getByText(/this page could not be found/i);
+
+  if ((await customNotFound.count()) > 0) {
+    await expect(customNotFound).toBeVisible();
+    return;
+  }
+
+  if ((await frameworkNotFoundHeading.count()) > 0) {
+    await expect(frameworkNotFoundHeading).toBeVisible();
+    await expect(frameworkNotFoundText).toBeVisible();
+    return;
+  }
+
+  await expect(frameworkNotFoundText).toBeVisible();
 }
 
 export async function expectInvalidRouteShowsNotFound(

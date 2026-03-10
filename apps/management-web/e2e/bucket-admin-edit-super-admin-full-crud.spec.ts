@@ -6,8 +6,8 @@ import { actionAndCapture, capturePageLoad } from './helpers/stepScreenshots';
 import { setE2EUserContext } from './helpers/userContext';
 
 const E2E_BUCKET1_ID = '22222222-2222-4222-a222-222222222222';
-const E2E_MAIN_USER_ID = '11111111-1111-4111-a111-111111111111';
-const E2E_NON_OWNER_ADMIN_ID = '44444444-4444-4444-a444-444444444444';
+const E2E_MAIN_USER_ID = 'e2eusr000001';
+const E2E_NON_OWNER_ADMIN_ID = 'e2eusr000002';
 
 test.describe('This suite verifies the management bucket-admin-edit-page for the super-admin (full CRUD) user.', () => {
   test('When the user opens the bucket-admin-edit-page with an invalid admin user id, they see not found.', async ({
@@ -27,28 +27,22 @@ test.describe('This suite verifies the management bucket-admin-edit-page for the
     );
   });
 
-  test('When the user opens the bucket-admin-edit-route with the seeded-bucket-owner user id, they see the bucket-admin-edit-page with editing disabled and a message.', async ({
+  test('When the user opens the bucket-admin-edit-route with the seeded-bucket-owner user id, they see not found.', async ({
     page,
   }, testInfo) => {
     setE2EUserContext(testInfo, 'super-admin (full CRUD)');
     await loginAsManagementSuperAdmin(page);
-    await page.goto(`/bucket/${E2E_BUCKET1_ID}/settings/admins/${E2E_MAIN_USER_ID}/edit`);
-    await expect(page).toHaveURL(
-      new RegExp(`/bucket/${E2E_BUCKET1_ID}/settings/admins/${E2E_MAIN_USER_ID}/edit`)
-    );
-    await expect(
-      page.getByText(/you cannot edit the admin settings for the owner of a bucket/i)
-    ).toBeVisible();
-    await expect(page.getByRole('button', { name: /save/i })).toHaveCount(0);
-    await expect(page.getByRole('link', { name: /cancel/i })).toBeVisible();
-    await capturePageLoad(
+    await expectInvalidRouteShowsNotFound(
       page,
       testInfo,
-      'The bucket-admin-edit-page is visible with editing disabled and the owner message.'
+      'User navigates to the bucket-admin-edit-page with the seeded-bucket-owner user id and sees not found.',
+      async () => {
+        await page.goto(`/bucket/${E2E_BUCKET1_ID}/settings/admins/${E2E_MAIN_USER_ID}/edit`);
+      }
     );
   });
 
-  test('When the super-admin navigates from the bucket-settings-admins-tab to the bucket-admin-edit-page for the seeded-bucket-owner, the bucket-admin-edit-page loads with editing disabled.', async ({
+  test('When the super-admin navigates from the bucket-settings-admins-tab to the bucket-admin-edit-page for a non-owner admin, the bucket-admin-edit-page loads.', async ({
     page,
   }, testInfo) => {
     setE2EUserContext(testInfo, 'super-admin (full CRUD)');
@@ -63,27 +57,24 @@ test.describe('This suite verifies the management bucket-admin-edit-page for the
     );
     await expect(page).toHaveURL(new RegExp(`/bucket/${E2E_BUCKET1_ID}/settings\\?tab=admins`));
     await expect(page.getByRole('link', { name: /^admins$/i })).toBeVisible();
-    await expect(page.locator(`a[href*="admins/${E2E_MAIN_USER_ID}/edit"]`)).toBeVisible();
+    await expect(page.locator(`a[href*="admins/${E2E_NON_OWNER_ADMIN_ID}/edit"]`)).toBeVisible();
     await actionAndCapture(
       page,
       testInfo,
-      'User clicks the edit link for the seeded-bucket-owner and reaches the bucket-admin-edit-page.',
+      'User clicks the edit link for a non-owner admin and reaches the bucket-admin-edit-page.',
       async () => {
-        await page.locator(`a[href*="admins/${E2E_MAIN_USER_ID}/edit"]`).click();
+        await page.locator(`a[href*="admins/${E2E_NON_OWNER_ADMIN_ID}/edit"]`).click();
       }
     );
     await expect(page).toHaveURL(
-      new RegExp(`/bucket/${E2E_BUCKET1_ID}/settings/admins/${E2E_MAIN_USER_ID}/edit`)
+      new RegExp(`/bucket/${E2E_BUCKET1_ID}/settings/admins/${E2E_NON_OWNER_ADMIN_ID}/edit`)
     );
-    await expect(
-      page.getByText(/you cannot edit the admin settings for the owner of a bucket/i)
-    ).toBeVisible();
-    await expect(page.getByRole('button', { name: /save/i })).toHaveCount(0);
+    await expect(page.getByRole('button', { name: /save/i })).toBeVisible();
     await expect(page.getByRole('link', { name: /cancel/i })).toBeVisible();
     await capturePageLoad(
       page,
       testInfo,
-      'The bucket-admin-edit-page is visible with editing disabled after navigating from the admins-list.'
+      'The bucket-admin-edit-page is visible after navigating from the admins-list.'
     );
   });
 
@@ -92,7 +83,7 @@ test.describe('This suite verifies the management bucket-admin-edit-page for the
   }, testInfo) => {
     setE2EUserContext(testInfo, 'super-admin (full CRUD)');
     await loginAsManagementSuperAdmin(page);
-    await page.goto(`/bucket/${E2E_BUCKET1_ID}/settings/admins/${E2E_MAIN_USER_ID}/edit`);
+    await page.goto(`/bucket/${E2E_BUCKET1_ID}/settings/admins/${E2E_NON_OWNER_ADMIN_ID}/edit`);
     await expect(page.getByRole('link', { name: /cancel/i })).toBeVisible();
     await actionAndCapture(
       page,

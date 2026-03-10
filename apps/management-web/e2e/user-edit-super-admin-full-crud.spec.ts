@@ -82,13 +82,13 @@ test.describe('This suite verifies the management user-edit-page for the super-a
     setE2EUserContext(testInfo, 'super-admin (full CRUD)');
     await loginAsManagementSuperAdmin(page);
     await page.goto(`/user/${E2E_MAIN_USER_ID}/edit`);
-    await expect(page.getByRole('link', { name: /cancel/i })).toBeVisible();
+    await expect(page.getByRole('button', { name: /cancel/i })).toBeVisible();
     await actionAndCapture(
       page,
       testInfo,
       'User clicks Cancel on the user-edit-form and is returned to the users-list-page.',
       async () => {
-        await page.getByRole('link', { name: /cancel/i }).click();
+        await page.getByRole('button', { name: /cancel/i }).click();
         await expect(page).toHaveURL(/\/users(\?|$)/);
       }
     );
