@@ -9,11 +9,11 @@ import { expectUnauthedRouteRedirectsToLogin } from './helpers/authAssertions';
 import { actionAndCapture, capturePageLoad } from './helpers/stepScreenshots';
 import { setE2EUserContext } from './helpers/userContext';
 
-test.describe('This suite verifies the management users-new-page for the super-admin (full CRUD) user.', () => {
+test.describe('This suite verifies the management users-new-page for the super-admin user.', () => {
   test('When a permitted user (super-admin) opens the users-new-page, they see the add-user-form.', async ({
     page,
   }, testInfo) => {
-    setE2EUserContext(testInfo, 'super-admin (full CRUD)');
+    setE2EUserContext(testInfo, 'super-admin');
     await loginAsManagementSuperAdmin(page);
     await actionAndCapture(
       page,
@@ -37,7 +37,7 @@ test.describe('This suite verifies the management users-new-page for the super-a
   test('When the user clicks Cancel on the add-user-form, they are returned to the users-list-page.', async ({
     page,
   }, testInfo) => {
-    setE2EUserContext(testInfo, 'super-admin (full CRUD)');
+    setE2EUserContext(testInfo, 'super-admin');
     await loginAsManagementSuperAdmin(page);
     await page.goto('/users/new');
     await expect(page.getByRole('button', { name: /cancel/i })).toBeVisible();
@@ -57,7 +57,7 @@ test.describe('This suite verifies the management users-new-page for the super-a
   test('When the user submits the add-user-form without required fields, validation is shown and they remain on the users-new-page.', async ({
     page,
   }, testInfo) => {
-    setE2EUserContext(testInfo, 'super-admin (full CRUD)');
+    setE2EUserContext(testInfo, 'super-admin');
     await loginAsManagementSuperAdmin(page);
     await page.goto('/users/new');
     await expect(page.getByRole('textbox', { name: /email/i })).toBeVisible();
@@ -77,7 +77,7 @@ test.describe('This suite verifies the management users-new-page for the super-a
   test('When the user submits a valid add-user-form, either a success state is shown or they are returned to the users list with the new user visible.', async ({
     page,
   }, testInfo) => {
-    setE2EUserContext(testInfo, 'super-admin (full CRUD)');
+    setE2EUserContext(testInfo, 'super-admin');
     await loginAsManagementSuperAdmin(page);
     await page.goto('/users/new');
     await expect(page.getByRole('textbox', { name: /email/i })).toBeVisible();

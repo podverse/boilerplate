@@ -9,11 +9,11 @@ import { expectUnauthedRouteRedirectsToLogin } from './helpers/authAssertions';
 import { actionAndCapture, capturePageLoad } from './helpers/stepScreenshots';
 import { setE2EUserContext } from './helpers/userContext';
 
-test.describe('This suite verifies the management users-list-page for the super-admin (full CRUD) user.', () => {
+test.describe('This suite verifies the management users-list-page for the super-admin user.', () => {
   test('When a permitted user opens the users-list-page, they see the users list or add-user CTA.', async ({
     page,
   }, testInfo) => {
-    setE2EUserContext(testInfo, 'super-admin (full CRUD)');
+    setE2EUserContext(testInfo, 'super-admin');
     await loginAsManagementSuperAdmin(page);
     await actionAndCapture(
       page,
@@ -36,7 +36,7 @@ test.describe('This suite verifies the management users-list-page for the super-
   test('When the user opens the users route with explicit query params, the params are persisted.', async ({
     page,
   }, testInfo) => {
-    setE2EUserContext(testInfo, 'super-admin (full CRUD)');
+    setE2EUserContext(testInfo, 'super-admin');
     await loginAsManagementSuperAdmin(page);
     await actionAndCapture(
       page,
@@ -63,7 +63,7 @@ test.describe('This suite verifies the management users-list-page for the super-
   test('When the user clicks the add-user CTA, they are navigated to the new-user form.', async ({
     page,
   }, testInfo) => {
-    setE2EUserContext(testInfo, 'super-admin (full CRUD)');
+    setE2EUserContext(testInfo, 'super-admin');
     await loginAsManagementSuperAdmin(page);
     await page.goto('/users');
     await expect(page.getByRole('heading', { name: /users/i })).toBeVisible();
@@ -85,10 +85,10 @@ test.describe('This suite verifies the management users-list-page for the super-
   test('When the user opens the delete confirmation for an existing user on the users-list-page and cancels, the row remains.', async ({
     page,
   }, testInfo) => {
-    setE2EUserContext(testInfo, 'super-admin (full CRUD)');
+    setE2EUserContext(testInfo, 'super-admin');
     await loginAsManagementSuperAdmin(page);
-    await page.goto('/users?search=e2e@example.com');
-    const row = page.locator('tr', { hasText: 'e2e@example.com' }).first();
+    await page.goto('/users?search=e2e-bucket-owner@example.com');
+    const row = page.locator('tr', { hasText: 'e2e-bucket-owner@example.com' }).first();
     await expect(row).toBeVisible();
 
     await actionAndCapture(
@@ -106,6 +106,6 @@ test.describe('This suite verifies the management users-list-page for the super-
       }
     );
 
-    await expect(page.locator('tr', { hasText: 'e2e@example.com' })).toHaveCount(1);
+    await expect(page.locator('tr', { hasText: 'e2e-bucket-owner@example.com' })).toHaveCount(1);
   });
 });

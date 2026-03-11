@@ -5,11 +5,11 @@ import { clickConfirmDeleteInModal } from './helpers/flowHelpers';
 import { actionAndCapture, capturePageLoad } from './helpers/stepScreenshots';
 import { setE2EUserContext } from './helpers/userContext';
 
-test.describe('This suite verifies the management buckets-list page for the super-admin (full CRUD) user.', () => {
+test.describe('This suite verifies the management buckets-list page for the super-admin user.', () => {
   test('When a permitted user (super-admin) opens the buckets-list page, they see the buckets heading and the add-bucket link.', async ({
     page,
   }, testInfo) => {
-    setE2EUserContext(testInfo, 'super-admin (full CRUD)');
+    setE2EUserContext(testInfo, 'super-admin');
     await loginAsManagementSuperAdmin(page);
     await actionAndCapture(
       page,
@@ -34,7 +34,7 @@ test.describe('This suite verifies the management buckets-list page for the supe
   test('When the user clicks the add-bucket link, they are navigated to the buckets-new page.', async ({
     page,
   }, testInfo) => {
-    setE2EUserContext(testInfo, 'super-admin (full CRUD)');
+    setE2EUserContext(testInfo, 'super-admin');
     await loginAsManagementSuperAdmin(page);
     await page.goto('/buckets');
     await expect(page.getByRole('heading', { name: /buckets/i })).toBeVisible();
@@ -63,7 +63,7 @@ test.describe('This suite verifies the management buckets-list page for the supe
   test('When the user opens the buckets-list with query params, the params persist in the URL and the page shows the buckets list or empty state.', async ({
     page,
   }, testInfo) => {
-    setE2EUserContext(testInfo, 'super-admin (full CRUD)');
+    setE2EUserContext(testInfo, 'super-admin');
     await loginAsManagementSuperAdmin(page);
     await actionAndCapture(
       page,
@@ -96,7 +96,7 @@ test.describe('This suite verifies the management buckets-list page for the supe
   test('When the user opens the delete confirmation for a created bucket on the buckets-list-page and cancels, the row remains.', async ({
     page,
   }, testInfo) => {
-    setE2EUserContext(testInfo, 'super-admin (full CRUD)');
+    setE2EUserContext(testInfo, 'super-admin');
     await loginAsManagementSuperAdmin(page);
     await page.goto('/buckets/new');
     await expect(page.getByRole('textbox', { name: /name|bucket/i })).toBeVisible();
@@ -140,7 +140,7 @@ test.describe('This suite verifies the management buckets-list page for the supe
   test('When the user deletes a bucket from the buckets-list, the bucket is removed from the list.', async ({
     page,
   }, testInfo) => {
-    setE2EUserContext(testInfo, 'super-admin (full CRUD)');
+    setE2EUserContext(testInfo, 'super-admin');
     await loginAsManagementSuperAdmin(page);
     await page.goto('/buckets/new');
     await expect(page.getByRole('textbox', { name: /name|bucket/i })).toBeVisible();

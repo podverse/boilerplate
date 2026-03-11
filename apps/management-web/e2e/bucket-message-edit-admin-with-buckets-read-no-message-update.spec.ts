@@ -11,12 +11,12 @@ import { setE2EUserContext } from './helpers/userContext';
 
 const E2E_BUCKET1_ID = '22222222-2222-4222-a222-222222222222';
 
-test.describe('This suite verifies the management bucket-message-edit-page for the admin with buckets read, no message update user.', () => {
-  test('When an admin with buckets read but without bucketMessagesCrud update opens the bucket-message-edit-page, they are redirected to buckets.', async ({
+test.describe('This suite verifies the management bucket-message-edit-page for the admin (buckets:R bucket_admins events:all_admins) user.', () => {
+  test('When an admin (buckets:R bucket_admins events:all_admins) opens the bucket-message-edit-page, they are redirected to buckets.', async ({
     page,
     request,
   }, testInfo) => {
-    setE2EUserContext(testInfo, 'admin with buckets read, no message update');
+    setE2EUserContext(testInfo, 'admin (buckets:R bucket_admins events:all_admins)');
     await loginAsManagementSuperAdmin(page);
     const cookieHeader = await getCookieHeaderFromPage(page);
     const { id: messageId } = await createBucketMessageFixture(
@@ -33,7 +33,7 @@ test.describe('This suite verifies the management bucket-message-edit-page for t
     await capturePageLoad(
       page,
       testInfo,
-      'The admin without message-update permission is redirected to buckets when opening the bucket-message-edit-page.'
+      'The admin (buckets:R bucket_admins events:all_admins) is redirected to buckets when opening the bucket-message-edit-page.'
     );
   });
 });

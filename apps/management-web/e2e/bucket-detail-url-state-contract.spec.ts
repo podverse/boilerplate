@@ -11,7 +11,7 @@ test.describe('This suite verifies URL-state contracts for the management bucket
   test('When the super-admin opens the bucket-detail-page with tab=buckets and sortBy=name and sortOrder=asc, the URL preserves the params and the buckets-tab content is visible.', async ({
     page,
   }, testInfo) => {
-    setE2EUserContext(testInfo, 'super-admin (full CRUD)');
+    setE2EUserContext(testInfo, 'super-admin');
     await loginAsManagementSuperAdmin(page);
     await actionAndCapture(
       page,
@@ -40,7 +40,7 @@ test.describe('This suite verifies URL-state contracts for the management bucket
   test('When the super-admin opens the bucket-detail-page with tab=messages and sort=oldest, the URL preserves the params.', async ({
     page,
   }, testInfo) => {
-    setE2EUserContext(testInfo, 'super-admin (full CRUD)');
+    setE2EUserContext(testInfo, 'super-admin');
     await loginAsManagementSuperAdmin(page);
     await actionAndCapture(
       page,

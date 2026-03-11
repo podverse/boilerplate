@@ -7,11 +7,11 @@ import { setE2EUserContext } from './helpers/userContext';
 
 const E2E_BUCKET1_ID = '22222222-2222-4222-a222-222222222222';
 
-test.describe('This suite verifies the management bucket-settings-page for the admin with buckets read (bucket-admins permission) user.', () => {
-  test('When an admin with buckets read opens the bucket-settings-page with an invalid bucket id, they see not found.', async ({
+test.describe('This suite verifies the management bucket-settings-page for the admin (buckets:R bucket_admins events:all_admins) user.', () => {
+  test('When an admin (buckets:R bucket_admins events:all_admins) opens the bucket-settings-page with an invalid bucket id, they see not found.', async ({
     page,
   }, testInfo) => {
-    setE2EUserContext(testInfo, 'admin with buckets read (bucket-admins permission)');
+    setE2EUserContext(testInfo, 'admin (buckets:R bucket_admins events:all_admins)');
     await loginAsManagementAdminWithBucketAdmins(page);
     await expectInvalidRouteShowsNotFound(
       page,
@@ -23,10 +23,10 @@ test.describe('This suite verifies the management bucket-settings-page for the a
     );
   });
 
-  test('When an admin with buckets read opens the bucket-settings-page, they see settings with general, admins, and roles tabs.', async ({
+  test('When an admin (buckets:R bucket_admins events:all_admins) opens the bucket-settings-page, they see settings with general, admins, and roles tabs.', async ({
     page,
   }, testInfo) => {
-    setE2EUserContext(testInfo, 'admin with buckets read (bucket-admins permission)');
+    setE2EUserContext(testInfo, 'admin (buckets:R bucket_admins events:all_admins)');
     await loginAsManagementAdminWithBucketAdmins(page);
     await page.goto(`/bucket/${E2E_BUCKET1_ID}/settings`);
     await expect(page).toHaveURL(new RegExp(`/bucket/${E2E_BUCKET1_ID}/settings`));
@@ -37,10 +37,10 @@ test.describe('This suite verifies the management bucket-settings-page for the a
     await capturePageLoad(page, testInfo, 'The bucket-settings-page is visible with all tabs.');
   });
 
-  test('When an admin with buckets read opens settings with ?tab=admins, admins-tab content is shown.', async ({
+  test('When an admin (buckets:R bucket_admins events:all_admins) opens settings with ?tab=admins, admins-tab content is shown.', async ({
     page,
   }, testInfo) => {
-    setE2EUserContext(testInfo, 'admin with buckets read (bucket-admins permission)');
+    setE2EUserContext(testInfo, 'admin (buckets:R bucket_admins events:all_admins)');
     await loginAsManagementAdminWithBucketAdmins(page);
     await actionAndCapture(
       page,
@@ -59,10 +59,10 @@ test.describe('This suite verifies the management bucket-settings-page for the a
     await capturePageLoad(page, testInfo, 'The admins-tab is visible for the permitted admin.');
   });
 
-  test('When an admin with buckets read opens settings with ?tab=roles, roles-tab content is shown.', async ({
+  test('When an admin (buckets:R bucket_admins events:all_admins) opens settings with ?tab=roles, roles-tab content is shown.', async ({
     page,
   }, testInfo) => {
-    setE2EUserContext(testInfo, 'admin with buckets read (bucket-admins permission)');
+    setE2EUserContext(testInfo, 'admin (buckets:R bucket_admins events:all_admins)');
     await loginAsManagementAdminWithBucketAdmins(page);
     await actionAndCapture(
       page,

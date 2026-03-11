@@ -12,18 +12,18 @@ import { setE2EUserContext } from './helpers/userContext';
 
 const E2E_BUCKET1_ID = '22222222-2222-4222-a222-222222222222';
 
-test.describe('This suite verifies the management bucket-messages-page for the limited-admin (no buckets read) user.', () => {
-  test('When a limited-admin (no buckets read) opens the bucket-messages route, they are redirected to the dashboard.', async ({
+test.describe('This suite verifies the management bucket-messages-page for the admin (admins users events:own) user.', () => {
+  test('When a admin (admins users events:own) opens the bucket-messages route, they are redirected to the dashboard.', async ({
     page,
   }, testInfo) => {
-    setE2EUserContext(testInfo, 'limited-admin (no buckets read)');
+    setE2EUserContext(testInfo, 'admin (admins users events:own)');
     await loginAsLimitedAdmin(page);
     await page.goto(`/bucket/${E2E_BUCKET1_ID}/messages`);
     await expect(page).toHaveURL(/\/dashboard/);
     await capturePageLoad(
       page,
       testInfo,
-      'The limited-admin is redirected to the dashboard when opening the bucket-messages route.'
+      'The admin (admins users events:own) is redirected to the dashboard when opening the bucket-messages route.'
     );
   });
 });

@@ -8,7 +8,7 @@ test.describe('This suite verifies URL-state contracts for the management users-
   test('When the super-admin opens the users-list page with sortBy=email and sortOrder=asc, the URL preserves the params and the users heading is visible.', async ({
     page,
   }, testInfo) => {
-    setE2EUserContext(testInfo, 'super-admin (full CRUD)');
+    setE2EUserContext(testInfo, 'super-admin');
     await loginAsManagementSuperAdmin(page);
     await actionAndCapture(
       page,
@@ -35,7 +35,7 @@ test.describe('This suite verifies URL-state contracts for the management users-
   test('When the super-admin opens the users-list page with a search that matches no users, the URL preserves the search param and an empty-state message or empty result is visible.', async ({
     page,
   }, testInfo) => {
-    setE2EUserContext(testInfo, 'super-admin (full CRUD)');
+    setE2EUserContext(testInfo, 'super-admin');
     await loginAsManagementSuperAdmin(page);
     await actionAndCapture(
       page,

@@ -14,11 +14,11 @@ import { setE2EUserContext } from './helpers/userContext';
 
 const E2E_BUCKET1_ID = '22222222-2222-4222-a222-222222222222';
 
-test.describe('This suite verifies the management bucket-message-edit-page for the super-admin (full CRUD) user.', () => {
+test.describe('This suite verifies the management bucket-message-edit-page for the super-admin user.', () => {
   test('When the super-admin opens the bucket-message-edit-page with an invalid message id, they see not found.', async ({
     page,
   }, testInfo) => {
-    setE2EUserContext(testInfo, 'super-admin (full CRUD)');
+    setE2EUserContext(testInfo, 'super-admin');
     await loginAsManagementSuperAdmin(page);
     await expectInvalidRouteShowsNotFound(
       page,
@@ -36,7 +36,7 @@ test.describe('This suite verifies the management bucket-message-edit-page for t
     page,
     request,
   }, testInfo) => {
-    setE2EUserContext(testInfo, 'super-admin (full CRUD)');
+    setE2EUserContext(testInfo, 'super-admin');
     await loginAsManagementSuperAdmin(page);
     const cookieHeader = await getCookieHeaderFromPage(page);
     const { id: messageId } = await createBucketMessageFixture(
@@ -70,7 +70,7 @@ test.describe('This suite verifies the management bucket-message-edit-page for t
     page,
     request,
   }, testInfo) => {
-    setE2EUserContext(testInfo, 'super-admin (full CRUD)');
+    setE2EUserContext(testInfo, 'super-admin');
     await loginAsManagementSuperAdmin(page);
     const cookieHeader = await getCookieHeaderFromPage(page);
     const { id: messageId } = await createBucketMessageFixture(
@@ -108,7 +108,7 @@ test.describe('This suite verifies the management bucket-message-edit-page for t
     page,
     request,
   }, testInfo) => {
-    setE2EUserContext(testInfo, 'super-admin (full CRUD)');
+    setE2EUserContext(testInfo, 'super-admin');
     await loginAsManagementSuperAdmin(page);
     const cookieHeader = await getCookieHeaderFromPage(page);
     const { id: messageId } = await createBucketMessageFixture(
@@ -137,7 +137,7 @@ test.describe('This suite verifies the management bucket-message-edit-page for t
     page,
     request,
   }, testInfo) => {
-    setE2EUserContext(testInfo, 'super-admin (full CRUD)');
+    setE2EUserContext(testInfo, 'super-admin');
     await loginAsManagementSuperAdmin(page);
     const cookieHeader = await getCookieHeaderFromPage(page);
     const { id: messageId } = await createBucketMessageFixture(

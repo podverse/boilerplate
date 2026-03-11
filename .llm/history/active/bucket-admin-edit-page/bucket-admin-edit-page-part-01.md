@@ -79,8 +79,8 @@ Add affirmative E2E tests for bucket-admin-edit. Implement the plan as specified
 
 #### Key Decisions
 
-- Extended web E2E seed with second user (e2eusr000002, e2e-admin2@example.com) and one bucket_admin row on e2ebkt000001 so the edit page has a valid non-owner admin target.
-- Added two affirmative tests: "seeded non-owner admin edit page loads with form visible" and "seeded non-owner admin can be updated and saved".
+- Extended web E2E seed with second user (e2eusr000002, e2e-admin2@example.com) and one bucket_admin row on e2ebkt000001 so the edit page has a valid non-owner-admin target.
+- Added two affirmative tests: "seeded non-owner-admin edit page loads with form visible" and "seeded non-owner-admin can be updated and saved".
 - Documented in E2E-SPEC-REPORT-COMMANDS that bucket-admin-edit requires e2e_seed_web for affirmative tests.
 
 #### Files Created/Modified
@@ -100,7 +100,7 @@ bucket-admin-edit E2E: full actor and permission matrix. Implement the plan as s
 
 - E2E seed: added admin-without-permission (e2eusr000003, e2e-admin-readonly@example.com, bucket_crud=2) and non-admin (e2eusr000004, e2e-other@example.com, no bucket_admin row); e2e-admin2 given bucket_crud=15 so canManageBucketAdmins is true.
 - advancedFixtures: added loginAsWebE2EAdminWithPermission, loginAsWebE2EAdminWithoutPermission, loginAsWebE2ENonAdmin and loginWithEmailAndExpectDashboard.
-- Spec: owner list→edit and Cancel→list; non-owner admin with permission (owner edit → not found because owner has no bucket_admin row; self edit → form; invalid id → not found); admin without permission and non-admin → not found. Constants E2E_USER3_SHORT_ID, E2E_USER4_SHORT_ID added.
+- Spec: owner list→edit and Cancel→list; non-owner-admin with permission (owner edit → not found because owner has no bucket_admin row; self edit → form; invalid id → not found); admin without permission and non-admin → not found. Constants E2E_USER3_SHORT_ID, E2E_USER4_SHORT_ID added.
 
 #### Files Created/Modified
 

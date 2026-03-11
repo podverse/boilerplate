@@ -6,15 +6,15 @@ import { setE2EUserContext } from './helpers/userContext';
 const E2E_USERNAME = 'e2e-superadmin';
 const E2E_PASSWORD = 'Test!1Aa';
 
-test.describe('This suite verifies the management login-page for the super-admin (full CRUD) user.', () => {
+test.describe('This suite verifies the management login-page for the super-admin user.', () => {
   test('When the user submits valid credentials, they are redirected to the dashboard.', async ({
     page,
   }, testInfo) => {
-    setE2EUserContext(testInfo, 'super-admin (full CRUD)');
+    setE2EUserContext(testInfo, 'super-admin');
     await actionAndCapture(
       page,
       testInfo,
-      'User fills username and password with the seeded-super-admin and submits.',
+      'User fills username and password with the super-admin and submits.',
       async () => {
         await page.goto('/login');
         await expect(page.getByRole('textbox', { name: /username|email/i })).toBeVisible();
@@ -35,11 +35,11 @@ test.describe('This suite verifies the management login-page for the super-admin
   test('When an authenticated user visits the login-page, they are redirected to the dashboard.', async ({
     page,
   }, testInfo) => {
-    setE2EUserContext(testInfo, 'super-admin (full CRUD)');
+    setE2EUserContext(testInfo, 'super-admin');
     await actionAndCapture(
       page,
       testInfo,
-      'User logs in with the seeded-super-admin first to establish a session.',
+      'User logs in with the super-admin first to establish a session.',
       async () => {
         await page.goto('/login');
         await page.getByRole('textbox', { name: /username|email/i }).fill(E2E_USERNAME);

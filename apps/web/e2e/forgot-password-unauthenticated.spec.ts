@@ -97,7 +97,7 @@ test.describe('This suite verifies the web forgot-password-page for the unauthen
       testInfo,
       'User submits a valid email and sees the success message.',
       async () => {
-        await page.getByRole('textbox', { name: /email/i }).fill('e2e@example.com');
+        await page.getByRole('textbox', { name: /email/i }).fill('e2e-bucket-owner@example.com');
         await page
           .getByRole('button', { name: /send|submit|reset password|forgot|reset link/i })
           .click();

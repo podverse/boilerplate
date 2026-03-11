@@ -7,11 +7,11 @@ import { setE2EUserContext } from './helpers/userContext';
 
 const E2E_BUCKET1_ID = 'e2ebkt000001';
 
-test.describe('This suite verifies the management bucket-edit-page for the admin with buckets read (bucket-admins permission) user.', () => {
-  test('When an admin with buckets read opens the bucket-edit-page with an invalid bucket id, they see not found.', async ({
+test.describe('This suite verifies the management bucket-edit-page for the admin (buckets:R bucket_admins events:all_admins) user.', () => {
+  test('When an admin (buckets:R bucket_admins events:all_admins) opens the bucket-edit-page with an invalid bucket id, they see not found.', async ({
     page,
   }, testInfo) => {
-    setE2EUserContext(testInfo, 'admin with buckets read (bucket-admins permission)');
+    setE2EUserContext(testInfo, 'admin (buckets:R bucket_admins events:all_admins)');
     await loginAsManagementAdminWithBucketAdmins(page);
     await expectInvalidRouteShowsNotFound(
       page,
@@ -23,10 +23,10 @@ test.describe('This suite verifies the management bucket-edit-page for the admin
     );
   });
 
-  test('When an admin with buckets read opens the bucket-edit-page, they are redirected to bucket-settings and see the edit form.', async ({
+  test('When an admin (buckets:R bucket_admins events:all_admins) opens the bucket-edit-page, they are redirected to bucket-settings and see the edit form.', async ({
     page,
   }, testInfo) => {
-    setE2EUserContext(testInfo, 'admin with buckets read (bucket-admins permission)');
+    setE2EUserContext(testInfo, 'admin (buckets:R bucket_admins events:all_admins)');
     await loginAsManagementAdminWithBucketAdmins(page);
     await page.goto(`/bucket/${E2E_BUCKET1_ID}/edit`);
     await expect(page).toHaveURL(new RegExp(`/bucket/${E2E_BUCKET1_ID}/settings`));
@@ -38,10 +38,10 @@ test.describe('This suite verifies the management bucket-edit-page for the admin
     );
   });
 
-  test('When an admin with buckets read navigates to buckets-list, they do not see edit actions.', async ({
+  test('When an admin (buckets:R bucket_admins events:all_admins) navigates to buckets-list, they do not see edit actions.', async ({
     page,
   }, testInfo) => {
-    setE2EUserContext(testInfo, 'admin with buckets read (bucket-admins permission)');
+    setE2EUserContext(testInfo, 'admin (buckets:R bucket_admins events:all_admins)');
     await loginAsManagementAdminWithBucketAdmins(page);
     await page.goto('/buckets');
     await expect(page).toHaveURL(/\/buckets/);
@@ -53,10 +53,10 @@ test.describe('This suite verifies the management bucket-edit-page for the admin
     );
   });
 
-  test('When an admin with buckets read clicks Cancel on bucket-edit, they return to the bucket-view page.', async ({
+  test('When an admin (buckets:R bucket_admins events:all_admins) clicks Cancel on bucket-edit, they return to the bucket-view page.', async ({
     page,
   }, testInfo) => {
-    setE2EUserContext(testInfo, 'admin with buckets read (bucket-admins permission)');
+    setE2EUserContext(testInfo, 'admin (buckets:R bucket_admins events:all_admins)');
     await loginAsManagementAdminWithBucketAdmins(page);
     await page.goto(`/bucket/${E2E_BUCKET1_ID}/edit`);
     await expect(page).toHaveURL(new RegExp(`/bucket/${E2E_BUCKET1_ID}/settings`));

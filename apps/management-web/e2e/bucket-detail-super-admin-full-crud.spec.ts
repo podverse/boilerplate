@@ -13,11 +13,11 @@ import { setE2EUserContext } from './helpers/userContext';
 /** UUID from tools/web/seed-e2e.mjs E2E_BUCKET1_ID (main DB; management E2E runs after full seed). */
 const E2E_BUCKET1_ID = '22222222-2222-4222-a222-222222222222';
 
-test.describe('This suite verifies the management bucket-detail-page for the super-admin (full CRUD) user.', () => {
+test.describe('This suite verifies the management bucket-detail-page for the super-admin user.', () => {
   test('When the super-admin opens the bucket-detail-page with an invalid bucket id, they see not found.', async ({
     page,
   }, testInfo) => {
-    setE2EUserContext(testInfo, 'super-admin (full CRUD)');
+    setE2EUserContext(testInfo, 'super-admin');
     await loginAsManagementSuperAdmin(page);
     await expectInvalidRouteShowsNotFound(
       page,
@@ -32,7 +32,7 @@ test.describe('This suite verifies the management bucket-detail-page for the sup
   test('When a permitted user (super-admin) opens the bucket-detail-page, they see the bucket name and the Messages, Buckets, and Settings tab links.', async ({
     page,
   }, testInfo) => {
-    setE2EUserContext(testInfo, 'super-admin (full CRUD)');
+    setE2EUserContext(testInfo, 'super-admin');
     await loginAsManagementSuperAdmin(page);
     await actionAndCapture(
       page,

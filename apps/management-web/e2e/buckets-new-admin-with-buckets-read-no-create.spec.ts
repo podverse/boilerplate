@@ -4,18 +4,18 @@ import { loginAsManagementAdminWithBucketAdmins } from './helpers/advancedFixtur
 import { capturePageLoad } from './helpers/stepScreenshots';
 import { setE2EUserContext } from './helpers/userContext';
 
-test.describe('This suite verifies the management buckets-new page for the admin with buckets read, no create user.', () => {
-  test('When an admin with buckets read but without buckets create opens the buckets-new page, they are redirected to the buckets list.', async ({
+test.describe('This suite verifies the management buckets-new page for the admin (buckets:R bucket_admins events:all_admins) user.', () => {
+  test('When an admin (buckets:R bucket_admins events:all_admins) opens the buckets-new page without buckets create, they are redirected to the buckets list.', async ({
     page,
   }, testInfo) => {
-    setE2EUserContext(testInfo, 'admin with buckets read, no create');
+    setE2EUserContext(testInfo, 'admin (buckets:R bucket_admins events:all_admins)');
     await loginAsManagementAdminWithBucketAdmins(page);
     await page.goto('/buckets/new');
     await expect(page).toHaveURL(/\/buckets/);
     await capturePageLoad(
       page,
       testInfo,
-      'The admin without buckets create is redirected to the buckets list when opening the buckets-new page.'
+      'The admin (buckets:R bucket_admins events:all_admins) is redirected to the buckets list when opening the buckets-new page.'
     );
   });
 });

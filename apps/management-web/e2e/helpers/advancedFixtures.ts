@@ -31,17 +31,17 @@ export async function loginAsManagementSuperAdmin(page: Page): Promise<void> {
   await loginAsManagementUser(page, E2E_MANAGEMENT_SUPER_ADMIN_USERNAME);
 }
 
-/** Limited-admin: no buckets, no bucket_admins, event_visibility own. Use for restricted-route tests. */
+/** Admin (admins users events:own): no buckets, no bucket_admins, event_visibility own. Use for restricted-route tests. */
 export async function loginAsLimitedAdmin(page: Page): Promise<void> {
   await loginAsManagementUser(page, E2E_MANAGEMENT_LIMITED_ADMIN_USERNAME);
 }
 
-/** Admin with bucketAdminsCrud: can open bucket-admin-edit and edit non-owner rows. */
+/** Admin (buckets:R bucket_admins events:all_admins): can open bucket-admin-edit and edit non-owner rows. */
 export async function loginAsManagementAdminWithBucketAdmins(page: Page): Promise<void> {
   await loginAsManagementUser(page, E2E_MANAGEMENT_ADMIN_BUCKET_ADMINS_USERNAME);
 }
 
-/** Admin without bucketAdminsCrud: bucket-admin-edit route shows not found. */
+/** Admin (buckets:R events:all_admins): bucket-admin-edit route shows not found. */
 export async function loginAsManagementAdminWithoutBucketAdmins(page: Page): Promise<void> {
   await loginAsManagementUser(page, E2E_MANAGEMENT_ADMIN_NO_BUCKET_ADMINS_USERNAME);
 }

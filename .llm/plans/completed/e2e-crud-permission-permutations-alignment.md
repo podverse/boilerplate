@@ -4,7 +4,7 @@
 
 Bring all E2E specs into alignment with the thorough CRUD permission permutation test process. Reference: [apps/web/e2e/bucket-admin-edit-unauthenticated.spec.ts](apps/web/e2e/bucket-admin-edit-unauthenticated.spec.ts) (and other per-actor files) and the **e2e-permission-actor-matrix** skill.
 
-**Spec layout:** E2E specs are split by user: one file per actor per feature, named `<feature>-<user>.spec.ts` (e.g. `bucket-admin-edit-unauthenticated.spec.ts`, `bucket-admin-edit-seeded-bucket-owner.spec.ts`). The tables below refer to the feature; each row may correspond to multiple spec files (one per actor).
+**Spec layout:** E2E specs are split by user: one file per actor per feature, named `<feature>-<user>.spec.ts` (e.g. `bucket-admin-edit-unauthenticated.spec.ts`, `bucket-admin-edit-bucket-owner.spec.ts`). The tables below refer to the feature; each row may correspond to multiple spec files (one per actor).
 
 ## Alignment criteria
 

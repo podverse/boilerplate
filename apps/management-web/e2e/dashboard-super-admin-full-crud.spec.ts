@@ -3,15 +3,15 @@ import { test, expect } from '@playwright/test';
 import { actionAndCapture, capturePageLoad } from './helpers/stepScreenshots';
 import { setE2EUserContext } from './helpers/userContext';
 
-test.describe('This suite verifies the management dashboard-page for the super-admin (full CRUD) user.', () => {
-  test('When the user logs in with the seeded-super-admin account, the dashboard-page loads and shows the dashboard heading.', async ({
+test.describe('This suite verifies the management dashboard-page for the super-admin user.', () => {
+  test('When the user logs in with the super-admin account, the dashboard-page loads and shows the dashboard heading.', async ({
     page,
   }, testInfo) => {
-    setE2EUserContext(testInfo, 'super-admin (full CRUD)');
+    setE2EUserContext(testInfo, 'super-admin');
     await actionAndCapture(
       page,
       testInfo,
-      'User navigates to the management login-page before authenticating with the seeded-super-admin.',
+      'User navigates to the management login-page before authenticating with the super-admin.',
       async () => {
         await page.goto('/login');
       }
@@ -25,7 +25,7 @@ test.describe('This suite verifies the management dashboard-page for the super-a
     await actionAndCapture(
       page,
       testInfo,
-      'User fills the username field with the seeded-super-admin identity.',
+      'User fills the username field with the super-admin identity.',
       async () => {
         await page.getByRole('textbox', { name: /username|email/i }).fill('e2e-superadmin');
       }
@@ -33,7 +33,7 @@ test.describe('This suite verifies the management dashboard-page for the super-a
     await actionAndCapture(
       page,
       testInfo,
-      'User fills the password field with the seeded-super-admin secret.',
+      'User fills the password field with the super-admin secret.',
       async () => {
         await page.getByLabel(/password/i).fill('Test!1Aa');
       }

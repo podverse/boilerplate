@@ -30,7 +30,7 @@ async function createRoleAndGetId(page: import('@playwright/test').Page): Promis
 }
 
 test.describe('This suite verifies the bucket-role-edit-page for the admin-without-permission user.', () => {
-  test('When the non-owner admin without bucket roles permission opens the bucket-role-edit-page, they see not found.', async ({
+  test('When the non-owner-admin without bucket roles permission opens the bucket-role-edit-page, they see not found.', async ({
     page,
   }, testInfo) => {
     setE2EUserContext(testInfo, 'admin-without-permission');

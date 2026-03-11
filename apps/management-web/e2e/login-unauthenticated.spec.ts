@@ -38,7 +38,7 @@ test.describe('This suite verifies the management login-page for the unauthentic
     await actionAndCapture(
       page,
       testInfo,
-      'User fills a wrong password and submits; an error message is shown.',
+      'User fills the login form with a wrong password and submits.',
       async () => {
         await page.goto('/login');
         await expect(page.getByRole('textbox', { name: /username|email/i })).toBeVisible();
@@ -53,7 +53,7 @@ test.describe('This suite verifies the management login-page for the unauthentic
     await capturePageLoad(
       page,
       testInfo,
-      'The login-page is still visible with an error message after invalid credentials.',
+      'Login page remains visible; invalid-credentials error message is displayed and verified.',
       errorMessage
     );
   });

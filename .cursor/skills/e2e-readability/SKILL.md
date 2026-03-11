@@ -1,16 +1,22 @@
 ---
 name: e2e-readability
 description: E2E specs use verbose complete sentences and explicit post-navigation verification; report keeps redirect-to-login summary-only and hides only non-validating navigation screenshots.
-version: 1.0.0
+version: 1.2.0
 ---
 
 # E2E Readability and Report Behavior
 
-Use this skill when adding or editing E2E specs in `apps/web/e2e/` or `apps/management-web/e2e/`. Test descriptions and step labels should be clear, complete sentences that prefer verbosity for clarity over conciseness.
+Use this skill when adding or editing E2E specs in `apps/web/e2e/` or `apps/management-web/e2e/`. Test titles and step labels use complete sentences; the only exception is the **suite-level describe**, which uses a concise title-like phrase (see Describe blocks).
 
 ## Describe blocks
 
-Use a **full-sentence** description of the feature or suite, not a short phrase.
+**Suite-level describe** (the top-level block that states what the suite verifies): use a **concise, title-like** descriptor, not a full sentence. This is the one place where a short phrase is preferred.
+
+- Good: "Home page for the unauthenticated user"
+- Good: "Dashboard for non-admin users"
+- Avoid (for suite-level): "This suite verifies the home page for the unauthenticated user."
+
+**Nested describe blocks** (feature or group): use a clear full-sentence or phrase for the feature.
 
 - Good: "Creating a new child bucket under an existing bucket"
 - Avoid: "Bucket child new"
@@ -27,21 +33,22 @@ Use **complete, verbose sentences**. Prefer "When … , they/he/she …" for rea
 
 Use **full sentences** for the third argument to `capturePageLoad`, `actionAndCapture`, and `expectUnauthedRouteRedirectsToLogin`, and keep compound terms consistent with titles.
 
-- Good: "User navigates to the admin-edit-route for the seeded-bucket-owner's user id and sees not found."
-- Good: "The bucket-admin-edit-form is visible for the seeded-bucket-admin."
+- Good: "User navigates to the admin-edit-route for the bucket-owner's user id and sees not found."
+- Good: "The bucket-admin-edit-form is visible for the bucket-admin."
 - Avoid: mixing hyphenated compound terms in one section and space-separated terms in another for the same concept.
 
 The reporter preserves step labels as authored, including hyphenated compound terms.
 
 ## Post-navigation verification (required)
 
-Every navigation action in E2E tests must be followed by explicit verification that the destination loaded correctly.
+Every navigation action in E2E tests must be followed by explicit verification that the destination loaded correctly. **Checking only that the URL changed is not enough:** you must verify that at least one expected element on the destination page has loaded (e.g. heading, form field, table, CTA). Otherwise the test (or a step screenshot) may pass while the new page is still loading or not yet rendered.
 
 - Applies to `page.goto(...)`, route-changing link/button clicks, and helper-driven navigation.
-- After navigation, assert destination with at least one explicit check:
-  - URL assertion (`toHaveURL(...)`), and/or
-  - destination-specific element visibility (`toBeVisible()` on heading, form field, table, CTA, etc.).
+- After navigation, assert **both**:
+  - URL assertion (`toHaveURL(...)`), and
+  - at least one destination-specific element visibility (`toBeVisible()` on heading, form field, table, CTA, etc.).
 - Do not rely only on "absence" assertions right after navigation (for example, only checking a value is missing). Add a positive destination-load assertion first.
+- **When using `actionAndCapture` for a navigation step** (e.g. click a link, then capture): perform the URL assertion and the element visibility assertion **inside** the callback, so the screenshot is taken only after the destination page has loaded. If you assert only after the callback, the screenshot may show the previous page or a loading state.
 - For shared helpers that navigate (for example login helpers), include the destination-load verification inside the helper.
 
 ## Redirect-to-login tests
@@ -71,17 +78,28 @@ When a test step expects an error-like result (validation error, invalid credent
 
 ## User context in reports
 
-Every test that has a defined user (unauthenticated or a specific role) should set the **user-role** annotation so the E2E HTML report shows **User context** for that test. Call `setE2EUserContext(testInfo, description)` at the start of each test (from `./helpers/userContext`). Use consistent descriptions: `unauthenticated`, `super-admin (full CRUD)` (management-web), `seeded-bucket-owner`, `seeded-bucket-admin (bucket CRUD)` (web). The report then shows "User context: <description>" in each test section and in the summary, so readers can see which CRUD permissions are in effect.
+Every test that has a defined user (unauthenticated or a specific role) should set the **user-role** annotation so the E2E HTML report shows **User context** for that test. Call `setE2EUserContext(testInfo, description)` at the start of each test (from `./helpers/userContext`).
+
+**Pattern:** Use **role** or **role (permissions)**. Be consistent so the reporter can apply a dedicated color.
+
+**Web app:** Only **unauthenticated**, **basic-user**, **bucket-owner**, and **bucket-admin** (web has no "admin" role).
+
+**Management-web:** Use **super-admin** for the super-admin identity. For all other management users use **admin (…)** with abbreviated permission notation: full CRUD = resource name only (e.g. `admins`, `users`); read-only = `resource:R` (e.g. `buckets:R`). Examples: `admin (admins users events:own)`, `admin (buckets:R bucket_admins events:all_admins)`. Do not use "limited-admin", "admin with X", or "admin without X" as the role name.
+
+- Good: `super-admin`, `admin (admins users events:own)`, `bucket-owner`, `unauthenticated`
+- Avoid: `super-admin`, `limited-admin (users read)`, `admin with bucketAdminsCrud`
+
+The report then shows "User context: <description>" in each test section and in the summary.
 
 ## Seeded user role naming
 
-When a test refers to a **specific seeded user role**, use consistent names so "user" vs "seeded owner user" is unambiguous:
+When a test refers to a **specific seeded user role**, use consistent names so "user" vs "owner user" is unambiguous:
 
-- **seeded-bucket-owner** — the seeded user who owns the bucket (web: e2e@example.com). In code/comments: `seededBucketOwner`.
-- **seeded-bucket-admin** — the seeded user who is a bucket admin but not the owner (web: e2e-admin2@example.com). In code/comments: `seededBucketAdmin`.
-- **seeded-super-admin** — management-web: e2e-superadmin. In code/comments: `seededSuperAdmin`.
+- **bucket-owner** — the seeded user who owns the bucket (web: e2e-bucket-owner@example.com). In code/comments: `bucketOwner`.
+- **bucket-admin** — the seeded user who is a bucket admin but not the owner (web: e2e-bucket-admin@example.com). In code/comments: `bucketAdmin`.
+- **super-admin** — management-web: e2e-superadmin. In code/comments: `superAdmin`.
 
-Avoid "seeded owner user" (prefer seeded-bucket-owner) and "seeded non-owner admin" (prefer seeded-bucket-admin) so the role is clear.
+Avoid "seeded owner user" (prefer bucket-owner) and "seeded non-owner-admin" (prefer bucket-admin) so the role is clear.
 
 ## Hyphens for compound concepts in titles and step labels
 
@@ -91,10 +109,10 @@ In **test titles and step labels**, use **hyphens between words** for compound t
 - **Routes:** admin-edit-route, bucket-admin-edit-route (not "admin edit route" with spaces).
 - **Pages:** bucket-admin-edit-page, admin-edit-page (not "bucket admin edit page").
 - **Forms:** bucket-admin-edit-form (not "bucket admin edit form").
-- **Seeded identities:** seeded-bucket-owner, seeded-bucket-admin, seeded-super-admin (not "seeded bucket owner").
+- **Seeded identities:** bucket-owner, bucket-admin, super-admin (not "seeded bucket owner").
 - **Other single concepts:** bucket-admin-permissions when referring to one thing.
 
-Example: "When the user opens the admin-edit-route with the seeded-bucket-owner's user id, they see not found." In variable names and constant comments in code, use camelCase (e.g. `seededBucketOwner`).
+Example: "When the user opens the admin-edit-route with the bucket-owner's user id, they see not found." In variable names and constant comments in code, use camelCase (e.g. `bucketOwner`).
 
 ## Screenshot shows verified element
 

@@ -4,11 +4,11 @@ import { loginAsLimitedAdmin } from './helpers/advancedFixtures';
 import { capturePageLoad } from './helpers/stepScreenshots';
 import { setE2EUserContext } from './helpers/userContext';
 
-test.describe('This suite verifies the management buckets-new page for the limited-admin (no buckets create) user.', () => {
-  test('When a limited-admin (no buckets create permission) opens the buckets-new route, they are redirected to the dashboard.', async ({
+test.describe('This suite verifies the management buckets-new page for the admin (admins users events:own) user.', () => {
+  test('When a admin (admins users events:own) opens the buckets-new route, they are redirected to the dashboard.', async ({
     page,
   }, testInfo) => {
-    setE2EUserContext(testInfo, 'limited-admin (no buckets create)');
+    setE2EUserContext(testInfo, 'admin (admins users events:own)');
     await loginAsLimitedAdmin(page);
     await page.goto('/buckets/new');
     await expect(page).toHaveURL(/\/dashboard/);
@@ -16,7 +16,7 @@ test.describe('This suite verifies the management buckets-new page for the limit
     await capturePageLoad(
       page,
       testInfo,
-      'The limited-admin is redirected to the dashboard when visiting the buckets-new route.'
+      'The admin (admins users events:own) is redirected to the dashboard when visiting the buckets-new route.'
     );
   });
 });

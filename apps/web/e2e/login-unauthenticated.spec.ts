@@ -3,7 +3,7 @@ import { expect, test } from '@playwright/test';
 import { actionAndCapture, capturePageLoad } from './helpers/stepScreenshots';
 import { setE2EUserContext } from './helpers/userContext';
 
-const E2E_EMAIL = 'e2e@example.com';
+const E2E_EMAIL = 'e2e-bucket-owner@example.com';
 const E2E_PASSWORD = 'Test!1Aa';
 
 // 429/rate-limit handling is not asserted in E2E; deferred until the test environment can trigger 429 deterministically.
@@ -81,7 +81,7 @@ test.describe('This suite verifies the login-page for the unauthenticated user.'
     await actionAndCapture(
       page,
       testInfo,
-      'User fills a wrong password and submits; an error message is shown.',
+      'User fills the login form with a wrong password and submits.',
       async () => {
         await page.getByRole('textbox', { name: /email|username/i }).fill(E2E_EMAIL);
         await page.getByLabel(/password/i).fill('WrongPassword1!');
@@ -94,7 +94,7 @@ test.describe('This suite verifies the login-page for the unauthenticated user.'
     await capturePageLoad(
       page,
       testInfo,
-      'The login-page is still visible with an error message after invalid credentials.',
+      'Login page remains visible; invalid-credentials error message is displayed and verified.',
       errorMessage
     );
   });
@@ -111,9 +111,10 @@ test.describe('This suite verifies the login-page for the unauthenticated user.'
       'User clicks the sign-up link and is navigated to the sign-up-page.',
       async () => {
         await page.getByRole('link', { name: /sign up/i }).click();
+        await expect(page).toHaveURL(/\/signup/);
+        await expect(page.getByRole('button', { name: /sign up|create account/i })).toBeVisible();
       }
     );
-    await expect(page).toHaveURL(/\/signup/);
   });
 
   test('When the user clicks the forgot-password link, they are taken to the forgot-password-page.', async ({

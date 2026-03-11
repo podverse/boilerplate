@@ -8,7 +8,7 @@ test.describe('This suite verifies URL-state contracts for the management events
   test('When the super-admin opens the events-list page with sort=oldest and sortBy=timestamp and sortOrder=asc, the URL preserves the params and the events heading is visible.', async ({
     page,
   }, testInfo) => {
-    setE2EUserContext(testInfo, 'super-admin (full CRUD)');
+    setE2EUserContext(testInfo, 'super-admin');
     await loginAsManagementSuperAdmin(page);
     await actionAndCapture(
       page,
@@ -36,7 +36,7 @@ test.describe('This suite verifies URL-state contracts for the management events
   test('When the super-admin opens the events-list page with a search that matches no events, the URL preserves the search param and an empty-state message is visible.', async ({
     page,
   }, testInfo) => {
-    setE2EUserContext(testInfo, 'super-admin (full CRUD)');
+    setE2EUserContext(testInfo, 'super-admin');
     await loginAsManagementSuperAdmin(page);
     await actionAndCapture(
       page,

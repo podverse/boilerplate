@@ -12,11 +12,11 @@ import { setE2EUserContext } from './helpers/userContext';
 
 const E2E_SUPER_ADMIN_ID = 'aaaaaaaa-aaaa-4aaa-aaaa-aaaaaaaaaaaa';
 
-test.describe('This suite verifies the management admin-detail-page for the super-admin (full CRUD) user.', () => {
+test.describe('This suite verifies the management admin-detail-page for the super-admin user.', () => {
   test('When the super-admin opens the admin-detail-page with an invalid admin id, they see not found.', async ({
     page,
   }, testInfo) => {
-    setE2EUserContext(testInfo, 'super-admin (full CRUD)');
+    setE2EUserContext(testInfo, 'super-admin');
     await loginAsManagementSuperAdmin(page);
     await expectInvalidRouteShowsNotFound(
       page,
@@ -31,7 +31,7 @@ test.describe('This suite verifies the management admin-detail-page for the supe
   test('When a permitted user (super-admin) opens the admin-detail-page, they see the admin detail and the edit link.', async ({
     page,
   }, testInfo) => {
-    setE2EUserContext(testInfo, 'super-admin (full CRUD)');
+    setE2EUserContext(testInfo, 'super-admin');
     await loginAsManagementSuperAdmin(page);
     await actionAndCapture(
       page,
@@ -48,14 +48,14 @@ test.describe('This suite verifies the management admin-detail-page for the supe
     await capturePageLoad(
       page,
       testInfo,
-      'The management admin-detail-page is visible with the seeded-super-admin data and edit link.'
+      'The management admin-detail-page is visible with the super-admin data and edit link.'
     );
   });
 
   test('When the super-admin navigates from the admins-list-page to the admin-detail-page via the admin link, the admin detail loads.', async ({
     page,
   }, testInfo) => {
-    setE2EUserContext(testInfo, 'super-admin (full CRUD)');
+    setE2EUserContext(testInfo, 'super-admin');
     await loginAsManagementSuperAdmin(page);
     await page.goto('/admins');
     await expect(page).toHaveURL(/\/admins/);

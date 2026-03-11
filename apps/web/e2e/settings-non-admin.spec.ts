@@ -4,11 +4,11 @@ import { loginAsWebE2ENonAdmin } from './helpers/advancedFixtures';
 import { actionAndCapture, capturePageLoad } from './helpers/stepScreenshots';
 import { setE2EUserContext } from './helpers/userContext';
 
-test.describe('This suite verifies the user-settings-page for the non-admin user.', () => {
-  test('When the non-admin opens the user-settings-page, they see the settings content with tabs or heading.', async ({
+test.describe('This suite verifies the user-settings-page for the basic-user.', () => {
+  test('When the basic-user opens the user-settings-page, they see the settings content with tabs or heading.', async ({
     page,
   }, testInfo) => {
-    setE2EUserContext(testInfo, 'non-admin');
+    setE2EUserContext(testInfo, 'basic-user');
     await loginAsWebE2ENonAdmin(page);
     await actionAndCapture(
       page,
@@ -27,7 +27,7 @@ test.describe('This suite verifies the user-settings-page for the non-admin user
     await capturePageLoad(
       page,
       testInfo,
-      'The user-settings-page is visible for the non-admin (self only).'
+      'The user-settings-page is visible for the basic-user (self only).'
     );
   });
 });

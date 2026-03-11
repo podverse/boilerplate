@@ -10,7 +10,7 @@ test.describe('This suite verifies URL-state contracts for the bucket-detail-pag
   test('When the user opens the bucket-detail-page with tab=buckets and sortBy=name and sortOrder=asc, the URL preserves the params and the buckets-tab content is visible.', async ({
     page,
   }, testInfo) => {
-    setE2EUserContext(testInfo, 'seeded-bucket-owner');
+    setE2EUserContext(testInfo, 'bucket-owner');
     await loginAsWebE2EUserAndExpectDashboard(page);
     await actionAndCapture(
       page,
@@ -39,7 +39,7 @@ test.describe('This suite verifies URL-state contracts for the bucket-detail-pag
   test('When the user opens the bucket-detail-page with tab=buckets and sortBy=created and sortOrder=desc, the URL preserves the params.', async ({
     page,
   }, testInfo) => {
-    setE2EUserContext(testInfo, 'seeded-bucket-owner');
+    setE2EUserContext(testInfo, 'bucket-owner');
     await loginAsWebE2EUserAndExpectDashboard(page);
     await actionAndCapture(
       page,

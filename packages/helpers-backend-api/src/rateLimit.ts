@@ -138,12 +138,28 @@ const isTest = process.env.NODE_ENV === 'test';
 const TEST_LIMIT_REAL = 100;
 const TEST_LIMIT_HIGH = 100_000;
 
+function getPositiveIntegerEnv(key: string): number | undefined {
+  const value = process.env[key];
+  if (value === undefined || value.trim() === '') {
+    return undefined;
+  }
+
+  const parsed = Number.parseInt(value, 10);
+  return Number.isInteger(parsed) && parsed > 0 ? parsed : undefined;
+}
+
 function strictLimitInTest(): number {
-  return process.env.RATE_LIMIT_STRICT_FOR_TEST === 'true' ? TEST_LIMIT_REAL : TEST_LIMIT_HIGH;
+  if (process.env.RATE_LIMIT_STRICT_FOR_TEST !== 'true') {
+    return TEST_LIMIT_HIGH;
+  }
+  return getPositiveIntegerEnv('RATE_LIMIT_STRICT_TEST_LIMIT') ?? TEST_LIMIT_REAL;
 }
 
 function moderateLimitInTest(): number {
-  return process.env.RATE_LIMIT_MODERATE_FOR_TEST === 'true' ? TEST_LIMIT_REAL : TEST_LIMIT_HIGH;
+  if (process.env.RATE_LIMIT_MODERATE_FOR_TEST !== 'true') {
+    return TEST_LIMIT_HIGH;
+  }
+  return getPositiveIntegerEnv('RATE_LIMIT_MODERATE_TEST_LIMIT') ?? TEST_LIMIT_REAL;
 }
 
 /**

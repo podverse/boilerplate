@@ -7,11 +7,11 @@ import {
 import { actionAndCapture, capturePageLoad } from './helpers/stepScreenshots';
 import { setE2EUserContext } from './helpers/userContext';
 
-test.describe('This suite verifies the management events-page for the admin-with-bucket-admins-crud user.', () => {
-  test('When the admin with event-visibility all_admins opens the events-page, only admin actor events are shown.', async ({
+test.describe('This suite verifies the management events-page for the admin (buckets:R bucket_admins events:all_admins) user.', () => {
+  test('When an admin (buckets:R bucket_admins events:all_admins) opens the events-page, only admin actor events are shown.', async ({
     page,
   }, testInfo) => {
-    setE2EUserContext(testInfo, 'admin-with-bucket-admins-crud (events all_admins)');
+    setE2EUserContext(testInfo, 'admin (buckets:R bucket_admins events:all_admins)');
     await loginAsManagementSuperAdmin(page);
     await page.context().clearCookies();
     await loginAsManagementAdminWithBucketAdmins(page);

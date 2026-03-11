@@ -4,11 +4,11 @@ import { loginAsManagementSuperAdmin, nextFixtureName } from './helpers/advanced
 import { actionAndCapture, capturePageLoad } from './helpers/stepScreenshots';
 import { setE2EUserContext } from './helpers/userContext';
 
-test.describe('This suite verifies the management profile flow for the super-admin (full CRUD) user.', () => {
+test.describe('This suite verifies the management profile flow for the super-admin user.', () => {
   test('When an authenticated user opens the profile-page, they are redirected to the settings-page and can see the profile-tab content.', async ({
     page,
   }, testInfo) => {
-    setE2EUserContext(testInfo, 'super-admin (full CRUD)');
+    setE2EUserContext(testInfo, 'super-admin');
     await loginAsManagementSuperAdmin(page);
     await actionAndCapture(
       page,
@@ -34,7 +34,7 @@ test.describe('This suite verifies the management profile flow for the super-adm
   test('When the user updates the display name on the profile tab and saves, the change persists.', async ({
     page,
   }, testInfo) => {
-    setE2EUserContext(testInfo, 'super-admin (full CRUD)');
+    setE2EUserContext(testInfo, 'super-admin');
     await loginAsManagementSuperAdmin(page);
     await page.goto('/settings?tab=profile');
     await expect(page.getByRole('textbox', { name: /display name/i })).toBeVisible();

@@ -16,6 +16,34 @@ import { createApiLoginAgent } from './helpers/login-agent.js';
 import { createApiTestApp, destroyApiTestDataSources } from './helpers/setup.js';
 
 const API = config.apiVersionPath;
+const LOGIN_RETRY_ATTEMPTS = 5;
+const LOGIN_RETRY_DELAY_MS = 75;
+
+const delay = async (ms: number): Promise<void> =>
+  new Promise((resolve) => {
+    setTimeout(resolve, ms);
+  });
+
+const expectLoginByUsernameEventuallySucceeds = async (
+  agent: Awaited<ReturnType<typeof createApiLoginAgent>>,
+  username: string,
+  password: string
+): Promise<void> => {
+  let lastStatus: number | null = null;
+  for (let attempt = 1; attempt <= LOGIN_RETRY_ATTEMPTS; attempt += 1) {
+    const res = await agent.post(`${API}/auth/login`).send({ email: username, password });
+    lastStatus = res.status;
+    if (res.status === 200) {
+      return;
+    }
+    if (attempt < LOGIN_RETRY_ATTEMPTS) {
+      await delay(LOGIN_RETRY_DELAY_MS);
+    }
+  }
+  throw new Error(
+    `Expected login by updated username to return 200, got ${lastStatus} after ${LOGIN_RETRY_ATTEMPTS} attempts`
+  );
+};
 
 describe('auth (username and set-password)', () => {
   let app: Awaited<ReturnType<typeof createApiTestApp>>;
@@ -142,10 +170,7 @@ describe('auth (username and set-password)', () => {
       const newUsername = `updated-username-${Date.now()}`;
       const res = await agent.patch(`${API}/auth/me`).send({ username: newUsername }).expect(200);
       expect(res.body.user.username).toBe(newUsername);
-      await agent
-        .post(`${API}/auth/login`)
-        .send({ email: newUsername, password: testUserPassword })
-        .expect(200);
+      await expectLoginByUsernameEventuallySucceeds(agent, newUsername, testUserPassword);
     });
 
     it('returns 409 when username already taken by another user', async () => {

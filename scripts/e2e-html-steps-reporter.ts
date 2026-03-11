@@ -18,6 +18,8 @@ import type {
 } from '@playwright/test/reporter';
 
 const STEP_DESCRIPTION_NAME = 'Step description';
+const STEP_URL_NAME = 'Step URL';
+// Step attachment order expected from the step capture helper: image, Step description, Step URL.
 
 interface ReporterOptions {
   outputFolder?: string;
@@ -94,6 +96,176 @@ function getUserContextFromResult(result: TestResult): string | null {
   return null;
 }
 
+/** Normalize user context string to a CSS-safe class suffix (lowercase, spaces/parens/colons -> hyphens). */
+function userContextToClassSuffix(context: string): string {
+  const normalized = context
+    .trim()
+    .toLowerCase()
+    .replace(/[\s()]+/g, '-')
+    .replace(/:/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-|-$/g, '');
+  return normalized !== '' ? normalized : 'other';
+}
+
+/** Known context keys that have a dedicated color scheme; unknown contexts use "other". */
+const KNOWN_USER_CONTEXT_KEYS = new Set([
+  'unauthenticated',
+  'basic-user',
+  'bucket-owner',
+  'bucket-admin',
+  'super-admin',
+  'admin-admins-users-events-own',
+  'admin-buckets-r-bucket-admins-events-all-admins',
+  'admin-buckets-r-events-all-admins',
+]);
+
+function getUserContextClassSuffix(context: string): string {
+  const suffix = userContextToClassSuffix(context);
+  return KNOWN_USER_CONTEXT_KEYS.has(suffix) ? suffix : 'other';
+}
+
+function normalizePathSlashes(filePath: string): string {
+  return filePath.replace(/\\/g, '/');
+}
+
+function extractE2ESegment(filePath: string): string | null {
+  const normalized = normalizePathSlashes(filePath);
+  const idx = normalized.lastIndexOf('/e2e/');
+  if (idx >= 0) {
+    return normalized.slice(idx + 1);
+  }
+  return normalized.startsWith('e2e/') ? normalized : null;
+}
+
+function getSpecPathCandidates(filePath: string, rootDir: string): string[] {
+  if (filePath.trim() === '') {
+    return [];
+  }
+  const unique = new Set<string>();
+  const normalizedRaw = normalizePathSlashes(filePath);
+  unique.add(normalizedRaw);
+
+  const relativeFromRoot = normalizePathSlashes(
+    path.relative(rootDir, path.resolve(rootDir, filePath))
+  );
+  if (relativeFromRoot !== '') {
+    unique.add(relativeFromRoot);
+  }
+
+  const e2eFromRaw = extractE2ESegment(normalizedRaw);
+  if (e2eFromRaw !== null) {
+    unique.add(e2eFromRaw);
+  }
+
+  const e2eFromRelative = extractE2ESegment(relativeFromRoot);
+  if (e2eFromRelative !== null) {
+    unique.add(e2eFromRelative);
+  }
+
+  const basename = path.posix.basename(normalizedRaw);
+  if (basename !== '') {
+    unique.add(basename);
+  }
+
+  return Array.from(unique);
+}
+
+const UNKNOWN_SPEC_INDEX = 999999;
+
+interface SpecOrderIndex {
+  pathIndex: Map<string, number>;
+  basenameIndex: Map<string, number>;
+}
+
+/**
+ * Parse E2E_SPEC_ORDER (semicolon-separated) into lookup maps.
+ * basenameIndex is populated only for unique basenames to avoid ambiguous matches.
+ */
+function buildSpecOrderIndex(orderEnv: string | undefined): SpecOrderIndex {
+  const pathIndex = new Map<string, number>();
+  const basenameCounts = new Map<string, number>();
+  const basenameFirstIndex = new Map<string, number>();
+  if (typeof orderEnv !== 'string' || orderEnv.trim() === '') {
+    return {
+      pathIndex,
+      basenameIndex: new Map<string, number>(),
+    };
+  }
+
+  const list = orderEnv
+    .split(';')
+    .map((s) => s.trim())
+    .filter((s) => s.length > 0);
+  for (let i = 0; i < list.length; i += 1) {
+    const key = normalizePathSlashes(list[i]);
+    if (!pathIndex.has(key)) {
+      pathIndex.set(key, i);
+    }
+
+    const basename = path.posix.basename(key);
+    const count = basenameCounts.get(basename) ?? 0;
+    basenameCounts.set(basename, count + 1);
+    if (!basenameFirstIndex.has(basename)) {
+      basenameFirstIndex.set(basename, i);
+    }
+  }
+
+  const basenameIndex = new Map<string, number>();
+  for (const [basename, count] of basenameCounts.entries()) {
+    if (count === 1) {
+      const firstIndex = basenameFirstIndex.get(basename);
+      if (firstIndex !== undefined) {
+        basenameIndex.set(basename, firstIndex);
+      }
+    }
+  }
+
+  return {
+    pathIndex,
+    basenameIndex,
+  };
+}
+
+function getRunOrderIndex(run: CollectedRun, orderIndex: SpecOrderIndex, rootDir: string): number {
+  const filePath = run.test.location?.file ?? '';
+  const candidates = getSpecPathCandidates(filePath, rootDir);
+
+  for (let i = 0; i < candidates.length; i += 1) {
+    const pathMatch = orderIndex.pathIndex.get(candidates[i]);
+    if (pathMatch !== undefined) {
+      return pathMatch;
+    }
+  }
+
+  for (let i = 0; i < candidates.length; i += 1) {
+    const basename = path.posix.basename(candidates[i]);
+    const basenameMatch = orderIndex.basenameIndex.get(basename);
+    if (basenameMatch !== undefined) {
+      return basenameMatch;
+    }
+  }
+
+  return UNKNOWN_SPEC_INDEX;
+}
+
+/** Reorder runs by E2E_SPEC_ORDER so the report displays in conceptual order. Stable sort. */
+function reorderRunsBySpecOrder(
+  runs: CollectedRun[],
+  orderIndex: SpecOrderIndex,
+  rootDir: string
+): void {
+  if (orderIndex.pathIndex.size === 0 && orderIndex.basenameIndex.size === 0) {
+    return;
+  }
+
+  runs.sort((a, b) => {
+    const ia = getRunOrderIndex(a, orderIndex, rootDir);
+    const ib = getRunOrderIndex(b, orderIndex, rootDir);
+    return ia !== ib ? ia - ib : 0;
+  });
+}
+
 /** True for repetitive "redirect to login" tests that are collapsed by default in the report (summary only). */
 function isRedirectToLoginTest(test: TestCase): boolean {
   const title = test.title.trim().toLowerCase();
@@ -108,6 +280,7 @@ function isRedirectToLoginTest(test: TestCase): boolean {
 interface CollectedStep {
   imgSrc: string;
   stepLabelOnly: string;
+  stepUrl?: string;
 }
 
 function normalizeStepLabel(label: string): string {
@@ -209,6 +382,9 @@ export default class HtmlStepsReporter implements Reporter {
   }
 
   async onEnd(result: FullResult): Promise<void> {
+    const orderIndex = buildSpecOrderIndex(process.env.E2E_SPEC_ORDER);
+    reorderRunsBySpecOrder(this.runs, orderIndex, this.rootDir);
+
     const attachmentsDir = path.join(this.outputDir, 'attachments');
     const parts: string[] = [];
     const isInterrupted = result.status === 'interrupted';
@@ -255,14 +431,14 @@ export default class HtmlStepsReporter implements Reporter {
       --report-space-lg: 1rem;
       --report-space-xl: 1.5rem;
       --report-space-2xl: 2rem;
-      /* Font sizes (+2pt ≈ 0.1667rem each at 16px base) */
-      --report-font-xs: 0.98rem;
-      --report-font-sm: 1.04rem;
-      --report-font-md: 1.12rem;
-      --report-font-base: 1.17rem;
-      --report-font-lg: 1.23rem;
-      --report-font-section: 1.27rem;
-      --report-font-title: 1.42rem;
+      /* Font size scale (base = 1rem) */
+      --report-font-xs: 0.86rem;
+      --report-font-sm: 0.92rem;
+      --report-font-md: 0.96rem;
+      --report-font-base: 1rem;
+      --report-font-lg: 1.11rem;
+      --report-font-section: 1.15rem;
+      --report-font-title: 1.30rem;
       /* Layout */
       --report-radius-sm: 4px;
       --report-radius-md: 6px;
@@ -282,7 +458,7 @@ export default class HtmlStepsReporter implements Reporter {
     .summary-list .prefix-timeout { color: var(--report-timeout); }
     .summary-list .summary-group-header { list-style: none; margin-top: var(--report-space-lg); margin-bottom: var(--report-space-xs); font-weight: 600; font-size: var(--report-font-md); color: var(--report-text); }
     .summary-list .summary-group-header:first-child { margin-top: 0; }
-    section.test { margin-bottom: var(--report-space-2xl); border: 1px solid var(--report-border); border-radius: var(--report-radius-md); padding: var(--report-space-lg); scroll-margin-top: var(--report-space-sm); max-width: var(--report-max-width); width: 100%; }
+    section.test { margin-bottom: var(--report-space-2xl); border: 1px solid var(--report-border); border-radius: var(--report-radius-md); padding: var(--report-space-lg) var(--report-space-lg) 0 var(--report-space-lg); scroll-margin-top: var(--report-space-sm); max-width: var(--report-max-width); width: 100%; }
     section.test h2 { font-size: var(--report-font-base); margin: 0 0 var(--report-space-xs); font-weight: 600; }
     .test-describe { font-size: var(--report-font-sm); color: var(--report-muted); margin: 0 0 var(--report-space-xs); }
     .test-source-marker { font-size: var(--report-font-xs); color: var(--report-muted); margin: 0 0 var(--report-space-xs); }
@@ -291,24 +467,38 @@ export default class HtmlStepsReporter implements Reporter {
     .status.failed { color: var(--report-fail); }
     .status.timedout { color: var(--report-timeout); }
     .error { background: var(--report-surface); padding: var(--report-space-md); border-radius: var(--report-radius-sm); margin-bottom: var(--report-space-lg); font-size: var(--report-font-sm); color: var(--report-error-text); white-space: pre-wrap; }
-    .step-block { margin-bottom: var(--report-space-xl); }
+    .step-block { margin-bottom: var(--report-space-lg); }
     .step-block .step-content { width: 100%; }
-    .step-block a.step-image-link { display: inline-block; }
+    .step-block a.step-image-link { display: inline-block; margin-top: var(--report-space-sm); }
     .step-block img { width: 100%; height: auto; border: 1px solid var(--report-border); border-radius: var(--report-radius-sm); display: block; cursor: zoom-in; }
-    .step-block .step-image-suppressed { padding: var(--report-space-sm) var(--report-space-md); border: 1px dashed var(--report-border); border-radius: var(--report-radius-sm); font-size: var(--report-font-xs); color: var(--report-muted); }
+    .step-description-hr { margin: var(--report-space-lg) 0; border: 0; border-top: 1px solid var(--report-border); }
     .step-block .step-description { margin-bottom: var(--report-space-sm); }
-    .step-block .step-description .step-description-text { margin: 0; padding: var(--report-space-md); background: var(--report-surface); border-radius: var(--report-radius-sm); font-size: var(--report-font-xs); overflow-x: auto; white-space: pre-wrap; text-indent: 0; }
-    .test-user-context { font-size: var(--report-font-sm); color: var(--report-muted); margin: 0 0 var(--report-space-xs); }
-    .test-user-context-unset { font-style: italic; }
+    .step-block .step-description .step-description-text { margin: 0; padding: 0; background: transparent; font-size: var(--report-font-xs); overflow-x: auto; white-space: pre-wrap; text-indent: 0; }
+    .step-block .step-description .step-url { margin-top: var(--report-space-xs); font-size: var(--report-font-xs); word-break: break-all; }
+    .test-user-context { font-size: var(--report-font-sm); margin: 0 0 var(--report-space-xs); }
+    .test-user-context-unset { font-style: italic; color: var(--report-muted); }
+    .test-user-context-value-unauthenticated { color: #b8b8c0; }
+    .test-user-context-value-basic-user { color: #e89850; }
+    .test-user-context-value-bucket-owner { color: #f0dc78; }
+    .test-user-context-value-bucket-admin { color: #c8d878; }
+    .test-user-context-value-super-admin { color: #d8b0e8; }
+    .test-user-context-value-admin-admins-users-events-own { color: #c0a8e0; }
+    .test-user-context-value-admin-buckets-r-bucket-admins-events-all-admins { color: #a8c8e0; }
+    .test-user-context-value-admin-buckets-r-events-all-admins { color: #98b8d0; }
+    .test-user-context-value-other { color: #e0b070; }
     .nav-wrapper { position: fixed; bottom: var(--report-space-lg); right: var(--report-space-lg); display: flex; flex-direction: column; align-items: flex-end; gap: var(--report-space-sm); z-index: 10; }
     .nav-end-message { font-size: var(--report-font-sm); color: var(--report-text-muted, #666); display: none; }
     .nav-end-message.visible { display: block; }
-    .nav-buttons { display: flex; gap: var(--report-space-sm); }
-    .nav-buttons button { padding: var(--report-space-sm) var(--report-space-md); font-size: var(--report-font-sm); cursor: pointer; border: 1px solid var(--report-border); border-radius: var(--report-radius-md); background: var(--report-surface); color: var(--report-text); }
+    .nav-buttons { display: flex; flex-direction: column; gap: var(--report-space-sm); }
+    .nav-buttons button { padding: var(--report-space-sm) var(--report-space-md); font-size: var(--report-font-sm); cursor: pointer; border: 1px solid var(--report-border); border-radius: var(--report-radius-md); background: var(--report-surface); color: var(--report-text); min-height: 2.25rem; min-width: 82px; box-sizing: border-box; }
     .nav-buttons button:hover { background: var(--report-surface-hover); }
+    .nav-row { display: flex; gap: var(--report-space-sm); }
+    .nav-row-prev { margin-bottom: var(--report-space-md); }
+    .test-index-indicator { position: fixed; top: var(--report-space-md); right: var(--report-space-md); z-index: 10; font-size: var(--report-font-sm); padding: var(--report-space-sm) var(--report-space-md); background: var(--report-surface); color: var(--report-text); border: 1px solid var(--report-border); border-radius: var(--report-radius-md); }
   </style>
 </head>
 <body>
+  <div id="test-index-indicator" class="test-index-indicator" aria-live="polite" role="status">— / —</div>
   <h1>${escapeHtml(reportTitle)}</h1>
 ${isInterrupted ? '  <div class="incomplete-banner">Run aborted during execution; this report is incomplete.</div>\n' : ''}
   <h2 class="section-heading">Test summary</h2>
@@ -368,9 +558,10 @@ ${isInterrupted ? '  <div class="incomplete-banner">Run aborted during execution
       const describeLabel = contextSegments.length >= 2 ? contextSegments[0] : '';
       const firstSourceMarker = getFirstStepSourceMarker(result.attachments);
       const userContext = getUserContextFromResult(result);
+      const contextSuffix = userContext !== null ? getUserContextClassSuffix(userContext) : '';
       const userContextLine =
         userContext !== null
-          ? `    <div class="test-user-context">User context: ${escapeHtml(userContext)}</div>\n`
+          ? `    <div class="test-user-context">User context: <span class="test-user-context-value test-user-context-value-${contextSuffix}">${escapeHtml(userContext)}</span></div>\n`
           : `    <div class="test-user-context test-user-context-unset">User context: (not set)</div>\n`;
       parts.push(`  <section id="test-${testIndex}" class="test" data-test-index="${testIndex}" data-status="${escapeHtml(statusClass)}">
 ${describeLabel !== '' ? `    <div class="test-describe">${escapeHtml(describeLabel)}</div>\n` : ''}    <h2>${escapeHtml(test.title)}</h2>
@@ -415,34 +606,55 @@ ${firstSourceMarker !== '' ? `    <div class="test-source-marker">${escapeHtml(f
           stepDescription = stepDescription.trim();
           i++; // consume the Step description attachment
         }
+        let stepUrl: string | undefined;
+        const urlAtt = attachments[i + 1];
+        if (
+          urlAtt &&
+          urlAtt.name === STEP_URL_NAME &&
+          (urlAtt.contentType === 'text/plain' || !urlAtt.contentType) &&
+          urlAtt.body !== undefined
+        ) {
+          stepUrl = typeof urlAtt.body === 'string' ? urlAtt.body : urlAtt.body.toString('utf-8');
+          stepUrl = stepUrl.trim();
+          if (stepUrl !== '') {
+            i++; // consume the Step URL attachment
+          } else {
+            stepUrl = undefined;
+          }
+        }
         const stepLabelOnly =
           stepDescription !== ''
             ? humanizeStepLabel(stepDescriptionLabelOnly(stepDescription))
             : '';
-        collectedSteps.push({ imgSrc, stepLabelOnly });
+        collectedSteps.push({ imgSrc, stepLabelOnly, stepUrl });
       }
 
       for (let stepIndex = 0; stepIndex < collectedSteps.length; stepIndex++) {
         const step = collectedSteps[stepIndex];
-        const hideImage = shouldHideNavigationOnlyImage(collectedSteps, stepIndex);
-        parts.push(`    <div class="step-block" data-shot-index="${shotIndex}">
+        if (shouldHideNavigationOnlyImage(collectedSteps, stepIndex)) {
+          continue;
+        }
+        parts.push(`    <hr class="step-description-hr">
+    <div class="step-block" data-shot-index="${shotIndex}">
     <div class="step-content">
 ${
   step.stepLabelOnly !== ''
     ? `    <div class="step-description">
     <div class="step-description-text">${escapeHtml(step.stepLabelOnly)}</div>
+${
+  step.stepUrl
+    ? `    <div class="step-url">URL: <a href="${escapeHtml(step.stepUrl)}" target="_blank" rel="noopener noreferrer">${escapeHtml(step.stepUrl)}</a></div>
+`
+    : ''
+}
     </div>
 `
     : ''
-}${
-          hideImage
-            ? `    <div class="step-image-suppressed">Screenshot hidden for navigation-only step; later validation captures evidence.</div>
-`
-            : `    <a class="step-image-link" href="${escapeHtml(step.imgSrc)}" target="_blank" rel="noopener noreferrer">
+}
+    <a class="step-image-link" href="${escapeHtml(step.imgSrc)}" target="_blank" rel="noopener noreferrer">
     <img src="${escapeHtml(step.imgSrc)}" alt="Step screenshot">
     </a>
-`
-        }    </div>
+    </div>
 `);
         parts.push(`    </div>
 `);
@@ -456,10 +668,18 @@ ${
     parts.push(`  <div class="nav-wrapper">
   <div id="nav-end-message" class="nav-end-message" role="status" aria-live="polite">End of list</div>
   <div class="nav-buttons" aria-label="Report navigation">
-    <button type="button" id="nav-top">Top</button>
-    <button type="button" id="nav-next-shot">Next Shot</button>
-    <button type="button" id="nav-next-test">Next Test</button>
-    <button type="button" id="nav-next-error">Next Error</button>
+    <div class="nav-row nav-row-prev">
+      <button type="button" id="nav-top" title="Top">\u2191</button>
+      <button type="button" id="nav-prev-shot" title="Prev Shot">\u2191 Shot</button>
+      <button type="button" id="nav-prev-test" title="Prev Test">\u2191 Test</button>
+      <button type="button" id="nav-prev-error" title="Prev Error">\u2191 Error</button>
+    </div>
+    <div class="nav-row">
+      <button type="button" id="nav-bottom" title="Bottom">\u2193</button>
+      <button type="button" id="nav-next-shot" title="Next Shot">\u2193 Shot</button>
+      <button type="button" id="nav-next-test" title="Next Test">\u2193 Test</button>
+      <button type="button" id="nav-next-error" title="Next Error">\u2193 Error</button>
+    </div>
   </div>
   </div>
   <script>
@@ -467,6 +687,18 @@ ${
       var testSections = document.querySelectorAll('section.test');
       var errorSections = document.querySelectorAll('section.test[data-status="failed"], section.test[data-status="timedOut"]');
       var endMessage = document.getElementById('nav-end-message');
+      var testIndexIndicator = document.getElementById('test-index-indicator');
+      function updateTestIndexIndicator() {
+        if (!testIndexIndicator) return;
+        var total = testSections.length;
+        if (total === 0) {
+          testIndexIndicator.textContent = '0 / 0';
+          return;
+        }
+        var currentIndex = findCurrentIndex(testSections);
+        var displayNum = currentIndex < 0 ? 1 : currentIndex + 1;
+        testIndexIndicator.textContent = displayNum + ' / ' + total;
+      }
       function findCurrentIndex(elements) {
         var viewportTop = window.scrollY + 80;
         var currentIndex = -1;
@@ -490,12 +722,28 @@ ${
         if (nextIndex >= elements.length) return null;
         return elements[nextIndex];
       }
+      function findPrevNoWrap(elements) {
+        if (elements.length === 0) return null;
+        var currentIndex = findCurrentIndex(elements);
+        var prevIndex = currentIndex - 1;
+        if (prevIndex < 0) return null;
+        return elements[prevIndex];
+      }
       function findNextByTopNoWrap(elements, offsetPx) {
         if (elements.length === 0) return null;
         var threshold = window.scrollY + (offsetPx || 0) + 2;
         for (var j = 0; j < elements.length; j++) {
           var top = elements[j].getBoundingClientRect().top + window.scrollY;
           if (top > threshold) return elements[j];
+        }
+        return null;
+      }
+      function findPrevByTopNoWrap(elements, offsetPx) {
+        if (elements.length === 0) return null;
+        var threshold = window.scrollY + (offsetPx || 0) - 2;
+        for (var j = elements.length - 1; j >= 0; j--) {
+          var top = elements[j].getBoundingClientRect().top + window.scrollY;
+          if (top < threshold) return elements[j];
         }
         return null;
       }
@@ -506,6 +754,14 @@ ${
         for (var k = 0; k < shotBlocks.length; k++) {
           var top = shotBlocks[k].getBoundingClientRect().top + window.scrollY;
           if (top > threshold) return shotBlocks[k];
+        }
+        return null;
+      }
+      function findPrevShotBehind() {
+        var threshold = window.scrollY + SHOT_OFFSET_PX - 2;
+        for (var k = shotBlocks.length - 1; k >= 0; k--) {
+          var top = shotBlocks[k].getBoundingClientRect().top + window.scrollY;
+          if (top < threshold) return shotBlocks[k];
         }
         return null;
       }
@@ -525,6 +781,30 @@ ${
       }
       function hideEndMessage() { endMessage.classList.remove('visible'); if (endMessageTimeout) { clearTimeout(endMessageTimeout); endMessageTimeout = null; } }
       document.getElementById('nav-top').addEventListener('click', function () { hideEndMessage(); window.scrollTo({ top: 0, behavior: 'auto' }); });
+      document.getElementById('nav-bottom').addEventListener('click', function () { hideEndMessage(); window.scrollTo({ top: document.documentElement.scrollHeight - window.innerHeight, behavior: 'auto' }); });
+      document.getElementById('nav-prev-shot').addEventListener('click', function () {
+        var prevShot = findPrevShotBehind();
+        if (prevShot !== null) {
+          hideEndMessage();
+          scrollToShot(prevShot);
+          return;
+        }
+        var prevTest = findPrevByTopNoWrap(testSections, 0);
+        if (prevTest !== null) {
+          hideEndMessage();
+          scrollTo(prevTest);
+          return;
+        }
+        showEndMessage();
+      });
+      document.getElementById('nav-prev-test').addEventListener('click', function () {
+        var prev = findPrevNoWrap(testSections);
+        if (prev) { hideEndMessage(); scrollTo(prev); } else { showEndMessage(); }
+      });
+      document.getElementById('nav-prev-error').addEventListener('click', function () {
+        var prev = findPrevNoWrap(errorSections);
+        if (prev) { hideEndMessage(); scrollTo(prev); } else { showEndMessage(); }
+      });
       document.getElementById('nav-next-shot').addEventListener('click', function () {
         var nextShot = findNextShotAhead();
         if (nextShot !== null) {
@@ -548,6 +828,8 @@ ${
         var next = findNextNoWrap(errorSections);
         if (next) { hideEndMessage(); scrollTo(next); } else { showEndMessage(); }
       });
+      updateTestIndexIndicator();
+      window.addEventListener('scroll', updateTestIndexIndicator);
     })();
   </script>
 </body>

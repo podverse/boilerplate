@@ -7,11 +7,11 @@ import { setE2EUserContext } from './helpers/userContext';
 
 const E2E_BUCKET1_ID = 'e2ebkt000001';
 
-test.describe('This suite verifies the management bucket-detail-page for the admin with buckets read (bucket-admins permission) user.', () => {
-  test('When an admin with buckets read opens the bucket-detail-page with an invalid bucket id, they see not found.', async ({
+test.describe('This suite verifies the management bucket-detail-page for the admin (buckets:R bucket_admins events:all_admins) user.', () => {
+  test('When an admin (buckets:R bucket_admins events:all_admins) opens the bucket-detail-page with an invalid bucket id, they see not found.', async ({
     page,
   }, testInfo) => {
-    setE2EUserContext(testInfo, 'admin with buckets read (bucket-admins permission)');
+    setE2EUserContext(testInfo, 'admin (buckets:R bucket_admins events:all_admins)');
     await loginAsManagementAdminWithBucketAdmins(page);
     await expectInvalidRouteShowsNotFound(
       page,
@@ -23,10 +23,10 @@ test.describe('This suite verifies the management bucket-detail-page for the adm
     );
   });
 
-  test('When an admin with buckets read opens the bucket-detail-page, they see the bucket name and the Buckets/Public links.', async ({
+  test('When an admin (buckets:R bucket_admins events:all_admins) opens the bucket-detail-page, they see the bucket name and the Buckets/Public links.', async ({
     page,
   }, testInfo) => {
-    setE2EUserContext(testInfo, 'admin with buckets read (bucket-admins permission)');
+    setE2EUserContext(testInfo, 'admin (buckets:R bucket_admins events:all_admins)');
     await loginAsManagementAdminWithBucketAdmins(page);
     await page.goto(`/bucket/${E2E_BUCKET1_ID}`);
     await expect(page).toHaveURL(new RegExp(`/bucket/${E2E_BUCKET1_ID}`));
@@ -37,14 +37,14 @@ test.describe('This suite verifies the management bucket-detail-page for the adm
     await capturePageLoad(
       page,
       testInfo,
-      'The admin with buckets read sees the bucket-detail-page with Buckets/Public links.'
+      'The admin (buckets:R bucket_admins events:all_admins) sees the bucket-detail-page with Buckets/Public links.'
     );
   });
 
-  test('When an admin with buckets read navigates from the buckets-list-page to bucket-detail via a bucket link, the bucket detail loads.', async ({
+  test('When an admin (buckets:R bucket_admins events:all_admins) navigates from the buckets-list-page to bucket-detail via a bucket link, the bucket detail loads.', async ({
     page,
   }, testInfo) => {
-    setE2EUserContext(testInfo, 'admin with buckets read (bucket-admins permission)');
+    setE2EUserContext(testInfo, 'admin (buckets:R bucket_admins events:all_admins)');
     await loginAsManagementAdminWithBucketAdmins(page);
     await page.goto('/buckets');
     await expect(page).toHaveURL(/\/buckets/);

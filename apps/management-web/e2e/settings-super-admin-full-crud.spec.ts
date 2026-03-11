@@ -4,11 +4,11 @@ import { loginAsManagementSuperAdmin } from './helpers/advancedFixtures';
 import { actionAndCapture, capturePageLoad } from './helpers/stepScreenshots';
 import { setE2EUserContext } from './helpers/userContext';
 
-test.describe('This suite verifies the management settings-page for the super-admin (full CRUD) user.', () => {
+test.describe('This suite verifies the management settings-page for the super-admin user.', () => {
   test('When an authenticated user opens the settings-page, they see the settings content with General, Profile, and Password tabs.', async ({
     page,
   }, testInfo) => {
-    setE2EUserContext(testInfo, 'super-admin (full CRUD)');
+    setE2EUserContext(testInfo, 'super-admin');
     await loginAsManagementSuperAdmin(page);
     await actionAndCapture(
       page,
@@ -33,7 +33,7 @@ test.describe('This suite verifies the management settings-page for the super-ad
   test('When the user opens the settings-page with the password tab, the password form is visible.', async ({
     page,
   }, testInfo) => {
-    setE2EUserContext(testInfo, 'super-admin (full CRUD)');
+    setE2EUserContext(testInfo, 'super-admin');
     await loginAsManagementSuperAdmin(page);
     await actionAndCapture(
       page,

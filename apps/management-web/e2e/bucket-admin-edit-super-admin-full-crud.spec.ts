@@ -9,11 +9,11 @@ const E2E_BUCKET1_ID = '22222222-2222-4222-a222-222222222222';
 const E2E_MAIN_USER_ID = 'e2eusr000001';
 const E2E_NON_OWNER_ADMIN_ID = 'e2eusr000002';
 
-test.describe('This suite verifies the management bucket-admin-edit-page for the super-admin (full CRUD) user.', () => {
+test.describe('This suite verifies the management bucket-admin-edit-page for the super-admin user.', () => {
   test('When the user opens the bucket-admin-edit-page with an invalid admin user id, they see not found.', async ({
     page,
   }, testInfo) => {
-    setE2EUserContext(testInfo, 'super-admin (full CRUD)');
+    setE2EUserContext(testInfo, 'super-admin');
     await loginAsManagementSuperAdmin(page);
     await expectInvalidRouteShowsNotFound(
       page,
@@ -27,25 +27,25 @@ test.describe('This suite verifies the management bucket-admin-edit-page for the
     );
   });
 
-  test('When the user opens the bucket-admin-edit-route with the seeded-bucket-owner user id, they see not found.', async ({
+  test('When the user opens the bucket-admin-edit-route with the bucket-owner user id, they see not found.', async ({
     page,
   }, testInfo) => {
-    setE2EUserContext(testInfo, 'super-admin (full CRUD)');
+    setE2EUserContext(testInfo, 'super-admin');
     await loginAsManagementSuperAdmin(page);
     await expectInvalidRouteShowsNotFound(
       page,
       testInfo,
-      'User navigates to the bucket-admin-edit-page with the seeded-bucket-owner user id and sees not found.',
+      'User navigates to the bucket-admin-edit-page with the bucket-owner user id and sees not found.',
       async () => {
         await page.goto(`/bucket/${E2E_BUCKET1_ID}/settings/admins/${E2E_MAIN_USER_ID}/edit`);
       }
     );
   });
 
-  test('When the super-admin navigates from the bucket-settings-admins-tab to the bucket-admin-edit-page for a non-owner admin, the bucket-admin-edit-page loads.', async ({
+  test('When the super-admin navigates from the bucket-settings-admins-tab to the bucket-admin-edit-page for a non-owner-admin, the bucket-admin-edit-page loads.', async ({
     page,
   }, testInfo) => {
-    setE2EUserContext(testInfo, 'super-admin (full CRUD)');
+    setE2EUserContext(testInfo, 'super-admin');
     await loginAsManagementSuperAdmin(page);
     await actionAndCapture(
       page,
@@ -61,7 +61,7 @@ test.describe('This suite verifies the management bucket-admin-edit-page for the
     await actionAndCapture(
       page,
       testInfo,
-      'User clicks the edit link for a non-owner admin and reaches the bucket-admin-edit-page.',
+      'User clicks the edit link for a non-owner-admin and reaches the bucket-admin-edit-page.',
       async () => {
         await page.locator(`a[href*="admins/${E2E_NON_OWNER_ADMIN_ID}/edit"]`).click();
       }
@@ -81,7 +81,7 @@ test.describe('This suite verifies the management bucket-admin-edit-page for the
   test('When the super-admin clicks Cancel on the bucket-admin-edit-page, they return to the bucket-settings-admins view.', async ({
     page,
   }, testInfo) => {
-    setE2EUserContext(testInfo, 'super-admin (full CRUD)');
+    setE2EUserContext(testInfo, 'super-admin');
     await loginAsManagementSuperAdmin(page);
     await page.goto(`/bucket/${E2E_BUCKET1_ID}/settings/admins/${E2E_NON_OWNER_ADMIN_ID}/edit`);
     await expect(page.getByRole('link', { name: /cancel/i })).toBeVisible();
@@ -102,10 +102,10 @@ test.describe('This suite verifies the management bucket-admin-edit-page for the
     );
   });
 
-  test('When the super-admin saves the bucket-admin-edit-form for a non-owner admin, the admin is updated and they return to the admins-list.', async ({
+  test('When the super-admin saves the bucket-admin-edit-form for a non-owner-admin, the admin is updated and they return to the admins-list.', async ({
     page,
   }, testInfo) => {
-    setE2EUserContext(testInfo, 'super-admin (full CRUD)');
+    setE2EUserContext(testInfo, 'super-admin');
     await loginAsManagementSuperAdmin(page);
     await page.goto(`/bucket/${E2E_BUCKET1_ID}/settings/admins/${E2E_NON_OWNER_ADMIN_ID}/edit`);
     await expect(page).toHaveURL(
@@ -115,7 +115,7 @@ test.describe('This suite verifies the management bucket-admin-edit-page for the
     await actionAndCapture(
       page,
       testInfo,
-      'User clicks Save on the bucket-admin-edit-form for the non-owner admin.',
+      'User clicks Save on the bucket-admin-edit-form for the non-owner-admin.',
       async () => {
         await page.getByRole('button', { name: /save/i }).click();
       }

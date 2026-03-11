@@ -1,7 +1,7 @@
 ---
 name: e2e-page-tests
 description: When layout, functionality, or conditions change in apps/web or apps/management-web, add or update the corresponding E2E (Playwright) test so page behavior stays covered.
-version: 1.1.0
+version: 1.2.0
 ---
 
 # E2E Page Tests (Web and Management-Web)
@@ -20,7 +20,7 @@ For CRUD and permission-gated flows, also apply **e2e-crud-state-matrix** and, f
 For query-param state behavior, also apply **e2e-url-state-contracts**.
 For test-title/step readability and report behavior, also apply **e2e-readability**.
 
-If the change is in **web**, add or update a spec in `apps/web/e2e/`. If it is in **management-web**, add or update a spec in `apps/management-web/e2e/`.
+If the change is in **web**, add or update a spec in `apps/web/e2e/`. If it is in **management-web**, add or update a spec in `apps/management-web/e2e/`. When **adding** a new spec file, update the corresponding E2E spec order file so the full report stays in conceptual order (see **e2e-report-order** skill).
 
 ## Where tests live
 
@@ -29,7 +29,7 @@ If the change is in **web**, add or update a spec in `apps/web/e2e/`. If it is i
 | apps/web            | `apps/web/e2e/`            | `apps/web/playwright.config.ts`            |
 | apps/management-web | `apps/management-web/e2e/` | `apps/management-web/playwright.config.ts` |
 
-- Use the **deterministic E2E seed** for data (e.g. `e2e@example.com` / `Test!1Aa` for web; `e2e-superadmin@example.com` for management-web). See [docs/testing/E2E-PAGE-TESTING.md](../../../docs/testing/E2E-PAGE-TESTING.md).
+- Use the **deterministic E2E seed** for data (e.g. `e2e-bucket-owner@example.com` / `Test!1Aa` for web bucket-owner; management-web login is by username `e2e-superadmin` and password `Test!1Aa`). See [docs/testing/E2E-PAGE-TESTING.md](../../../docs/testing/E2E-PAGE-TESTING.md).
 - **API gate**: E2E Make targets run API integration tests first; if they fail, Playwright does not run.
 - **Current startup model**: Playwright `webServer` now auto-starts the required API + web apps on dedicated E2E ports in production-like mode (`build` + `start`), so manual app startup is not part of normal E2E runs.
 
@@ -52,7 +52,10 @@ Page-level coverage is tracked in `.llm/plans/active/e2e-page-tests/` (e.g. `web
 
 Report mode uses a custom reporter (`scripts/e2e-html-steps-reporter.ts`) so each
 step screenshot is shown with its full "Step description" in an expandable block
-directly below the image.
+directly below the image; when the capture helper attaches a "Step URL", the report
+shows that URL in the same block. The report UI includes a fixed top-right indicator
+showing which test you are viewing (e.g. 3 / 12) and fixed bottom-right nav (prev/next
+test, shot, error).
 
 ## Screenshot naming policy (QA-readable)
 

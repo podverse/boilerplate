@@ -4,11 +4,11 @@ import { loginAsManagementSuperAdmin, nextFixtureName } from './helpers/advanced
 import { actionAndCapture, capturePageLoad } from './helpers/stepScreenshots';
 import { setE2EUserContext } from './helpers/userContext';
 
-test.describe('This suite verifies the management buckets-new page for the super-admin (full CRUD) user.', () => {
+test.describe('This suite verifies the management buckets-new page for the super-admin user.', () => {
   test('When a permitted user (super-admin) opens the buckets-new page, they see the add-bucket form.', async ({
     page,
   }, testInfo) => {
-    setE2EUserContext(testInfo, 'super-admin (full CRUD)');
+    setE2EUserContext(testInfo, 'super-admin');
     await loginAsManagementSuperAdmin(page);
     await actionAndCapture(
       page,
@@ -31,7 +31,7 @@ test.describe('This suite verifies the management buckets-new page for the super
   test('When the super-admin navigates from the buckets-list to the new-bucket page via the add-bucket link, they see the add-bucket form.', async ({
     page,
   }, testInfo) => {
-    setE2EUserContext(testInfo, 'super-admin (full CRUD)');
+    setE2EUserContext(testInfo, 'super-admin');
     await loginAsManagementSuperAdmin(page);
     await page.goto('/buckets');
     await expect(page).toHaveURL(/\/buckets(\?|$)/);
@@ -58,7 +58,7 @@ test.describe('This suite verifies the management buckets-new page for the super
   test('When the user submits the new-bucket form without required fields, validation is shown and they remain on the page.', async ({
     page,
   }, testInfo) => {
-    setE2EUserContext(testInfo, 'super-admin (full CRUD)');
+    setE2EUserContext(testInfo, 'super-admin');
     await loginAsManagementSuperAdmin(page);
     await page.goto('/buckets/new');
     await expect(page.getByRole('textbox', { name: /name|bucket/i })).toBeVisible();
@@ -80,7 +80,7 @@ test.describe('This suite verifies the management buckets-new page for the super
   test('When the user clicks Cancel on the new-bucket form, they are returned to the buckets-list.', async ({
     page,
   }, testInfo) => {
-    setE2EUserContext(testInfo, 'super-admin (full CRUD)');
+    setE2EUserContext(testInfo, 'super-admin');
     await loginAsManagementSuperAdmin(page);
     await page.goto('/buckets/new');
     await expect(page.getByRole('button', { name: /cancel/i })).toBeVisible();
@@ -100,7 +100,7 @@ test.describe('This suite verifies the management buckets-new page for the super
   test('When the user submits a valid bucket create form, they are redirected to the bucket surface and the new bucket appears in the list.', async ({
     page,
   }, testInfo) => {
-    setE2EUserContext(testInfo, 'super-admin (full CRUD)');
+    setE2EUserContext(testInfo, 'super-admin');
     await loginAsManagementSuperAdmin(page);
     await page.goto('/buckets/new');
     await expect(page.getByRole('textbox', { name: /name|bucket/i })).toBeVisible();

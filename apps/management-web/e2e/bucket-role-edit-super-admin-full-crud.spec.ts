@@ -13,11 +13,11 @@ import { setE2EUserContext } from './helpers/userContext';
 
 const E2E_BUCKET1_ID = '22222222-2222-4222-a222-222222222222';
 
-test.describe('This suite verifies the management bucket-role-edit-page for the super-admin (full CRUD) user.', () => {
+test.describe('This suite verifies the management bucket-role-edit-page for the super-admin user.', () => {
   test('When the super-admin opens the bucket-role-edit-page with an invalid role id, they see not found.', async ({
     page,
   }, testInfo) => {
-    setE2EUserContext(testInfo, 'super-admin (full CRUD)');
+    setE2EUserContext(testInfo, 'super-admin');
     await loginAsManagementSuperAdmin(page);
     await expectInvalidRouteShowsNotFound(
       page,
@@ -34,7 +34,7 @@ test.describe('This suite verifies the management bucket-role-edit-page for the 
   test('When a permitted user (super-admin) navigates from the bucket-settings roles-tab to the role-edit-page via the edit link, they see the role-edit-form.', async ({
     page,
   }, testInfo) => {
-    setE2EUserContext(testInfo, 'super-admin (full CRUD)');
+    setE2EUserContext(testInfo, 'super-admin');
     await loginAsManagementSuperAdmin(page);
     const roleName = nextFixtureName('e2e-mgmt-role');
     await page.goto(`/bucket/${E2E_BUCKET1_ID}/settings/roles/new`);
@@ -65,7 +65,7 @@ test.describe('This suite verifies the management bucket-role-edit-page for the 
   test('When the user clicks Cancel on the role-edit-form, they are returned to the bucket-settings roles-list.', async ({
     page,
   }, testInfo) => {
-    setE2EUserContext(testInfo, 'super-admin (full CRUD)');
+    setE2EUserContext(testInfo, 'super-admin');
     await loginAsManagementSuperAdmin(page);
     const roleName = nextFixtureName('e2e-mgmt-role-cancel');
     await page.goto(`/bucket/${E2E_BUCKET1_ID}/settings/roles/new`);
@@ -91,7 +91,7 @@ test.describe('This suite verifies the management bucket-role-edit-page for the 
   test('When the user edits an existing custom role and saves, the role is updated and they return to the roles-list with the updated name visible.', async ({
     page,
   }, testInfo) => {
-    setE2EUserContext(testInfo, 'super-admin (full CRUD)');
+    setE2EUserContext(testInfo, 'super-admin');
     await loginAsManagementSuperAdmin(page);
     const createdName = nextFixtureName('e2e-mgmt-role');
     const updatedName = nextFixtureName('e2e-mgmt-role-updated');

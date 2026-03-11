@@ -30,7 +30,7 @@ async function createMessageAndGetId(page: import('@playwright/test').Page): Pro
 }
 
 test.describe('This suite verifies the bucket-message-edit-page for the admin-without-permission user.', () => {
-  test('When the non-owner admin without message update permission opens the bucket-message-edit-page, they see not found.', async ({
+  test('When the non-owner-admin without message update permission opens the bucket-message-edit-page, they see not found.', async ({
     page,
   }, testInfo) => {
     setE2EUserContext(testInfo, 'admin-without-permission');

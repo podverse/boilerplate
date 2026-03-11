@@ -4,11 +4,11 @@ import { loginAsLimitedAdmin } from './helpers/advancedFixtures';
 import { actionAndCapture, capturePageLoad } from './helpers/stepScreenshots';
 import { setE2EUserContext } from './helpers/userContext';
 
-test.describe('This suite verifies the management profile flow for the limited-admin user.', () => {
-  test('When a limited-admin opens the profile-page, they are redirected to settings and can view profile fields.', async ({
+test.describe('This suite verifies the management profile flow for the admin (admins users events:own) user.', () => {
+  test('When an admin (admins users events:own) opens the profile-page, they are redirected to settings and can view profile fields.', async ({
     page,
   }, testInfo) => {
-    setE2EUserContext(testInfo, 'limited-admin');
+    setE2EUserContext(testInfo, 'admin (admins users events:own)');
     await loginAsLimitedAdmin(page);
     await actionAndCapture(
       page,
@@ -25,7 +25,7 @@ test.describe('This suite verifies the management profile flow for the limited-a
     await capturePageLoad(
       page,
       testInfo,
-      'The profile tab is visible for limited-admin on settings.'
+      'The profile tab is visible for admin (admins users events:own) on settings.'
     );
   });
 });

@@ -6,11 +6,11 @@ import { setE2EUserContext } from './helpers/userContext';
 
 const E2E_BUCKET1_SHORT_ID = 'e2ebkt000001';
 
-test.describe('This suite verifies the bucket-settings-page for the non-admin user.', () => {
-  test('When the non-admin opens the bucket-settings-page, they see not found.', async ({
+test.describe('This suite verifies the bucket-settings-page for the basic-user.', () => {
+  test('When the basic-user opens the bucket-settings-page, they see not found.', async ({
     page,
   }, testInfo) => {
-    setE2EUserContext(testInfo, 'non-admin');
+    setE2EUserContext(testInfo, 'basic-user');
     await loginAsWebE2ENonAdmin(page);
     await expectInvalidRouteShowsNotFound(
       page,

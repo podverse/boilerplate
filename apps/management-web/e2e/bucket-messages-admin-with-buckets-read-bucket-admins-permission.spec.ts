@@ -7,11 +7,11 @@ import { setE2EUserContext } from './helpers/userContext';
 
 const E2E_BUCKET1_ID = '22222222-2222-4222-a222-222222222222';
 
-test.describe('This suite verifies the management bucket-messages-page for the admin with buckets read (bucket-admins permission) user.', () => {
-  test('When an admin with buckets read opens the bucket-messages route with an invalid bucket id, they see not found.', async ({
+test.describe('This suite verifies the management bucket-messages-page for the admin (buckets:R bucket_admins events:all_admins) user.', () => {
+  test('When an admin (buckets:R bucket_admins events:all_admins) opens the bucket-messages route with an invalid bucket id, they see not found.', async ({
     page,
   }, testInfo) => {
-    setE2EUserContext(testInfo, 'admin with buckets read (bucket-admins permission)');
+    setE2EUserContext(testInfo, 'admin (buckets:R bucket_admins events:all_admins)');
     await loginAsManagementAdminWithBucketAdmins(page);
     await expectInvalidRouteShowsNotFound(
       page,
@@ -23,10 +23,10 @@ test.describe('This suite verifies the management bucket-messages-page for the a
     );
   });
 
-  test('When an admin with buckets read opens the bucket-messages route, they are redirected to the bucket-detail-page without messages access.', async ({
+  test('When an admin (buckets:R bucket_admins events:all_admins) opens the bucket-messages route, they are redirected to the bucket-detail-page without messages access.', async ({
     page,
   }, testInfo) => {
-    setE2EUserContext(testInfo, 'admin with buckets read (bucket-admins permission)');
+    setE2EUserContext(testInfo, 'admin (buckets:R bucket_admins events:all_admins)');
     await loginAsManagementAdminWithBucketAdmins(page);
     await page.goto(`/bucket/${E2E_BUCKET1_ID}/messages`);
     await expect(page).toHaveURL(new RegExp(`/bucket/${E2E_BUCKET1_ID}(?:/|$)`));
@@ -35,14 +35,14 @@ test.describe('This suite verifies the management bucket-messages-page for the a
     await capturePageLoad(
       page,
       testInfo,
-      'The admin with buckets read is redirected to bucket-detail without messages tab access.'
+      'The admin (buckets:R bucket_admins events:all_admins) is redirected to bucket-detail without messages tab access.'
     );
   });
 
-  test('When an admin with buckets read opens bucket-detail with tab=messages, they remain on bucket-detail without messages content.', async ({
+  test('When an admin (buckets:R bucket_admins events:all_admins) opens bucket-detail with tab=messages, they remain on bucket-detail without messages content.', async ({
     page,
   }, testInfo) => {
-    setE2EUserContext(testInfo, 'admin with buckets read (bucket-admins permission)');
+    setE2EUserContext(testInfo, 'admin (buckets:R bucket_admins events:all_admins)');
     await loginAsManagementAdminWithBucketAdmins(page);
     await actionAndCapture(
       page,

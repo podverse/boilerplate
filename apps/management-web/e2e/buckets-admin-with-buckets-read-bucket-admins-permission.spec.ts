@@ -4,11 +4,11 @@ import { loginAsManagementAdminWithBucketAdmins } from './helpers/advancedFixtur
 import { actionAndCapture, capturePageLoad } from './helpers/stepScreenshots';
 import { setE2EUserContext } from './helpers/userContext';
 
-test.describe('This suite verifies the management buckets-list page for the admin with buckets read (bucket-admins permission) user.', () => {
-  test('When an admin with buckets read opens the buckets-list page, they see the buckets heading and list.', async ({
+test.describe('This suite verifies the management buckets-list page for the admin (buckets:R bucket_admins events:all_admins) user.', () => {
+  test('When an admin (buckets:R bucket_admins events:all_admins) opens the buckets-list page, they see the buckets heading and list.', async ({
     page,
   }, testInfo) => {
-    setE2EUserContext(testInfo, 'admin with buckets read (bucket-admins permission)');
+    setE2EUserContext(testInfo, 'admin (buckets:R bucket_admins events:all_admins)');
     await loginAsManagementAdminWithBucketAdmins(page);
     await page.goto('/buckets');
     await expect(page).toHaveURL(/\/buckets/);
@@ -16,14 +16,14 @@ test.describe('This suite verifies the management buckets-list page for the admi
     await capturePageLoad(
       page,
       testInfo,
-      'The admin with buckets read sees the buckets-list page.'
+      'The admin (buckets:R bucket_admins events:all_admins) sees the buckets-list page.'
     );
   });
 
-  test('When an admin with buckets read clicks a bucket row link from the buckets-list page, they reach bucket-detail.', async ({
+  test('When an admin (buckets:R bucket_admins events:all_admins) clicks a bucket row link from the buckets-list page, they reach bucket-detail.', async ({
     page,
   }, testInfo) => {
-    setE2EUserContext(testInfo, 'admin with buckets read (bucket-admins permission)');
+    setE2EUserContext(testInfo, 'admin (buckets:R bucket_admins events:all_admins)');
     await loginAsManagementAdminWithBucketAdmins(page);
     await page.goto('/buckets');
     await expect(page).toHaveURL(/\/buckets/);

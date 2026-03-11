@@ -12,11 +12,11 @@ import { setE2EUserContext } from './helpers/userContext';
 
 const E2E_BUCKET1_ID = '22222222-2222-4222-a222-222222222222';
 
-test.describe('This suite verifies the management bucket-messages-page for the super-admin (full CRUD) user.', () => {
+test.describe('This suite verifies the management bucket-messages-page for the super-admin user.', () => {
   test('When the super-admin opens the bucket-messages-route with an invalid bucket id, they see not found.', async ({
     page,
   }, testInfo) => {
-    setE2EUserContext(testInfo, 'super-admin (full CRUD)');
+    setE2EUserContext(testInfo, 'super-admin');
     await loginAsManagementSuperAdmin(page);
     await expectInvalidRouteShowsNotFound(
       page,
@@ -31,7 +31,7 @@ test.describe('This suite verifies the management bucket-messages-page for the s
   test('When a permitted user (super-admin) opens the bucket-messages-route, they are redirected to the bucket-detail-page.', async ({
     page,
   }, testInfo) => {
-    setE2EUserContext(testInfo, 'super-admin (full CRUD)');
+    setE2EUserContext(testInfo, 'super-admin');
     await loginAsManagementSuperAdmin(page);
     await actionAndCapture(
       page,
@@ -52,7 +52,7 @@ test.describe('This suite verifies the management bucket-messages-page for the s
   test('When a permitted user (super-admin) opens the bucket-detail-page with the messages tab, they see the messages list or empty state.', async ({
     page,
   }, testInfo) => {
-    setE2EUserContext(testInfo, 'super-admin (full CRUD)');
+    setE2EUserContext(testInfo, 'super-admin');
     await loginAsManagementSuperAdmin(page);
     await actionAndCapture(
       page,
@@ -76,7 +76,7 @@ test.describe('This suite verifies the management bucket-messages-page for the s
   test('When the user opens the bucket-detail messages tab with sort=oldest, the URL preserves tab and sort and the messages panel is visible.', async ({
     page,
   }, testInfo) => {
-    setE2EUserContext(testInfo, 'super-admin (full CRUD)');
+    setE2EUserContext(testInfo, 'super-admin');
     await loginAsManagementSuperAdmin(page);
     await actionAndCapture(
       page,

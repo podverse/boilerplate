@@ -29,11 +29,11 @@ async function createMessageAndGetId(page: import('@playwright/test').Page): Pro
   return match[1];
 }
 
-test.describe('This suite verifies the bucket-message-edit-page for the non-admin user.', () => {
-  test('When the non-admin opens the bucket-message-edit-page, they see not found.', async ({
+test.describe('This suite verifies the bucket-message-edit-page for the basic-user.', () => {
+  test('When the basic-user opens the bucket-message-edit-page, they see not found.', async ({
     page,
   }, testInfo) => {
-    setE2EUserContext(testInfo, 'non-admin');
+    setE2EUserContext(testInfo, 'basic-user');
     const messageId = await createMessageAndGetId(page);
     await page.context().clearCookies();
     await loginAsWebE2ENonAdmin(page);

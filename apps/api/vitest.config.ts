@@ -8,6 +8,9 @@ export default defineConfig({
     include: ['src/**/*.test.ts'],
     setupFiles: ['src/test/setup.ts'],
     pool: 'forks',
+    fileParallelism: false,
+    minWorkers: 1,
+    maxWorkers: 1,
   },
   resolve: {
     extensions: ['.ts', '.js'],

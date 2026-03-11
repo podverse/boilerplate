@@ -27,17 +27,17 @@ const E2E_USER3_SHORT_ID = 'e2eusr000003';
 const E2E_USER4_SHORT_ID = 'e2eusr000004';
 const E2E_BUCKET1_SHORT_ID = 'e2ebkt000001';
 const E2E_BUCKET2_SHORT_ID = 'e2ebkt000002';
-const E2E_EMAIL = 'e2e@example.com';
-const E2E_EMAIL2 = 'e2e-admin2@example.com';
-const E2E_EMAIL3 = 'e2e-admin-readonly@example.com';
-const E2E_EMAIL4 = 'e2e-other@example.com';
+const E2E_EMAIL = 'e2e-bucket-owner@example.com';
+const E2E_EMAIL2 = 'e2e-bucket-admin@example.com';
+const E2E_EMAIL3 = 'e2e-admin-without-permission@example.com';
+const E2E_EMAIL4 = 'e2e-non-admin@example.com';
 const E2E_PASSWORD_PLAIN = 'Test!1Aa';
 /** Raw token for reset-password E2E (short to avoid URL truncation); must match apps/web/e2e/helpers/resetPasswordToken.ts */
 const E2E_RESET_PASSWORD_TOKEN_RAW = 'e2e0' + '0'.repeat(28);
-const E2E_DISPLAY_NAME = 'E2E User';
-const E2E_DISPLAY_NAME2 = 'E2E Admin Two';
-const E2E_DISPLAY_NAME3 = 'E2E Admin Readonly';
-const E2E_DISPLAY_NAME4 = 'E2E Other';
+const E2E_DISPLAY_NAME = 'E2E Bucket Owner';
+const E2E_DISPLAY_NAME2 = 'E2E Bucket Admin';
+const E2E_DISPLAY_NAME3 = 'E2E Admin Without Permission';
+const E2E_DISPLAY_NAME4 = 'E2E Non Admin';
 /** Full CRUD (create=1, read=2, update=4, delete=8) so admin can manage bucket admins. */
 const BUCKET_CRUD_FULL = 15;
 /** Read only; cannot manage bucket admins. */

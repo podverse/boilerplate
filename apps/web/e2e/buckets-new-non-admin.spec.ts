@@ -3,11 +3,11 @@ import { expect, test } from '@playwright/test';
 import { loginAsWebE2ENonAdmin } from './helpers/advancedFixtures';
 import { setE2EUserContext } from './helpers/userContext';
 
-test.describe('This suite verifies the new-bucket-page for the non-admin user.', () => {
-  test('When the non-admin opens the new-bucket-page, they see the new-bucket form.', async ({
+test.describe('This suite verifies the new-bucket-page for the basic-user.', () => {
+  test('When the basic-user opens the new-bucket-page, they see the new-bucket form.', async ({
     page,
   }, testInfo) => {
-    setE2EUserContext(testInfo, 'non-admin');
+    setE2EUserContext(testInfo, 'basic-user');
     await loginAsWebE2ENonAdmin(page);
     await page.goto('/buckets/new');
     await expect(page).toHaveURL(/\/buckets\/new/);

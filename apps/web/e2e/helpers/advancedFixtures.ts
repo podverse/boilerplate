@@ -3,11 +3,11 @@ import type { APIRequestContext, Page, TestInfo } from '@playwright/test';
 
 import { actionAndCapture } from './stepScreenshots';
 
-const WEB_LOGIN_EMAIL = 'e2e@example.com';
+const WEB_LOGIN_EMAIL = 'e2e-bucket-owner@example.com';
 const WEB_LOGIN_PASSWORD = 'Test!1Aa';
-const WEB_E2E_ADMIN_WITH_PERMISSION_EMAIL = 'e2e-admin2@example.com';
-const WEB_E2E_ADMIN_WITHOUT_PERMISSION_EMAIL = 'e2e-admin-readonly@example.com';
-const WEB_E2E_NON_ADMIN_EMAIL = 'e2e-other@example.com';
+const WEB_E2E_ADMIN_WITH_PERMISSION_EMAIL = 'e2e-bucket-admin@example.com';
+const WEB_E2E_ADMIN_WITHOUT_PERMISSION_EMAIL = 'e2e-admin-without-permission@example.com';
+const WEB_E2E_NON_ADMIN_EMAIL = 'e2e-non-admin@example.com';
 
 export const nextFixtureName = (prefix: string): string =>
   `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
@@ -33,7 +33,7 @@ export async function loginAsWebE2EUser(page: Page): Promise<void> {
   await loginAsWebE2EUserAndExpectDashboard(page);
 }
 
-/** Log in as non-owner admin with bucket-admins permission (e2e-admin2@example.com). */
+/** Log in as non-owner-admin with bucket-admins permission (e2e-bucket-admin@example.com). */
 export async function loginAsWebE2EAdminWithPermission(page: Page): Promise<void> {
   await loginWithEmailAndExpectDashboard(
     page,
@@ -42,7 +42,7 @@ export async function loginAsWebE2EAdminWithPermission(page: Page): Promise<void
   );
 }
 
-/** Log in as non-owner admin without bucket update (e2e-admin-readonly@example.com). */
+/** Log in as non-owner-admin without bucket update (e2e-admin-without-permission@example.com). */
 export async function loginAsWebE2EAdminWithoutPermission(page: Page): Promise<void> {
   await loginWithEmailAndExpectDashboard(
     page,
@@ -51,7 +51,7 @@ export async function loginAsWebE2EAdminWithoutPermission(page: Page): Promise<v
   );
 }
 
-/** Log in as user with no bucket_admin row for E2E Bucket One (e2e-other@example.com). */
+/** Log in as user with no bucket_admin row for E2E Bucket One (e2e-non-admin@example.com). */
 export async function loginAsWebE2ENonAdmin(page: Page): Promise<void> {
   await loginWithEmailAndExpectDashboard(page, WEB_E2E_NON_ADMIN_EMAIL, WEB_LOGIN_PASSWORD);
 }

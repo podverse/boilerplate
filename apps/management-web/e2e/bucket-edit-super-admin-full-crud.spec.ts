@@ -12,11 +12,11 @@ import { setE2EUserContext } from './helpers/userContext';
 
 const E2E_BUCKET1_ID = 'e2ebkt000001';
 
-test.describe('This suite verifies the management bucket-edit-page for the super-admin (full CRUD) user.', () => {
+test.describe('This suite verifies the management bucket-edit-page for the super-admin user.', () => {
   test('When the super-admin opens the bucket-edit-page with an invalid bucket id, they see not found.', async ({
     page,
   }, testInfo) => {
-    setE2EUserContext(testInfo, 'super-admin (full CRUD)');
+    setE2EUserContext(testInfo, 'super-admin');
     await loginAsManagementSuperAdmin(page);
     await expectInvalidRouteShowsNotFound(
       page,
@@ -31,7 +31,7 @@ test.describe('This suite verifies the management bucket-edit-page for the super
   test('When a permitted user (super-admin) opens the bucket-edit-page, they are redirected to the bucket-settings-page and see the bucket-edit-form.', async ({
     page,
   }, testInfo) => {
-    setE2EUserContext(testInfo, 'super-admin (full CRUD)');
+    setE2EUserContext(testInfo, 'super-admin');
     await loginAsManagementSuperAdmin(page);
     await actionAndCapture(
       page,
@@ -54,7 +54,7 @@ test.describe('This suite verifies the management bucket-edit-page for the super
   test('When the super-admin navigates from the buckets-list-page to the bucket-edit-page via the edit link, they are redirected to the bucket-settings-page.', async ({
     page,
   }, testInfo) => {
-    setE2EUserContext(testInfo, 'super-admin (full CRUD)');
+    setE2EUserContext(testInfo, 'super-admin');
     await loginAsManagementSuperAdmin(page);
     await page.goto('/buckets');
     await expect(page).toHaveURL(/\/buckets/);
@@ -76,7 +76,7 @@ test.describe('This suite verifies the management bucket-edit-page for the super
   test('When the user clicks Cancel on the bucket-edit-form, they are returned to the bucket-view (detail) page.', async ({
     page,
   }, testInfo) => {
-    setE2EUserContext(testInfo, 'super-admin (full CRUD)');
+    setE2EUserContext(testInfo, 'super-admin');
     await loginAsManagementSuperAdmin(page);
     await page.goto(`/bucket/${E2E_BUCKET1_ID}/edit`);
     await expect(page).toHaveURL(new RegExp(`/bucket/${E2E_BUCKET1_ID}/settings`));
@@ -96,7 +96,7 @@ test.describe('This suite verifies the management bucket-edit-page for the super
   test('When the user edits the bucket name and saves, they are taken to the bucket-view page and the updated name is visible on the buckets list.', async ({
     page,
   }, testInfo) => {
-    setE2EUserContext(testInfo, 'super-admin (full CRUD)');
+    setE2EUserContext(testInfo, 'super-admin');
     await loginAsManagementSuperAdmin(page);
     await page.goto(`/bucket/${E2E_BUCKET1_ID}/settings`);
     const nameInput = page.getByRole('textbox', { name: /name|bucket/i });

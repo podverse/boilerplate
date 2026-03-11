@@ -11,11 +11,11 @@ import { setE2EUserContext } from './helpers/userContext';
 
 const E2E_MAIN_USER_ID = '11111111-1111-4111-a111-111111111111';
 
-test.describe('This suite verifies the management user-edit-page for the super-admin (full CRUD) user.', () => {
+test.describe('This suite verifies the management user-edit-page for the super-admin user.', () => {
   test('When the super-admin opens the user-edit-page with an invalid user id, they see not found.', async ({
     page,
   }, testInfo) => {
-    setE2EUserContext(testInfo, 'super-admin (full CRUD)');
+    setE2EUserContext(testInfo, 'super-admin');
     await loginAsManagementSuperAdmin(page);
     await expectInvalidRouteShowsNotFound(
       page,
@@ -30,7 +30,7 @@ test.describe('This suite verifies the management user-edit-page for the super-a
   test('When a permitted user (super-admin) opens the user-edit-page, they see the user-edit-form.', async ({
     page,
   }, testInfo) => {
-    setE2EUserContext(testInfo, 'super-admin (full CRUD)');
+    setE2EUserContext(testInfo, 'super-admin');
     await loginAsManagementSuperAdmin(page);
     await actionAndCapture(
       page,
@@ -53,9 +53,9 @@ test.describe('This suite verifies the management user-edit-page for the super-a
   test('When the super-admin navigates from the users-list-page to the user-edit-page via the edit link, the user-edit-form loads.', async ({
     page,
   }, testInfo) => {
-    setE2EUserContext(testInfo, 'super-admin (full CRUD)');
+    setE2EUserContext(testInfo, 'super-admin');
     await loginAsManagementSuperAdmin(page);
-    await page.goto('/users?search=e2e@example.com');
+    await page.goto('/users?search=e2e-bucket-owner@example.com');
     await expect(page).toHaveURL(/\/users/);
     const editLink = page.locator(`a[href*="/user/${E2E_MAIN_USER_ID}/edit"]`).first();
     await expect(editLink).toBeVisible();
@@ -79,7 +79,7 @@ test.describe('This suite verifies the management user-edit-page for the super-a
   test('When the user clicks Cancel on the user-edit-form, they are returned to the users-list-page.', async ({
     page,
   }, testInfo) => {
-    setE2EUserContext(testInfo, 'super-admin (full CRUD)');
+    setE2EUserContext(testInfo, 'super-admin');
     await loginAsManagementSuperAdmin(page);
     await page.goto(`/user/${E2E_MAIN_USER_ID}/edit`);
     await expect(page.getByRole('button', { name: /cancel/i })).toBeVisible();
@@ -98,7 +98,7 @@ test.describe('This suite verifies the management user-edit-page for the super-a
   test('When the user edits the user profile and saves, they are returned to the users list and the updated user is visible.', async ({
     page,
   }, testInfo) => {
-    setE2EUserContext(testInfo, 'super-admin (full CRUD)');
+    setE2EUserContext(testInfo, 'super-admin');
     await loginAsManagementSuperAdmin(page);
     await page.goto(`/user/${E2E_MAIN_USER_ID}/edit`);
 

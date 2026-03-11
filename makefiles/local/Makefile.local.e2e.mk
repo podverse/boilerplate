@@ -5,6 +5,12 @@
 
 E2E_API_GATE_MODE ?= auto
 E2E_API_GATE_REQUIRED_PATHS_REGEX := ^(apps/api/|apps/management-api/|infra/database/|infra/management-database/|packages/helpers/|packages/helpers-requests/|packages/helpers-validation/|packages/orm/|packages/management-orm/|tools/web/seed-e2e\.mjs|tools/management-web/seed-e2e\.mjs|scripts/e2e-html-steps-reporter\.ts|apps/web/playwright\.config\.ts|apps/management-web/playwright\.config\.ts|makefiles/local/Makefile\.local\.e2e\.mk)
+# Conceptual order for full report (make e2e_test_report). Do not sort; order is from these files.
+WEB_SPEC_ORDERED := $(shell sed '/^#/d;/^$$/d' makefiles/local/e2e-spec-order-web.txt | tr '\n' ' ')
+MGMT_SPEC_ORDERED := $(shell sed '/^#/d;/^$$/d' makefiles/local/e2e-spec-order-management-web.txt | tr '\n' ' ')
+# Semicolon-separated for E2E_SPEC_ORDER so the HTML reporter can reorder runs for display.
+WEB_SPEC_ORDER_SEMICOLON := $(shell sed '/^#/d;/^$$/d' makefiles/local/e2e-spec-order-web.txt | tr '\n' ';')
+MGMT_SPEC_ORDER_SEMICOLON := $(shell sed '/^#/d;/^$$/d' makefiles/local/e2e-spec-order-management-web.txt | tr '\n' ';')
 
 define e2e_run_api_gate
 MODE="$(E2E_API_GATE_MODE)"; \
@@ -78,7 +84,7 @@ e2e_test:
 
 # Full E2E suite in report mode: run all web and management-web tests with step screenshots,
 # write timestamped HTML reports (same layout as e2e_test_home_report), rotate to 10 runs, open both in browser.
-# Report opens even when tests fail.
+# Report opens even when tests fail. Spec order is conceptual (home, buckets, etc.) from e2e-spec-order-*.txt.
 e2e_test_report:
 	@$(call e2e_run_api_gate)
 	@$(MAKE) e2e_seed
@@ -89,8 +95,8 @@ e2e_test_report:
 	WEB_REPORT_DIR="$$RUN_DIR/web"; \
 	MGMT_REPORT_DIR="$$RUN_DIR/management-web"; \
 	mkdir -p "$$WEB_REPORT_DIR" "$$MGMT_REPORT_DIR"; \
-	WEB_EXIT=0; E2E_STEP_SCREENSHOTS=true PLAYWRIGHT_HTML_OPEN=never PLAYWRIGHT_HTML_OUTPUT_DIR="$$WEB_REPORT_DIR" npm run test:e2e -w @boilerplate/web -- --reporter=../../scripts/e2e-html-steps-reporter.ts || WEB_EXIT=$$?; \
-	MGMT_EXIT=0; E2E_STEP_SCREENSHOTS=true PLAYWRIGHT_HTML_OPEN=never PLAYWRIGHT_HTML_OUTPUT_DIR="$$MGMT_REPORT_DIR" npm run test:e2e -w @boilerplate/management-web -- --reporter=../../scripts/e2e-html-steps-reporter.ts || MGMT_EXIT=$$?; \
+	WEB_EXIT=0; E2E_STEP_SCREENSHOTS=true E2E_SPEC_ORDER="$(WEB_SPEC_ORDER_SEMICOLON)" PLAYWRIGHT_HTML_OPEN=never PLAYWRIGHT_HTML_OUTPUT_DIR="$$WEB_REPORT_DIR" npm run test:e2e -w @boilerplate/web -- --reporter=../../scripts/e2e-html-steps-reporter.ts $(WEB_SPEC_ORDERED) || WEB_EXIT=$$?; \
+	MGMT_EXIT=0; E2E_STEP_SCREENSHOTS=true E2E_SPEC_ORDER="$(MGMT_SPEC_ORDER_SEMICOLON)" PLAYWRIGHT_HTML_OPEN=never PLAYWRIGHT_HTML_OUTPUT_DIR="$$MGMT_REPORT_DIR" npm run test:e2e -w @boilerplate/management-web -- --reporter=../../scripts/e2e-html-steps-reporter.ts $(MGMT_SPEC_ORDERED) || MGMT_EXIT=$$?; \
 	ln -sfn "$$TS" "$$BASE_DIR/latest"; \
 	RUN_DIRS=$$((ls -1d "$$BASE_DIR"/20??????-?????? 2>/dev/null || true) | sort); \
 	RUN_COUNT=$$(printf "%s\n" "$$RUN_DIRS" | sed '/^$$/d' | wc -l | tr -d ' '); \
@@ -121,7 +127,7 @@ e2e_test_report:
 	if [ "$$WEB_EXIT" -ne 0 ] || [ "$$MGMT_EXIT" -ne 0 ]; then exit 1; fi
 
 # Scoped report mode for one or more web E2E specs. Requires SPEC.
-# SPEC supports a single path or comma-separated paths
+# SPEC supports a single path or comma-separated paths; tests run and appear in report in parameter order (do not reorder).
 # (example: SPEC=e2e/buckets-unauthenticated.spec.ts,e2e/invite-unauthenticated.spec.ts).
 # Runs API gate decision first, re-seeds web, captures step screenshots, writes timestamped report, rotates to 10 runs.
 e2e_test_web_report_spec:
@@ -138,7 +144,8 @@ e2e_test_web_report_spec:
 	WEB_REPORT_DIR="$$RUN_DIR/web"; \
 	mkdir -p "$$WEB_REPORT_DIR"; \
 	WEB_SPEC_ARGS=$$(printf "%s" "$(SPEC)" | tr ',' ' '); \
-	WEB_EXIT=0; E2E_STEP_SCREENSHOTS=true E2E_REPORT_SPEC="$(SPEC)" PLAYWRIGHT_HTML_OPEN=never PLAYWRIGHT_HTML_OUTPUT_DIR="$$WEB_REPORT_DIR" npm run test:e2e -w @boilerplate/web -- --reporter=../../scripts/e2e-html-steps-reporter.ts $$WEB_SPEC_ARGS || WEB_EXIT=$$?; \
+	WEB_SPEC_ORDER_SEMICOLON=$$(printf "%s" "$(SPEC)" | tr ',' ';'); \
+	WEB_EXIT=0; E2E_STEP_SCREENSHOTS=true E2E_REPORT_SPEC="$(SPEC)" E2E_SPEC_ORDER="$$WEB_SPEC_ORDER_SEMICOLON" PLAYWRIGHT_HTML_OPEN=never PLAYWRIGHT_HTML_OUTPUT_DIR="$$WEB_REPORT_DIR" npm run test:e2e -w @boilerplate/web -- --reporter=../../scripts/e2e-html-steps-reporter.ts $$WEB_SPEC_ARGS || WEB_EXIT=$$?; \
 	ln -sfn "$$TS" "$$BASE_DIR/latest"; \
 	RUN_DIRS=$$((ls -1d "$$BASE_DIR"/20??????-?????? 2>/dev/null || true) | sort); \
 	RUN_COUNT=$$(printf "%s\n" "$$RUN_DIRS" | sed '/^$$/d' | wc -l | tr -d ' '); \
@@ -165,7 +172,7 @@ e2e_test_web_report_spec:
 	if [ "$$WEB_EXIT" -ne 0 ]; then exit 1; fi
 
 # Scoped report mode for one or more management-web E2E specs. Requires SPEC.
-# SPEC supports a single path or comma-separated paths
+# SPEC supports a single path or comma-separated paths; tests run and appear in report in parameter order (do not reorder).
 # (example: SPEC=e2e/buckets-unauthenticated.spec.ts,e2e/events-unauthenticated.spec.ts).
 # Runs API gate decision first, re-seeds both E2E datasets, captures step screenshots, writes timestamped report, rotates to 10 runs.
 e2e_test_management_web_report_spec:
@@ -182,7 +189,8 @@ e2e_test_management_web_report_spec:
 	MGMT_REPORT_DIR="$$RUN_DIR/management-web"; \
 	mkdir -p "$$MGMT_REPORT_DIR"; \
 	MGMT_SPEC_ARGS=$$(printf "%s" "$(SPEC)" | tr ',' ' '); \
-	MGMT_EXIT=0; E2E_STEP_SCREENSHOTS=true E2E_REPORT_SPEC="$(SPEC)" PLAYWRIGHT_HTML_OPEN=never PLAYWRIGHT_HTML_OUTPUT_DIR="$$MGMT_REPORT_DIR" npm run test:e2e -w @boilerplate/management-web -- --reporter=../../scripts/e2e-html-steps-reporter.ts $$MGMT_SPEC_ARGS || MGMT_EXIT=$$?; \
+	MGMT_SPEC_ORDER_SEMICOLON=$$(printf "%s" "$(SPEC)" | tr ',' ';'); \
+	MGMT_EXIT=0; E2E_STEP_SCREENSHOTS=true E2E_REPORT_SPEC="$(SPEC)" E2E_SPEC_ORDER="$$MGMT_SPEC_ORDER_SEMICOLON" PLAYWRIGHT_HTML_OPEN=never PLAYWRIGHT_HTML_OUTPUT_DIR="$$MGMT_REPORT_DIR" npm run test:e2e -w @boilerplate/management-web -- --reporter=../../scripts/e2e-html-steps-reporter.ts $$MGMT_SPEC_ARGS || MGMT_EXIT=$$?; \
 	ln -sfn "$$TS" "$$BASE_DIR/latest"; \
 	RUN_DIRS=$$((ls -1d "$$BASE_DIR"/20??????-?????? 2>/dev/null || true) | sort); \
 	RUN_COUNT=$$(printf "%s\n" "$$RUN_DIRS" | sed '/^$$/d' | wc -l | tr -d ' '); \
@@ -209,7 +217,7 @@ e2e_test_management_web_report_spec:
 	if [ "$$MGMT_EXIT" -ne 0 ]; then exit 1; fi
 
 # Scoped report mode for both apps in one run. Requires WEB_SPEC and MGMT_SPEC.
-# WEB_SPEC and MGMT_SPEC each support a single path or comma-separated paths.
+# WEB_SPEC and MGMT_SPEC each support a single path or comma-separated paths; order is preserved (do not reorder).
 # Runs API gate decision first, re-seeds both apps, captures step screenshots, writes timestamped reports, rotates to 10 runs.
 e2e_test_report_scoped:
 	@$(call e2e_run_api_gate)
@@ -228,8 +236,10 @@ e2e_test_report_scoped:
 	mkdir -p "$$WEB_REPORT_DIR" "$$MGMT_REPORT_DIR"; \
 	WEB_SPEC_ARGS=$$(printf "%s" "$(WEB_SPEC)" | tr ',' ' '); \
 	MGMT_SPEC_ARGS=$$(printf "%s" "$(MGMT_SPEC)" | tr ',' ' '); \
-	WEB_EXIT=0; E2E_STEP_SCREENSHOTS=true E2E_REPORT_SPEC="$(WEB_SPEC)" PLAYWRIGHT_HTML_OPEN=never PLAYWRIGHT_HTML_OUTPUT_DIR="$$WEB_REPORT_DIR" npm run test:e2e -w @boilerplate/web -- --reporter=../../scripts/e2e-html-steps-reporter.ts $$WEB_SPEC_ARGS || WEB_EXIT=$$?; \
-	MGMT_EXIT=0; E2E_STEP_SCREENSHOTS=true E2E_REPORT_SPEC="$(MGMT_SPEC)" PLAYWRIGHT_HTML_OPEN=never PLAYWRIGHT_HTML_OUTPUT_DIR="$$MGMT_REPORT_DIR" npm run test:e2e -w @boilerplate/management-web -- --reporter=../../scripts/e2e-html-steps-reporter.ts $$MGMT_SPEC_ARGS || MGMT_EXIT=$$?; \
+	WEB_SPEC_ORDER_SEMICOLON=$$(printf "%s" "$(WEB_SPEC)" | tr ',' ';'); \
+	MGMT_SPEC_ORDER_SEMICOLON=$$(printf "%s" "$(MGMT_SPEC)" | tr ',' ';'); \
+	WEB_EXIT=0; E2E_STEP_SCREENSHOTS=true E2E_REPORT_SPEC="$(WEB_SPEC)" E2E_SPEC_ORDER="$$WEB_SPEC_ORDER_SEMICOLON" PLAYWRIGHT_HTML_OPEN=never PLAYWRIGHT_HTML_OUTPUT_DIR="$$WEB_REPORT_DIR" npm run test:e2e -w @boilerplate/web -- --reporter=../../scripts/e2e-html-steps-reporter.ts $$WEB_SPEC_ARGS || WEB_EXIT=$$?; \
+	MGMT_EXIT=0; E2E_STEP_SCREENSHOTS=true E2E_REPORT_SPEC="$(MGMT_SPEC)" E2E_SPEC_ORDER="$$MGMT_SPEC_ORDER_SEMICOLON" PLAYWRIGHT_HTML_OPEN=never PLAYWRIGHT_HTML_OUTPUT_DIR="$$MGMT_REPORT_DIR" npm run test:e2e -w @boilerplate/management-web -- --reporter=../../scripts/e2e-html-steps-reporter.ts $$MGMT_SPEC_ARGS || MGMT_EXIT=$$?; \
 	ln -sfn "$$TS" "$$BASE_DIR/latest"; \
 	RUN_DIRS=$$((ls -1d "$$BASE_DIR"/20??????-?????? 2>/dev/null || true) | sort); \
 	RUN_COUNT=$$(printf "%s\n" "$$RUN_DIRS" | sed '/^$$/d' | wc -l | tr -d ' '); \

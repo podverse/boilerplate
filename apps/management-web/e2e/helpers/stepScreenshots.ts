@@ -54,6 +54,7 @@ const captureStep = async (
   const stepIndex = nextStepIndex(testInfo);
   const shortFileName = `step-${String(stepIndex).padStart(3, '0')}.png`;
   const screenshotPath = testInfo.outputPath(shortFileName);
+  await new Promise((resolve) => setTimeout(resolve, 5));
   await page.screenshot({ path: screenshotPath, fullPage: true });
 
   const fullLabel = buildFullDescription(testInfo, label);
@@ -66,6 +67,11 @@ const captureStep = async (
   });
   await testInfo.attach('Step description', {
     body: fullLabel,
+    contentType: 'text/plain',
+  });
+  const url = page.url();
+  await testInfo.attach('Step URL', {
+    body: url,
     contentType: 'text/plain',
   });
 };

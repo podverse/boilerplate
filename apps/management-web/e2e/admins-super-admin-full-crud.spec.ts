@@ -11,11 +11,11 @@ import { clickConfirmDeleteInModal } from './helpers/flowHelpers';
 import { actionAndCapture, capturePageLoad } from './helpers/stepScreenshots';
 import { setE2EUserContext } from './helpers/userContext';
 
-test.describe('This suite verifies the management admins-list-page for the super-admin (full CRUD) user.', () => {
+test.describe('This suite verifies the management admins-list-page for the super-admin user.', () => {
   test('When a permitted user opens the admins-list-page, they see the admins list or add-admin CTA.', async ({
     page,
   }, testInfo) => {
-    setE2EUserContext(testInfo, 'super-admin (full CRUD)');
+    setE2EUserContext(testInfo, 'super-admin');
     await loginAsManagementSuperAdmin(page);
     await actionAndCapture(
       page,
@@ -38,7 +38,7 @@ test.describe('This suite verifies the management admins-list-page for the super
   test('When the user opens the admins route with explicit query params, the params are persisted.', async ({
     page,
   }, testInfo) => {
-    setE2EUserContext(testInfo, 'super-admin (full CRUD)');
+    setE2EUserContext(testInfo, 'super-admin');
     await loginAsManagementSuperAdmin(page);
     await actionAndCapture(
       page,
@@ -64,7 +64,7 @@ test.describe('This suite verifies the management admins-list-page for the super
   test('When the user clicks the add-admin CTA, they are navigated to the new-admin form.', async ({
     page,
   }, testInfo) => {
-    setE2EUserContext(testInfo, 'super-admin (full CRUD)');
+    setE2EUserContext(testInfo, 'super-admin');
     await loginAsManagementSuperAdmin(page);
     await page.goto('/admins');
     await expect(page.getByRole('heading', { name: /admins/i })).toBeVisible();
@@ -86,7 +86,7 @@ test.describe('This suite verifies the management admins-list-page for the super
   test('When the user views the superadmin row on the admins-list-page, no delete action is exposed.', async ({
     page,
   }, testInfo) => {
-    setE2EUserContext(testInfo, 'super-admin (full CRUD)');
+    setE2EUserContext(testInfo, 'super-admin');
     await loginAsManagementSuperAdmin(page);
     await page.goto('/admins?search=e2e-superadmin');
 
@@ -103,7 +103,7 @@ test.describe('This suite verifies the management admins-list-page for the super
   test('When the user opens the delete confirmation for a created admin on the admins-list-page and cancels, the row remains.', async ({
     page,
   }, testInfo) => {
-    setE2EUserContext(testInfo, 'super-admin (full CRUD)');
+    setE2EUserContext(testInfo, 'super-admin');
     await loginAsManagementSuperAdmin(page);
     await page.goto('/admins/new');
     await expect(page.getByRole('textbox', { name: /display name/i })).toBeVisible();
@@ -141,7 +141,7 @@ test.describe('This suite verifies the management admins-list-page for the super
   test('When the user deletes a created admin from the admins-list-page, the admin is removed.', async ({
     page,
   }, testInfo) => {
-    setE2EUserContext(testInfo, 'super-admin (full CRUD)');
+    setE2EUserContext(testInfo, 'super-admin');
     await loginAsManagementSuperAdmin(page);
     await page.goto('/admins/new');
     await expect(page.getByRole('textbox', { name: /display name/i })).toBeVisible();

@@ -6,11 +6,11 @@ import { setE2EUserContext } from './helpers/userContext';
 
 const E2E_BUCKET1_SHORT_ID = 'e2ebkt000001';
 
-test.describe('This suite verifies the short-bucket (public) URL for the non-admin user.', () => {
-  test('When the non-admin opens the public short-bucket URL, they see the destination URL and bucket name (public bucket is visible to all).', async ({
+test.describe('This suite verifies the short-bucket (public) URL for the basic-user.', () => {
+  test('When the basic-user opens the public short-bucket URL, they see the destination URL and bucket name (public bucket is visible to all).', async ({
     page,
   }, testInfo) => {
-    setE2EUserContext(testInfo, 'non-admin');
+    setE2EUserContext(testInfo, 'basic-user');
     await loginAsWebE2ENonAdmin(page);
     await actionAndCapture(
       page,
@@ -25,7 +25,7 @@ test.describe('This suite verifies the short-bucket (public) URL for the non-adm
     await capturePageLoad(
       page,
       testInfo,
-      'The public short-bucket-page shows the bucket name for the non-admin (public bucket).'
+      'The public short-bucket-page shows the bucket name for the basic-user (public bucket).'
     );
   });
 });

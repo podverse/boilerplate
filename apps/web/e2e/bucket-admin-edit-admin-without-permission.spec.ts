@@ -8,7 +8,7 @@ const E2E_BUCKET1_SHORT_ID = 'e2ebkt000001';
 const E2E_USER_SHORT_ID = 'e2eusr000001';
 
 test.describe('This suite verifies the bucket-admin-edit-page for the admin-without-permission user.', () => {
-  test('When the non-owner admin without bucket-admins permission opens the bucket-admin-edit-page, they see not found.', async ({
+  test('When the non-owner-admin without bucket-admins permission opens the bucket-admin-edit-page, they see not found.', async ({
     page,
   }, testInfo) => {
     setE2EUserContext(testInfo, 'admin-without-permission');

@@ -77,6 +77,11 @@ Spec-list format:
   - `make e2e_test_web_report_spec SPEC=e2e/buckets.spec.ts,e2e/invite.spec.ts`
   - `make e2e_test_report_scoped WEB_SPEC=e2e/buckets.spec.ts,e2e/bucket-detail.spec.ts MGMT_SPEC=e2e/buckets.spec.ts,e2e/events.spec.ts`
 
+Report order:
+
+- **Full report** (`make e2e_test_report`): The HTML report **display** order is **conceptual** (home first, then buckets list/detail/settings, then events/users/admins), defined by `makefiles/local/e2e-spec-order-web.txt` and `makefiles/local/e2e-spec-order-management-web.txt`. The Makefile passes this order to the custom HTML reporter via `E2E_SPEC_ORDER`; the reporter reorders runs for display so the report matches the intended order. Playwright may still run spec files in its own order (e.g. alphabetical). When adding or removing E2E specs, update the appropriate order file so the full report stays logically grouped.
+- **Specified runs** (`e2e_test_web_report_spec`, `e2e_test_management_web_report_spec`, `e2e_test_report_scoped`): When you pass one or more comma-separated paths in `SPEC`, `WEB_SPEC`, or `MGMT_SPEC`, the reporter reorders runs for display to match that parameter order; Playwright may run specs in a different order.
+
 Stability mode is now the default for all E2E commands. Startup is usually slower than dev mode because app builds run before servers start, but this reduces dev-only overlay noise and false positives.
 
 ## Quick start: single home smoke test
@@ -166,10 +171,11 @@ notice at the top: "Run aborted during execution; this report is incomplete."
 
 #### Web seed
 
-- One user:
-  - email: `e2e@example.com`
-  - password: `Test!1Aa`
-  - display name: `E2E User`
+- Four users (context slugs: bucket-owner, bucket-admin, admin-without-permission, non-admin):
+  - bucket-owner: email `e2e-bucket-owner@example.com`, password `Test!1Aa`, display name `E2E Bucket Owner`
+  - bucket-admin: email `e2e-bucket-admin@example.com`, password `Test!1Aa`, display name `E2E Bucket Admin`
+  - admin-without-permission: email `e2e-admin-without-permission@example.com`, password `Test!1Aa`, display name `E2E Admin Without Permission`
+  - non-admin: email `e2e-non-admin@example.com`, password `Test!1Aa`, display name `E2E Non Admin`
 - Two top-level buckets:
   - `E2E Bucket One` (`isPublic: true`)
   - `E2E Bucket Two` (`isPublic: false`)

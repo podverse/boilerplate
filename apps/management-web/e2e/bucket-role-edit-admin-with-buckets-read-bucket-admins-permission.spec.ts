@@ -10,11 +10,11 @@ import { setE2EUserContext } from './helpers/userContext';
 
 const E2E_BUCKET1_ID = '22222222-2222-4222-a222-222222222222';
 
-test.describe('This suite verifies the management bucket-role-edit-page for the admin with buckets read (bucket-admins permission) user.', () => {
-  test('When an admin with buckets read opens the bucket-role-edit-page with an invalid role id, they see not found.', async ({
+test.describe('This suite verifies the management bucket-role-edit-page for the admin (buckets:R bucket_admins events:all_admins) user.', () => {
+  test('When an admin (buckets:R bucket_admins events:all_admins) opens the bucket-role-edit-page with an invalid role id, they see not found.', async ({
     page,
   }, testInfo) => {
-    setE2EUserContext(testInfo, 'admin with buckets read (bucket-admins permission)');
+    setE2EUserContext(testInfo, 'admin (buckets:R bucket_admins events:all_admins)');
     await loginAsManagementAdminWithBucketAdmins(page);
     await expectInvalidRouteShowsNotFound(
       page,
@@ -28,10 +28,10 @@ test.describe('This suite verifies the management bucket-role-edit-page for the 
     );
   });
 
-  test('When an admin with buckets read navigates from the roles-tab to role-edit, they see the role-edit form.', async ({
+  test('When an admin (buckets:R bucket_admins events:all_admins) navigates from the roles-tab to role-edit, they see the role-edit form.', async ({
     page,
   }, testInfo) => {
-    setE2EUserContext(testInfo, 'admin with buckets read (bucket-admins permission)');
+    setE2EUserContext(testInfo, 'admin (buckets:R bucket_admins events:all_admins)');
     await loginAsManagementAdminWithBucketAdmins(page);
     const roleName = nextFixtureName('e2e-mgmt-role-admin');
 
@@ -60,10 +60,10 @@ test.describe('This suite verifies the management bucket-role-edit-page for the 
     );
   });
 
-  test('When an admin with buckets read clicks Cancel on role-edit, they return to the bucket-settings roles-tab.', async ({
+  test('When an admin (buckets:R bucket_admins events:all_admins) clicks Cancel on role-edit, they return to the bucket-settings roles-tab.', async ({
     page,
   }, testInfo) => {
-    setE2EUserContext(testInfo, 'admin with buckets read (bucket-admins permission)');
+    setE2EUserContext(testInfo, 'admin (buckets:R bucket_admins events:all_admins)');
     await loginAsManagementAdminWithBucketAdmins(page);
     const roleName = nextFixtureName('e2e-mgmt-role-admin-cancel');
 

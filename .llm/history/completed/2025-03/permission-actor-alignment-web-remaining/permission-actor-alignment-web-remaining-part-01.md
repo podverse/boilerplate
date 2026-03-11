@@ -11,7 +11,7 @@ implement Permission-actor alignment – apps/web (remaining)
 
 #### Key Decisions
 
-- Added API/actor-matrix doc comments to all batch 2 and 3 specs. Added tests: bucket-child-new and bucket-nested-new (non-owner admin without bucket create → not found); buckets (non-admin sees list or empty state). Used existing helpers loginAsWebE2EAdminWithoutPermission, loginAsWebE2ENonAdmin.
+- Added API/actor-matrix doc comments to all batch 2 and 3 specs. Added tests: bucket-child-new and bucket-nested-new (non-owner-admin without bucket create → not found); buckets (non-admin sees list or empty state). Used existing helpers loginAsWebE2EAdminWithoutPermission, loginAsWebE2ENonAdmin.
 - Plan moved to completed after implementation.
 
 #### Files Created/Modified

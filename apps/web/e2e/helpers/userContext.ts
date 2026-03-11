@@ -9,8 +9,8 @@ const USER_ROLE_ANNOTATION_TYPE = 'user-role';
  *
  * Standard descriptions for web:
  * - "unauthenticated"
- * - "seeded-bucket-owner"
- * - "seeded-bucket-admin (bucket CRUD)"
+ * - "bucket-owner"
+ * - "bucket-admin (bucket CRUD)"
  */
 export function setE2EUserContext(testInfo: TestInfo, description: string): void {
   const trimmed = description.trim();

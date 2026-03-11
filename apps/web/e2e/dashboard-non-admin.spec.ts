@@ -4,11 +4,11 @@ import { loginAsWebE2ENonAdmin } from './helpers/advancedFixtures';
 import { actionAndCapture, capturePageLoad } from './helpers/stepScreenshots';
 import { setE2EUserContext } from './helpers/userContext';
 
-test.describe('This suite verifies the dashboard-page for the non-admin user.', () => {
-  test('When the non-admin opens the dashboard-page after login, they see the dashboard heading.', async ({
+test.describe('This suite verifies the dashboard-page for the basic-user.', () => {
+  test('When the basic-user opens the dashboard-page after login, they see the dashboard heading.', async ({
     page,
   }, testInfo) => {
-    setE2EUserContext(testInfo, 'non-admin');
+    setE2EUserContext(testInfo, 'basic-user');
     await loginAsWebE2ENonAdmin(page);
     await actionAndCapture(
       page,
@@ -20,6 +20,6 @@ test.describe('This suite verifies the dashboard-page for the non-admin user.', 
         await expect(page.getByRole('heading', { name: /dashboard/i })).toBeVisible();
       }
     );
-    await capturePageLoad(page, testInfo, 'The dashboard-page is visible for the non-admin.');
+    await capturePageLoad(page, testInfo, 'The dashboard-page is visible for the basic-user.');
   });
 });

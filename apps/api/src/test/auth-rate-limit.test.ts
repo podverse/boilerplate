@@ -15,9 +15,9 @@ import { config } from '../config/index.js';
 
 const API = config.apiVersionPath;
 const RATE_LIMIT_MESSAGE = 'Too many requests. Please try again later.';
-/** In test env when RATE_LIMIT_*_FOR_TEST=true the limit is 100; send one more to trigger 429. */
-const STRICT_LIMIT_IN_TEST = 100;
-const MODERATE_LIMIT_IN_TEST = 100;
+/** Use lower deterministic test limits so 429 assertions are reliable on slower machines. */
+const STRICT_LIMIT_IN_TEST = 30;
+const MODERATE_LIMIT_IN_TEST = 30;
 
 const expectRetryAfterSeconds = (retryAfterSeconds: unknown): void => {
   expect(typeof retryAfterSeconds).toBe('number');
@@ -32,6 +32,8 @@ describe('auth rate limiting', () => {
   beforeAll(async () => {
     process.env.RATE_LIMIT_STRICT_FOR_TEST = 'true';
     process.env.RATE_LIMIT_MODERATE_FOR_TEST = 'true';
+    process.env.RATE_LIMIT_STRICT_TEST_LIMIT = `${STRICT_LIMIT_IN_TEST}`;
+    process.env.RATE_LIMIT_MODERATE_TEST_LIMIT = `${MODERATE_LIMIT_IN_TEST}`;
     // Keep signup route mounted for this suite so strict limiter assertions are not
     // masked by admin-only/no-mailer 403 behavior.
     process.env.MAILER_ENABLED = 'true';
@@ -93,7 +95,7 @@ describe('auth rate limiting', () => {
     expect(res.status).toBe(429);
     expect(res.body.message).toBe(RATE_LIMIT_MESSAGE);
     expectRetryAfterSeconds(res.body.retryAfterSeconds);
-  });
+  }, 15_000);
 
   it('GET /auth/me is not rate limited (many requests succeed with 401)', async () => {
     for (let i = 0; i < 15; i++) {

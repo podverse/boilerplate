@@ -9,11 +9,11 @@ import { expectUnauthedRouteRedirectsToLogin } from './helpers/authAssertions';
 import { actionAndCapture, capturePageLoad } from './helpers/stepScreenshots';
 import { setE2EUserContext } from './helpers/userContext';
 
-test.describe('This suite verifies the management admin-role-new-page for the super-admin (full CRUD) user.', () => {
+test.describe('This suite verifies the management admin-role-new-page for the super-admin user.', () => {
   test('When a permitted user (super-admin) opens the admin-role-new-page, they see the admin-role-new-form.', async ({
     page,
   }, testInfo) => {
-    setE2EUserContext(testInfo, 'super-admin (full CRUD)');
+    setE2EUserContext(testInfo, 'super-admin');
     await loginAsManagementSuperAdmin(page);
     await actionAndCapture(
       page,
@@ -36,7 +36,7 @@ test.describe('This suite verifies the management admin-role-new-page for the su
   test('When the user leaves the role name empty and clicks Create role, they remain on the admin-role-new-page.', async ({
     page,
   }, testInfo) => {
-    setE2EUserContext(testInfo, 'super-admin (full CRUD)');
+    setE2EUserContext(testInfo, 'super-admin');
     await loginAsManagementSuperAdmin(page);
     await page.goto('/admins/roles/new');
     const roleNameInput = page.getByRole('textbox', { name: /role name|name/i });
@@ -58,7 +58,7 @@ test.describe('This suite verifies the management admin-role-new-page for the su
   test('When the super-admin clicks Cancel on the admin-role-new-form, they are returned to the admins-list-page.', async ({
     page,
   }, testInfo) => {
-    setE2EUserContext(testInfo, 'super-admin (full CRUD)');
+    setE2EUserContext(testInfo, 'super-admin');
     await loginAsManagementSuperAdmin(page);
     await page.goto('/admins/roles/new');
     await expect(page.getByRole('textbox', { name: /role name|name/i })).toBeVisible();
@@ -78,7 +78,7 @@ test.describe('This suite verifies the management admin-role-new-page for the su
   test('When the user submits a valid new admin role, they are returned to the admins page.', async ({
     page,
   }, testInfo) => {
-    setE2EUserContext(testInfo, 'super-admin (full CRUD)');
+    setE2EUserContext(testInfo, 'super-admin');
     await loginAsManagementSuperAdmin(page);
     await page.goto('/admins/roles/new');
     await expect(page.getByRole('textbox', { name: /role name|name/i })).toBeVisible();
@@ -105,7 +105,7 @@ test.describe('This suite verifies the management admin-role-new-page for the su
   test('When the super-admin navigates from the admins-list-page to the admin-role-new-page via the add-admin form role option, the admin-role-new-form loads.', async ({
     page,
   }, testInfo) => {
-    setE2EUserContext(testInfo, 'super-admin (full CRUD)');
+    setE2EUserContext(testInfo, 'super-admin');
     await loginAsManagementSuperAdmin(page);
     await page.goto('/admins');
     await expect(page).toHaveURL(/\/admins/);

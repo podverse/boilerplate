@@ -7,11 +7,11 @@ import { setE2EUserContext } from './helpers/userContext';
 
 const E2E_BUCKET1_ID = '22222222-2222-4222-a222-222222222222';
 
-test.describe('This suite verifies the management bucket-role-new-page for the admin with buckets read (bucket-admins permission) user.', () => {
-  test('When an admin with buckets read opens the bucket-role-new-page with an invalid bucket id, they see not found.', async ({
+test.describe('This suite verifies the management bucket-role-new-page for the admin (buckets:R bucket_admins events:all_admins) user.', () => {
+  test('When an admin (buckets:R bucket_admins events:all_admins) opens the bucket-role-new-page with an invalid bucket id, they see not found.', async ({
     page,
   }, testInfo) => {
-    setE2EUserContext(testInfo, 'admin with buckets read (bucket-admins permission)');
+    setE2EUserContext(testInfo, 'admin (buckets:R bucket_admins events:all_admins)');
     await loginAsManagementAdminWithBucketAdmins(page);
     await expectInvalidRouteShowsNotFound(
       page,
@@ -23,10 +23,10 @@ test.describe('This suite verifies the management bucket-role-new-page for the a
     );
   });
 
-  test('When an admin with buckets read navigates from the roles-tab to role-new, they see the new-role form.', async ({
+  test('When an admin (buckets:R bucket_admins events:all_admins) navigates from the roles-tab to role-new, they see the new-role form.', async ({
     page,
   }, testInfo) => {
-    setE2EUserContext(testInfo, 'admin with buckets read (bucket-admins permission)');
+    setE2EUserContext(testInfo, 'admin (buckets:R bucket_admins events:all_admins)');
     await loginAsManagementAdminWithBucketAdmins(page);
 
     await page.goto(`/bucket/${E2E_BUCKET1_ID}/settings?tab=roles`);
@@ -53,10 +53,10 @@ test.describe('This suite verifies the management bucket-role-new-page for the a
     );
   });
 
-  test('When an admin with buckets read clicks Cancel on role-new, they return to the bucket-settings roles-tab.', async ({
+  test('When an admin (buckets:R bucket_admins events:all_admins) clicks Cancel on role-new, they return to the bucket-settings roles-tab.', async ({
     page,
   }, testInfo) => {
-    setE2EUserContext(testInfo, 'admin with buckets read (bucket-admins permission)');
+    setE2EUserContext(testInfo, 'admin (buckets:R bucket_admins events:all_admins)');
     await loginAsManagementAdminWithBucketAdmins(page);
 
     await page.goto(`/bucket/${E2E_BUCKET1_ID}/settings/roles/new`);

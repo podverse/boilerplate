@@ -8,7 +8,7 @@ test.describe('This suite verifies URL-state contracts for the web buckets-list 
   test('When the authenticated user opens the buckets-list page with sortBy=name and sortOrder=asc, the URL preserves the params and the buckets list or empty state is visible.', async ({
     page,
   }, testInfo) => {
-    setE2EUserContext(testInfo, 'seeded-bucket-owner');
+    setE2EUserContext(testInfo, 'bucket-owner');
     await loginAsWebE2EUserAndExpectDashboard(page);
     await actionAndCapture(
       page,

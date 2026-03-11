@@ -58,11 +58,11 @@ async function createInvitationToken(page: import('@playwright/test').Page): Pro
   return tokenMatch[1];
 }
 
-test.describe('This suite verifies the invite-page for the non-admin user.', () => {
-  test('When the non-admin opens the invite-page with an invalid token, they see the invalid state.', async ({
+test.describe('This suite verifies the invite-page for the basic-user.', () => {
+  test('When the basic-user opens the invite-page with an invalid token, they see the invalid state.', async ({
     page,
   }, testInfo) => {
-    setE2EUserContext(testInfo, 'non-admin');
+    setE2EUserContext(testInfo, 'basic-user');
     await loginAsWebE2ENonAdmin(page);
     await actionAndCapture(
       page,
@@ -79,14 +79,14 @@ test.describe('This suite verifies the invite-page for the non-admin user.', () 
     await capturePageLoad(
       page,
       testInfo,
-      'The invite-page shows invalid state for the non-admin with an invalid token.'
+      'The invite-page shows invalid state for the basic-user with an invalid token.'
     );
   });
 
-  test('When the non-admin opens the invite-page with a valid token, they see accept or reject actions.', async ({
+  test('When the basic-user opens the invite-page with a valid token, they see accept or reject actions.', async ({
     page,
   }, testInfo) => {
-    setE2EUserContext(testInfo, 'non-admin');
+    setE2EUserContext(testInfo, 'basic-user');
     const token = await createInvitationToken(page);
     await page.context().clearCookies();
     await loginAsWebE2ENonAdmin(page);
@@ -94,7 +94,7 @@ test.describe('This suite verifies the invite-page for the non-admin user.', () 
     await actionAndCapture(
       page,
       testInfo,
-      'User opens a valid invite while authenticated as non-admin and sees accept or reject actions.',
+      'User opens a valid invite while authenticated as basic-user and sees accept or reject actions.',
       async () => {
         await page.goto(`/invite/${token}`);
         await expect(page).toHaveURL(new RegExp(`/invite/${token}`));
@@ -104,7 +104,7 @@ test.describe('This suite verifies the invite-page for the non-admin user.', () 
     await capturePageLoad(
       page,
       testInfo,
-      'The invite-page shows accept/reject or final state for the non-admin.'
+      'The invite-page shows accept/reject or final state for the basic-user.'
     );
   });
 });

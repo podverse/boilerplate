@@ -44,7 +44,7 @@ test.describe('This suite verifies the web signup-page for the unauthenticated u
         const username = page.getByRole('textbox', { name: /username/i });
         const email = page.getByRole('textbox', { name: /email/i });
         if ((await username.count()) > 0) await username.fill('e2euser');
-        await email.fill('e2e@example.com');
+        await email.fill('e2e-bucket-owner@example.com');
         await page
           .getByLabel(/password/i)
           .first()

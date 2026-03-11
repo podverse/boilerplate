@@ -12,7 +12,7 @@ Complete **batches 2 and 3** of apps/web permission-actor alignment. Batch 1 (bu
 
 ## Specs implemented
 
-- **Batch 2:** bucket-detail, bucket-messages, bucket-child-new, bucket-nested-new (API/actor-matrix comments; non-owner admin without create → not found tests). buckets-new, buckets (actor comments; buckets: non-admin sees list test). short-bucket, send-message, invite (actor comments).
+- **Batch 2:** bucket-detail, bucket-messages, bucket-child-new, bucket-nested-new (API/actor-matrix comments; non-owner-admin without create → not found tests). buckets-new, buckets (actor comments; buckets: non-admin sees list test). short-bucket, send-message, invite (actor comments).
 - **Batch 3:** profile, settings, dashboard, home (actor-matrix comments).
 
 ## Skills
@@ -24,4 +24,4 @@ Complete **batches 2 and 3** of apps/web permission-actor alignment. Batch 1 (bu
 ## Status: Done
 
 - **Date:** 2025-03-09
-- **Done:** All batch 2 and 3 specs updated with API/actor-matrix doc comments. Added tests: bucket-child-new and bucket-nested-new (non-owner admin without bucket create → not found); buckets (non-admin sees list or empty state). Existing coverage retained; no new helpers required (loginAsWebE2EAdminWithoutPermission, loginAsWebE2ENonAdmin already present).
+- **Done:** All batch 2 and 3 specs updated with API/actor-matrix doc comments. Added tests: bucket-child-new and bucket-nested-new (non-owner-admin without bucket create → not found); buckets (non-admin sees list or empty state). Existing coverage retained; no new helpers required (loginAsWebE2EAdminWithoutPermission, loginAsWebE2ENonAdmin already present).

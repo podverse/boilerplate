@@ -6,11 +6,11 @@ import { setE2EUserContext } from './helpers/userContext';
 
 const E2E_MAIN_USER_ID = '11111111-1111-4111-a111-111111111111';
 
-test.describe('This suite verifies the management users-list-page for the limited-admin (users read) user.', () => {
-  test('When a limited-admin (with users read) opens the users-list-page, they see the users heading and list.', async ({
+test.describe('This suite verifies the management users-list-page for the admin (admins users events:own) user.', () => {
+  test('When an admin (admins users events:own) opens the users-list-page, they see the users heading and list.', async ({
     page,
   }, testInfo) => {
-    setE2EUserContext(testInfo, 'limited-admin (users read)');
+    setE2EUserContext(testInfo, 'admin (admins users events:own)');
     await loginAsLimitedAdmin(page);
     await page.goto('/users');
     await expect(page).toHaveURL(/\/users/);
@@ -18,16 +18,16 @@ test.describe('This suite verifies the management users-list-page for the limite
     await capturePageLoad(
       page,
       testInfo,
-      'The limited-admin sees the users-list-page when they have users read permission.'
+      'The admin (admins users events:own) sees the users-list-page when they have users read permission.'
     );
   });
 
-  test('When a limited-admin (with users read) navigates from the users-list-page to user-detail via the user link, the user detail loads.', async ({
+  test('When an admin (admins users events:own) navigates from the users-list-page to user-detail via the user link, the user detail loads.', async ({
     page,
   }, testInfo) => {
-    setE2EUserContext(testInfo, 'limited-admin (users read)');
+    setE2EUserContext(testInfo, 'admin (admins users events:own)');
     await loginAsLimitedAdmin(page);
-    await page.goto('/users?search=e2e@example.com');
+    await page.goto('/users?search=e2e-bucket-owner@example.com');
     await expect(page).toHaveURL(/\/users/);
     const detailLink = page.locator(`a[href="/user/${E2E_MAIN_USER_ID}"]`).first();
     await expect(detailLink).toBeVisible();
@@ -40,7 +40,9 @@ test.describe('This suite verifies the management users-list-page for the limite
       }
     );
     await expect(page).toHaveURL(new RegExp(`/user/${E2E_MAIN_USER_ID}(?:/|$)`));
-    await expect(page.getByText(/e2e@example.com|view user|email/i).first()).toBeVisible();
+    await expect(
+      page.getByText(/e2e-bucket-owner@example.com|view user|email/i).first()
+    ).toBeVisible();
     await capturePageLoad(
       page,
       testInfo,

@@ -13,11 +13,11 @@ import { setE2EUserContext } from './helpers/userContext';
 
 const E2E_BUCKET1_ID = '22222222-2222-4222-a222-222222222222';
 
-test.describe('This suite verifies the management bucket-role-new-page for the super-admin (full CRUD) user.', () => {
+test.describe('This suite verifies the management bucket-role-new-page for the super-admin user.', () => {
   test('When the super-admin opens the bucket-role-new-page with an invalid bucket id, they see not found.', async ({
     page,
   }, testInfo) => {
-    setE2EUserContext(testInfo, 'super-admin (full CRUD)');
+    setE2EUserContext(testInfo, 'super-admin');
     await loginAsManagementSuperAdmin(page);
     await expectInvalidRouteShowsNotFound(
       page,
@@ -32,7 +32,7 @@ test.describe('This suite verifies the management bucket-role-new-page for the s
   test('When a permitted user (super-admin) opens the bucket-role-new-page, they see the role create form.', async ({
     page,
   }, testInfo) => {
-    setE2EUserContext(testInfo, 'super-admin (full CRUD)');
+    setE2EUserContext(testInfo, 'super-admin');
     await loginAsManagementSuperAdmin(page);
     await actionAndCapture(
       page,
@@ -55,7 +55,7 @@ test.describe('This suite verifies the management bucket-role-new-page for the s
   test('When the super-admin navigates from the bucket-settings roles-tab to the new-role page via the create-role link, they see the role create form.', async ({
     page,
   }, testInfo) => {
-    setE2EUserContext(testInfo, 'super-admin (full CRUD)');
+    setE2EUserContext(testInfo, 'super-admin');
     await loginAsManagementSuperAdmin(page);
     await page.goto(`/bucket/${E2E_BUCKET1_ID}/settings?tab=roles`);
     await expect(page).toHaveURL(new RegExp(`/bucket/${E2E_BUCKET1_ID}/settings\\?tab=roles`));
@@ -82,7 +82,7 @@ test.describe('This suite verifies the management bucket-role-new-page for the s
   test('When the user leaves the role name empty and submits, they remain on the bucket-role-new page.', async ({
     page,
   }, testInfo) => {
-    setE2EUserContext(testInfo, 'super-admin (full CRUD)');
+    setE2EUserContext(testInfo, 'super-admin');
     await loginAsManagementSuperAdmin(page);
     await page.goto(`/bucket/${E2E_BUCKET1_ID}/settings/roles/new`);
     await expect(page.getByRole('textbox', { name: /role name|name/i })).toBeVisible();
@@ -106,7 +106,7 @@ test.describe('This suite verifies the management bucket-role-new-page for the s
   test('When the user submits a valid new role, a custom role is created and they are returned to the settings roles-list.', async ({
     page,
   }, testInfo) => {
-    setE2EUserContext(testInfo, 'super-admin (full CRUD)');
+    setE2EUserContext(testInfo, 'super-admin');
     await loginAsManagementSuperAdmin(page);
     await page.goto(`/bucket/${E2E_BUCKET1_ID}/settings/roles/new`);
     await expect(page.getByRole('textbox', { name: /role name|name/i })).toBeVisible();

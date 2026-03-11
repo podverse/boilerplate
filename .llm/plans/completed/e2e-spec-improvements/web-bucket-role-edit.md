@@ -14,7 +14,7 @@
 ## Gaps (skills)
 
 - **Readability:** Ensure full-sentence titles/labels and setE2EUserContext; hyphenated terms (bucket-role-edit-page, etc.).
-- **Permission actor matrix:** Missing: non-owner admin with permission, non-owner admin without permission, non-admin; invalid id for non-owner; list→edit, Cancel→list flows.
+- **Permission actor matrix:** Missing: non-owner-admin with permission, non-owner-admin without permission, non-admin; invalid id for non-owner; list→edit, Cancel→list flows.
 - **AuthZ matrix:** Missing visibility/disabled assertions by role (who sees edit/delete on list).
 - **CRUD state matrix:** Update persistence and delete flow covered; add explicit post-save revisit assertion if needed.
 - **URL state:** Tab param for settings?tab=roles if applicable.
@@ -24,8 +24,8 @@
 
 1. Add login helpers for non-owner with permission, non-owner without permission, non-admin (or reuse from bucket-admin-edit pattern).
 2. Add test: unauthenticated → redirect (already present); ensure setE2EUserContext on all tests.
-3. Add test: non-owner admin with bucket roles permission opens edit → form visible; invalid role id → not found.
-4. Add test: non-owner admin without permission opens bucket-role-edit → not found.
+3. Add test: non-owner-admin with bucket roles permission opens edit → form visible; invalid role id → not found.
+4. Add test: non-owner-admin without permission opens bucket-role-edit → not found.
 5. Add test: non-admin opens bucket-role-edit → not found.
 6. Add test: owner navigates from roles list to edit (list→edit) and Cancel returns to roles list (Cancel→list).
 7. Normalize step labels and titles to hyphenated compound terms and full sentences.

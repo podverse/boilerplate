@@ -6,7 +6,7 @@ Run each E2E spec in isolation with step-screenshot reports. Use these commands 
 
 **Reports:** Written under `.artifacts/e2e-reports/<timestamp>/web` or `.../management-web`; the Make target opens the report when the run finishes.
 
-**User context (CRUD permissions) in the report:** Each test section in the HTML report shows a **User context** line (e.g. "User context: unauthenticated" or "User context: super-admin (full CRUD)") when the test sets it. Set it at the start of each test via `setE2EUserContext(testInfo, '…')` from `./helpers/userContext` (management-web or web). Use consistent descriptions: management-web `unauthenticated` / `super-admin (full CRUD)`; web `unauthenticated` / `seeded-bucket-owner` / `seeded-bucket-admin (bucket CRUD)`. Test titles should name the actor (e.g. super-admin, unauthenticated) where it helps readability.
+**User context (CRUD permissions) in the report:** Each test section in the HTML report shows a **User context** line (e.g. "User context: unauthenticated" or "User context: super-admin") when the test sets it. Set it at the start of each test via `setE2EUserContext(testInfo, '…')` from `./helpers/userContext` (management-web or web). Use consistent descriptions: management-web `unauthenticated` / `super-admin` / `admin (admins users events:own)` etc.; web `unauthenticated` / `basic-user` / `bucket-owner` / `bucket-admin`. See the **e2e-readability** skill ("User context in reports") for the full pattern. Test titles should name the actor (e.g. super-admin, unauthenticated) where it helps readability.
 
 **API gate:** Commands below use `E2E_API_GATE_MODE=off` so only the chosen spec runs (no API integration tests). Use `E2E_API_GATE_MODE=on` or omit it if you want the API gate to run first.
 

@@ -3,7 +3,7 @@ import { expect, test } from '@playwright/test';
 import { actionAndCapture, capturePageLoad } from './helpers/stepScreenshots';
 import { setE2EUserContext } from './helpers/userContext';
 
-test.describe('This suite verifies the home-page for the unauthenticated user.', () => {
+test.describe('Home page for the unauthenticated user', () => {
   test('When an unauthenticated user visits the home-page, they are redirected to the login-page.', async ({
     page,
   }, testInfo) => {

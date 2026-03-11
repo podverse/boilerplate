@@ -8,11 +8,11 @@ import { setE2EUserContext } from './helpers/userContext';
 const E2E_BUCKET1_SHORT_ID = 'e2ebkt000001';
 const E2E_BUCKET2_SHORT_ID = 'e2ebkt000002';
 
-test.describe('This suite verifies the public send-message-page for the non-admin user.', () => {
-  test('When the non-admin opens the public send-message-page for a public bucket, they see the send-message form (public bucket).', async ({
+test.describe('This suite verifies the public send-message-page for the basic-user.', () => {
+  test('When the basic-user opens the public send-message-page for a public bucket, they see the send-message form (public bucket).', async ({
     page,
   }, testInfo) => {
-    setE2EUserContext(testInfo, 'non-admin');
+    setE2EUserContext(testInfo, 'basic-user');
     await loginAsWebE2ENonAdmin(page);
     await actionAndCapture(
       page,
@@ -29,14 +29,14 @@ test.describe('This suite verifies the public send-message-page for the non-admi
     await capturePageLoad(
       page,
       testInfo,
-      'The public send-message-page shows the form for the non-admin (public bucket).'
+      'The public send-message-page shows the form for the basic-user (public bucket).'
     );
   });
 
-  test('When the non-admin opens the send-message-page with an invalid short id, they see not found.', async ({
+  test('When the basic-user opens the send-message-page with an invalid short id, they see not found.', async ({
     page,
   }, testInfo) => {
-    setE2EUserContext(testInfo, 'non-admin');
+    setE2EUserContext(testInfo, 'basic-user');
     await loginAsWebE2ENonAdmin(page);
     await expectInvalidRouteShowsNotFound(
       page,
@@ -48,10 +48,10 @@ test.describe('This suite verifies the public send-message-page for the non-admi
     );
   });
 
-  test('When the non-admin opens the send-message-page for a private bucket, they see not found.', async ({
+  test('When the basic-user opens the send-message-page for a private bucket, they see not found.', async ({
     page,
   }, testInfo) => {
-    setE2EUserContext(testInfo, 'non-admin');
+    setE2EUserContext(testInfo, 'basic-user');
     await loginAsWebE2ENonAdmin(page);
     await expectInvalidRouteShowsNotFound(
       page,

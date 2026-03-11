@@ -8,7 +8,7 @@ version: 1.0.0
 
 Use this skill for permission-sensitive routes and controls. Current E2E bar: **Confident** (see e2e-crud-state-matrix).
 
-For **permission-gated edit/detail/settings specs**, apply the full **permission actor matrix** process so all actor × outcome permutations are tested (unauthenticated, owner, non-owner with/without permission, non-admin, plus list→edit and Cancel→list). See the **e2e-permission-actor-matrix** skill for the step-by-step process and the reference implementation: web bucket-admin-edit is implemented across the `bucket-admin-edit-*.spec.ts` specs in `apps/web/e2e/` (unauthenticated, seeded-bucket-owner, seeded-bucket-admin, admin-without-permission, non-admin).
+For **permission-gated edit/detail/settings specs**, apply the full **permission actor matrix** process so all actor × outcome permutations are tested (unauthenticated, owner, non-owner with/without permission, non-admin, plus list→edit and Cancel→list). See the **e2e-permission-actor-matrix** skill for the step-by-step process and the reference implementation: web bucket-admin-edit is implemented across the `bucket-admin-edit-*.spec.ts` specs in `apps/web/e2e/` (unauthenticated, bucket-owner, bucket-admin, admin-without-permission, non-admin).
 
 ## Required role/ownership matrix
 

@@ -14,7 +14,7 @@
 ## Gaps (skills)
 
 - **Readability:** Full-sentence titles/labels, setE2EUserContext, hyphenated terms.
-- **Permission actor matrix:** Unauthenticated → redirect; owner sees detail and actions; non-owner admin with access sees detail (actions may differ); non-admin → not found; invalid bucket id → not found.
+- **Permission actor matrix:** Unauthenticated → redirect; owner sees detail and actions; non-owner-admin with access sees detail (actions may differ); non-admin → not found; invalid bucket id → not found.
 - **AuthZ matrix:** Visibility of settings/edit/messages links or buttons by role.
 - **CRUD state matrix:** Read (detail content visible); no create/update/delete on this page (links to other pages).
 - **URL state:** N/A unless detail has tabs/query.
@@ -38,4 +38,4 @@
 ## Status: Completed
 
 - **Date:** 2025-03-09
-- **Done:** Steps 1–3: Tests present (unauthenticated redirect, owner and non-owner see detail and settings/messages links, invalid bucket id, non-admin not found). Post-navigation: owner test assertions (URL, bucket name, links) moved inside actionAndCapture callback; non-owner admin test has capturePageLoad. Step 4: setE2EUserContext and hyphenated terms (bucket-detail-page); full-sentence describe. Step 5: Run `make e2e_test_web_report_spec SPEC=e2e/bucket-detail.spec.ts` to confirm (local run blocked by Xcode license). **Skipped:** Optional list→detail flow.
+- **Done:** Steps 1–3: Tests present (unauthenticated redirect, owner and non-owner see detail and settings/messages links, invalid bucket id, non-admin not found). Post-navigation: owner test assertions (URL, bucket name, links) moved inside actionAndCapture callback; non-owner-admin test has capturePageLoad. Step 4: setE2EUserContext and hyphenated terms (bucket-detail-page); full-sentence describe. Step 5: Run `make e2e_test_web_report_spec SPEC=e2e/bucket-detail.spec.ts` to confirm (local run blocked by Xcode license). **Skipped:** Optional list→detail flow.

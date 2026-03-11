@@ -10,7 +10,7 @@ Current E2E bar: **Confident**. Use this skill when implementing or reviewing E2
 
 ## Reference implementation
 
-- **Specs (web, split by actor):** The actor × outcome matrix for bucket-admin-edit is implemented across [bucket-admin-edit-unauthenticated.spec.ts](apps/web/e2e/bucket-admin-edit-unauthenticated.spec.ts), [bucket-admin-edit-seeded-bucket-owner.spec.ts](apps/web/e2e/bucket-admin-edit-seeded-bucket-owner.spec.ts), [bucket-admin-edit-seeded-bucket-admin.spec.ts](apps/web/e2e/bucket-admin-edit-seeded-bucket-admin.spec.ts), [bucket-admin-edit-admin-without-permission.spec.ts](apps/web/e2e/bucket-admin-edit-admin-without-permission.spec.ts), and [bucket-admin-edit-non-admin.spec.ts](apps/web/e2e/bucket-admin-edit-non-admin.spec.ts). Together they cover unauthenticated, owner, admin with permission, admin without permission, and non-admin.
+- **Specs (web, split by actor):** The actor × outcome matrix for bucket-admin-edit is implemented across [bucket-admin-edit-unauthenticated.spec.ts](apps/web/e2e/bucket-admin-edit-unauthenticated.spec.ts), [bucket-admin-edit-bucket-owner.spec.ts](apps/web/e2e/bucket-admin-edit-bucket-owner.spec.ts), [bucket-admin-edit-bucket-admin.spec.ts](apps/web/e2e/bucket-admin-edit-bucket-admin.spec.ts), [bucket-admin-edit-admin-without-permission.spec.ts](apps/web/e2e/bucket-admin-edit-admin-without-permission.spec.ts), and [bucket-admin-edit-non-admin.spec.ts](apps/web/e2e/bucket-admin-edit-non-admin.spec.ts). Together they cover unauthenticated, owner, admin with permission, admin without permission, and non-admin.
 - **Pattern:** API/source-of-truth → actor matrix table → seed + login helpers → tests per actor × outcome + flow tests (one spec per actor or combined as needed).
 
 ## Process (apply to each permission-gated spec)
@@ -18,7 +18,7 @@ Current E2E bar: **Confident**. Use this skill when implementing or reviewing E2
 ### 1. Establish API/source of truth
 
 - Identify the permission policy (e.g. `canManageBucketAdmins`, bucket/role/message CRUD bits).
-- Document which actors can perform which actions (e.g. owner vs non-owner admin with/without permission vs non-admin).
+- Document which actors can perform which actions (e.g. owner vs non-owner-admin with/without permission vs non-admin).
 - Note how the app treats API responses (e.g. 403 → not found).
 
 ### 2. Define the actor matrix

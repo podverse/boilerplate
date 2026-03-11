@@ -7,18 +7,18 @@ import {
 import { actionAndCapture, capturePageLoad } from './helpers/stepScreenshots';
 import { setE2EUserContext } from './helpers/userContext';
 
-test.describe('This suite verifies the management events-page for the limited-admin (no buckets, events own only) user.', () => {
-  test('When a limited-admin (no buckets permission, event_visibility own) opens the events-page, they see the events heading and list or empty state.', async ({
+test.describe('This suite verifies the management events-page for the admin (admins users events:own) user.', () => {
+  test('When an admin (admins users events:own) opens the events-page, they see the events heading and list or empty state.', async ({
     page,
   }, testInfo) => {
-    setE2EUserContext(testInfo, 'limited-admin (no buckets, events own only)');
+    setE2EUserContext(testInfo, 'admin (admins users events:own)');
     await loginAsManagementAdminWithBucketAdmins(page);
     await page.context().clearCookies();
     await loginAsLimitedAdmin(page);
     await actionAndCapture(
       page,
       testInfo,
-      'User navigates to the management events-page as limited-admin and sees the list or empty state.',
+      'User navigates to the management events-page as admin (admins users events:own) and sees the list or empty state.',
       async () => {
         await page.goto('/events');
       }
@@ -33,7 +33,7 @@ test.describe('This suite verifies the management events-page for the limited-ad
     await capturePageLoad(
       page,
       testInfo,
-      'The events-page is visible for limited-admin with list or empty state.',
+      'The events-page is visible for admin (admins users events:own) with list or empty state.',
       eventsHeading
     );
   });
