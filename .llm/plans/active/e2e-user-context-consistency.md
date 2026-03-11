@@ -68,7 +68,6 @@ Use this table when replacing strings in specs. Reporter keys are the normalized
 |---------------------------------|---------------------------------------------------|
 | unauthenticated                 | unauthenticated                                   |
 | super-admin                     | super-admin                                       |
-| super-admin         | super-admin                                       |
 | limited-admin (users read)      | admin (admins users events:own)                   |
 
 For any future specs that use admin-with-bucket-admins or admin-without-bucket-admins seeds:
@@ -117,9 +116,11 @@ For any future specs that use admin-with-bucket-admins or admin-without-bucket-a
 
 ---
 
-## Execution order
+## Execution order (completed)
 
 1. Full mapping is documented in this plan (see **Full mapping** section).
-2. Update reporter: add all normalized keys and corresponding `.test-user-context-value-<suffix>` CSS (Phase 1).
-3. Update e2e-readability skill and docs (Phase 3).
-4. Replace strings in specs per Full mapping; run a focused E2E report to confirm.
+2. Phase 1: Reporter keys and `.test-user-context-value-<suffix>` CSS added in [scripts/e2e-html-steps-reporter.ts](scripts/e2e-html-steps-reporter.ts).
+3. Phase 3: e2e-readability skill updated in [.cursor/skills/e2e-readability/SKILL.md](.cursor/skills/e2e-readability/SKILL.md).
+4. Phase 2: All management-web specs now use canonical strings per Full mapping.
+
+For new specs, use the **Full mapping** and **Abbreviated permission notation** sections above.
