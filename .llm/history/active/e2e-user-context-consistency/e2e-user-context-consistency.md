@@ -27,3 +27,30 @@ implement the plan
 - apps/management-web/e2e/user-detail-limited-admin-users-read.spec.ts — 'limited-admin (users read)' → 'admin (admins users events:own)' (3)
 - apps/management-web/e2e/users-limited-admin-users-read.spec.ts — 'limited-admin (users read)' → 'admin (admins users events:own)' (2)
 - .llm/history/active/e2e-user-context-consistency/e2e-user-context-consistency.md — created
+
+---
+
+### Session 2 - 2025-03-10
+
+#### Prompt (Developer)
+
+change web to use a strict resource level pattern format so both web and mgmt web are consistent in this respect and update skill if needed
+
+#### Key Decisions
+
+- Web now uses the same resource/level notation as management-web: resource name only = full CRUD, `resource:R` = read-only, `resource:-` = no access.
+- Web resources (bucket-scoped): settings, roles, messages, admins, bucket, bucket_create.
+- Canonical strings: `bucket-admin (settings:- roles:- messages:- admins:-)` for admin-without-permission; `bucket-admin (bucket:R bucket_create:-)` for read-only no create.
+- Reporter unchanged (role-prefix coloring already maps bucket-admin (…) to bucket-admin color).
+
+#### Files Created/Modified
+
+- apps/web/e2e/bucket-settings-admin-without-permission.spec.ts
+- apps/web/e2e/bucket-role-new-admin-without-permission.spec.ts
+- apps/web/e2e/bucket-role-edit-admin-without-permission.spec.ts
+- apps/web/e2e/bucket-admin-edit-admin-without-permission.spec.ts
+- apps/web/e2e/bucket-message-edit-admin-without-permission.spec.ts
+- apps/web/e2e/bucket-nested-new-non-owner-admin-read-only-no-create.spec.ts
+- apps/web/e2e/bucket-child-new-non-owner-admin-read-only-no-create.spec.ts
+- .llm/plans/completed/e2e-user-context-consistency.md — web resources + Full mapping table
+- .cursor/skills/e2e-readability/SKILL.md — web bullet: same resource/level notation, examples

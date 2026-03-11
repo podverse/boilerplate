@@ -108,21 +108,23 @@ function userContextToClassSuffix(context: string): string {
   return normalized !== '' ? normalized : 'other';
 }
 
-/** Known context keys that have a dedicated color scheme; unknown contexts use "other". */
-const KNOWN_USER_CONTEXT_KEYS = new Set([
-  'unauthenticated',
+/** Role prefixes for color (longest first so e.g. super-admin matches before admin). */
+const ROLE_PREFIXES = [
+  'super-admin',
+  'bucket-admin',
+  'admin',
   'basic-user',
   'bucket-owner',
-  'bucket-admin',
-  'super-admin',
-  'admin-admins-users-events-own',
-  'admin-buckets-r-bucket-admins-events-all-admins',
-  'admin-buckets-r-events-all-admins',
-]);
+  'unauthenticated',
+] as const;
 
-function getUserContextClassSuffix(context: string): string {
+/** Return the role prefix for color; unknown contexts use "other". */
+function getContextColorClassSuffix(context: string): string {
   const suffix = userContextToClassSuffix(context);
-  return KNOWN_USER_CONTEXT_KEYS.has(suffix) ? suffix : 'other';
+  for (const role of ROLE_PREFIXES) {
+    if (suffix === role || suffix.startsWith(role + '-')) return role;
+  }
+  return 'other';
 }
 
 function normalizePathSlashes(filePath: string): string {
@@ -482,9 +484,7 @@ export default class HtmlStepsReporter implements Reporter {
     .test-user-context-value-bucket-owner { color: #f0dc78; }
     .test-user-context-value-bucket-admin { color: #c8d878; }
     .test-user-context-value-super-admin { color: #d8b0e8; }
-    .test-user-context-value-admin-admins-users-events-own { color: #c0a8e0; }
-    .test-user-context-value-admin-buckets-r-bucket-admins-events-all-admins { color: #a8c8e0; }
-    .test-user-context-value-admin-buckets-r-events-all-admins { color: #98b8d0; }
+    .test-user-context-value-admin { color: #c0a8e0; }
     .test-user-context-value-other { color: #e0b070; }
     .nav-wrapper { position: fixed; bottom: var(--report-space-lg); right: var(--report-space-lg); display: flex; flex-direction: column; align-items: flex-end; gap: var(--report-space-sm); z-index: 10; }
     .nav-end-message { font-size: var(--report-font-sm); color: var(--report-text-muted, #666); display: none; }
@@ -527,7 +527,11 @@ ${isInterrupted ? '  <div class="incomplete-banner">Run aborted during execution
       const prefixText = statusDisplayLabel(status);
       const isRedirectToLogin = isRedirectToLoginTest(test);
       const userContext = getUserContextFromResult(result);
-      const titleSuffix = userContext !== null ? ` (${escapeHtml(userContext)})` : '';
+      const colorSuffix = userContext !== null ? getContextColorClassSuffix(userContext) : '';
+      const titleSuffix =
+        userContext !== null
+          ? ` <span class="test-user-context-value test-user-context-value-${colorSuffix}">(${escapeHtml(userContext)})</span>`
+          : '';
       if (isRedirectToLogin) {
         parts.push(`      <li><span class="${escapeHtml(prefixClass)}">${escapeHtml(prefixText)}:</span> ${escapeHtml(test.title)}${titleSuffix}</li>
 `);
@@ -558,10 +562,10 @@ ${isInterrupted ? '  <div class="incomplete-banner">Run aborted during execution
       const describeLabel = contextSegments.length >= 2 ? contextSegments[0] : '';
       const firstSourceMarker = getFirstStepSourceMarker(result.attachments);
       const userContext = getUserContextFromResult(result);
-      const contextSuffix = userContext !== null ? getUserContextClassSuffix(userContext) : '';
+      const colorSuffix = userContext !== null ? getContextColorClassSuffix(userContext) : '';
       const userContextLine =
         userContext !== null
-          ? `    <div class="test-user-context">User context: <span class="test-user-context-value test-user-context-value-${contextSuffix}">${escapeHtml(userContext)}</span></div>\n`
+          ? `    <div class="test-user-context">User context: <span class="test-user-context-value test-user-context-value-${colorSuffix}">${escapeHtml(userContext)}</span></div>\n`
           : `    <div class="test-user-context test-user-context-unset">User context: (not set)</div>\n`;
       parts.push(`  <section id="test-${testIndex}" class="test" data-test-index="${testIndex}" data-status="${escapeHtml(statusClass)}">
 ${describeLabel !== '' ? `    <div class="test-describe">${escapeHtml(describeLabel)}</div>\n` : ''}    <h2>${escapeHtml(test.title)}</h2>
@@ -634,13 +638,22 @@ ${firstSourceMarker !== '' ? `    <div class="test-source-marker">${escapeHtml(f
         if (shouldHideNavigationOnlyImage(collectedSteps, stepIndex)) {
           continue;
         }
+        let stepDescriptionHtml = escapeHtml(step.stepLabelOnly);
+        if (step.stepLabelOnly !== '' && userContext !== null && colorSuffix !== '') {
+          const escapedContext = escapeHtml(userContext);
+          stepDescriptionHtml = stepDescriptionHtml
+            .split(escapedContext)
+            .join(
+              `<span class="test-user-context-value test-user-context-value-${colorSuffix}">${escapedContext}</span>`
+            );
+        }
         parts.push(`    <hr class="step-description-hr">
     <div class="step-block" data-shot-index="${shotIndex}">
     <div class="step-content">
 ${
   step.stepLabelOnly !== ''
     ? `    <div class="step-description">
-    <div class="step-description-text">${escapeHtml(step.stepLabelOnly)}</div>
+    <div class="step-description-text">${stepDescriptionHtml}</div>
 ${
   step.stepUrl
     ? `    <div class="step-url">URL: <a href="${escapeHtml(step.stepUrl)}" target="_blank" rel="noopener noreferrer">${escapeHtml(step.stepUrl)}</a></div>

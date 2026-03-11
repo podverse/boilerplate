@@ -34,7 +34,9 @@
 
 **Resources (management-web):** admins, users, buckets, bucket_messages, bucket_admins. Optionally **events:own** vs **events:all_admins** when it matters.
 
-**Examples (aligned with current seed):**
+**Resources (web, bucket-scoped):** settings (bucket settings), roles (bucket roles), messages (bucket messages), admins (bucket admins), bucket (read bucket), bucket_create (create child/nested bucket). Use the same level rules: resource name only = full CRUD, `resource:R` = read-only, `resource:-` = no access.
+
+**Examples (management-web, aligned with current seed):**
 
 | Seed identity                         | Canonical user context string                              |
 |--------------------------------------|------------------------------------------------------------|
@@ -53,14 +55,16 @@ Use this table when replacing strings in specs. Reporter keys are the normalized
 
 ### Web app (apps/web/e2e)
 
-| Current string   | Canonical string |
-|------------------|------------------|
-| unauthenticated  | unauthenticated  |
-| basic-user       | basic-user       |
-| bucket-owner     | bucket-owner     |
-| bucket-admin     | bucket-admin     |
+| Current string                         | Canonical string                                              |
+|----------------------------------------|---------------------------------------------------------------|
+| unauthenticated                        | unauthenticated                                               |
+| basic-user                             | basic-user                                                    |
+| bucket-owner                           | bucket-owner                                                 |
+| bucket-admin                           | bucket-admin                                                 |
+| admin-without-permission               | bucket-admin (settings:- roles:- messages:- admins:-)         |
+| non-owner-admin (read-only, no create)  | bucket-admin (bucket:R bucket_create:-)                       |
 
-(Web has no "admin" role; only unauthenticated, basic-user, bucket-owner, bucket-admin.)
+(Web has no "admin" role; only unauthenticated, basic-user, bucket-owner, and bucket-admin with optional (…) qualifiers. Use the same resource/level notation as management-web inside the parentheses.)
 
 ### Management-web (apps/management-web/e2e)
 

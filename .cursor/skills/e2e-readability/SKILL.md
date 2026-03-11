@@ -82,7 +82,7 @@ Every test that has a defined user (unauthenticated or a specific role) should s
 
 **Pattern:** Use **role** or **role (permissions)**. Be consistent so the reporter can apply a dedicated color.
 
-**Web app:** Only **unauthenticated**, **basic-user**, **bucket-owner**, and **bucket-admin** (web has no "admin" role).
+**Web app:** Only **unauthenticated**, **basic-user**, **bucket-owner**, and **bucket-admin** (web has no "admin" role). For limited-permission bucket admins use the **same resource/level notation** as management-web inside parentheses: full CRUD = resource name only; read-only = `resource:R`; no access = `resource:-`. Web resources (bucket-scoped): settings, roles, messages, admins, bucket, bucket_create. Examples: `bucket-admin (settings:- roles:- messages:- admins:-)`, `bucket-admin (bucket:R bucket_create:-)`.
 
 **Management-web:** Use **super-admin** for the super-admin identity. For all other management users use **admin (…)** with abbreviated permission notation: full CRUD = resource name only (e.g. `admins`, `users`); read-only = `resource:R` (e.g. `buckets:R`). Examples: `admin (admins users events:own)`, `admin (buckets:R bucket_admins events:all_admins)`. Do not use "limited-admin", "admin with X", or "admin without X" as the role name.
 

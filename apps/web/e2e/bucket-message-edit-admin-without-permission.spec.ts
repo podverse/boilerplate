@@ -29,11 +29,11 @@ async function createMessageAndGetId(page: import('@playwright/test').Page): Pro
   return match[1];
 }
 
-test.describe('This suite verifies the bucket-message-edit-page for the admin-without-permission user.', () => {
-  test('When the non-owner-admin without message update permission opens the bucket-message-edit-page, they see not found.', async ({
+test.describe('This suite verifies the bucket-message-edit-page for the bucket-admin (settings:- roles:- messages:- admins:-) user.', () => {
+  test('When the bucket-admin (settings:- roles:- messages:- admins:-) without message update permission opens the bucket-message-edit-page, they see not found.', async ({
     page,
   }, testInfo) => {
-    setE2EUserContext(testInfo, 'admin-without-permission');
+    setE2EUserContext(testInfo, 'bucket-admin (settings:- roles:- messages:- admins:-)');
     const messageId = await createMessageAndGetId(page);
     await page.context().clearCookies();
     await loginAsWebE2EAdminWithoutPermission(page);

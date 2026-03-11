@@ -29,11 +29,11 @@ async function createRoleAndGetId(page: import('@playwright/test').Page): Promis
   return match[1];
 }
 
-test.describe('This suite verifies the bucket-role-edit-page for the admin-without-permission user.', () => {
-  test('When the non-owner-admin without bucket roles permission opens the bucket-role-edit-page, they see not found.', async ({
+test.describe('This suite verifies the bucket-role-edit-page for the bucket-admin (settings:- roles:- messages:- admins:-) user.', () => {
+  test('When the bucket-admin (settings:- roles:- messages:- admins:-) without bucket roles permission opens the bucket-role-edit-page, they see not found.', async ({
     page,
   }, testInfo) => {
-    setE2EUserContext(testInfo, 'admin-without-permission');
+    setE2EUserContext(testInfo, 'bucket-admin (settings:- roles:- messages:- admins:-)');
     const roleId = await createRoleAndGetId(page);
     await page.context().clearCookies();
     await loginAsWebE2EAdminWithoutPermission(page);
