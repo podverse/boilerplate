@@ -17,15 +17,12 @@ async function expectInviteActionOrFinalState(
   const finalState = page.getByText(finalStatePattern).first();
 
   await expect
-    .poll(
-      async () => {
-        const hasAccept = await acceptButton.isVisible().catch(() => false);
-        const hasDeclineOrReject = await declineButton.isVisible().catch(() => false);
-        const hasFinalState = await finalState.isVisible().catch(() => false);
-        return (hasAccept && hasDeclineOrReject) || hasFinalState;
-      },
-      { timeout: 10000 }
-    )
+    .poll(async () => {
+      const hasAccept = await acceptButton.isVisible().catch(() => false);
+      const hasDeclineOrReject = await declineButton.isVisible().catch(() => false);
+      const hasFinalState = await finalState.isVisible().catch(() => false);
+      return (hasAccept && hasDeclineOrReject) || hasFinalState;
+    })
     .toBe(true);
 }
 

@@ -4,8 +4,10 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { AUTH_MESSAGE_LOGIN_FAILED } from '@boilerplate/helpers';
-import { LoginForm, RateLimitModal } from '@boilerplate/ui';
+import { LoginForm, RateLimitModal, Text } from '@boilerplate/ui';
+import { getRuntimeConfig } from '../../../config/runtime-config-store';
 import { useAuth } from '../../../context/AuthContext';
+import { getWebAuthModeCapabilities } from '../../../lib/authMode';
 import { ROUTES } from '../../../lib/routes';
 
 function isSafeReturnUrl(url: string): boolean {
@@ -15,16 +17,20 @@ function isSafeReturnUrl(url: string): boolean {
 
 export default function LoginPage() {
   const tErrors = useTranslations('errors');
+  const tAuth = useTranslations('auth');
   const { login } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
   const returnUrl = searchParams.get('returnUrl');
+  const showCheckEmailMessage = searchParams.get('checkEmail') === '1';
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [showRateLimitModal, setShowRateLimitModal] = useState(false);
   const [rateLimitRetrySeconds, setRateLimitRetrySeconds] = useState<number | undefined>(undefined);
+  const runtimeConfig = getRuntimeConfig();
+  const authModeCapabilities = getWebAuthModeCapabilities(runtimeConfig.env.NEXT_PUBLIC_AUTH_MODE);
 
   const handleSubmit = async (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -53,6 +59,11 @@ export default function LoginPage() {
         onClose={() => setShowRateLimitModal(false)}
         retryAfterSeconds={rateLimitRetrySeconds}
       />
+      {showCheckEmailMessage && (
+        <Text variant="success" style={{ marginBottom: '1rem' }}>
+          {tAuth('checkEmailVerification')}
+        </Text>
+      )}
       <LoginForm
         email={email}
         password={password}
@@ -61,8 +72,10 @@ export default function LoginPage() {
         onSubmit={handleSubmit}
         loading={loading}
         submitError={submitError}
-        signupHref={ROUTES.SIGNUP}
-        forgotPasswordHref={ROUTES.FORGOT_PASSWORD}
+        signupHref={authModeCapabilities.canPublicSignup ? ROUTES.SIGNUP : undefined}
+        forgotPasswordHref={
+          authModeCapabilities.canUseEmailVerificationFlows ? ROUTES.FORGOT_PASSWORD : undefined
+        }
       />
     </>
   );

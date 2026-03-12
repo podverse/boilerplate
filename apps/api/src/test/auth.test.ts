@@ -14,11 +14,13 @@ import { createApiLoginAgent } from './helpers/login-agent.js';
 import { createApiTestApp, destroyApiTestDataSources } from './helpers/setup.js';
 
 const API = config.apiVersionPath;
+/** Unique per file to avoid collisions when tests run in parallel. */
+const FILE_PREFIX = 'auth-shared';
 
 describe('auth (shared)', () => {
   let app: Awaited<ReturnType<typeof createApiTestApp>>;
-  const testUserEmail = `test-${Date.now()}@example.com`;
-  const testUserPassword = 'test-password-1';
+  const testUserEmail = `${FILE_PREFIX}-${Date.now()}@example.com`;
+  const testUserPassword = `${FILE_PREFIX}-password-1`;
 
   beforeAll(async () => {
     app = await createApiTestApp();

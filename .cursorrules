@@ -27,6 +27,12 @@ For substantial requests, ask: "What's the goal?" / "GitHub issue?"
 
 Warn if drifting: "This seems outside scope. Continue?"
 
+### Agent/plan work: do not run tests
+
+- **Do not run** test or verification commands (e.g. `make e2e_test_web`, `npm run test`) during agent or plan implementation.
+- **Only instruct the user** to run those commands after your work is done; provide the exact command(s) in a fenced `bash` block. See **response-ending-make-verify** skill for which commands to suggest.
+- **E2E verification commands:** Always give commands that **skip API tests** by default (do not add `E2E_API_GATE_MODE=on`). Only add `E2E_API_GATE_MODE=on` when the change affected API or integration tests. The Makefile default is `E2E_API_GATE_MODE=off`.
+
 ---
 
 ## HISTORY TRACKING (Essential)

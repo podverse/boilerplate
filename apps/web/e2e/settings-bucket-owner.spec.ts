@@ -31,7 +31,7 @@ test.describe('This suite verifies the user-settings-page for the bucket-owner u
     );
   });
 
-  test('When the user submits the password-tab with a mismatch, validation is shown and they remain on the settings-page.', async ({
+  test('When the user fills the password-tab with a mismatch and blurs the confirm field, the do-not-match message is shown and the change-password button is disabled.', async ({
     page,
   }, testInfo) => {
     setE2EUserContext(testInfo, 'bucket-owner');
@@ -44,22 +44,83 @@ test.describe('This suite verifies the user-settings-page for the bucket-owner u
     await actionAndCapture(
       page,
       testInfo,
-      'User submits the password-tab with a mismatch and sees a validation message.',
+      'User fills current, new, and confirm password with a mismatch and blurs the confirm field; the do-not-match message appears and the change-password button is disabled.',
       async () => {
         await passwordInputs.nth(0).fill('Test!1Aa');
         await passwordInputs.nth(1).fill('Test!1Ab');
         await passwordInputs.nth(2).fill('Test!1Ac');
-        await page.getByRole('button', { name: /change password|save/i }).click();
+        await passwordInputs.nth(2).blur();
         await expect(page).toHaveURL(/\/settings\?tab=password/);
-        await expect(page.getByText(/match|failed|error/i).first()).toBeVisible();
+        await expect(
+          page.getByText(/passwords do not match|match|failed|error/i).first()
+        ).toBeVisible();
+        await expect(page.getByRole('button', { name: /change password|save/i })).toBeDisabled();
       }
     );
-    const validationMessage = page.getByText(/match|failed|error/i).first();
+    const validationMessage = page.getByText(/passwords do not match|match|failed|error/i).first();
     await capturePageLoad(
       page,
       testInfo,
-      'The settings-page password-tab shows validation and user remains on settings.',
+      'The settings-page password-tab shows do-not-match validation and the change-password button is disabled.',
       validationMessage
+    );
+  });
+
+  test('When the user submits the password-tab with matching current and new password, they see success and can log in with the new password; then revert so seed user is unchanged.', async ({
+    page,
+  }, testInfo) => {
+    setE2EUserContext(testInfo, 'bucket-owner');
+    await loginAsWebE2EUserAndExpectDashboard(page);
+    await page.goto('/settings?tab=password');
+    const passwordInputs = page.locator('input[type="password"]');
+    await expect(passwordInputs).toHaveCount(3);
+    const newPassword = 'Test!1Ab';
+    await passwordInputs.nth(0).fill('Test!1Aa');
+    await passwordInputs.nth(1).fill(newPassword);
+    await passwordInputs.nth(2).fill(newPassword);
+
+    await actionAndCapture(
+      page,
+      testInfo,
+      'User submits matching current and new password and sees password-changed success.',
+      async () => {
+        await page.getByRole('button', { name: /change password|save/i }).click();
+        await expect(page.getByText(/password changed/i).first()).toBeVisible();
+        await expect(page).toHaveURL(/\/settings\?tab=password/);
+      }
+    );
+
+    await actionAndCapture(
+      page,
+      testInfo,
+      'User logs out and logs in with the new password to verify the change.',
+      async () => {
+        await page.context().clearCookies();
+        await page.goto('/login');
+        await expect(page).toHaveURL(/\/login/);
+        await page
+          .getByRole('textbox', { name: /email|username/i })
+          .fill('e2e-bucket-owner@example.com');
+        await page.getByLabel(/password/i).fill(newPassword);
+        await page.getByRole('button', { name: /log in|sign in|submit/i }).click();
+        await expect(page).toHaveURL(/\/dashboard/);
+      }
+    );
+
+    await actionAndCapture(
+      page,
+      testInfo,
+      'User reverts password to original so seed user is unchanged for other specs.',
+      async () => {
+        await page.goto('/settings?tab=password');
+        const inputs = page.locator('input[type="password"]');
+        await expect(inputs).toHaveCount(3);
+        await inputs.nth(0).fill(newPassword);
+        await inputs.nth(1).fill('Test!1Aa');
+        await inputs.nth(2).fill('Test!1Aa');
+        await page.getByRole('button', { name: /change password|save/i }).click();
+        await expect(page.getByText(/password changed/i).first()).toBeVisible();
+      }
     );
   });
 
@@ -109,7 +170,7 @@ test.describe('This suite verifies the user-settings-page for the bucket-owner u
     );
   });
 
-  test('When the user opens the email-tab, they see the new-email form controls.', async ({
+  test('When the user is in admin_only_username mode, the Change email tab is not visible and /settings?tab=email redirects to /settings.', async ({
     page,
   }, testInfo) => {
     setE2EUserContext(testInfo, 'bucket-owner');
@@ -117,14 +178,28 @@ test.describe('This suite verifies the user-settings-page for the bucket-owner u
     await actionAndCapture(
       page,
       testInfo,
-      'User opens the email-tab and sees the new-email controls.',
+      'User opens settings and does not see the Change email tab.',
       async () => {
-        await page.goto('/settings?tab=email');
-        await expect(page).toHaveURL(/\/settings\?tab=email/);
-        await expect(page.getByLabel(/new email/i)).toBeVisible();
+        await page.goto('/settings');
+        await expect(page).toHaveURL(/\/settings/);
+        await expect(page.getByRole('tab', { name: /change email|email/i })).toHaveCount(0);
       }
     );
-    await capturePageLoad(page, testInfo, 'The settings-page email-tab shows the new-email form.');
+    await actionAndCapture(
+      page,
+      testInfo,
+      'User navigates to /settings?tab=email and is redirected to /settings; email tab still not present.',
+      async () => {
+        await page.goto('/settings?tab=email');
+        await expect(page).toHaveURL(/\/settings$/);
+        await expect(page.getByRole('tab', { name: /change email|email/i })).toHaveCount(0);
+      }
+    );
+    await capturePageLoad(
+      page,
+      testInfo,
+      'The settings-page in admin_only_username mode has no email tab and email tab URL redirects.'
+    );
   });
 
   test('When the user opens the profile-tab and saves a display-name change, the update persists and success feedback is shown.', async ({

@@ -16,7 +16,8 @@ export const openApiDocument = {
         type: 'http',
         scheme: 'bearer',
         bearerFormat: 'JWT',
-        description: 'JWT from POST /v1/auth/login or POST /v1/auth/signup',
+        description:
+          'JWT Bearer auth for protected routes. Browser clients typically use session cookies; API clients may supply a Bearer token.',
       },
     },
     schemas: {
@@ -43,8 +44,8 @@ export const openApiDocument = {
       },
       LoginResponse: {
         type: 'object',
+        description: 'Successful authentication response.',
         properties: {
-          token: { type: 'string', description: 'JWT for Authorization: Bearer' },
           user: { $ref: '#/components/schemas/User' },
         },
       },
@@ -88,10 +89,13 @@ export const openApiDocument = {
       SetPasswordBody: {
         type: 'object',
         required: ['token', 'newPassword'],
-        description: 'Set password using token from username-only invite link.',
+        description:
+          'Invite completion payload. Base requirement is token + newPassword. In admin-only invite modes, username is required; in admin_only_email, both username and email are required.',
         properties: {
           token: { type: 'string' },
           newPassword: { type: 'string', minLength: 1 },
+          username: { type: 'string', minLength: 1, maxLength: 50, nullable: true },
+          email: { type: 'string', format: 'email', nullable: true },
         },
       },
       RequestEmailChangeBody: {
@@ -272,7 +276,7 @@ export const openApiDocument = {
       post: {
         summary: 'Sign up',
         description:
-          'Register a new user when MAILER_ENABLED is true. When signup is disabled (admin_only), returns 403. Returns 201 with a success message in all success cases (new user receives token and user; existing email receives generic message only, to avoid account enumeration).',
+          'Register a new user only when AUTH_MODE=user_signup_email. Returns 403 in admin_only_username and admin_only_email modes. Success always returns a generic message to avoid account enumeration.',
         operationId: 'authSignup',
         requestBody: {
           required: true,
@@ -282,20 +286,14 @@ export const openApiDocument = {
         },
         responses: {
           '201': {
-            description:
-              'Created or already registered (generic success; new users receive token and user)',
+            description: 'Created or already registered (generic success response)',
             content: {
               'application/json': {
                 schema: {
-                  oneOf: [
-                    { $ref: '#/components/schemas/LoginResponse' },
-                    {
-                      type: 'object',
-                      properties: {
-                        message: { type: 'string', example: 'Registration complete.' },
-                      },
-                    },
-                  ],
+                  type: 'object',
+                  properties: {
+                    message: { type: 'string', example: 'Registration complete.' },
+                  },
                 },
               },
             },
@@ -330,7 +328,8 @@ export const openApiDocument = {
     '/auth/verify-email': {
       post: {
         summary: 'Verify email',
-        description: 'Confirm email using token from verification email. Mailer mode only.',
+        description:
+          'Confirm email using token from verification email. Available in admin_only_email and user_signup_email; disabled in admin_only_username.',
         operationId: 'authVerifyEmail',
         requestBody: {
           content: {
@@ -371,7 +370,7 @@ export const openApiDocument = {
       post: {
         summary: 'Forgot password',
         description:
-          'Request password reset email. Always returns 200 (no user enumeration). Mailer mode only.',
+          'Request password reset email. Always returns 200 (no user enumeration). Available in admin_only_email and user_signup_email; disabled in admin_only_username.',
         operationId: 'authForgotPassword',
         requestBody: {
           required: true,
@@ -406,7 +405,8 @@ export const openApiDocument = {
     '/auth/reset-password': {
       post: {
         summary: 'Reset password',
-        description: 'Set new password using token from reset email. Mailer mode only.',
+        description:
+          'Set new password using token from reset email. Available in admin_only_email and user_signup_email; disabled in admin_only_username.',
         operationId: 'authResetPassword',
         requestBody: {
           required: true,
@@ -441,7 +441,7 @@ export const openApiDocument = {
       post: {
         summary: 'Set password',
         description:
-          'Set password using token from username-only invite link (e.g. from management create user). No auth required.',
+          'Complete an admin invitation using a set-password token. For admin_only_username, provide username + password. For admin_only_email, provide email + username + password. This endpoint is intended for invite tokens issued from management user creation in admin-only modes.',
         operationId: 'authSetPassword',
         requestBody: {
           required: true,
@@ -452,7 +452,13 @@ export const openApiDocument = {
         responses: {
           '204': { description: 'Password set' },
           '400': {
-            description: 'Invalid or expired token or validation error',
+            description: 'Invalid or expired token or required-field validation error',
+            content: {
+              'application/json': { schema: { $ref: '#/components/schemas/ErrorMessage' } },
+            },
+          },
+          '409': {
+            description: 'Username or email already in use',
             content: {
               'application/json': { schema: { $ref: '#/components/schemas/ErrorMessage' } },
             },
@@ -470,7 +476,7 @@ export const openApiDocument = {
       post: {
         summary: 'Request email change',
         description:
-          'Send verification email to new address. Requires Bearer token. Mailer mode only.',
+          'Send verification email to new address. Requires Bearer token. Available in admin_only_email and user_signup_email; disabled in admin_only_username.',
         operationId: 'authRequestEmailChange',
         security: [{ bearerAuth: [] }],
         requestBody: {
@@ -524,7 +530,8 @@ export const openApiDocument = {
     '/auth/confirm-email-change': {
       post: {
         summary: 'Confirm email change',
-        description: 'Apply new email using token from verification email. Mailer mode only.',
+        description:
+          'Apply new email using token from verification email. Available in admin_only_email and user_signup_email; disabled in admin_only_username.',
         operationId: 'authConfirmEmailChange',
         requestBody: {
           content: {

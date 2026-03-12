@@ -1,7 +1,7 @@
 import type { RequestHandler } from 'express';
 import { Router } from 'express';
+import type { AuthModeCapabilities } from '../config/index.js';
 import * as authController from '../controllers/authController.js';
-import { isMailerEnabled } from '../lib/mailer/send.js';
 import { moderateAuthRateLimiter, strictAuthRateLimiter } from '../middleware/rateLimit.js';
 import { validateBody } from '../middleware/validateBody.js';
 import {
@@ -10,16 +10,17 @@ import {
   changePasswordSchema,
   forgotPasswordSchema,
   resetPasswordSchema,
-  setPasswordSchema,
+  createSetPasswordSchema,
   requestEmailChangeSchema,
   updateProfileSchema,
 } from '../schemas/auth.js';
 
 export function createAuthRouter(
   requireAuthMiddleware: RequestHandler,
-  mountSignup: boolean
+  authModeCapabilities: AuthModeCapabilities
 ): Router {
   const router = Router();
+  const setPasswordSchema = createSetPasswordSchema(authModeCapabilities);
 
   router.post('/login', strictAuthRateLimiter, validateBody(loginSchema), (req, res) => {
     void authController.login(req, res);
@@ -55,7 +56,7 @@ export function createAuthRouter(
     }
   );
 
-  if (mountSignup) {
+  if (authModeCapabilities.canPublicSignup) {
     router.post('/signup', strictAuthRateLimiter, validateBody(signupSchema), (req, res) => {
       void authController.signup(req, res);
     });
@@ -67,7 +68,7 @@ export function createAuthRouter(
 
   // Plan 34: verification flows (mailer mode only)
   router.post('/verify-email', strictAuthRateLimiter, (req, res) => {
-    if (!isMailerEnabled()) {
+    if (!authModeCapabilities.canUseEmailVerificationFlows) {
       res.status(403).json({ message: 'Email verification is not enabled' });
       return;
     }
@@ -78,7 +79,7 @@ export function createAuthRouter(
     strictAuthRateLimiter,
     validateBody(forgotPasswordSchema),
     (req, res) => {
-      if (!isMailerEnabled()) {
+      if (!authModeCapabilities.canUseEmailVerificationFlows) {
         res.status(403).json({ message: 'Email verification is not enabled' });
         return;
       }
@@ -90,7 +91,7 @@ export function createAuthRouter(
     strictAuthRateLimiter,
     validateBody(resetPasswordSchema),
     (req, res) => {
-      if (!isMailerEnabled()) {
+      if (!authModeCapabilities.canUseEmailVerificationFlows) {
         res.status(403).json({ message: 'Email verification is not enabled' });
         return;
       }
@@ -111,7 +112,7 @@ export function createAuthRouter(
     requireAuthMiddleware,
     validateBody(requestEmailChangeSchema),
     (req, res) => {
-      if (!isMailerEnabled()) {
+      if (!authModeCapabilities.canUseEmailVerificationFlows) {
         res.status(403).json({ message: 'Email verification is not enabled' });
         return;
       }
@@ -119,7 +120,7 @@ export function createAuthRouter(
     }
   );
   router.post('/confirm-email-change', strictAuthRateLimiter, (req, res) => {
-    if (!isMailerEnabled()) {
+    if (!authModeCapabilities.canUseEmailVerificationFlows) {
       res.status(403).json({ message: 'Email verification is not enabled' });
       return;
     }

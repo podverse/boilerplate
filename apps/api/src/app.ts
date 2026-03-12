@@ -9,7 +9,7 @@ import express from 'express';
 import type { Request, Response } from 'express';
 import swaggerUi from 'swagger-ui-express';
 
-import { config, isNoMailerMode } from './config/index.js';
+import { config } from './config/index.js';
 import { requireAuth } from './middleware/requireAuth.js';
 import { openApiDocument } from './openapi.js';
 import { createAuthRouter } from './routes/auth.js';
@@ -36,8 +36,6 @@ export function createApp(): Express {
     jwtSecret: config.jwtSecret,
     sessionCookieName: config.sessionCookieName,
   });
-  const mountSignup = !isNoMailerMode();
-
   const versionedRouter = express.Router();
   versionedRouter.get('/health', (_req: Request, res: Response): void => {
     res.json({ status: 'ok', app: config.appName });
@@ -48,7 +46,7 @@ export function createApp(): Express {
       env: { port: config.port },
     });
   });
-  versionedRouter.use('/auth', createAuthRouter(authMiddleware, mountSignup));
+  versionedRouter.use('/auth', createAuthRouter(authMiddleware, config.authModeCapabilities));
   versionedRouter.use('/buckets', createBucketsRouter(authMiddleware));
   versionedRouter.use('/admin-invitations', createBucketAdminInvitationsRouter(authMiddleware));
 

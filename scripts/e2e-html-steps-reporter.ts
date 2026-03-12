@@ -352,6 +352,7 @@ function shouldHideNavigationOnlyImage(steps: CollectedStep[], stepIndex: number
 /** Human-readable status label used consistently in summary and section. */
 function statusDisplayLabel(status: string): string {
   if (status === 'passed') return 'passed';
+  if (status === 'skipped') return 'skipped';
   if (status === 'timedOut') return 'timed out';
   return 'failed';
 }
@@ -395,11 +396,14 @@ export default class HtmlStepsReporter implements Reporter {
     const scopedSpecSuffix = getScopedSpecSuffix();
     const reportTitle = normalizedDir.endsWith('/management-web')
       ? `E2E Management Web Report${scopedSpecSuffix}`
-      : normalizedDir.endsWith('/web')
-        ? `E2E Web Report${scopedSpecSuffix}`
-        : 'E2E step report';
+      : normalizedDir.endsWith('/web-signup-enabled')
+        ? `E2E Web Report – AUTH_MODE=user_signup_email, MAILER_ENABLED=true${scopedSpecSuffix}`
+        : normalizedDir.endsWith('/web-admin-only-email') || normalizedDir.endsWith('/web')
+          ? `E2E Web Report${scopedSpecSuffix}`
+          : 'E2E step report';
 
     const passed = this.runs.filter((r) => r.result.status === 'passed').length;
+    const skipped = this.runs.filter((r) => r.result.status === 'skipped').length;
     const failed = this.runs.filter((r) => r.result.status === 'failed').length;
     const timedOut = this.runs.filter((r) => r.result.status === 'timedOut').length;
     const total = this.runs.length;
@@ -420,6 +424,7 @@ export default class HtmlStepsReporter implements Reporter {
       --report-pass: #4ec9b0;
       --report-fail: #f48771;
       --report-timeout: #dcdcaa;
+      --report-skip: #888;
       --report-warning-bg: #3d3d2d;
       --report-warning-text: #dcdcaa;
       --report-surface: #2d2d2d;
@@ -456,6 +461,7 @@ export default class HtmlStepsReporter implements Reporter {
     .summary-list a { color: var(--report-link); text-decoration: none; }
     .summary-list a:hover { text-decoration: underline; }
     .summary-list .prefix-pass { color: var(--report-pass); }
+    .summary-list .prefix-skip { color: var(--report-skip); }
     .summary-list .prefix-error { color: var(--report-fail); }
     .summary-list .prefix-timeout { color: var(--report-timeout); }
     .summary-list .summary-group-header { list-style: none; margin-top: var(--report-space-lg); margin-bottom: var(--report-space-xs); font-weight: 600; font-size: var(--report-font-md); color: var(--report-text); }
@@ -466,6 +472,7 @@ export default class HtmlStepsReporter implements Reporter {
     .test-source-marker { font-size: var(--report-font-xs); color: var(--report-muted); margin: 0 0 var(--report-space-xs); }
     .status { font-size: var(--report-font-sm); margin-bottom: var(--report-space-xs); }
     .status.passed { color: var(--report-pass); }
+    .status.skipped { color: var(--report-skip); }
     .status.failed { color: var(--report-fail); }
     .status.timedout { color: var(--report-timeout); }
     .error { background: var(--report-surface); padding: var(--report-space-md); border-radius: var(--report-radius-sm); margin-bottom: var(--report-space-lg); font-size: var(--report-font-sm); color: var(--report-error-text); white-space: pre-wrap; }
@@ -503,7 +510,7 @@ export default class HtmlStepsReporter implements Reporter {
 ${isInterrupted ? '  <div class="incomplete-banner">Run aborted during execution; this report is incomplete.</div>\n' : ''}
   <h2 class="section-heading">Test summary</h2>
   <div class="summary">
-    <div class="summary-stats">${total} test${total === 1 ? '' : 's'}: ${passed} passed, ${failed} failed${timedOut > 0 ? `, ${timedOut} timed out` : ''}</div>
+    <div class="summary-stats">${total} test${total === 1 ? '' : 's'}: ${passed} passed${skipped > 0 ? `, ${skipped} skipped` : ''}, ${failed} failed${timedOut > 0 ? `, ${timedOut} timed out` : ''}</div>
     <ul class="summary-list">
 `);
     let lastGroupName: string | null = null;
@@ -521,9 +528,11 @@ ${isInterrupted ? '  <div class="incomplete-banner">Run aborted during execution
       const prefixClass =
         status === 'passed'
           ? 'prefix-pass'
-          : status === 'timedOut'
-            ? 'prefix-timeout'
-            : 'prefix-error';
+          : status === 'skipped'
+            ? 'prefix-skip'
+            : status === 'timedOut'
+              ? 'prefix-timeout'
+              : 'prefix-error';
       const prefixText = statusDisplayLabel(status);
       const isRedirectToLogin = isRedirectToLoginTest(test);
       const userContext = getUserContextFromResult(result);
@@ -532,11 +541,12 @@ ${isInterrupted ? '  <div class="incomplete-banner">Run aborted during execution
         userContext !== null
           ? ` <span class="test-user-context-value test-user-context-value-${colorSuffix}">(${escapeHtml(userContext)})</span>`
           : '';
+      const testNumber = testIndex + 1;
       if (isRedirectToLogin) {
-        parts.push(`      <li><span class="${escapeHtml(prefixClass)}">${escapeHtml(prefixText)}:</span> ${escapeHtml(test.title)}${titleSuffix}</li>
+        parts.push(`      <li><span class="${escapeHtml(prefixClass)}">${escapeHtml(prefixText)}:</span> ${testNumber}) ${escapeHtml(test.title)}${titleSuffix}</li>
 `);
       } else {
-        parts.push(`      <li><span class="${escapeHtml(prefixClass)}">${escapeHtml(prefixText)}:</span> <a href="#test-${testIndex}">${escapeHtml(test.title)}</a>${titleSuffix}</li>
+        parts.push(`      <li><span class="${escapeHtml(prefixClass)}">${escapeHtml(prefixText)}:</span> ${testNumber}) <a href="#test-${testIndex}">${escapeHtml(test.title)}</a>${titleSuffix}</li>
 `);
       }
     }
@@ -760,7 +770,7 @@ ${
         }
         return null;
       }
-      var SHOT_OFFSET_PX = 108;
+      var SHOT_OFFSET_PX = 140;
       var shotBlocks = document.querySelectorAll('.step-block[data-shot-index]');
       function findNextShotAhead() {
         var threshold = window.scrollY + SHOT_OFFSET_PX + 2;

@@ -1,5 +1,6 @@
 {
   "auth": {
+    "checkEmailVerification": "Check your email for a verification email in order to log in.",
     "login": {
       "title": "Log in",
       "email": "Email",

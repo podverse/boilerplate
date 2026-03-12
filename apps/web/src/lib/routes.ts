@@ -12,6 +12,7 @@ export const ROUTES = {
   BUCKETS_NEW: '/buckets/new',
   FORGOT_PASSWORD: '/forgot-password',
   RESET_PASSWORD: '/reset-password',
+  SET_PASSWORD: '/auth/set-password',
 } as const;
 
 /** Account settings tab; URL param ?tab= for profile, password, email. */
@@ -216,6 +217,7 @@ export const PUBLIC_PATHS: readonly string[] = [
   ROUTES.SIGNUP,
   ROUTES.FORGOT_PASSWORD,
   ROUTES.RESET_PASSWORD,
+  ROUTES.SET_PASSWORD,
 ];
 
 /** Public bucket view and send-message live under /b/[id] and /b/[id]/send-message. */

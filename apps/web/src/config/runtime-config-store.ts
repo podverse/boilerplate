@@ -18,6 +18,7 @@ function buildFromProcessEnv(): WebRuntimeConfig {
       NEXT_PUBLIC_APP_TITLE_ICON: process.env.NEXT_PUBLIC_APP_TITLE_ICON,
       NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL,
       NEXT_PUBLIC_API_VERSION_PATH: process.env.NEXT_PUBLIC_API_VERSION_PATH,
+      NEXT_PUBLIC_AUTH_MODE: process.env.NEXT_PUBLIC_AUTH_MODE,
     },
   };
 }

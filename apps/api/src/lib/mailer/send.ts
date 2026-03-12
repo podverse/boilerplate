@@ -8,6 +8,8 @@ import {
 } from '@boilerplate/helpers-i18n';
 
 let transporter: Transporter | null = null;
+const AUTH_MODE_ADMIN_ONLY_EMAIL = 'admin_only_email';
+const AUTH_MODE_USER_SIGNUP_EMAIL = 'user_signup_email';
 
 function getTransporter(): Transporter {
   if (transporter !== null) return transporter;
@@ -17,7 +19,9 @@ function getTransporter(): Transporter {
   const pass = process.env.SMTP_PASSWORD;
   const from = process.env.MAIL_FROM;
   if (host === undefined || port === undefined || from === undefined) {
-    throw new Error('Mailer requires SMTP_HOST, SMTP_PORT, MAIL_FROM when MAILER_ENABLED is true');
+    throw new Error(
+      'Mailer requires SMTP_HOST, SMTP_PORT, and MAIL_FROM when AUTH_MODE uses email flows'
+    );
   }
   transporter = nodemailer.createTransport({
     host,
@@ -34,13 +38,14 @@ function getTransporter(): Transporter {
 function getBaseUrl(): string {
   const url = process.env.APP_BASE_URL;
   if (url === undefined || url === '') {
-    throw new Error('Mailer requires APP_BASE_URL when MAILER_ENABLED is true');
+    throw new Error('Mailer requires APP_BASE_URL when AUTH_MODE uses email flows');
   }
   return url.replace(/\/$/, '');
 }
 
 export function isMailerEnabled(): boolean {
-  return process.env.MAILER_ENABLED === 'true';
+  const authMode = process.env.AUTH_MODE?.trim().toLowerCase();
+  return authMode === AUTH_MODE_ADMIN_ONLY_EMAIL || authMode === AUTH_MODE_USER_SIGNUP_EMAIL;
 }
 
 export async function sendVerificationEmail(

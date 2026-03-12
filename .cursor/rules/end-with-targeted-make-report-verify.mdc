@@ -8,17 +8,17 @@ alwaysApply: true
 For implementation responses in this repo:
 
 1. **Give the user** one or more runnable `make` commands they can copy and run to verify the change; place them in a fenced `bash` code block at the end of your response.
-2. Prefer screenshot-report targets scoped to the changed feature area.
+2. **MANDATORY when the change affects E2E:** If you modified UI (apps/web or apps/management-web), E2E spec files, or any code that E2E tests cover, you **MUST** end the response with a fenced `bash` block containing the **EXACT** command(s) needed to run the affected E2E test(s). No exception. Example: `make e2e_test_web_report_spec SPEC=e2e/settings-bucket-owner.spec.ts`.
+3. Prefer screenshot-report targets scoped to the changed feature area.
 3. Avoid suggesting unrelated full-suite runs by default.
 4. Use full-suite report mode only when the change scope is broad or cross-cutting.
 5. Place final verification commands in a fenced `bash` code block so copy-to-clipboard is available.
 6. Inside the code block, list plain commands (one per line), without bullets or inline backticks.
 
-API gate mode:
+API gate (default: no API tests):
 
-- Default command examples can rely on `E2E_API_GATE_MODE=auto` (fast path).
-- When changes may impact API behavior, recommend strict gate by prefixing:
-  - `make E2E_API_GATE_MODE=on ...`
+- **Always** give E2E verification commands **without** `E2E_API_GATE_MODE` so the default applies: API integration tests are **skipped**. Do not add `E2E_API_GATE_MODE=on` unless the change affected API or integration tests.
+- To include API tests the user must pass the env var: `make E2E_API_GATE_MODE=on e2e_test_web_report_spec SPEC=...`
 
 Preferred command order:
 

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
+import { getWebAuthModeCapabilities } from './lib/authMode';
 import { isPublicPath, ROUTES } from './lib/routes';
 
 const SESSION_COOKIE_NAME = 'session';
@@ -126,6 +127,33 @@ export async function proxy(request: NextRequest) {
   const hasSession =
     (request.cookies.has(SESSION_COOKIE_NAME) || hasRestoredSession) && !sessionInvalidated;
   const isPublic = isPublicPath(pathname);
+  const authModeCapabilities = getWebAuthModeCapabilities(process.env.NEXT_PUBLIC_AUTH_MODE);
+
+  // Mode-disabled auth routes should not be accessible.
+  if (pathname === ROUTES.SIGNUP && !authModeCapabilities.canPublicSignup) {
+    const redirectRes = NextResponse.redirect(new URL(ROUTES.LOGIN, request.url));
+    if (sessionInvalidated) {
+      appendClearSessionCookies(redirectRes);
+    }
+    return redirectRes;
+  }
+  if (
+    (pathname === ROUTES.FORGOT_PASSWORD || pathname === ROUTES.RESET_PASSWORD) &&
+    !authModeCapabilities.canUseEmailVerificationFlows
+  ) {
+    const redirectRes = NextResponse.redirect(new URL(ROUTES.LOGIN, request.url));
+    if (sessionInvalidated) {
+      appendClearSessionCookies(redirectRes);
+    }
+    return redirectRes;
+  }
+  if (pathname === ROUTES.SET_PASSWORD && !authModeCapabilities.canIssueAdminInviteLink) {
+    const redirectRes = NextResponse.redirect(new URL(ROUTES.LOGIN, request.url));
+    if (sessionInvalidated) {
+      appendClearSessionCookies(redirectRes);
+    }
+    return redirectRes;
+  }
 
   // Protected route without session -> redirect to login
   if (!isPublic && !hasSession) {

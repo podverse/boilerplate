@@ -14,8 +14,10 @@ import {
 } from './helpers/setup.js';
 
 const API = config.apiVersionPath;
-const superAdminUsername = 'test-super-admin';
-const superAdminPassword = 'test-super-admin-password-1';
+/** Unique per file to avoid collisions when tests run in parallel. */
+const FILE_PREFIX = 'mgmt-ap';
+const superAdminUsername = `${FILE_PREFIX}-super-admin`;
+const superAdminPassword = `${FILE_PREFIX}-super-admin-password-1`;
 
 describe('management-api admins permissions', () => {
   let app: Awaited<ReturnType<typeof createManagementApiTestAppWithSuperAdmin>>;
@@ -35,8 +37,8 @@ describe('management-api admins permissions', () => {
 
   describe('admin with read-only permissions on admins', () => {
     const ts = Date.now();
-    const readOnlyEmail = `read-only-admin-${ts}@example.com`;
-    const readOnlyPassword = 'read-only-password-1';
+    const readOnlyEmail = `${FILE_PREFIX}-read-admin-${ts}@example.com`;
+    const readOnlyPassword = `${FILE_PREFIX}-read-password-1`;
     let readOnlyAdminId: string;
     let readOnlyAgent: ReturnType<typeof request.agent>;
 
@@ -74,7 +76,7 @@ describe('management-api admins permissions', () => {
       await readOnlyAgent
         .post(`${API}/admins`)
         .send({
-          username: `new-by-readonly-${ts}@example.com`,
+          username: `${FILE_PREFIX}-new-by-readonly-${ts}@example.com`,
           password: 'password-1',
           displayName: `New By Readonly ${ts}`,
           adminsCrud: 0,
@@ -97,7 +99,7 @@ describe('management-api admins permissions', () => {
 
     it('PATCH /admins/:id permission update succeeds when actor has update permission', async () => {
       // Admin with update permission can update another admin's permissions (non–super-admin target)
-      const updateEmail = `update-perm-${ts}@example.com`;
+      const updateEmail = `${FILE_PREFIX}-update-perm-${ts}@example.com`;
       const createRes = await superAdminAgent
         .post(`${API}/admins`)
         .send({
@@ -124,14 +126,15 @@ describe('management-api admins permissions', () => {
     });
 
     afterAll(async () => {
-      // Cleanup read-only admin
-      await superAdminAgent.delete(`${API}/admins/${readOnlyAdminId}`).expect(204);
+      if (readOnlyAdminId !== undefined) {
+        await superAdminAgent.delete(`${API}/admins/${readOnlyAdminId}`).expect(204);
+      }
     });
   });
 
   describe('admin with no permissions on admins', () => {
     const ts2 = Date.now() + 1;
-    const noPermEmail = `no-perm-${ts2}@example.com`;
+    const noPermEmail = `${FILE_PREFIX}-no-perm-${ts2}@example.com`;
     const noPermPassword = 'no-perm-password-1';
     let noPermAdminId: string;
     let noPermAgent: ReturnType<typeof request.agent>;
@@ -165,7 +168,9 @@ describe('management-api admins permissions', () => {
     });
 
     afterAll(async () => {
-      await superAdminAgent.delete(`${API}/admins/${noPermAdminId}`).expect(204);
+      if (noPermAdminId !== undefined) {
+        await superAdminAgent.delete(`${API}/admins/${noPermAdminId}`).expect(204);
+      }
     });
   });
 
@@ -186,7 +191,7 @@ describe('management-api admins permissions', () => {
       const res = await superAdminAgent
         .post(`${API}/admins`)
         .send({
-          username: `dn-a-${ts3}@example.com`,
+          username: `${FILE_PREFIX}-dn-a-${ts3}@example.com`,
           password: 'dn-a-password',
           displayName: `Unique DN Admin ${ts3}`,
           adminsCrud: 0,
@@ -201,7 +206,7 @@ describe('management-api admins permissions', () => {
       await superAdminAgent
         .post(`${API}/admins`)
         .send({
-          username: `dn-b-${ts3}@example.com`,
+          username: `${FILE_PREFIX}-dn-b-${ts3}@example.com`,
           password: 'dn-b-password',
           displayName: `Unique DN Admin ${ts3}`,
           adminsCrud: 0,

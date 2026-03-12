@@ -1,7 +1,7 @@
 ---
 name: boilerplate-global-patterns
 description: Global patterns for the Boilerplate repo (API + Next.js app). Use when starting work in the repo or when applying repo-wide code quality, structure, or plan/history conventions.
-version: 1.0.0
+version: 1.1.0
 ---
 
 # Global Patterns
@@ -38,3 +38,20 @@ version: 1.0.0
 - **Unused props/vars:** Remove them; do not keep and destructure as `_unused`. See **.cursor/skills/avoid-unused-props-vars/SKILL.md**.
 - **Component props:** Do not pass `undefined` explicitly to components. Allow `null` as a value for optional props so callers can pass `prop={value}` directly; components treat `null` (and `undefined`) as "not set" / default behavior. When checking optional string props (e.g. error messages) for "has value", use a simple falsy check (`Boolean(value)` or `if (value)`) instead of explicit `!== undefined && !== null && !== ''`.
 - **No inline styles:** Do not use `style={{ ... }}` for layout or appearance. Use CSS classes instead: component or page SCSS modules (e.g. `ComponentName.module.scss`), or shared utility classes where appropriate. Keeps styling maintainable and consistent.
+
+## Agent/plan work: do not run tests
+
+- **Do not run tests or verification commands** (e.g. `make e2e_test_web`, `npm run test`, `make e2e_test_web_signup_enabled`) during agent or plan implementation work.
+- **Only instruct the user** to run those commands after your work is done. Provide the exact command(s) in a fenced `bash` block so the user can copy and run them.
+- See **response-ending-make-verify** for which commands to suggest.
+
+## Testing: no rate-limit tests
+
+- **Do not add tests that assert rate-limit behavior** (e.g. 429 after N requests) in api or management-api. Rate limiting is disabled in test (high limit); dedicated rate-limit tests have been removed as a chronic source of flakiness. See **api-testing** skill.
+
+## Test Command Efficiency (Agent default)
+
+- When **suggesting** verification commands to the user, start with the **smallest targeted command** that can verify the behavior.
+- Prefer single-file or single-spec commands before suite-level commands (for example, one Vitest file or one Playwright spec).
+- Escalate to broader commands only when required by scope or when a targeted run passes and broader confidence is needed.
+- Avoid defaulting to full test suites when a focused command can confirm the same fix faster.

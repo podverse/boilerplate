@@ -21,23 +21,29 @@ const E2E_BUCKET2_ID = '33333333-3333-4333-a333-333333333333';
 const E2E_USER2_ID = '44444444-4444-4444-a444-444444444444';
 const E2E_USER3_ID = '55555555-5555-4555-a555-555555555555';
 const E2E_USER4_ID = '66666666-6666-4666-a666-666666666666';
+const E2E_USER5_ID = '77777777-7777-4777-a777-777777777777';
 const E2E_USER_SHORT_ID = 'e2eusr000001';
 const E2E_USER2_SHORT_ID = 'e2eusr000002';
 const E2E_USER3_SHORT_ID = 'e2eusr000003';
 const E2E_USER4_SHORT_ID = 'e2eusr000004';
+const E2E_USER5_SHORT_ID = 'e2eusr000005';
 const E2E_BUCKET1_SHORT_ID = 'e2ebkt000001';
 const E2E_BUCKET2_SHORT_ID = 'e2ebkt000002';
 const E2E_EMAIL = 'e2e-bucket-owner@example.com';
 const E2E_EMAIL2 = 'e2e-bucket-admin@example.com';
 const E2E_EMAIL3 = 'e2e-admin-without-permission@example.com';
 const E2E_EMAIL4 = 'e2e-non-admin@example.com';
+const E2E_EMAIL5 = 'e2e-invite@example.com';
 const E2E_PASSWORD_PLAIN = 'Test!1Aa';
 /** Raw token for reset-password E2E (short to avoid URL truncation); must match apps/web/e2e/helpers/resetPasswordToken.ts */
 const E2E_RESET_PASSWORD_TOKEN_RAW = 'e2e0' + '0'.repeat(28);
+/** Raw token for set-password E2E; must match apps/web/e2e/helpers/setPasswordToken.ts */
+const E2E_SET_PASSWORD_TOKEN_RAW = 'e2e1' + '0'.repeat(28);
 const E2E_DISPLAY_NAME = 'E2E Bucket Owner';
 const E2E_DISPLAY_NAME2 = 'E2E Bucket Admin';
 const E2E_DISPLAY_NAME3 = 'E2E Admin Without Permission';
 const E2E_DISPLAY_NAME4 = 'E2E Non Admin';
+const E2E_DISPLAY_NAME5 = 'E2E Invite';
 /** Full CRUD (create=1, read=2, update=4, delete=8) so admin can manage bucket admins. */
 const BUCKET_CRUD_FULL = 15;
 /** Read only; cannot manage bucket admins. */
@@ -108,6 +114,19 @@ async function main() {
       E2E_DISPLAY_NAME4,
     ]);
     await client.query(
+      `INSERT INTO "user" (id, short_id, email_verified_at, created_at, updated_at)
+       VALUES ($1, $2, NOW(), NOW(), NOW())`,
+      [E2E_USER5_ID, E2E_USER5_SHORT_ID]
+    );
+    await client.query(
+      `INSERT INTO user_credentials (user_id, email, password_hash) VALUES ($1, $2, $3)`,
+      [E2E_USER5_ID, E2E_EMAIL5, passwordHash]
+    );
+    await client.query(`INSERT INTO user_bio (user_id, display_name) VALUES ($1, $2)`, [
+      E2E_USER5_ID,
+      E2E_DISPLAY_NAME5,
+    ]);
+    await client.query(
       `INSERT INTO bucket (id, owner_id, name, is_public, parent_bucket_id, short_id, created_at, updated_at)
        VALUES ($1, $2, 'E2E Bucket One', true, NULL, $3, NOW(), NOW())`,
       [E2E_BUCKET1_ID, E2E_USER_ID, E2E_BUCKET1_SHORT_ID]
@@ -142,8 +161,18 @@ async function main() {
        VALUES ($1, 'password_reset', $2, $3::timestamp, NULL)`,
       [E2E_USER_ID, resetTokenHash, resetExpiresAt]
     );
+    const setPasswordTokenHash = crypto
+      .createHash('sha256')
+      .update(E2E_SET_PASSWORD_TOKEN_RAW, 'utf8')
+      .digest('hex');
+    const setPasswordExpiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
+    await client.query(
+      `INSERT INTO verification_token (user_id, kind, token_hash, expires_at, payload)
+       VALUES ($1, 'set_password', $2, $3::timestamp, NULL)`,
+      [E2E_USER5_ID, setPasswordTokenHash, setPasswordExpiresAt]
+    );
     console.log(
-      'E2E web seed done: 4 users (owner, admin-with-permission, admin-without-permission, non-admin), 2 buckets, 3 bucket admins for E2E Bucket One.'
+      'E2E web seed done: 5 users (owner, admin-with-permission, admin-without-permission, non-admin, invite), 2 buckets, 3 bucket admins, password_reset and set_password tokens.'
     );
   } finally {
     await client.end();

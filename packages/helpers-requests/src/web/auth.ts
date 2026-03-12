@@ -68,7 +68,7 @@ export async function resetPassword(
 /** Call POST /auth/set-password (set password via token from username-only invite). */
 export async function setPassword(
   baseUrl: string,
-  body: { token: string; newPassword: string },
+  body: { token: string; newPassword: string; username?: string; email?: string },
   options?: { locale?: string }
 ): AuthResponse {
   return request(baseUrl, '/auth/set-password', {

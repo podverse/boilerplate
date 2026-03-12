@@ -99,39 +99,36 @@ test.describe('This suite verifies the login-page for the unauthenticated user.'
     );
   });
 
-  test('When the user clicks the sign-up link, they are taken to the sign-up-page.', async ({
+  test('When the user is on the login-page in admin_only_username mode, the sign-up link is not visible.', async ({
     page,
   }, testInfo) => {
     setE2EUserContext(testInfo, 'unauthenticated');
     await page.goto('/login');
-    await expect(page.getByRole('link', { name: /sign up/i })).toBeVisible();
+    await expect(page.getByRole('link', { name: /sign up/i })).toHaveCount(0);
     await actionAndCapture(
       page,
       testInfo,
-      'User clicks the sign-up link and is navigated to the sign-up-page.',
+      'User confirms there is no sign-up link because signup is disabled in admin_only_username mode.',
       async () => {
-        await page.getByRole('link', { name: /sign up/i }).click();
-        await expect(page).toHaveURL(/\/signup/);
-        await expect(page.getByRole('button', { name: /sign up|create account/i })).toBeVisible();
+        await expect(page).toHaveURL(/\/login/);
       }
     );
   });
 
-  test('When the user clicks the forgot-password link, they are taken to the forgot-password-page.', async ({
+  test('When the user is on the login-page in admin_only_username mode, the forgot-password link is not visible.', async ({
     page,
   }, testInfo) => {
     setE2EUserContext(testInfo, 'unauthenticated');
     await page.goto('/login');
-    await expect(page.getByRole('link', { name: /forgot password/i })).toBeVisible();
+    await expect(page.getByRole('link', { name: /forgot password/i })).toHaveCount(0);
     await actionAndCapture(
       page,
       testInfo,
-      'User clicks the forgot-password link and is navigated to the forgot-password-page.',
+      'User confirms there is no forgot-password link because email flows are disabled in admin_only_username mode.',
       async () => {
-        await page.getByRole('link', { name: /forgot password/i }).click();
+        await expect(page).toHaveURL(/\/login/);
       }
     );
-    await expect(page).toHaveURL(/\/forgot-password/);
   });
 
   test('When the user logs in with a safe returnUrl, they are redirected to the requested internal route after login.', async ({

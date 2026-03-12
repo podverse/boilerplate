@@ -16,8 +16,10 @@ import {
 } from './helpers/setup.js';
 
 const API = config.apiVersionPath;
-const superAdminUsername = 'test-super-admin';
-const superAdminPassword = 'test-super-admin-password-1';
+/** Unique per file to avoid collisions when tests run in parallel. */
+const FILE_PREFIX = 'mgmt-up';
+const superAdminUsername = `${FILE_PREFIX}-super-admin`;
+const superAdminPassword = `${FILE_PREFIX}-super-admin-password-1`;
 
 async function createUserFixture(email: string, displayName: string): Promise<string> {
   const passwordHash = await hashPassword('target-user-password-1');
@@ -47,8 +49,8 @@ describe('management-api users permissions', () => {
 
   describe('admin with read-only permissions on users', () => {
     const ts = Date.now();
-    const readOnlyEmail = `users-read-admin-${ts}@example.com`;
-    const readOnlyPassword = 'users-read-password-1';
+    const readOnlyEmail = `${FILE_PREFIX}-read-admin-${ts}@example.com`;
+    const readOnlyPassword = `${FILE_PREFIX}-read-password-1`;
     let readOnlyAdminId: string;
     let readOnlyAgent: ReturnType<typeof request.agent>;
     let targetUserId: string;
@@ -75,7 +77,7 @@ describe('management-api users permissions', () => {
 
       // Create a target user to act on (direct fixture; POST /users contract is covered elsewhere)
       targetUserId = await createUserFixture(
-        `target-user-read-${ts}@example.com`,
+        `${FILE_PREFIX}-target-read-${ts}@example.com`,
         `Target User Read ${ts}`
       );
     });
@@ -94,7 +96,7 @@ describe('management-api users permissions', () => {
       await readOnlyAgent
         .post(`${API}/users`)
         .send({
-          email: `denied-create-${ts}@example.com`,
+          email: `${FILE_PREFIX}-denied-create-${ts}@example.com`,
           password: 'password-1',
         })
         .expect(403);
@@ -130,7 +132,7 @@ describe('management-api users permissions', () => {
 
   describe('admin with no permissions on users', () => {
     const ts2 = Date.now() + 1;
-    const noPermEmail = `users-no-perm-${ts2}@example.com`;
+    const noPermEmail = `${FILE_PREFIX}-no-perm-${ts2}@example.com`;
     const noPermPassword = 'users-no-perm-password-1';
     let noPermAdminId: string;
     let noPermAgent: ReturnType<typeof request.agent>;
@@ -164,13 +166,15 @@ describe('management-api users permissions', () => {
     });
 
     afterAll(async () => {
-      await superAdminAgent.delete(`${API}/admins/${noPermAdminId}`).expect(204);
+      if (noPermAdminId !== undefined) {
+        await superAdminAgent.delete(`${API}/admins/${noPermAdminId}`).expect(204);
+      }
     });
   });
 
   describe('admin with users update permission (implies change-password)', () => {
     const ts3 = Date.now() + 2;
-    const changePassEmail = `users-changepw-admin-${ts3}@example.com`;
+    const changePassEmail = `${FILE_PREFIX}-changepw-admin-${ts3}@example.com`;
     const changePassPassword = 'changepw-admin-password-1';
     let changePassAdminId: string;
     let changePassAgent: ReturnType<typeof request.agent>;
@@ -196,7 +200,7 @@ describe('management-api users permissions', () => {
       });
 
       targetUserId = await createUserFixture(
-        `target-user-changepw-${ts3}@example.com`,
+        `${FILE_PREFIX}-target-changepw-${ts3}@example.com`,
         `Target User ChangePW ${ts3}`
       );
     });

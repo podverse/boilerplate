@@ -5,6 +5,7 @@ import {
   SHORT_TEXT_MAX_LENGTH,
   USERNAME_MAX_LENGTH,
 } from '@boilerplate/helpers';
+import type { AuthModeCapabilities } from '../config/index.js';
 
 export type {
   ChangePasswordBody,
@@ -57,10 +58,34 @@ export const resetPasswordSchema = Joi.object({
   newPassword: password,
 });
 
-export const setPasswordSchema = Joi.object({
-  token: Joi.string().min(1).required(),
-  newPassword: password,
-});
+const optionalEmail = Joi.string().email().max(EMAIL_MAX_LENGTH).trim();
+const optionalUsername = Joi.string().min(1).max(USERNAME_MAX_LENGTH).trim();
+
+export const createSetPasswordSchema = (authModeCapabilities: AuthModeCapabilities) => {
+  const base = {
+    token: Joi.string().min(1).required(),
+    newPassword: password,
+  };
+  if (!authModeCapabilities.canIssueAdminInviteLink) {
+    return Joi.object({
+      ...base,
+      email: optionalEmail,
+      username: optionalUsername,
+    });
+  }
+  if (authModeCapabilities.requiresEmailAtInviteCompletion) {
+    return Joi.object({
+      ...base,
+      email,
+      username,
+    });
+  }
+  return Joi.object({
+    ...base,
+    username,
+    email: optionalEmail,
+  });
+};
 
 export const requestEmailChangeSchema = Joi.object({
   newEmail: email,

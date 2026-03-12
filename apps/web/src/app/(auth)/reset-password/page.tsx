@@ -2,7 +2,7 @@
 
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useLocale, useTranslations } from 'next-intl';
-import { Suspense, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import {
   Container,
   LoadingSpinner,
@@ -11,7 +11,9 @@ import {
   useAuthValidation,
 } from '@boilerplate/ui';
 import { getRateLimitRetrySeconds, webAuth } from '@boilerplate/helpers-requests';
+import { getRuntimeConfig } from '../../../config/runtime-config-store';
 import { getApiBaseUrl } from '../../../lib/api-client';
+import { getWebAuthModeCapabilities } from '../../../lib/authMode';
 import { ROUTES } from '../../../lib/routes';
 
 function ResetPasswordContent() {
@@ -32,6 +34,18 @@ function ResetPasswordContent() {
   const [loading, setLoading] = useState(false);
   const [showRateLimitModal, setShowRateLimitModal] = useState(false);
   const [rateLimitRetrySeconds, setRateLimitRetrySeconds] = useState<number | undefined>(undefined);
+  const runtimeConfig = getRuntimeConfig();
+  const authModeCapabilities = getWebAuthModeCapabilities(runtimeConfig.env.NEXT_PUBLIC_AUTH_MODE);
+
+  useEffect(() => {
+    if (!authModeCapabilities.canUseEmailVerificationFlows) {
+      router.replace(ROUTES.LOGIN);
+    }
+  }, [authModeCapabilities.canUseEmailVerificationFlows, router]);
+
+  if (!authModeCapabilities.canUseEmailVerificationFlows) {
+    return null;
+  }
 
   const handleSubmit = async (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();

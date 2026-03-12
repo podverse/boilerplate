@@ -14,8 +14,10 @@ import {
 } from './helpers/setup.js';
 
 const API = config.apiVersionPath;
-const superAdminUsername = 'test-super-admin';
-const superAdminPassword = 'test-super-admin-password-1';
+/** Unique per file to avoid collisions when tests run in parallel. */
+const FILE_PREFIX = 'mgmt-buckets';
+const superAdminUsername = `${FILE_PREFIX}-super-admin`;
+const superAdminPassword = `${FILE_PREFIX}-super-admin-password-1`;
 
 describe('management-api buckets and messages', () => {
   let app: Awaited<ReturnType<typeof createManagementApiTestAppWithSuperAdmin>>;
@@ -34,8 +36,8 @@ describe('management-api buckets and messages', () => {
     const userRes = await superAdminAgent
       .post(`${API}/users`)
       .send({
-        email: 'bucket-owner@example.com',
-        password: 'owner-password-1',
+        email: `${FILE_PREFIX}-owner@example.com`,
+        password: `${FILE_PREFIX}-owner-password-1`,
         displayName: 'Bucket Owner',
       })
       .expect(201);

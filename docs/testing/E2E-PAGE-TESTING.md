@@ -9,10 +9,10 @@ outcomes via fixed seed data.
 - Test every page layout and interaction for apps/web and apps/management-web.
 - Guarantee the same results and values each run using predefined, constant data
   seeded in the database before tests.
-- **Configurable API gate**: E2E targets support `E2E_API_GATE_MODE=auto|on|off`.
-  - `auto` (default): run API gate only when changed files look API-impacting.
-  - `on`: always run API + management-api integration tests before Playwright.
-  - `off`: always skip API gate and run seed + Playwright directly.
+- **Configurable API gate**: E2E targets support `E2E_API_GATE_MODE=off|on|auto`.
+  - `off` (default): skip API integration tests; run seed + Playwright only. Use this for E2E-only verification.
+  - `on`: always run API + management-api integration tests before Playwright. Pass before the make command when your change affected API or integration tests (e.g. `make E2E_API_GATE_MODE=on e2e_test_web_report_spec SPEC=...`).
+  - `auto`: run API gate only when changed files look API-impacting.
 
 ## Prerequisites
 
@@ -24,38 +24,39 @@ For a copy-paste list of **one-spec report commands** (run each spec in isolatio
 
 ## Make targets
 
-| Target                                | Description                                                                                                                            |
-| ------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
-| `e2e_deps`                            | Start Postgres (5532), Valkey (6479), create test DBs and schema.                                                                      |
-| `e2e_seed`                            | Load deterministic seed for both web and management-web.                                                                               |
-| `e2e_seed_web`                        | Load deterministic seed for web E2E only (main DB).                                                                                    |
-| `e2e_seed_management_web`             | Load deterministic seed for management-web E2E only.                                                                                   |
-| `e2e_test_api`                        | Run API integration tests only (api + management-api).                                                                                 |
-| `e2e_test`                            | Run API gate decision, then E2E for both web and management-web.                                                                       |
-| `e2e_test_web`                        | Run API gate decision, then E2E for web only.                                                                                          |
-| `e2e_test_management_web`             | Run API gate decision, then E2E for management-web only.                                                                               |
-| `e2e_test_web_report_spec`            | Run one or more web specs in report mode with step screenshots (`SPEC=...`) and auto-open the report.                                  |
-| `e2e_test_management_web_report_spec` | Run one or more management-web specs in report mode with step screenshots (`SPEC=...`) and auto-open the report.                       |
-| `e2e_test_report_scoped`              | Run one or more web specs + one or more management-web specs in report mode (`WEB_SPEC=... MGMT_SPEC=...`) and auto-open both reports. |
-| `e2e_test_report`                     | Run full E2E suite for both apps with step screenshots, save timestamped HTML reports, and auto-open them.                             |
-| `e2e_teardown`                        | Stop processes started for E2E (dev servers, API, sidecar).                                                                            |
+| Target                                | Description                                                                                                                                                                                                                                       |
+| ------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `e2e_deps`                            | Start Postgres (5532), Valkey (6479), create test DBs and schema.                                                                                                                                                                                 |
+| `e2e_seed`                            | Load deterministic seed for both web and management-web.                                                                                                                                                                                          |
+| `e2e_seed_web`                        | Load deterministic seed for web E2E only (main DB).                                                                                                                                                                                               |
+| `e2e_seed_management_web`             | Load deterministic seed for management-web E2E only.                                                                                                                                                                                              |
+| `e2e_test_api`                        | Run API integration tests only (api + management-api).                                                                                                                                                                                            |
+| `e2e_test`                            | Run API gate decision, then E2E for default web, signup-enabled web (Mailpit started automatically), and management-web.                                                                                                                          |
+| `e2e_test_web`                        | Run API gate decision, then E2E for web: default specs then signup-enabled spec (Mailpit started automatically).                                                                                                                                  |
+| `e2e_test_management_web`             | Run API gate decision, then E2E for management-web only.                                                                                                                                                                                          |
+| `e2e_test_web_report_spec`            | Run one or more web specs in report mode with step screenshots (`SPEC=...`) and auto-open the report.                                                                                                                                             |
+| `e2e_test_management_web_report_spec` | Run one or more management-web specs in report mode with step screenshots (`SPEC=...`) and auto-open the report.                                                                                                                                  |
+| `e2e_test_report_scoped`              | Run one or more web specs + one or more management-web specs in report mode (`WEB_SPEC=... MGMT_SPEC=...`) and auto-open both reports.                                                                                                            |
+| `e2e_test_report`                     | Run full E2E suite: default web, signup-enabled web (Mailpit started automatically), and management-web; three report dirs (web, web-signup-enabled, management-web); step screenshots and auto-open all three.                                   |
+| `e2e_mailpit_up`                      | Start Mailpit via `infra/docker/e2e/docker-compose.yml` (SMTP 1025, web UI 8025); idempotent. Optional: `e2e_mailpit_down`, `e2e_mailpit_clean`. `make test_clean` also removes it. `make test_deps` starts Mailpit so full E2E prep is complete. |
+| `e2e_test_web_signup_enabled`         | Run signup-enabled web auth E2E specs (signup, forgot-password, reset-password) with `AUTH_MODE=user_signup_email` and Mailpit; report to `web-signup-enabled/`.                                                                                  |
+| `e2e_test_web_admin_only_email`       | Run admin-only-email web auth E2E specs (login link visibility, signup unavailable, forgot/reset available, set-password fields) with `AUTH_MODE=admin_only_email`; report to `web-admin-only-email/`.                                            |
+| `e2e_teardown`                        | Stop processes started for E2E (dev servers, API, sidecar).                                                                                                                                                                                       |
 
 **API gate behavior**:
 
-- Default is `E2E_API_GATE_MODE=auto`.
-- `auto` inspects unstaged + staged + untracked files and runs API integration tests
-  only when API-impacting paths are detected.
-- `E2E_API_GATE_MODE=on` forces the old strict behavior: run API tests first and fail
-  fast before Playwright.
-- `E2E_API_GATE_MODE=off` always skips API integration tests.
+- Default is `E2E_API_GATE_MODE=off`: API integration tests are **not** run. E2E verification commands (e2e_test_web_report_spec, etc.) skip API tests unless you pass the env var.
+- To include API tests, pass `E2E_API_GATE_MODE=on` before the command (e.g. `make E2E_API_GATE_MODE=on e2e_test_web_report_spec SPEC=...`).
+- `E2E_API_GATE_MODE=auto` inspects unstaged + staged + untracked files and runs API integration tests only when API-impacting paths are detected.
+- Full API test coverage: run `npm run test` (single run; setup has smart defaults; tests that need signup/mailer env override per-file and load app in beforeAll). See AGENTS.md (Testing).
 
 ## Flow
 
 1. **`make e2e_deps`** — Test DBs and schema (same as `test_deps`: Postgres 5532,
    Valkey 6479, `boilerplate_test`, `boilerplate_management_test`).
 2. **`make e2e_seed`** — Load deterministic fixtures (idempotent: truncate + insert).
-3. **Run API gate decision** — by default (`auto`), Make runs API integration tests only
-   when changed paths look API-impacting.
+3. **Run API gate decision** — by default (`off`), Make skips API integration tests. Pass
+   `E2E_API_GATE_MODE=on` to run them; `E2E_API_GATE_MODE=auto` to run only when changed paths look API-impacting.
 4. Run Playwright (e.g. `make e2e_test_web` or `make e2e_test_management_web`).
    - Web E2E auto-starts API (`4010`), sidecar (`4011`), and web (`4012`) in production-like mode (`build` + `start`).
    - Management-web E2E auto-starts management-api (`4110`) and management-web (`4112`) in production-like mode (`build` + `start`).
@@ -79,10 +80,56 @@ Spec-list format:
 
 Report order:
 
-- **Full report** (`make e2e_test_report`): The HTML report **display** order is **conceptual** (home first, then buckets list/detail/settings, then events/users/admins), defined by `makefiles/local/e2e-spec-order-web.txt` and `makefiles/local/e2e-spec-order-management-web.txt`. The Makefile passes this order to the custom HTML reporter via `E2E_SPEC_ORDER`; the reporter reorders runs for display so the report matches the intended order. Playwright may still run spec files in its own order (e.g. alphabetical). When adding or removing E2E specs, update the appropriate order file so the full report stays logically grouped.
+- **Full report** (`make e2e_test_report`): Produces three report dirs: **web**, **web-signup-enabled**, and **management-web**. The HTML report **display** order is **conceptual** (home first, then buckets list/detail/settings, then events/users/admins), defined by `makefiles/local/e2e-spec-order-web.txt` and `makefiles/local/e2e-spec-order-management-web.txt`. The Makefile passes this order to the custom HTML reporter via `E2E_SPEC_ORDER`; the reporter reorders runs for display so the report matches the intended order. Playwright may still run spec files in its own order (e.g. alphabetical). When adding or removing E2E specs, update the appropriate order file so the full report stays logically grouped.
 - **Specified runs** (`e2e_test_web_report_spec`, `e2e_test_management_web_report_spec`, `e2e_test_report_scoped`): When you pass one or more comma-separated paths in `SPEC`, `WEB_SPEC`, or `MGMT_SPEC`, the reporter reorders runs for display to match that parameter order; Playwright may run specs in a different order.
 
 Stability mode is now the default for all E2E commands. Startup is usually slower than dev mode because app builds run before servers start, but this reduces dev-only overlay noise and false positives.
+
+## E2E and AUTH_MODE (mode-specific runs)
+
+The **default** E2E run uses `AUTH_MODE=admin_only_username` (signup disabled, email flows disabled). The default Playwright config (`apps/web/playwright.config.ts`) sets this in the API `webServer` command so baseline runs are deterministic and do not depend on repo `.env`.
+
+Tests that depend on critical env (`AUTH_MODE`) use **separate specs and reports** so each mode is tested with single-outcome expectations (no dual-outcome tests).
+
+Mode-specific auth commands:
+
+- `make e2e_test_web` for default `admin_only_username` behavior.
+- `make e2e_test_web_admin_only_email` for `admin_only_email` behavior.
+- `make e2e_test_web_signup_enabled` for `user_signup_email` behavior.
+
+### Signup-enabled E2E
+
+**Full E2E targets include the signup-enabled path:** `e2e_test_report`, `e2e_test`, and `e2e_test_web` run the signup-enabled spec (after default web, where applicable). Mailpit is started automatically during those targets when the signup-enabled phase runs. **`make test_deps`** also starts Mailpit so a single prep step fully prepares for `make e2e_test_report` (and for `e2e_test` / `e2e_test_web`).
+
+To run **only** the signup-enabled auth specs with a dedicated report:
+
+- **Command:** `make e2e_test_web_signup_enabled`
+- **When to use:** To verify signup plus verification-related auth pages in signup-enabled mode: duplicate-email handling and successful signup redirect, forgot-password success flow messaging, and reset-password invalid-link behavior when verification endpoints are enabled.
+- **Mailpit:** Mailpit is defined in `infra/docker/e2e/docker-compose.yml` (SMTP 1025, web UI 8025). The target depends on `e2e_mailpit_up`, which runs `docker compose up -d` for that file. You can run `make e2e_mailpit_up` manually first if needed; otherwise the signup-enabled target starts it. **`make test_clean`** stops and removes the E2E Mailpit stack along with Postgres and Valkey, so no lingering containers. Env vars used by the API for signup-enabled E2E are documented in `infra/docker/e2e/.env.example`.
+- **Report location:** `.artifacts/e2e-reports/<datetime>/web-signup-enabled/` (same timestamped run dir and rotation as other report targets).
+
+Signup-enabled runs use `apps/web/playwright.signup-enabled.config.ts` with these specs:
+
+- `e2e/signup-unauthenticated-signup-enabled.spec.ts`
+- `e2e/forgot-password-unauthenticated-signup-enabled.spec.ts`
+- `e2e/reset-password-unauthenticated-signup-enabled.spec.ts`
+
+These specs are intentionally not included in the default web spec order (`e2e-spec-order-web.txt`).
+
+### Admin-only-email E2E
+
+To run admin-only-email auth coverage with a dedicated report:
+
+- **Command:** `make e2e_test_web_admin_only_email`
+- **When to use:** To verify auth behavior in `AUTH_MODE=admin_only_email`:
+  - signup link hidden on login
+  - forgot-password link visible and functional
+  - `/signup` unavailable
+  - forgot/reset routes available
+  - set-password invitation form requires email + username + password fields.
+- **Report location:** `.artifacts/e2e-reports/<datetime>/web-admin-only-email/`.
+
+Admin-only-email runs use `apps/web/playwright.admin-only-email.config.ts` with ordered specs listed in `makefiles/local/e2e-spec-order-web-admin-only-email.txt`.
 
 ## Quick start: single home smoke test
 
@@ -122,6 +169,12 @@ Nix wrapper variants:
 
 - `.artifacts/e2e-reports/<datetime>/web/`
 - `.artifacts/e2e-reports/<datetime>/management-web/`
+
+Full report (`make e2e_test_report`) also writes:
+
+- `.artifacts/e2e-reports/<datetime>/web-signup-enabled/`
+
+Standalone signup-enabled report target (`make e2e_test_web_signup_enabled`) writes to the same `web-signup-enabled/` path.
 
 Where `<datetime>` is `YYYYMMDD-HHmmss` (for example `20260306-231045`).
 

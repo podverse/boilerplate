@@ -1,5 +1,6 @@
 {
   "auth": {
+    "checkEmailVerification": "Revisa tu correo para ver el email de verificación y poder iniciar sesión.",
     "login": {
       "title": "Iniciar sesión",
       "email": "Correo electrónico",

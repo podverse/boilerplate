@@ -18,7 +18,10 @@ const displayNameField = Joi.string().max(SHORT_TEXT_MAX_LENGTH).allow(null, '')
 const emailField = Joi.string().email().max(EMAIL_MAX_LENGTH).allow('', null);
 const usernameField = Joi.string().min(1).max(USERNAME_MAX_LENGTH).trim().allow('', null);
 
-/** At least one of email or username required; password optional (if omitted, setPasswordLink is returned). */
+/**
+ * At least one of email or username required.
+ * password is optional in schema; controller enforces mode-specific invitation behavior.
+ */
 export const createUserSchema = Joi.object({
   email: emailField,
   username: usernameField,

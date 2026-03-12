@@ -11,11 +11,13 @@ import { createApiLoginAgent } from './helpers/login-agent.js';
 import { createApiTestApp, destroyApiTestDataSources } from './helpers/setup.js';
 
 const API = config.apiVersionPath;
+/** Unique per file to avoid collisions when tests run in parallel. */
+const FILE_PREFIX = 'bucket-admins';
 
 describe('bucket admins', () => {
   let app: Awaited<ReturnType<typeof createApiTestApp>>;
-  const ownerEmail = `bucket-owner-${Date.now()}@example.com`;
-  const ownerPassword = 'owner-password-1';
+  const ownerEmail = `${FILE_PREFIX}-owner-${Date.now()}@example.com`;
+  const ownerPassword = `${FILE_PREFIX}-password-1`;
   let ownerShortId: string;
   let bucketShortId: string;
 

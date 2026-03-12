@@ -34,10 +34,17 @@ export interface ResetPasswordBody {
   newPassword: string;
 }
 
-/** Validated body for POST /auth/set-password (set password via token from username-only invite). */
+/**
+ * Validated body for POST /auth/set-password (set password via admin invitation token).
+ * Required fields vary by AUTH_MODE on the API:
+ * - admin_only_username: token, newPassword, username
+ * - admin_only_email: token, newPassword, username, email
+ */
 export interface SetPasswordBody {
   token: string;
   newPassword: string;
+  username?: string;
+  email?: string;
 }
 
 /** Validated body for POST /request-email-change. */

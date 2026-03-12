@@ -24,7 +24,9 @@ import { ALL_AVAILABLE_LOCALES, type Locale } from '@boilerplate/helpers';
 import { useRouter } from 'next/navigation';
 
 import { useAuth } from '../../../context/AuthContext';
+import { getWebAuthModeCapabilities } from '../../../lib/authMode';
 import { getApiBaseUrl } from '../../../lib/api-client';
+import { getRuntimeConfig } from '../../../config/runtime-config-store';
 import type { ServerUser } from '../../../lib/server-auth';
 import type { AccountSettingsTab } from '../../../lib/routes';
 import { accountSettingsRoute } from '../../../lib/routes';
@@ -82,12 +84,16 @@ export function SettingsPageContent({ initialUser, activeTab }: SettingsPageCont
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmNewPassword, setConfirmNewPassword] = useState('');
+  const [passwordMatchError, setPasswordMatchError] = useState<string | null>(null);
   const [passwordSaving, setPasswordSaving] = useState(false);
   const [passwordMessage, setPasswordMessage] = useState<string | null>(null);
 
   const [newEmail, setNewEmail] = useState('');
   const [emailChangeSaving, setEmailChangeSaving] = useState(false);
   const [emailChangeMessage, setEmailChangeMessage] = useState<string | null>(null);
+
+  const authCapabilities = getWebAuthModeCapabilities(getRuntimeConfig().env.NEXT_PUBLIC_AUTH_MODE);
+  const showEmailTab = authCapabilities.canUseEmailVerificationFlows;
 
   const tabParam = searchParams.get('tab');
   const currentHref =
@@ -99,7 +105,9 @@ export function SettingsPageContent({ initialUser, activeTab }: SettingsPageCont
     { href: accountSettingsRoute(), label: tSettings('generalTab') },
     { href: accountSettingsRoute('profile'), label: tSettings('profileTab') },
     { href: accountSettingsRoute('password'), label: tSettings('passwordTab') },
-    { href: accountSettingsRoute('email'), label: tSettings('emailTab') },
+    ...(showEmailTab
+      ? [{ href: accountSettingsRoute('email'), label: tSettings('emailTab') }]
+      : []),
   ];
 
   const localeOptions = ALL_AVAILABLE_LOCALES.map((loc: Locale) => ({
@@ -161,10 +169,19 @@ export function SettingsPageContent({ initialUser, activeTab }: SettingsPageCont
     [displayName, username, setSession, t]
   );
 
+  const handleConfirmNewPasswordBlur = useCallback(() => {
+    if (newPassword !== confirmNewPassword && confirmNewPassword !== '') {
+      setPasswordMatchError(t('errors.passwordsDoNotMatch'));
+    } else {
+      setPasswordMatchError(null);
+    }
+  }, [newPassword, confirmNewPassword, t]);
+
   const handleChangePassword = useCallback(
     async (e: React.FormEvent) => {
       e.preventDefault();
       setPasswordMessage(null);
+      setPasswordMatchError(null);
       if (newPassword !== confirmNewPassword) {
         setPasswordMessage(t('errors.passwordsDoNotMatch'));
         return;
@@ -300,7 +317,10 @@ export function SettingsPageContent({ initialUser, activeTab }: SettingsPageCont
               label={t('newPassword')}
               type="password"
               value={newPassword}
-              onChange={(value) => setNewPassword(value)}
+              onChange={(value) => {
+                setNewPassword(value);
+                setPasswordMatchError(null);
+              }}
               placeholder={t('placeholderPassword')}
               disabled={passwordSaving}
               autoComplete="new-password"
@@ -310,7 +330,12 @@ export function SettingsPageContent({ initialUser, activeTab }: SettingsPageCont
               label={t('confirmNewPassword')}
               type="password"
               value={confirmNewPassword}
-              onChange={(value) => setConfirmNewPassword(value)}
+              onChange={(value) => {
+                setConfirmNewPassword(value);
+                setPasswordMatchError(null);
+              }}
+              onBlur={handleConfirmNewPasswordBlur}
+              error={passwordMatchError}
               placeholder={t('placeholderPassword')}
               disabled={passwordSaving}
               autoComplete="new-password"
@@ -323,13 +348,23 @@ export function SettingsPageContent({ initialUser, activeTab }: SettingsPageCont
                 {passwordMessage}
               </Text>
             )}
-            <Button type="submit" disabled={passwordSaving} loading={passwordSaving}>
+            <Button
+              type="submit"
+              disabled={
+                passwordSaving ||
+                currentPassword.trim() === '' ||
+                newPassword === '' ||
+                confirmNewPassword === '' ||
+                newPassword !== confirmNewPassword
+              }
+              loading={passwordSaving}
+            >
               {t('changePasswordSubmit')}
             </Button>
           </FormContainer>
         </Stack>
       )}
-      {activeTab === 'email' && (
+      {showEmailTab && activeTab === 'email' && (
         <Stack>
           <FormContainer onSubmit={handleRequestEmailChange}>
             <Input

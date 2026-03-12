@@ -2,10 +2,12 @@
  * Management API integration tests: auth, admins CRUD, events.
  * Requires main and management test DBs to exist and be initialized.
  */
+import crypto from 'crypto';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import request from 'supertest';
 
 import { AUTH_MESSAGE_INVALID_CREDENTIALS } from '@boilerplate/helpers';
+import { VerificationToken, appDataSourceRead } from '@boilerplate/orm';
 import { config } from '../config/index.js';
 import { createManagementLoginAgent } from './helpers/login-agent.js';
 import {
@@ -14,8 +16,10 @@ import {
 } from './helpers/setup.js';
 
 const API = config.apiVersionPath;
-const superAdminUsername = 'test-super-admin';
-const superAdminPassword = 'test-super-admin-password-1';
+/** Unique per file to avoid collisions when tests run in parallel. */
+const FILE_PREFIX = 'mgmt-api';
+const superAdminUsername = `${FILE_PREFIX}-super-admin`;
+const superAdminPassword = `${FILE_PREFIX}-super-admin-password-1`;
 
 describe('management-api', () => {
   let app: Awaited<ReturnType<typeof createManagementApiTestAppWithSuperAdmin>>;
@@ -65,7 +69,7 @@ describe('management-api', () => {
     it('returns 401 for unknown username', async () => {
       await request(app)
         .post(`${API}/auth/login`)
-        .send({ username: 'unknown-user', password: 'any' })
+        .send({ username: `${FILE_PREFIX}-unknown-user`, password: 'any' })
         .expect(401, { message: AUTH_MESSAGE_INVALID_CREDENTIALS });
     });
 
@@ -178,8 +182,8 @@ describe('management-api', () => {
 
   describe('admins CRUD (super admin)', () => {
     let adminId: string;
-    const adminUsername = `admin-${Date.now()}`;
-    const adminPassword = 'admin-password-1';
+    const adminUsername = `${FILE_PREFIX}-admin-${Date.now()}`;
+    const adminPassword = `${FILE_PREFIX}-admin-password-1`;
 
     it('GET /admins returns 401 without auth', async () => {
       await request(app).get(`${API}/admins`).expect(401);
@@ -317,7 +321,7 @@ describe('management-api', () => {
 
   describe('users CRUD (super admin, main DB)', () => {
     let userId: string;
-    const userEmail = `user-crud-${Date.now()}@example.com`;
+    const userEmail = `${FILE_PREFIX}-user-crud-${Date.now()}@example.com`;
     const userPassword = 'user-password-1';
 
     it('GET /users returns 401 without auth', async () => {
@@ -377,7 +381,8 @@ describe('management-api', () => {
     });
 
     it('POST /users creates user with username only and returns setPasswordLink', async () => {
-      const usernameOnly = `username-only-${Date.now()}`;
+      const usernameOnly = `${FILE_PREFIX}-username-only-${Date.now()}`;
+      const startedAtMs = Date.now();
       const res = await superAdminAgent
         .post(`${API}/users`)
         .send({ username: usernameOnly, displayName: 'Username Only User' })
@@ -388,11 +393,34 @@ describe('management-api', () => {
       expect(res.body.setPasswordLink).toBeDefined();
       expect(typeof res.body.setPasswordLink).toBe('string');
       expect(res.body.setPasswordLink).toContain('/auth/set-password');
+
+      const setPasswordUrl = new URL(res.body.setPasswordLink, 'http://localhost');
+      const rawToken = setPasswordUrl.searchParams.get('token');
+      expect(rawToken).toBeTruthy();
+
+      const tokenHash = crypto
+        .createHash('sha256')
+        .update(rawToken ?? '', 'utf8')
+        .digest('hex');
+      const verificationTokenRepo = appDataSourceRead.getRepository(VerificationToken);
+      const tokenRecord = await verificationTokenRepo.findOne({
+        where: { tokenHash, kind: 'set_password', userId: res.body.user.id },
+      });
+
+      expect(tokenRecord).not.toBeNull();
+      if (tokenRecord !== null) {
+        const expectedTtlMs = config.userInvitationTtlHours * 60 * 60 * 1000;
+        const elapsedMs = tokenRecord.expiresAt.getTime() - startedAtMs;
+        const lowerBound = expectedTtlMs - 60 * 1000;
+        const upperBound = expectedTtlMs + 60 * 1000;
+        expect(elapsedMs).toBeGreaterThanOrEqual(lowerBound);
+        expect(elapsedMs).toBeLessThanOrEqual(upperBound);
+      }
       await superAdminAgent.delete(`${API}/users/${res.body.user.id}`).expect(204);
     });
 
     it('POST /users creates user with email only and no password returns setPasswordLink', async () => {
-      const emailOnly = `email-only-${Date.now()}@example.com`;
+      const emailOnly = `${FILE_PREFIX}-email-only-${Date.now()}@example.com`;
       const res = await superAdminAgent
         .post(`${API}/users`)
         .send({ email: emailOnly, displayName: 'Email Only User' })
@@ -404,14 +432,14 @@ describe('management-api', () => {
     });
 
     it('POST /users returns 409 when username already in use', async () => {
-      const takenUsername = `taken-username-${Date.now()}`;
+      const takenUsername = `${FILE_PREFIX}-taken-username-${Date.now()}`;
       const first = await superAdminAgent
         .post(`${API}/users`)
         .send({ username: takenUsername, password: userPassword })
         .expect(201);
       await superAdminAgent
         .post(`${API}/users`)
-        .send({ username: takenUsername, email: `other-${Date.now()}@example.com` })
+        .send({ username: takenUsername, email: `${FILE_PREFIX}-other-${Date.now()}@example.com` })
         .expect(409, { message: 'Username already in use' });
       await superAdminAgent.delete(`${API}/users/${first.body.user.id}`).expect(204);
     });

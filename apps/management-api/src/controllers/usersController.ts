@@ -162,6 +162,7 @@ export async function createUser(req: Request, res: Response): Promise<void> {
     body.password !== undefined && body.password !== null && body.password.trim() !== ''
       ? body.password.trim()
       : null;
+  const canIssueInviteLink = config.authModeCapabilities.canIssueAdminInviteLink;
   let hashed: string;
   let useSetPasswordLink = false;
 
@@ -174,6 +175,10 @@ export async function createUser(req: Request, res: Response): Promise<void> {
     }
     hashed = await hashPassword(passwordValue);
   } else {
+    if (!canIssueInviteLink) {
+      res.status(400).json({ message: 'Password is required when invitation links are disabled' });
+      return;
+    }
     const placeholderPassword = crypto.randomBytes(32).toString('hex');
     hashed = await hashPassword(placeholderPassword);
     useSetPasswordLink = true;
@@ -194,7 +199,7 @@ export async function createUser(req: Request, res: Response): Promise<void> {
       user.id,
       'set_password',
       tokenHash,
-      getSetPasswordExpiry(),
+      getSetPasswordExpiry(config.userInvitationTtlHours),
       null
     );
     const baseUrl = config.webAppUrl?.replace(/\/$/, '') ?? '';

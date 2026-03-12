@@ -1,13 +1,15 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
 import { USERNAME_MAX_LENGTH } from '@boilerplate/helpers';
 import { RateLimitModal, SignupForm, useAuthValidation } from '@boilerplate/ui';
 import { getRateLimitRetrySeconds, webAuth } from '@boilerplate/helpers-requests';
+import { getRuntimeConfig } from '../../../config/runtime-config-store';
 import { useAuth } from '../../../context/AuthContext';
 import { getApiBaseUrl } from '../../../lib/api-client';
+import { getWebAuthModeCapabilities } from '../../../lib/authMode';
 import { ROUTES } from '../../../lib/routes';
 
 export default function SignupPage() {
@@ -31,6 +33,18 @@ export default function SignupPage() {
   const [loading, setLoading] = useState(false);
   const [showRateLimitModal, setShowRateLimitModal] = useState(false);
   const [rateLimitRetrySeconds, setRateLimitRetrySeconds] = useState<number | undefined>(undefined);
+  const runtimeConfig = getRuntimeConfig();
+  const authModeCapabilities = getWebAuthModeCapabilities(runtimeConfig.env.NEXT_PUBLIC_AUTH_MODE);
+
+  useEffect(() => {
+    if (!authModeCapabilities.canPublicSignup) {
+      router.replace(ROUTES.LOGIN);
+    }
+  }, [authModeCapabilities.canPublicSignup, router]);
+
+  if (!authModeCapabilities.canPublicSignup) {
+    return null;
+  }
 
   function validateUsername(value: string): string | null {
     const trimmed = value.trim();
@@ -95,7 +109,7 @@ export default function SignupPage() {
       });
       router.push(ROUTES.DASHBOARD);
     } else if (res.ok) {
-      router.push(ROUTES.LOGIN);
+      router.push(`${ROUTES.LOGIN}?checkEmail=1`);
     } else if (res.status === 429) {
       setRateLimitRetrySeconds(
         getRateLimitRetrySeconds('auth:signup', res.error?.retryAfterSeconds)

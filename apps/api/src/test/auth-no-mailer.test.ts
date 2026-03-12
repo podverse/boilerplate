@@ -13,12 +13,14 @@ import { createApiLoginAgent } from './helpers/login-agent.js';
 import { createApiTestApp, destroyApiTestDataSources } from './helpers/setup.js';
 
 const API = config.apiVersionPath;
+/** Unique per file to avoid collisions when tests run in parallel. */
+const FILE_PREFIX = 'auth-no-mailer';
 
 describe('no-mailer (admin-only)', () => {
   let app: Awaited<ReturnType<typeof createApiTestApp>>;
   let authAgent: ReturnType<typeof request.agent>;
-  const testUserEmail = `no-mailer-${Date.now()}@example.com`;
-  const testUserPassword = 'test-password-1';
+  const testUserEmail = `${FILE_PREFIX}-${Date.now()}@example.com`;
+  const testUserPassword = `${FILE_PREFIX}-password-1`;
 
   beforeAll(async () => {
     app = await createApiTestApp();
@@ -42,7 +44,11 @@ describe('no-mailer (admin-only)', () => {
     it('returns 403', async () => {
       await request(app)
         .post(`${API}/auth/signup`)
-        .send({ email: 'new@example.com', username: 'newuser', password: 'pass' })
+        .send({
+          email: `${FILE_PREFIX}-new@example.com`,
+          username: `${FILE_PREFIX}-newuser`,
+          password: 'pass',
+        })
         .expect(403, { message: 'Registration is by admin only' });
     });
   });

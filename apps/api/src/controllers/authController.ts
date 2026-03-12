@@ -27,7 +27,6 @@ import {
   getEmailChangeExpiry,
 } from '../lib/auth/verification-token.js';
 import {
-  isMailerEnabled,
   sendVerificationEmail,
   sendPasswordResetEmail,
   sendEmailChangeVerificationEmail,
@@ -145,7 +144,7 @@ export async function signup(req: Request, res: Response): Promise<void> {
 
   const existingEmail = await UserService.findByEmail(body.email);
   if (existingEmail !== null) {
-    res.status(201).json({ message: 'Registration complete.' });
+    res.status(201).json({ message: 'Check your email to verify your account.' });
     return;
   }
 
@@ -163,34 +162,24 @@ export async function signup(req: Request, res: Response): Promise<void> {
     displayName: body.displayName ?? null,
   });
 
-  if (isMailerEnabled()) {
-    try {
-      const rawToken = generateToken();
-      const tokenHash = hashToken(rawToken);
-      await VerificationTokenService.createToken(
-        user.id,
-        'email_verify',
-        tokenHash,
-        getEmailVerifyExpiry(),
-        null
-      );
-      const email = user.credentials.email;
-      if (email !== null && email !== undefined && email !== '') {
-        await sendVerificationEmail(email, rawToken, locale);
-      }
-    } catch {
-      // Continue; user is created, verification email best-effort
+  try {
+    const rawToken = generateToken();
+    const tokenHash = hashToken(rawToken);
+    await VerificationTokenService.createToken(
+      user.id,
+      'email_verify',
+      tokenHash,
+      getEmailVerifyExpiry(),
+      null
+    );
+    const email = user.credentials.email;
+    if (email !== null && email !== undefined && email !== '') {
+      await sendVerificationEmail(email, rawToken, locale);
     }
+  } catch {
+    // Continue; user is created, verification email best-effort
   }
-
-  const accessToken = signAccessToken(user, config.jwtSecret, config.accessTokenMaxAgeSeconds);
-  const refreshRaw = generateToken();
-  const refreshHash = hashToken(refreshRaw);
-  const refreshExpiresAt = new Date(Date.now() + config.refreshTokenMaxAgeSeconds * 1000);
-  await RefreshTokenService.createToken(user.id, refreshHash, refreshExpiresAt);
-
-  setSessionCookies(res, accessToken, refreshRaw, getCookieOptions());
-  res.status(201).json({ user: userToJson(user) });
+  res.status(201).json({ message: 'Check your email to verify your account.' });
 }
 
 export async function verifyEmail(req: Request, res: Response): Promise<void> {
@@ -257,21 +246,70 @@ export async function resetPassword(req: Request, res: Response): Promise<void> 
 }
 
 export async function setPassword(req: Request, res: Response): Promise<void> {
-  const { token, newPassword } = req.body as SetPasswordBody;
+  const { token, newPassword, username, email } = req.body as SetPasswordBody;
   const tokenHash = hashToken(token);
-  const consumed = await VerificationTokenService.consumeToken(tokenHash, 'set_password');
-  if (consumed === null) {
+  const tokenRecord = await VerificationTokenService.findValidToken(tokenHash, 'set_password');
+  if (tokenRecord === null) {
     res.status(400).json({ message: 'Invalid or expired link' });
     return;
   }
+
+  const requiresUsername = config.authModeCapabilities.canIssueAdminInviteLink;
+  const requiresEmail = config.authModeCapabilities.requiresEmailAtInviteCompletion;
+  const normalizedUsername =
+    typeof username === 'string' && username.trim() !== '' ? username.trim() : null;
+  const normalizedEmail = typeof email === 'string' && email.trim() !== '' ? email.trim() : null;
+
+  if (requiresUsername && normalizedUsername === null) {
+    res.status(400).json({ message: 'Username is required' });
+    return;
+  }
+  if (requiresEmail && normalizedEmail === null) {
+    res.status(400).json({ message: 'Email is required' });
+    return;
+  }
+
+  if (normalizedUsername !== null) {
+    const existingUsername = await UserService.findByUsername(normalizedUsername);
+    if (existingUsername !== null && existingUsername.id !== tokenRecord.user.id) {
+      res.status(409).json({ message: 'Username already in use' });
+      return;
+    }
+  }
+  if (normalizedEmail !== null) {
+    const existingEmail = await UserService.findByEmail(normalizedEmail);
+    if (existingEmail !== null && existingEmail.id !== tokenRecord.user.id) {
+      res.status(409).json({ message: 'Email already in use' });
+      return;
+    }
+  }
+
   const locale = resolveLocale(req.get('Accept-Language'));
   const passwordCheck = validatePassword(newPassword, getPasswordValidationMessages(locale));
   if (!passwordCheck.valid) {
     res.status(400).json({ message: passwordCheck.message });
     return;
   }
+
+  const consumed = await VerificationTokenService.consumeTokenById(
+    tokenRecord.id,
+    tokenHash,
+    'set_password'
+  );
+  if (!consumed) {
+    res.status(400).json({ message: 'Invalid or expired link' });
+    return;
+  }
+
   const hashed = await hashPassword(newPassword);
-  await UserService.updatePassword(consumed.user.id, hashed);
+  await UserService.updatePassword(tokenRecord.user.id, hashed);
+  if (normalizedUsername !== null) {
+    await UserService.updateUsername(tokenRecord.user.id, normalizedUsername);
+  }
+  if (normalizedEmail !== null) {
+    await UserService.updateEmail(tokenRecord.user.id, normalizedEmail);
+    await UserService.setEmailVerifiedAt(tokenRecord.user.id);
+  }
   res.status(204).send();
 }
 

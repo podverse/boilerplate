@@ -13,10 +13,11 @@ TEST_MANAGEMENT_DB_NAME ?= boilerplate_management_test
 TEST_PG_CONTAINER := boilerplate_test_postgres
 TEST_VALKEY_CONTAINER := boilerplate_test_valkey
 
-# Ensure Postgres and Valkey are running and both main and management test DBs exist. Run this before npm run test.
+# Ensure Postgres, Valkey, and Mailpit are running and both main and management test DBs exist. Run this before npm run test or e2e_test_report.
 # Note: Both databases live in the same Postgres container (boilerplate_test_postgres). There is no separate management DB container.
-test_deps: test_postgres_up test_valkey_up test_db_init test_db_init_management
-	@echo "Test dependencies ready: main DB $(TEST_DB_NAME), management DB $(TEST_MANAGEMENT_DB_NAME)."
+# Mailpit (SMTP 1025, web UI 8025) is used by E2E signup-enabled runs; e2e_mailpit_up is idempotent.
+test_deps: test_postgres_up test_valkey_up test_db_init test_db_init_management e2e_mailpit_up
+	@echo "Test dependencies ready: main DB $(TEST_DB_NAME), management DB $(TEST_MANAGEMENT_DB_NAME), Mailpit (E2E signup)."
 
 # List test databases inside the running Postgres container (confirms both main and management DBs exist).
 test_db_list: test_postgres_up
@@ -57,6 +58,15 @@ test_postgres_up:
 test_valkey_up:
 	@if docker ps -q -f name=^/$(TEST_VALKEY_CONTAINER)$$ | grep -q .; then \
 		echo "Test Valkey already running ($(TEST_VALKEY_CONTAINER))."; \
+	elif docker ps -aq -f name=^/$(TEST_VALKEY_CONTAINER)$$ | grep -q .; then \
+		echo "Starting existing test Valkey container..."; \
+		docker start $(TEST_VALKEY_CONTAINER); \
+		echo "Waiting for Valkey to be ready..."; \
+		for i in 1 2 3 4 5; do \
+			if (echo "PING" | nc -w 1 127.0.0.1 $(TEST_VALKEY_PORT) | grep -q PONG) 2>/dev/null || true; then break; fi; \
+			sleep 1; \
+		done; \
+		echo "Test Valkey ready on port $(TEST_VALKEY_PORT)."; \
 	else \
 		echo "Starting test Valkey on port $(TEST_VALKEY_PORT)..."; \
 		docker run -d --name $(TEST_VALKEY_CONTAINER) \
@@ -114,11 +124,13 @@ test_db_init_management: test_db_init
 		ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT, USAGE, UPDATE ON SEQUENCES TO read_write;"
 	@echo "Management test database $(TEST_MANAGEMENT_DB_NAME) ready."
 
-# Stop and remove test Postgres and Valkey containers (and their volumes). Idempotent.
+# Stop and remove test Postgres, Valkey, and E2E Mailpit containers. Idempotent.
+# E2E Mailpit is defined in infra/docker/e2e/docker-compose.yml; down removes it so no lingering containers.
 test_clean:
 	@docker rm -f $(TEST_PG_CONTAINER) 2>/dev/null || true
 	@docker rm -f $(TEST_VALKEY_CONTAINER) 2>/dev/null || true
-	@echo "Test containers removed."
+	@docker compose -f infra/docker/e2e/docker-compose.yml --project-directory . down 2>/dev/null || true
+	@echo "Test containers removed (Postgres, Valkey, E2E Mailpit)."
 
 # Print instructions for meeting test requirements.
 help_test:
@@ -136,5 +148,8 @@ help_test:
 	@echo "  3. Drop and recreate $(TEST_DB_NAME), apply infra/database/combined/init_database.sql, and create read/read_write users."
 	@echo "  4. Drop and recreate $(TEST_MANAGEMENT_DB_NAME), apply infra/management-database/combined/init_management_database.sql (for management-api tests)."
 	@echo "     (Recreating ensures test DB schemas stay in sync with migrations.)"
+	@echo "  5. Start Mailpit (SMTP 1025, web UI 8025) for E2E signup-enabled runs (idempotent)."
 	@echo ""
-	@echo "Then run:  npm run test"
+	@echo "Then run:  npm run test   (or make e2e_test_report for full E2E including signup path)."
+	@echo ""
+	@echo "make test_clean also stops and removes the E2E Mailpit service."

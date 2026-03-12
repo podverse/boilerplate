@@ -2,20 +2,18 @@
  * API integration tests: username and set-password flows.
  * Covers login by username, POST /auth/set-password, signup 409 for duplicate username,
  * PATCH /auth/me (username), GET /auth/username-available.
+ * Env override (AUTH_MODE) is set here; app/config are loaded in beforeAll so override applies.
  */
-process.env.MAILER_ENABLED = 'true';
+process.env.AUTH_MODE = 'user_signup_email';
 
+import type { Express } from 'express';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import request from 'supertest';
 
 import { UserService, VerificationTokenService } from '@boilerplate/orm';
-import { config } from '../config/index.js';
 import { hashPassword } from '../lib/auth/hash.js';
 import { generateToken, getSetPasswordExpiry, hashToken } from '../lib/auth/verification-token.js';
-import { createApiLoginAgent } from './helpers/login-agent.js';
-import { createApiTestApp, destroyApiTestDataSources } from './helpers/setup.js';
 
-const API = config.apiVersionPath;
 const LOGIN_RETRY_ATTEMPTS = 5;
 const LOGIN_RETRY_DELAY_MS = 75;
 
@@ -25,13 +23,14 @@ const delay = async (ms: number): Promise<void> =>
   });
 
 const expectLoginByUsernameEventuallySucceeds = async (
-  agent: Awaited<ReturnType<typeof createApiLoginAgent>>,
+  apiPath: string,
+  agent: ReturnType<typeof request.agent>,
   username: string,
   password: string
 ): Promise<void> => {
   let lastStatus: number | null = null;
   for (let attempt = 1; attempt <= LOGIN_RETRY_ATTEMPTS; attempt += 1) {
-    const res = await agent.post(`${API}/auth/login`).send({ email: username, password });
+    const res = await agent.post(`${apiPath}/auth/login`).send({ email: username, password });
     lastStatus = res.status;
     if (res.status === 200) {
       return;
@@ -45,15 +44,28 @@ const expectLoginByUsernameEventuallySucceeds = async (
   );
 };
 
+/** Unique per file to avoid collisions when tests run in parallel. */
+const FILE_PREFIX = 'auth-username';
+
 describe('auth (username and set-password)', () => {
-  let app: Awaited<ReturnType<typeof createApiTestApp>>;
+  let app: Express;
+  let API: string;
+  let createApiLoginAgent: (
+    app: Express,
+    credentials: { email: string; password: string }
+  ) => Promise<ReturnType<typeof request.agent>>;
   const ts = Date.now();
-  const testUserEmail = `username-test-${ts}@example.com`;
-  const testUserUsername = `username-test-${ts}`;
-  const testUserPassword = 'test-password-1';
+  const testUserEmail = `${FILE_PREFIX}-${ts}@example.com`;
+  const testUserUsername = `${FILE_PREFIX}-${ts}`;
+  const testUserPassword = `${FILE_PREFIX}-password-1`;
 
   beforeAll(async () => {
-    app = await createApiTestApp();
+    const configMod = await import('../config/index.js');
+    const setupMod = await import('./helpers/setup.js');
+    const loginAgentMod = await import('./helpers/login-agent.js');
+    API = configMod.config.apiVersionPath;
+    app = await setupMod.createApiTestApp();
+    createApiLoginAgent = loginAgentMod.createApiLoginAgent;
     const hashed = await hashPassword(testUserPassword);
     await UserService.create({
       email: testUserEmail,
@@ -64,7 +76,8 @@ describe('auth (username and set-password)', () => {
   });
 
   afterAll(async () => {
-    await destroyApiTestDataSources();
+    const setupMod = await import('./helpers/setup.js');
+    await setupMod.destroyApiTestDataSources();
   });
 
   describe('POST /auth/login (by username)', () => {
@@ -170,7 +183,7 @@ describe('auth (username and set-password)', () => {
       const newUsername = `updated-username-${Date.now()}`;
       const res = await agent.patch(`${API}/auth/me`).send({ username: newUsername }).expect(200);
       expect(res.body.user.username).toBe(newUsername);
-      await expectLoginByUsernameEventuallySucceeds(agent, newUsername, testUserPassword);
+      await expectLoginByUsernameEventuallySucceeds(API, agent, newUsername, testUserPassword);
     });
 
     it('returns 409 when username already taken by another user', async () => {

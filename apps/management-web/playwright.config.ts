@@ -13,10 +13,11 @@ export default defineConfig({
   retries: process.env.CI ? 2 : 0,
   workers: 1,
   reporter: 'list',
+  timeout: 5_000,
   webServer: [
     {
       command:
-        'npm run build -w @boilerplate/management-api && NODE_OPTIONS="--disable-warning=DEP0060" NODE_ENV=test MANAGEMENT_API_PORT=4110 MANAGEMENT_DB_HOST=localhost MANAGEMENT_DB_PORT=5532 MANAGEMENT_DB_NAME=boilerplate_management_test MANAGEMENT_DB_USERNAME=read_write MANAGEMENT_DB_PASSWORD=test DB_HOST=localhost DB_PORT=5532 DB_NAME=boilerplate_test DB_READ_USERNAME=read DB_READ_PASSWORD=test DB_READ_WRITE_USERNAME=read_write DB_READ_WRITE_PASSWORD=test VALKEY_HOST=localhost VALKEY_PORT=6479 VALKEY_PASSWORD=test npm run start -w @boilerplate/management-api',
+        'npm run build -w @boilerplate/management-api && NODE_OPTIONS="--disable-warning=DEP0060" NODE_ENV=test AUTH_MODE=admin_only_username USER_INVITATION_TTL_HOURS=24 MANAGEMENT_API_PORT=4110 MANAGEMENT_DB_HOST=localhost MANAGEMENT_DB_PORT=5532 MANAGEMENT_DB_NAME=boilerplate_management_test MANAGEMENT_DB_USERNAME=read_write MANAGEMENT_DB_PASSWORD=test DB_HOST=localhost DB_PORT=5532 DB_NAME=boilerplate_test DB_READ_USERNAME=read DB_READ_PASSWORD=test DB_READ_WRITE_USERNAME=read_write DB_READ_WRITE_PASSWORD=test VALKEY_HOST=localhost VALKEY_PORT=6479 VALKEY_PASSWORD=test npm run start -w @boilerplate/management-api',
       port: 4110,
       cwd: '../..',
       reuseExistingServer: false,
