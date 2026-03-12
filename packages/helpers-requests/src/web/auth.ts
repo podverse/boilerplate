@@ -132,3 +132,29 @@ export async function requestEmailChange(
     token: options?.token ?? undefined,
   });
 }
+
+/** Call POST /auth/verify-email with token from email link. */
+export async function verifyEmail(
+  baseUrl: string,
+  body: { token: string },
+  options?: { locale?: string }
+): AuthResponse {
+  return request(baseUrl, '/auth/verify-email', {
+    method: 'POST',
+    body: JSON.stringify(body),
+    locale: options?.locale,
+  });
+}
+
+/** Call POST /auth/confirm-email-change with token from email link. */
+export async function confirmEmailChange(
+  baseUrl: string,
+  body: { token: string },
+  options?: { locale?: string }
+): AuthResponse {
+  return request(baseUrl, '/auth/confirm-email-change', {
+    method: 'POST',
+    body: JSON.stringify(body),
+    locale: options?.locale,
+  });
+}

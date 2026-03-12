@@ -230,6 +230,7 @@
     "resetFailed": "Reset failed",
     "passwordsDoNotMatch": "Passwords do not match",
     "resetTokenRequired": "Reset token is required",
+    "invalidOrExpiredLink": "Invalid or expired link",
     "loginFailed": "Login failed",
     "deleteFailed": "Delete failed"
   },
@@ -283,6 +284,14 @@
         "placeholderPassword": "••••••••",
         "submit": "Reset password",
         "backToLogin": "Back to log in"
+      },
+      "verifyEmail": {
+        "title": "Verify email",
+        "success": "Email verified"
+      },
+      "confirmEmailChange": {
+        "title": "Confirm email change",
+        "success": "Email updated"
       }
     },
     "header": {

@@ -138,7 +138,10 @@ export async function proxy(request: NextRequest) {
     return redirectRes;
   }
   if (
-    (pathname === ROUTES.FORGOT_PASSWORD || pathname === ROUTES.RESET_PASSWORD) &&
+    (pathname === ROUTES.FORGOT_PASSWORD ||
+      pathname === ROUTES.RESET_PASSWORD ||
+      pathname === ROUTES.VERIFY_EMAIL ||
+      pathname === ROUTES.CONFIRM_EMAIL_CHANGE) &&
     !authModeCapabilities.canUseEmailVerificationFlows
   ) {
     const redirectRes = NextResponse.redirect(new URL(ROUTES.LOGIN, request.url));

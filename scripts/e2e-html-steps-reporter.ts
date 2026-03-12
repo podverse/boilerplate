@@ -398,9 +398,11 @@ export default class HtmlStepsReporter implements Reporter {
       ? `E2E Management Web Report${scopedSpecSuffix}`
       : normalizedDir.endsWith('/web-signup-enabled')
         ? `E2E Web Report – AUTH_MODE=user_signup_email, MAILER_ENABLED=true${scopedSpecSuffix}`
-        : normalizedDir.endsWith('/web-admin-only-email') || normalizedDir.endsWith('/web')
-          ? `E2E Web Report${scopedSpecSuffix}`
-          : 'E2E step report';
+        : normalizedDir.endsWith('/web-admin-only-email')
+          ? `E2E Web Report – AUTH_MODE=admin_only_email${scopedSpecSuffix}`
+          : normalizedDir.endsWith('/web')
+            ? `E2E Web Report${scopedSpecSuffix}`
+            : 'E2E step report';
 
     const passed = this.runs.filter((r) => r.result.status === 'passed').length;
     const skipped = this.runs.filter((r) => r.result.status === 'skipped').length;

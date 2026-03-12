@@ -39,6 +39,10 @@ const E2E_PASSWORD_PLAIN = 'Test!1Aa';
 const E2E_RESET_PASSWORD_TOKEN_RAW = 'e2e0' + '0'.repeat(28);
 /** Raw token for set-password E2E; must match apps/web/e2e/helpers/setPasswordToken.ts */
 const E2E_SET_PASSWORD_TOKEN_RAW = 'e2e1' + '0'.repeat(28);
+/** Raw token for verify-email E2E; must match apps/web/e2e/helpers/verifyEmailToken.ts */
+const E2E_VERIFY_EMAIL_TOKEN_RAW = 'e2e2' + '0'.repeat(28);
+/** Raw token for confirm-email-change E2E; must match apps/web/e2e/helpers/confirmEmailChangeToken.ts */
+const E2E_CONFIRM_EMAIL_CHANGE_TOKEN_RAW = 'e2e3' + '0'.repeat(28);
 const E2E_DISPLAY_NAME = 'E2E Bucket Owner';
 const E2E_DISPLAY_NAME2 = 'E2E Bucket Admin';
 const E2E_DISPLAY_NAME3 = 'E2E Admin Without Permission';
@@ -171,8 +175,29 @@ async function main() {
        VALUES ($1, 'set_password', $2, $3::timestamp, NULL)`,
       [E2E_USER5_ID, setPasswordTokenHash, setPasswordExpiresAt]
     );
+    const verifyEmailTokenHash = crypto
+      .createHash('sha256')
+      .update(E2E_VERIFY_EMAIL_TOKEN_RAW, 'utf8')
+      .digest('hex');
+    const verifyEmailExpiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+    await client.query(
+      `INSERT INTO verification_token (user_id, kind, token_hash, expires_at, payload)
+       VALUES ($1, 'email_verify', $2, $3::timestamp, NULL)`,
+      [E2E_USER_ID, verifyEmailTokenHash, verifyEmailExpiresAt]
+    );
+    const confirmEmailChangeTokenHash = crypto
+      .createHash('sha256')
+      .update(E2E_CONFIRM_EMAIL_CHANGE_TOKEN_RAW, 'utf8')
+      .digest('hex');
+    const confirmEmailChangeExpiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+    const emailChangePayload = JSON.stringify({ pending_email: E2E_EMAIL });
+    await client.query(
+      `INSERT INTO verification_token (user_id, kind, token_hash, expires_at, payload)
+       VALUES ($1, 'email_change', $2, $3::timestamp, $4::jsonb)`,
+      [E2E_USER_ID, confirmEmailChangeTokenHash, confirmEmailChangeExpiresAt, emailChangePayload]
+    );
     console.log(
-      'E2E web seed done: 5 users (owner, admin-with-permission, admin-without-permission, non-admin, invite), 2 buckets, 3 bucket admins, password_reset and set_password tokens.'
+      'E2E web seed done: 5 users (owner, admin-with-permission, admin-without-permission, non-admin, invite), 2 buckets, 3 bucket admins, password_reset, set_password, email_verify, and email_change tokens.'
     );
   } finally {
     await client.end();

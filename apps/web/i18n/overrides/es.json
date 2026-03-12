@@ -216,6 +216,7 @@
     "resetFailed": "",
     "passwordsDoNotMatch": "",
     "resetTokenRequired": "",
+    "invalidOrExpiredLink": "",
     "loginFailed": "",
     "deleteFailed": ""
   },
@@ -269,6 +270,14 @@
         "placeholderPassword": "",
         "submit": "",
         "backToLogin": ""
+      },
+      "verifyEmail": {
+        "title": "",
+        "success": ""
+      },
+      "confirmEmailChange": {
+        "title": "",
+        "success": ""
       }
     },
     "header": {

@@ -39,7 +39,7 @@ Use this skill when answering implementation requests in this repo.
   - `make e2e_test_report_scoped WEB_SPEC=e2e/<web-spec>.spec.ts MGMT_SPEC=e2e/<management-spec>.spec.ts`
 - Lightweight broad smoke check:
   - `make e2e_test_home_report`
-- Broad regression or pre-deploy confidence:
+- Broad regression or pre-deploy confidence (four reports: one per web auth mode + management-web):
   - `make e2e_test_report`
 
 ## API gate: default is no API tests (required)

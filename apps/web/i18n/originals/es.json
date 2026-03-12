@@ -216,6 +216,7 @@
     "resetFailed": "Error al restablecer",
     "passwordsDoNotMatch": "Las contraseñas no coinciden",
     "resetTokenRequired": "Se requiere el token de restablecimiento",
+    "invalidOrExpiredLink": "Enlace no válido o caducado",
     "loginFailed": "Error al iniciar sesión",
     "deleteFailed": "Error al eliminar"
   },
@@ -269,6 +270,14 @@
         "placeholderPassword": "••••••••",
         "submit": "Restablecer contraseña",
         "backToLogin": "Volver a iniciar sesión"
+      },
+      "verifyEmail": {
+        "title": "Verificar correo",
+        "success": "Correo verificado"
+      },
+      "confirmEmailChange": {
+        "title": "Confirmar cambio de correo",
+        "success": "Correo actualizado"
       }
     },
     "header": {

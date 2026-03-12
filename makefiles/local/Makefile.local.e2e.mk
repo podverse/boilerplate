@@ -100,15 +100,17 @@ e2e_test_management_web:
 	@$(MAKE) e2e_seed
 	@npm run test:e2e -w apps/management-web
 
-# Run API gate decision first; if gate runs and succeeds, re-seed both, then run Playwright: default web, signup-enabled web (Mailpit up), management-web.
+# Run API gate decision first; if gate runs and succeeds, re-seed both, then run Playwright:
+# default web, signup-enabled web (Mailpit up), admin-only-email web, management-web.
 e2e_test:
 	@$(call e2e_run_api_gate)
 	@$(MAKE) e2e_seed
-	@npm run test:e2e -w apps/web -- $(WEB_SPEC_ORDERED) && $(MAKE) e2e_mailpit_up && npm run test:e2e -w apps/web -- --config=playwright.signup-enabled.config.ts $(SIGNUP_ENABLED_WEB_SPEC_ARGS) && npm run test:e2e -w apps/management-web
+	@npm run test:e2e -w apps/web -- $(WEB_SPEC_ORDERED) && $(MAKE) e2e_mailpit_up && npm run test:e2e -w apps/web -- --config=playwright.signup-enabled.config.ts $(SIGNUP_ENABLED_WEB_SPEC_ARGS) && npm run test:e2e -w apps/web -- --config=playwright.admin-only-email.config.ts $(ADMIN_ONLY_EMAIL_WEB_SPEC_ORDERED) && npm run test:e2e -w apps/management-web
 
-# Full E2E suite in report mode: run all web (default + signup-enabled), management-web tests with step screenshots,
-# write timestamped HTML reports (web, web-signup-enabled, management-web), rotate to 10 runs, open all three in browser.
-# Report opens even when tests fail. Spec order is conceptual (home, buckets, etc.) from e2e-spec-order-*.txt.
+# Full E2E suite in report mode: run all web auth modes (default, signup-enabled, admin-only-email)
+# and management-web; four report dirs (web, web-signup-enabled, web-admin-only-email, management-web);
+# step screenshots and auto-open all four. Report opens even when tests fail.
+# Spec order is conceptual (home, buckets, etc.) from e2e-spec-order-*.txt.
 e2e_test_report:
 	@$(call e2e_run_api_gate)
 	@$(MAKE) e2e_seed
@@ -118,11 +120,13 @@ e2e_test_report:
 	RUN_DIR="$$BASE_DIR/$$TS"; \
 	WEB_REPORT_DIR="$$RUN_DIR/web"; \
 	WEB_SIGNUP_REPORT_DIR="$$RUN_DIR/web-signup-enabled"; \
+	WEB_ADMIN_ONLY_EMAIL_REPORT_DIR="$$RUN_DIR/web-admin-only-email"; \
 	MGMT_REPORT_DIR="$$RUN_DIR/management-web"; \
-	mkdir -p "$$WEB_REPORT_DIR" "$$WEB_SIGNUP_REPORT_DIR" "$$MGMT_REPORT_DIR"; \
+	mkdir -p "$$WEB_REPORT_DIR" "$$WEB_SIGNUP_REPORT_DIR" "$$WEB_ADMIN_ONLY_EMAIL_REPORT_DIR" "$$MGMT_REPORT_DIR"; \
 	WEB_EXIT=0; E2E_STEP_SCREENSHOTS=true E2E_SPEC_ORDER="$(WEB_SPEC_ORDER_SEMICOLON)" PLAYWRIGHT_HTML_OPEN=never PLAYWRIGHT_HTML_OUTPUT_DIR="$$WEB_REPORT_DIR" npm run test:e2e -w @boilerplate/web -- --reporter=../../scripts/e2e-html-steps-reporter.ts $(WEB_SPEC_ORDERED) || WEB_EXIT=$$?; \
 	$(MAKE) e2e_mailpit_up; \
 	WEB_SIGNUP_EXIT=0; E2E_STEP_SCREENSHOTS=true E2E_REPORT_SPEC="$(SIGNUP_ENABLED_WEB_SPECS)" E2E_SPEC_ORDER="$(SIGNUP_ENABLED_WEB_SPEC_ORDER_SEMICOLON)" PLAYWRIGHT_HTML_OPEN=never PLAYWRIGHT_HTML_OUTPUT_DIR="$$WEB_SIGNUP_REPORT_DIR" npm run test:e2e -w @boilerplate/web -- --config=playwright.signup-enabled.config.ts --reporter=../../scripts/e2e-html-steps-reporter.ts $(SIGNUP_ENABLED_WEB_SPEC_ARGS) || WEB_SIGNUP_EXIT=$$?; \
+	WEB_ADMIN_ONLY_EMAIL_EXIT=0; E2E_EMAIL_VERIFICATION_ENABLED=1 E2E_STEP_SCREENSHOTS=true E2E_SPEC_ORDER="$(ADMIN_ONLY_EMAIL_WEB_SPEC_ORDER_SEMICOLON)" PLAYWRIGHT_HTML_OPEN=never PLAYWRIGHT_HTML_OUTPUT_DIR="$$WEB_ADMIN_ONLY_EMAIL_REPORT_DIR" npm run test:e2e -w @boilerplate/web -- --config=playwright.admin-only-email.config.ts --reporter=../../scripts/e2e-html-steps-reporter.ts $(ADMIN_ONLY_EMAIL_WEB_SPEC_ORDERED) || WEB_ADMIN_ONLY_EMAIL_EXIT=$$?; \
 	MGMT_EXIT=0; E2E_STEP_SCREENSHOTS=true E2E_SPEC_ORDER="$(MGMT_SPEC_ORDER_SEMICOLON)" PLAYWRIGHT_HTML_OPEN=never PLAYWRIGHT_HTML_OUTPUT_DIR="$$MGMT_REPORT_DIR" npm run test:e2e -w @boilerplate/management-web -- --reporter=../../scripts/e2e-html-steps-reporter.ts $(MGMT_SPEC_ORDERED) || MGMT_EXIT=$$?; \
 	ln -sfn "$$TS" "$$BASE_DIR/latest"; \
 	RUN_DIRS=$$((ls -1d "$$BASE_DIR"/20??????-?????? 2>/dev/null || true) | sort); \
@@ -138,24 +142,28 @@ e2e_test_report:
 	fi; \
 	WEB_INDEX="$$WEB_REPORT_DIR/index.html"; \
 	WEB_SIGNUP_INDEX="$$WEB_SIGNUP_REPORT_DIR/index.html"; \
+	WEB_ADMIN_ONLY_EMAIL_INDEX="$$WEB_ADMIN_ONLY_EMAIL_REPORT_DIR/index.html"; \
 	MGMT_INDEX="$$MGMT_REPORT_DIR/index.html"; \
 	echo "E2E reports:"; \
 	echo "  $$WEB_INDEX"; \
 	echo "  $$WEB_SIGNUP_INDEX"; \
+	echo "  $$WEB_ADMIN_ONLY_EMAIL_INDEX"; \
 	echo "  $$MGMT_INDEX"; \
 	echo "Latest symlink: $$BASE_DIR/latest"; \
 	if command -v open >/dev/null 2>&1; then \
 		[ -f "$$WEB_INDEX" ] && open "$$WEB_INDEX" || echo "Could not auto-open $$WEB_INDEX"; \
 		[ -f "$$WEB_SIGNUP_INDEX" ] && open "$$WEB_SIGNUP_INDEX" || echo "Could not auto-open $$WEB_SIGNUP_INDEX"; \
+		[ -f "$$WEB_ADMIN_ONLY_EMAIL_INDEX" ] && open "$$WEB_ADMIN_ONLY_EMAIL_INDEX" || echo "Could not auto-open $$WEB_ADMIN_ONLY_EMAIL_INDEX"; \
 		[ -f "$$MGMT_INDEX" ] && open "$$MGMT_INDEX" || echo "Could not auto-open $$MGMT_INDEX"; \
 	elif command -v xdg-open >/dev/null 2>&1; then \
 		[ -f "$$WEB_INDEX" ] && xdg-open "$$WEB_INDEX" >/dev/null 2>&1 || echo "Could not auto-open $$WEB_INDEX"; \
 		[ -f "$$WEB_SIGNUP_INDEX" ] && xdg-open "$$WEB_SIGNUP_INDEX" >/dev/null 2>&1 || echo "Could not auto-open $$WEB_SIGNUP_INDEX"; \
+		[ -f "$$WEB_ADMIN_ONLY_EMAIL_INDEX" ] && xdg-open "$$WEB_ADMIN_ONLY_EMAIL_INDEX" >/dev/null 2>&1 || echo "Could not auto-open $$WEB_ADMIN_ONLY_EMAIL_INDEX"; \
 		[ -f "$$MGMT_INDEX" ] && xdg-open "$$MGMT_INDEX" >/dev/null 2>&1 || echo "Could not auto-open $$MGMT_INDEX"; \
 	else \
 		echo "Could not auto-open browser (no open/xdg-open). Open the files manually."; \
 	fi; \
-	if [ "$$WEB_EXIT" -ne 0 ] || [ "$$WEB_SIGNUP_EXIT" -ne 0 ] || [ "$$MGMT_EXIT" -ne 0 ]; then exit 1; fi
+	if [ "$$WEB_EXIT" -ne 0 ] || [ "$$WEB_SIGNUP_EXIT" -ne 0 ] || [ "$$WEB_ADMIN_ONLY_EMAIL_EXIT" -ne 0 ] || [ "$$MGMT_EXIT" -ne 0 ]; then exit 1; fi
 
 # Scoped report mode for one or more web E2E specs. Requires SPEC.
 # SPEC supports a single path or comma-separated paths; tests run and appear in report in parameter order (do not reorder).

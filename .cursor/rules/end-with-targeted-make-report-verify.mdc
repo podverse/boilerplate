@@ -30,7 +30,7 @@ Preferred command order:
   - `make e2e_test_report_scoped WEB_SPEC=e2e/<web-spec>.spec.ts MGMT_SPEC=e2e/<management-spec>.spec.ts`
 - Broad smoke:
   - `make e2e_test_home_report`
-- Full regression:
+- Full regression (four reports: web default, web signup-enabled, web admin-only-email, management-web):
   - `make e2e_test_report`
 
 Spec variables (`SPEC`, `WEB_SPEC`, `MGMT_SPEC`) may contain comma-separated spec paths when multiple related specs should run.
