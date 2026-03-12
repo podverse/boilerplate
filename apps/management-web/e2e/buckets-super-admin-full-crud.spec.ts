@@ -5,7 +5,7 @@ import { clickConfirmDeleteInModal } from './helpers/flowHelpers';
 import { actionAndCapture, capturePageLoad } from './helpers/stepScreenshots';
 import { setE2EUserContext } from './helpers/userContext';
 
-test.describe('This suite verifies the management buckets-list page for the super-admin user.', () => {
+test.describe('Management buckets-list page for the super-admin user', () => {
   test('When a permitted user (super-admin) opens the buckets-list page, they see the buckets heading and the add-bucket link.', async ({
     page,
   }, testInfo) => {

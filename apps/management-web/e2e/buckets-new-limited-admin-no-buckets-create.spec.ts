@@ -4,7 +4,7 @@ import { loginAsLimitedAdmin } from './helpers/advancedFixtures';
 import { capturePageLoad } from './helpers/stepScreenshots';
 import { setE2EUserContext } from './helpers/userContext';
 
-test.describe('This suite verifies the management buckets-new page for the admin (admins users events:own) user.', () => {
+test.describe('Management buckets-new page for the admin (admins users events:own) user', () => {
   test('When a admin (admins users events:own) opens the buckets-new route, they are redirected to the dashboard.', async ({
     page,
   }, testInfo) => {

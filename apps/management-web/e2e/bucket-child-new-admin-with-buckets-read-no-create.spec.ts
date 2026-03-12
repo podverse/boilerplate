@@ -13,7 +13,7 @@ import { setE2EUserContext } from './helpers/userContext';
 
 const E2E_BUCKET1_ID = '22222222-2222-4222-a222-222222222222';
 
-test.describe('This suite verifies the management bucket-child-new-page for the admin (buckets:R bucket_admins events:all_admins) user.', () => {
+test.describe('Management bucket-child-new-page for the admin (buckets:R bucket_admins events:all_admins) user', () => {
   test('When an admin (buckets:R bucket_admins events:all_admins) opens the bucket-child-new page without buckets create, they see not found.', async ({
     page,
   }, testInfo) => {

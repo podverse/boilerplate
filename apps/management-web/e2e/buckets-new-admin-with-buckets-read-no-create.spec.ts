@@ -4,7 +4,7 @@ import { loginAsManagementAdminWithBucketAdmins } from './helpers/advancedFixtur
 import { capturePageLoad } from './helpers/stepScreenshots';
 import { setE2EUserContext } from './helpers/userContext';
 
-test.describe('This suite verifies the management buckets-new page for the admin (buckets:R bucket_admins events:all_admins) user.', () => {
+test.describe('Management buckets-new page for the admin (buckets:R bucket_admins events:all_admins) user', () => {
   test('When an admin (buckets:R bucket_admins events:all_admins) opens the buckets-new page without buckets create, they are redirected to the buckets list.', async ({
     page,
   }, testInfo) => {

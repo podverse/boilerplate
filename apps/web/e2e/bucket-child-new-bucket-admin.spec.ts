@@ -7,7 +7,7 @@ import { setE2EUserContext } from './helpers/userContext';
 
 const E2E_BUCKET1_SHORT_ID = 'e2ebkt000001';
 
-test.describe('This suite verifies the child-bucket-create-page for the bucket-admin user.', () => {
+test.describe('Child-bucket-create-page for the bucket-admin user', () => {
   test('When the non-owner-admin with bucket permission opens the child-bucket-create-page, they see the create form.', async ({
     page,
   }, testInfo) => {

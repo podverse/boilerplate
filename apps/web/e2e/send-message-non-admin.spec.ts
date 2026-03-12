@@ -8,7 +8,7 @@ import { setE2EUserContext } from './helpers/userContext';
 const E2E_BUCKET1_SHORT_ID = 'e2ebkt000001';
 const E2E_BUCKET2_SHORT_ID = 'e2ebkt000002';
 
-test.describe('This suite verifies the public send-message-page for the basic-user.', () => {
+test.describe('Public send-message-page for the basic-user', () => {
   test('When the basic-user opens the public send-message-page for a public bucket, they see the send-message form (public bucket).', async ({
     page,
   }, testInfo) => {

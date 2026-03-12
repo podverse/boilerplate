@@ -11,7 +11,7 @@ import { setE2EUserContext } from './helpers/userContext';
 
 const E2E_MAIN_USER_ID = '11111111-1111-4111-a111-111111111111';
 
-test.describe('This suite verifies the management user-edit-page for the super-admin user.', () => {
+test.describe('Management user-edit-page for the super-admin user', () => {
   test('When the super-admin opens the user-edit-page with an invalid user id, they see not found.', async ({
     page,
   }, testInfo) => {

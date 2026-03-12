@@ -4,7 +4,7 @@ import { loginAsWebE2EUserAndExpectDashboard } from './helpers/advancedFixtures'
 import { actionAndCapture, capturePageLoad } from './helpers/stepScreenshots';
 import { setE2EUserContext } from './helpers/userContext';
 
-test.describe('This suite verifies the user-settings-page for the bucket-owner user.', () => {
+test.describe('User-settings-page for the bucket-owner user', () => {
   test('When an authenticated user opens the user-settings-page, they see the settings content with tabs or heading.', async ({
     page,
   }, testInfo) => {

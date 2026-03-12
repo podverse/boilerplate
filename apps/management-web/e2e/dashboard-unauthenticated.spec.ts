@@ -4,7 +4,7 @@ import { expectUnauthedRouteRedirectsToLogin } from './helpers/authAssertions';
 import { capturePageLoad } from './helpers/stepScreenshots';
 import { setE2EUserContext } from './helpers/userContext';
 
-test.describe('This suite verifies the management dashboard-page for the unauthenticated user.', () => {
+test.describe('Management dashboard-page for the unauthenticated user', () => {
   test('When an unauthenticated user visits the dashboard-page, they are redirected to the login-page.', async ({
     page,
   }, testInfo) => {

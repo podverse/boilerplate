@@ -11,7 +11,7 @@ import { setE2EUserContext } from './helpers/userContext';
 
 const E2E_MAIN_USER_ID = '11111111-1111-4111-a111-111111111111';
 
-test.describe('This suite verifies the management user-edit-page for the unauthenticated user.', () => {
+test.describe('Management user-edit-page for the unauthenticated user', () => {
   test('When an unauthenticated user tries to open the user-edit-page, they are redirected to the login-page.', async ({
     page,
   }, testInfo) => {

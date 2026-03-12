@@ -12,7 +12,7 @@ import { setE2EUserContext } from './helpers/userContext';
 /** Password that satisfies strength requirements for create-admin. */
 const E2E_VALID_PASSWORD = 'Test!1Aa';
 
-test.describe('This suite verifies the management admins-new-page for the super-admin user.', () => {
+test.describe('Management admins-new-page for the super-admin user', () => {
   test('When a permitted user (super-admin) opens the admins-new-page, they see the add-admin-form.', async ({
     page,
   }, testInfo) => {

@@ -6,7 +6,7 @@ import { setE2EUserContext } from './helpers/userContext';
 
 const E2E_MAIN_USER_ID = '11111111-1111-4111-a111-111111111111';
 
-test.describe('This suite verifies the management users-list-page for the admin (admins users events:own) user.', () => {
+test.describe('Management users-list-page for the admin (admins users events:own) user', () => {
   test('When an admin (admins users events:own) opens the users-list-page, they see the users heading and list.', async ({
     page,
   }, testInfo) => {

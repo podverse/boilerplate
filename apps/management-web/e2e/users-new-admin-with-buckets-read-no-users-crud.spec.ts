@@ -8,7 +8,7 @@ import { expectUnauthedRouteRedirectsToLogin } from './helpers/authAssertions';
 import { actionAndCapture, capturePageLoad } from './helpers/stepScreenshots';
 import { setE2EUserContext } from './helpers/userContext';
 
-test.describe('This suite verifies the management users-new-page for the admin (buckets:R bucket_admins events:all_admins) user.', () => {
+test.describe('Management users-new-page for the admin (buckets:R bucket_admins events:all_admins) user', () => {
   test('When an admin (buckets:R bucket_admins events:all_admins) opens the users-new-page, they are redirected to the dashboard.', async ({
     page,
   }, testInfo) => {

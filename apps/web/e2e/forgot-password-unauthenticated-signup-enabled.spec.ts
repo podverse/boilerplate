@@ -3,7 +3,7 @@ import { expect, test } from '@playwright/test';
 import { actionAndCapture, capturePageLoad } from './helpers/stepScreenshots';
 import { setE2EUserContext } from './helpers/userContext';
 
-test.describe('Forgot-password page when signup is enabled (AUTH_MODE=user_signup_email).', () => {
+test.describe('Forgot-password page (user_signup_email)', () => {
   test('When the user submits with a valid email, they see the generic check-your-email success message.', async ({
     page,
   }, testInfo) => {

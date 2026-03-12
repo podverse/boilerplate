@@ -8,7 +8,7 @@ import { setE2EUserContext } from './helpers/userContext';
 const E2E_BUCKET1_ID = '22222222-2222-4222-a222-222222222222';
 const E2E_NON_OWNER_ADMIN_ID = 'e2eusr000002';
 
-test.describe('This suite verifies the management bucket-admin-edit-page for the admin (buckets:R bucket_admins events:all_admins) user.', () => {
+test.describe('Management bucket-admin-edit-page for the admin (buckets:R bucket_admins events:all_admins) user', () => {
   test('When an admin (buckets:R bucket_admins events:all_admins) navigates from the bucket-settings-admins-tab to the bucket-admin-edit-page for a non-owner-admin, the edit page loads.', async ({
     page,
   }, testInfo) => {

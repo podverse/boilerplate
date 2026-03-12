@@ -13,7 +13,7 @@ import { setE2EUserContext } from './helpers/userContext';
 
 const E2E_BUCKET1_ID = '22222222-2222-4222-a222-222222222222';
 
-test.describe('This suite verifies the management bucket-role-edit-page for the super-admin user.', () => {
+test.describe('Management bucket-role-edit-page for the super-admin user', () => {
   test('When the super-admin opens the bucket-role-edit-page with an invalid role id, they see not found.', async ({
     page,
   }, testInfo) => {

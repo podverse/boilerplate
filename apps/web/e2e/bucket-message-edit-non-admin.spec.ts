@@ -29,7 +29,7 @@ async function createMessageAndGetId(page: import('@playwright/test').Page): Pro
   return match[1];
 }
 
-test.describe('This suite verifies the bucket-message-edit-page for the basic-user.', () => {
+test.describe('Bucket-message-edit-page for the basic-user', () => {
   test('When the basic-user opens the bucket-message-edit-page, they see not found.', async ({
     page,
   }, testInfo) => {

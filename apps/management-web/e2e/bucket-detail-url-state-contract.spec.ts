@@ -7,7 +7,7 @@ import { setE2EUserContext } from './helpers/userContext';
 /** UUID from tools/web/seed-e2e.mjs E2E_BUCKET1_ID (main DB; management E2E runs after full seed). */
 const E2E_BUCKET1_ID = '22222222-2222-4222-a222-222222222222';
 
-test.describe('This suite verifies URL-state contracts for the management bucket-detail-page (tab, sortBy, sortOrder).', () => {
+test.describe('URL-state contracts for the management bucket-detail-page (tab, sortBy, sortOrder)', () => {
   test('When the super-admin opens the bucket-detail-page with tab=buckets and sortBy=name and sortOrder=asc, the URL preserves the params and the buckets-tab content is visible.', async ({
     page,
   }, testInfo) => {

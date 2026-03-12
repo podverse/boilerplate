@@ -10,7 +10,7 @@ import { setE2EUserContext } from './helpers/userContext';
 
 const E2E_BUCKET1_SHORT_ID = 'e2ebkt000001';
 
-test.describe('This suite verifies the bucket-role-edit-page for the bucket-owner user.', () => {
+test.describe('Bucket-role-edit-page for the bucket-owner user', () => {
   test('When the user opens the bucket-role-edit-page with an invalid role id, they see not found.', async ({
     page,
   }, testInfo) => {

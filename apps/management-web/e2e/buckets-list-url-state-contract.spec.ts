@@ -4,7 +4,7 @@ import { loginAsManagementSuperAdmin } from './helpers/advancedFixtures';
 import { actionAndCapture, capturePageLoad } from './helpers/stepScreenshots';
 import { setE2EUserContext } from './helpers/userContext';
 
-test.describe('This suite verifies URL-state contracts for the management buckets-list page (sortBy, sortOrder).', () => {
+test.describe('URL-state contracts for the management buckets-list page (sortBy, sortOrder)', () => {
   test('When the super-admin opens the buckets-list page with sortBy=name and sortOrder=asc, the URL preserves the params and the buckets heading is visible.', async ({
     page,
   }, testInfo) => {

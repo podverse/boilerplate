@@ -3,7 +3,7 @@ import { expect, test } from '@playwright/test';
 import { actionAndCapture, capturePageLoad } from './helpers/stepScreenshots';
 import { setE2EUserContext } from './helpers/userContext';
 
-test.describe('Login page when signup is enabled (AUTH_MODE=user_signup_email).', () => {
+test.describe('Login page (user_signup_email)', () => {
   test('When an unauthenticated user visits login, the signup link and forgot-password link are visible.', async ({
     page,
   }, testInfo) => {

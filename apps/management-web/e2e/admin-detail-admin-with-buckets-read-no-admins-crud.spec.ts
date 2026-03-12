@@ -12,7 +12,7 @@ import { setE2EUserContext } from './helpers/userContext';
 
 const E2E_SUPER_ADMIN_ID = 'aaaaaaaa-aaaa-4aaa-aaaa-aaaaaaaaaaaa';
 
-test.describe('This suite verifies the management admin-detail-page for the admin (buckets:R bucket_admins events:all_admins) user.', () => {
+test.describe('Management admin-detail-page for the admin (buckets:R bucket_admins events:all_admins) user', () => {
   test('When an admin (buckets:R bucket_admins events:all_admins) opens the admin-detail-page, they are redirected to the dashboard.', async ({
     page,
   }, testInfo) => {

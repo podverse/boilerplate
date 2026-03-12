@@ -4,7 +4,7 @@ import { nextFixtureName } from './helpers/advancedFixtures';
 import { actionAndCapture, capturePageLoad } from './helpers/stepScreenshots';
 import { setE2EUserContext } from './helpers/userContext';
 
-test.describe('Signup page when signup is enabled (AUTH_MODE=user_signup_email).', () => {
+test.describe('Signup page (user_signup_email)', () => {
   test('When the user submits with a duplicate email, they are redirected to login and see the check-your-email message (no enumeration).', async ({
     page,
   }, testInfo) => {

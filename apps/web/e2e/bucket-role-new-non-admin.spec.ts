@@ -6,7 +6,7 @@ import { setE2EUserContext } from './helpers/userContext';
 
 const E2E_BUCKET1_SHORT_ID = 'e2ebkt000001';
 
-test.describe('This suite verifies the bucket-role-new-page for the basic-user.', () => {
+test.describe('Bucket-role-new-page for the basic-user', () => {
   test('When the basic-user opens the bucket-role-new-page, they see not found.', async ({
     page,
   }, testInfo) => {

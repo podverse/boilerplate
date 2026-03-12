@@ -4,7 +4,7 @@ import { loginAsLimitedAdmin } from './helpers/advancedFixtures';
 import { actionAndCapture, capturePageLoad } from './helpers/stepScreenshots';
 import { setE2EUserContext } from './helpers/userContext';
 
-test.describe('This suite verifies the management settings-page for the admin (admins users events:own) user.', () => {
+test.describe('Management settings-page for the admin (admins users events:own) user', () => {
   test('When an admin (admins users events:own) opens the settings-page, they see settings content and account tabs.', async ({
     page,
   }, testInfo) => {

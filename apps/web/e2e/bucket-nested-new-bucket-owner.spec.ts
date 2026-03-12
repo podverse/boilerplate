@@ -8,7 +8,7 @@ import { setE2EUserContext } from './helpers/userContext';
 const E2E_BUCKET1_SHORT_ID = 'e2ebkt000001';
 const NESTED_NEW_URL = `/bucket/${E2E_BUCKET1_SHORT_ID}/bucket/new`;
 
-test.describe('This suite verifies the nested-bucket-create-page for the bucket-owner user.', () => {
+test.describe('Nested-bucket-create-page for the bucket-owner user', () => {
   test('When an authenticated user opens the page to create a new nested bucket, they see the create form with a name field and a submit button.', async ({
     page,
   }, testInfo) => {

@@ -3,7 +3,7 @@ import { test } from '@playwright/test';
 import { expectUnauthedRouteRedirectsToLogin } from './helpers/advancedFixtures';
 import { setE2EUserContext } from './helpers/userContext';
 
-test.describe('This suite verifies the user-settings-page for the unauthenticated user.', () => {
+test.describe('User-settings-page for the unauthenticated user', () => {
   test('When an unauthenticated user tries to open the user-settings-page, they are redirected to the login-page.', async ({
     page,
   }, testInfo) => {

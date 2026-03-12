@@ -4,7 +4,7 @@ import { E2E_CONFIRM_EMAIL_CHANGE_TOKEN_RAW } from './helpers/confirmEmailChange
 import { actionAndCapture, capturePageLoad } from './helpers/stepScreenshots';
 import { setE2EUserContext } from './helpers/userContext';
 
-test.describe('Confirm-email-change page when email verification flows are enabled (admin_only_email).', () => {
+test.describe('Confirm-email-change page (admin_only_email)', () => {
   test('When the user opens /auth/confirm-email-change with no token, they see invalid-or-expired-link message.', async ({
     page,
   }, testInfo) => {

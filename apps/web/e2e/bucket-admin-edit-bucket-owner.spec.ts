@@ -9,7 +9,7 @@ const E2E_BUCKET1_SHORT_ID = 'e2ebkt000001';
 const E2E_USER_SHORT_ID = 'e2eusr000001';
 const E2E_BUCKET1_ADMIN2_SHORT_ID = 'e2eusr000002';
 
-test.describe('This suite verifies the bucket-admin-edit-page for the bucket-owner user.', () => {
+test.describe('Bucket-admin-edit-page for the bucket-owner user', () => {
   test("When the user opens the bucket-admin-edit-route with the bucket-owner's user id, they see the bucket-admin-edit-page with editing disabled and a message.", async ({
     page,
   }, testInfo) => {

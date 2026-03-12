@@ -4,7 +4,7 @@ import { E2E_VERIFY_EMAIL_TOKEN_RAW } from './helpers/verifyEmailToken';
 import { actionAndCapture, capturePageLoad } from './helpers/stepScreenshots';
 import { setE2EUserContext } from './helpers/userContext';
 
-test.describe('Verify-email page when email verification flows are enabled (admin_only_email).', () => {
+test.describe('Verify-email page (admin_only_email)', () => {
   test('When the user opens /auth/verify-email with no token, they see invalid-or-expired-link message.', async ({
     page,
   }, testInfo) => {

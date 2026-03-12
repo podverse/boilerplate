@@ -12,7 +12,7 @@ import { setE2EUserContext } from './helpers/userContext';
 /** Password that satisfies strength requirements for create-admin. */
 const E2E_VALID_PASSWORD = 'Test!1Aa';
 
-test.describe('This suite verifies the management admins-new-page for the admin (buckets:R bucket_admins events:all_admins) user.', () => {
+test.describe('Management admins-new-page for the admin (buckets:R bucket_admins events:all_admins) user', () => {
   test('When an admin (buckets:R bucket_admins events:all_admins) opens the admins-new-page, they are redirected to the dashboard.', async ({
     page,
   }, testInfo) => {

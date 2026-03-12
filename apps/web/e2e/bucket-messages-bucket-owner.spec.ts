@@ -7,7 +7,7 @@ import { setE2EUserContext } from './helpers/userContext';
 
 const E2E_BUCKET1_SHORT_ID = 'e2ebkt000001';
 
-test.describe('This suite verifies the bucket-messages-page for the bucket-owner user.', () => {
+test.describe('Bucket-messages-page for the bucket-owner user', () => {
   test('When an authenticated user opens the bucket-messages-page, they see the messages-list or empty state.', async ({
     page,
   }, testInfo) => {

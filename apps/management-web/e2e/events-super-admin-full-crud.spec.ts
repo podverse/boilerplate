@@ -4,7 +4,7 @@ import { loginAsManagementSuperAdmin } from './helpers/advancedFixtures';
 import { actionAndCapture, capturePageLoad } from './helpers/stepScreenshots';
 import { setE2EUserContext } from './helpers/userContext';
 
-test.describe('This suite verifies the management events-page for the super-admin user.', () => {
+test.describe('Management events-page for the super-admin user', () => {
   test('When a permitted user (super-admin) opens the events-page, they see the events list or empty state.', async ({
     page,
   }, testInfo) => {

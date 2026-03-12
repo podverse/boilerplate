@@ -9,7 +9,7 @@ import { expectUnauthedRouteRedirectsToLogin } from './helpers/authAssertions';
 import { actionAndCapture, capturePageLoad } from './helpers/stepScreenshots';
 import { setE2EUserContext } from './helpers/userContext';
 
-test.describe('This suite verifies the management users-list-page for the super-admin user.', () => {
+test.describe('Management users-list-page for the super-admin user', () => {
   test('When a permitted user opens the users-list-page, they see the users list or add-user CTA.', async ({
     page,
   }, testInfo) => {

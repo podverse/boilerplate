@@ -7,7 +7,7 @@ import { setE2EUserContext } from './helpers/userContext';
 
 const E2E_BUCKET1_SHORT_ID = 'e2ebkt000001';
 
-test.describe('This suite verifies the bucket-messages-page for the bucket-admin user.', () => {
+test.describe('Bucket-messages-page for the bucket-admin user', () => {
   test('When the non-owner-admin with bucket access opens the bucket-messages-page, they see the messages-list or empty state.', async ({
     page,
   }, testInfo) => {

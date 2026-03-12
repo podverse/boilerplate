@@ -13,7 +13,7 @@ import { setE2EUserContext } from './helpers/userContext';
 
 const E2E_BUCKET1_ID = '22222222-2222-4222-a222-222222222222';
 
-test.describe('This suite verifies the management bucket-role-edit-page for the admin (admins users events:own) user.', () => {
+test.describe('Management bucket-role-edit-page for the admin (admins users events:own) user', () => {
   test('When an admin (admins users events:own) opens the bucket-role-edit-page, they are redirected to the dashboard.', async ({
     page,
   }, testInfo) => {

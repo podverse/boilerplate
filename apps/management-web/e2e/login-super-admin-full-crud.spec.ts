@@ -6,7 +6,7 @@ import { setE2EUserContext } from './helpers/userContext';
 const E2E_USERNAME = 'e2e-superadmin';
 const E2E_PASSWORD = 'Test!1Aa';
 
-test.describe('This suite verifies the management login-page for the super-admin user.', () => {
+test.describe('Management login-page for the super-admin user', () => {
   test('When the user submits valid credentials, they are redirected to the dashboard.', async ({
     page,
   }, testInfo) => {

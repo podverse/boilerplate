@@ -42,3 +42,35 @@ To-do's from the plan have already been created. Do not create them again. Mark 
 - .llm/history/active/project-init/project-init-part-06.md
 - apps/api/vitest.config.ts
 - apps/management-api/vitest.config.ts
+
+### Session 69 - 2026-03-11
+
+#### Prompt (Developer)
+
+Refresh `e2e-suite-title-normalization` Plan Set
+
+Implement the plan as specified, it is attached for your reference. Do NOT edit the plan file itself.
+
+To-do's from the plan have already been created. Do not create them again. Mark them as in_progress as you work, starting with the first one. Don't stop until you have completed all the to-dos.
+
+#### Key Decisions
+
+- Refreshed plan baseline counts to current repository state (`195` total specs; `179`
+  remaining verbose top-level suite titles; `16` already concise in web).
+- Tightened sweep phases to explicitly handle both quote styles in top-level `describe`
+  strings and preserve strict no-touch boundaries for nested/test/step text and logic.
+- Updated validation phase to align with repository policy: static checks only in-agent, with
+  explicit user-run `make` verification command handoff instead of executing tests.
+- Removed stale execution-order wording and aligned copy-pasta instructions with the same
+  non-execution verification policy.
+- Performed final consistency pass across all active plan-set files and checked diagnostics.
+
+#### Files Modified
+
+- .llm/history/active/project-init/project-init-part-06.md
+- .llm/plans/active/e2e-suite-title-normalization/00-EXECUTION-ORDER.md
+- .llm/plans/active/e2e-suite-title-normalization/00-SUMMARY.md
+- .llm/plans/active/e2e-suite-title-normalization/02-web-suite-title-sweep.md
+- .llm/plans/active/e2e-suite-title-normalization/03-management-web-suite-title-sweep.md
+- .llm/plans/active/e2e-suite-title-normalization/04-validation-and-report-smoke.md
+- .llm/plans/active/e2e-suite-title-normalization/COPY-PASTA.md

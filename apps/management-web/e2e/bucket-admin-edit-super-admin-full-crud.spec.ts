@@ -9,7 +9,7 @@ const E2E_BUCKET1_ID = '22222222-2222-4222-a222-222222222222';
 const E2E_MAIN_USER_ID = 'e2eusr000001';
 const E2E_NON_OWNER_ADMIN_ID = 'e2eusr000002';
 
-test.describe('This suite verifies the management bucket-admin-edit-page for the super-admin user.', () => {
+test.describe('Management bucket-admin-edit-page for the super-admin user', () => {
   test('When the user opens the bucket-admin-edit-page with an invalid admin user id, they see not found.', async ({
     page,
   }, testInfo) => {

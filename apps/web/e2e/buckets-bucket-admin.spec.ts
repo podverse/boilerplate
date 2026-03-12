@@ -4,7 +4,7 @@ import { loginAsWebE2EAdminWithPermission } from './helpers/advancedFixtures';
 import { actionAndCapture, capturePageLoad } from './helpers/stepScreenshots';
 import { setE2EUserContext } from './helpers/userContext';
 
-test.describe('This suite verifies the buckets-list-page for the bucket-admin user.', () => {
+test.describe('Buckets-list-page for the bucket-admin user', () => {
   test('When the non-owner-admin with bucket permission opens the buckets-list-page, they see the list or empty state.', async ({
     page,
   }, testInfo) => {

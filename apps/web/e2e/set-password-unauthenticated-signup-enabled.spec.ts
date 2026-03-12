@@ -3,7 +3,7 @@ import { expect, test } from '@playwright/test';
 import { actionAndCapture, capturePageLoad } from './helpers/stepScreenshots';
 import { setE2EUserContext } from './helpers/userContext';
 
-test.describe('Set-password invitation page in signup-enabled mode.', () => {
+test.describe('Set-password invitation page (user_signup_email)', () => {
   test('When an unauthenticated user visits set-password while invitation links are disabled, they are redirected to login.', async ({
     page,
   }, testInfo) => {

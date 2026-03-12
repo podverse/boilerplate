@@ -4,7 +4,7 @@ import { loginAsManagementAdminWithBucketAdmins } from './helpers/advancedFixtur
 import { actionAndCapture, capturePageLoad } from './helpers/stepScreenshots';
 import { setE2EUserContext } from './helpers/userContext';
 
-test.describe('This suite verifies the management buckets-list page for the admin (buckets:R bucket_admins events:all_admins) user.', () => {
+test.describe('Management buckets-list page for the admin (buckets:R bucket_admins events:all_admins) user', () => {
   test('When an admin (buckets:R bucket_admins events:all_admins) opens the buckets-list page, they see the buckets heading and list.', async ({
     page,
   }, testInfo) => {

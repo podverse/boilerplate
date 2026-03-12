@@ -10,11 +10,12 @@ Use this skill when adding or editing E2E specs in `apps/web/e2e/` or `apps/mana
 
 ## Describe blocks
 
-**Suite-level describe** (the top-level block that states what the suite verifies): use a **concise, title-like** descriptor, not a full sentence. This is the one place where a short phrase is preferred.
+**Suite-level describe** (the top-level block that states what the suite verifies): use a **concise, title-like** descriptor, not a full sentence. This is the one place where a short phrase is preferred. **Nested describe blocks, test titles, and step labels** keep **verbose sentence-style** (see Test titles and Step labels below). This convention applies to both `apps/web/e2e` and `apps/management-web/e2e`.
 
 - Good: "Home page for the unauthenticated user"
 - Good: "Dashboard for non-admin users"
 - Avoid (for suite-level): "This suite verifies the home page for the unauthenticated user."
+- **Non-default auth mode:** If the suite runs in a non-default auth mode, end the title with the mode in parentheses. Do not use the word "mode". Default is `admin_only_username` (no suffix). Use `(admin_only_email)` or `(user_signup_email)` only when the spec is run with that config. Examples: "Reset-password page (admin_only_email)", "Signup page (user_signup_email)".
 
 **Nested describe blocks** (feature or group): use a clear full-sentence or phrase for the feature.
 

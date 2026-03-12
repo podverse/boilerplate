@@ -29,7 +29,7 @@ async function createMessageAndGetId(page: import('@playwright/test').Page): Pro
   return match[1];
 }
 
-test.describe('This suite verifies the bucket-message-edit-page for the bucket-admin (settings:- roles:- messages:- admins:-) user.', () => {
+test.describe('Bucket-message-edit-page for the bucket-admin (settings:- roles:- messages:- admins:-) user', () => {
   test('When the bucket-admin (settings:- roles:- messages:- admins:-) without message update permission opens the bucket-message-edit-page, they see not found.', async ({
     page,
   }, testInfo) => {

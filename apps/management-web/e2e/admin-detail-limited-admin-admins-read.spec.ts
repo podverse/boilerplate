@@ -12,7 +12,7 @@ import { setE2EUserContext } from './helpers/userContext';
 
 const E2E_SUPER_ADMIN_ID = 'aaaaaaaa-aaaa-4aaa-aaaa-aaaaaaaaaaaa';
 
-test.describe('This suite verifies the management admin-detail-page for the admin (admins users events:own) user.', () => {
+test.describe('Management admin-detail-page for the admin (admins users events:own) user', () => {
   test('When a admin (admins users events:own) opens the admin-detail-page with an invalid admin id, they see not found.', async ({
     page,
   }, testInfo) => {

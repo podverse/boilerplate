@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * Deterministic E2E seed for web app: main DB (boilerplate_test).
- * Inserts fixed user, credentials, bio, buckets, and a password_reset token for E2E.
+ * Inserts fixed user, credentials, bio, buckets, and deterministic auth-flow tokens for E2E.
  * Run after make e2e_deps.
  * Uses test DB env defaults (DB_HOST, DB_PORT 5532, DB_NAME boilerplate_test, read_write/test).
  */
@@ -35,8 +35,6 @@ const E2E_EMAIL3 = 'e2e-admin-without-permission@example.com';
 const E2E_EMAIL4 = 'e2e-non-admin@example.com';
 const E2E_EMAIL5 = 'e2e-invite@example.com';
 const E2E_PASSWORD_PLAIN = 'Test!1Aa';
-/** Raw token for reset-password E2E (short to avoid URL truncation); must match apps/web/e2e/helpers/resetPasswordToken.ts */
-const E2E_RESET_PASSWORD_TOKEN_RAW = 'e2e0' + '0'.repeat(28);
 /** Raw token for set-password E2E; must match apps/web/e2e/helpers/setPasswordToken.ts */
 const E2E_SET_PASSWORD_TOKEN_RAW = 'e2e1' + '0'.repeat(28);
 /** Raw token for verify-email E2E; must match apps/web/e2e/helpers/verifyEmailToken.ts */
@@ -155,16 +153,6 @@ async function main() {
        VALUES ($1, $2, $3, 2, 2, NOW())`,
       [E2E_BUCKET1_ID, E2E_USER_ID, BUCKET_CRUD_FULL]
     );
-    const resetTokenHash = crypto
-      .createHash('sha256')
-      .update(E2E_RESET_PASSWORD_TOKEN_RAW, 'utf8')
-      .digest('hex');
-    const resetExpiresAt = new Date(Date.now() + 60 * 60 * 1000).toISOString();
-    await client.query(
-      `INSERT INTO verification_token (user_id, kind, token_hash, expires_at, payload)
-       VALUES ($1, 'password_reset', $2, $3::timestamp, NULL)`,
-      [E2E_USER_ID, resetTokenHash, resetExpiresAt]
-    );
     const setPasswordTokenHash = crypto
       .createHash('sha256')
       .update(E2E_SET_PASSWORD_TOKEN_RAW, 'utf8')
@@ -197,7 +185,7 @@ async function main() {
       [E2E_USER_ID, confirmEmailChangeTokenHash, confirmEmailChangeExpiresAt, emailChangePayload]
     );
     console.log(
-      'E2E web seed done: 5 users (owner, admin-with-permission, admin-without-permission, non-admin, invite), 2 buckets, 3 bucket admins, password_reset, set_password, email_verify, and email_change tokens.'
+      'E2E web seed done: 5 users (owner, admin-with-permission, admin-without-permission, non-admin, invite), 2 buckets, 3 bucket admins, set_password, email_verify, and email_change tokens.'
     );
   } finally {
     await client.end();

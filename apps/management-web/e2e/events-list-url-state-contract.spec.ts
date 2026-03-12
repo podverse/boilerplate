@@ -4,7 +4,7 @@ import { loginAsManagementSuperAdmin } from './helpers/advancedFixtures';
 import { actionAndCapture, capturePageLoad } from './helpers/stepScreenshots';
 import { setE2EUserContext } from './helpers/userContext';
 
-test.describe('This suite verifies URL-state contracts for the management events-list page (sort, sortBy, sortOrder).', () => {
+test.describe('URL-state contracts for the management events-list page (sort, sortBy, sortOrder)', () => {
   test('When the super-admin opens the events-list page with sort=oldest and sortBy=timestamp and sortOrder=asc, the URL preserves the params and the events heading is visible.', async ({
     page,
   }, testInfo) => {

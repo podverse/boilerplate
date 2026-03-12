@@ -9,7 +9,7 @@ import { expectUnauthedRouteRedirectsToLogin } from './helpers/authAssertions';
 import { actionAndCapture, capturePageLoad } from './helpers/stepScreenshots';
 import { setE2EUserContext } from './helpers/userContext';
 
-test.describe('This suite verifies the management users-list-page for the unauthenticated user.', () => {
+test.describe('Management users-list-page for the unauthenticated user', () => {
   test('When an unauthenticated user tries to open the users-list-page, they are redirected to the login-page.', async ({
     page,
   }, testInfo) => {

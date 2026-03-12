@@ -12,7 +12,7 @@ import { setE2EUserContext } from './helpers/userContext';
 
 const E2E_BUCKET1_ID = 'e2ebkt000001';
 
-test.describe('This suite verifies the management bucket-edit-page for the super-admin user.', () => {
+test.describe('Management bucket-edit-page for the super-admin user', () => {
   test('When the super-admin opens the bucket-edit-page with an invalid bucket id, they see not found.', async ({
     page,
   }, testInfo) => {

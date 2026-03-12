@@ -7,7 +7,7 @@ import {
 import { actionAndCapture, capturePageLoad } from './helpers/stepScreenshots';
 import { setE2EUserContext } from './helpers/userContext';
 
-test.describe('This suite verifies the management events-page for the admin (admins users events:own) user.', () => {
+test.describe('Management events-page for the admin (admins users events:own) user', () => {
   test('When an admin (admins users events:own) opens the events-page, they see the events heading and list or empty state.', async ({
     page,
   }, testInfo) => {

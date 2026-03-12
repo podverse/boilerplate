@@ -11,7 +11,7 @@ import { setE2EUserContext } from './helpers/userContext';
 
 const E2E_SUPER_ADMIN_ID = 'aaaaaaaa-aaaa-4aaa-aaaa-aaaaaaaaaaaa';
 
-test.describe('This suite verifies the management admin-edit-page for the unauthenticated user.', () => {
+test.describe('Management admin-edit-page for the unauthenticated user', () => {
   test('When an unauthenticated user tries to open the admin-edit-page, they are redirected to the login-page.', async ({
     page,
   }, testInfo) => {

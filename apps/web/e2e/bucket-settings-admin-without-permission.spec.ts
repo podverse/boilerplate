@@ -6,7 +6,7 @@ import { setE2EUserContext } from './helpers/userContext';
 
 const E2E_BUCKET1_SHORT_ID = 'e2ebkt000001';
 
-test.describe('This suite verifies the bucket-settings-page for the bucket-admin (settings:- roles:- messages:- admins:-) user.', () => {
+test.describe('Bucket-settings-page for the bucket-admin (settings:- roles:- messages:- admins:-) user', () => {
   test('When the bucket-admin (settings:- roles:- messages:- admins:-) without bucket update permission opens the bucket-settings-page, they see not found.', async ({
     page,
   }, testInfo) => {

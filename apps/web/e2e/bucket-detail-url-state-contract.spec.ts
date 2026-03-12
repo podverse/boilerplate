@@ -6,7 +6,7 @@ import { setE2EUserContext } from './helpers/userContext';
 
 const E2E_BUCKET1_SHORT_ID = 'e2ebkt000001';
 
-test.describe('This suite verifies URL-state contracts for the bucket-detail-page (tab, sortBy, sortOrder).', () => {
+test.describe('URL-state contracts for the bucket-detail-page (tab, sortBy, sortOrder)', () => {
   test('When the user opens the bucket-detail-page with tab=buckets and sortBy=name and sortOrder=asc, the URL preserves the params and the buckets-tab content is visible.', async ({
     page,
   }, testInfo) => {

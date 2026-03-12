@@ -4,7 +4,7 @@ import { loginAsWebE2EUserAndExpectDashboard } from './helpers/advancedFixtures'
 import { actionAndCapture, capturePageLoad } from './helpers/stepScreenshots';
 import { setE2EUserContext } from './helpers/userContext';
 
-test.describe('This suite verifies the buckets-list-page for the bucket-owner user.', () => {
+test.describe('Buckets-list-page for the bucket-owner user', () => {
   test.beforeEach(async ({ page }) => {
     await loginAsWebE2EUserAndExpectDashboard(page);
   });

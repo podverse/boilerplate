@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 
-import { E2E_RESET_PASSWORD_TOKEN_RAW } from './helpers/resetPasswordToken';
+import { issueForgotPasswordAndGetResetToken } from './helpers/resetPasswordToken';
 import { actionAndCapture, capturePageLoad } from './helpers/stepScreenshots';
 import { setE2EUserContext } from './helpers/userContext';
 
@@ -8,7 +8,7 @@ const E2E_BUCKET_OWNER_EMAIL = 'e2e-bucket-owner@example.com';
 const SEED_PASSWORD = 'Test!1Aa';
 const NEW_PASSWORD_AFTER_RESET = 'Test!1Ab';
 
-test.describe('Reset-password page in admin_only_email mode.', () => {
+test.describe('Reset-password page (admin_only_email)', () => {
   test('When an unauthenticated user visits reset-password with a token, they see the reset form.', async ({
     page,
   }, testInfo) => {
@@ -61,9 +61,11 @@ test.describe('Reset-password page in admin_only_email mode.', () => {
 
   test('When the user submits with a valid reset token, they are redirected to login and can log in with the new password; then revert so seed user is unchanged.', async ({
     page,
+    request,
   }, testInfo) => {
     setE2EUserContext(testInfo, 'unauthenticated');
-    await page.goto(`/reset-password?token=${E2E_RESET_PASSWORD_TOKEN_RAW}`);
+    const resetToken = await issueForgotPasswordAndGetResetToken(request, E2E_BUCKET_OWNER_EMAIL);
+    await page.goto(`/reset-password?token=${resetToken}`);
     await page
       .getByLabel(/new password/i)
       .first()

@@ -13,7 +13,7 @@ import { setE2EUserContext } from './helpers/userContext';
 
 const E2E_BUCKET1_ID = '22222222-2222-4222-a222-222222222222';
 
-test.describe('This suite verifies the management bucket-role-new-page for the unauthenticated user.', () => {
+test.describe('Management bucket-role-new-page for the unauthenticated user', () => {
   test('When an unauthenticated user tries to open the bucket-role-new-page, they are redirected to the login-page.', async ({
     page,
   }, testInfo) => {

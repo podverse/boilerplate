@@ -4,7 +4,7 @@ import { loginAsManagementSuperAdmin, nextFixtureName } from './helpers/advanced
 import { actionAndCapture, capturePageLoad } from './helpers/stepScreenshots';
 import { setE2EUserContext } from './helpers/userContext';
 
-test.describe('This suite verifies the management buckets-new page for the super-admin user.', () => {
+test.describe('Management buckets-new page for the super-admin user', () => {
   test('When a permitted user (super-admin) opens the buckets-new page, they see the add-bucket form.', async ({
     page,
   }, testInfo) => {

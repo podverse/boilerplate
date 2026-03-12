@@ -6,7 +6,7 @@ import { setE2EUserContext } from './helpers/userContext';
 const E2E_EMAIL = 'e2e-bucket-owner@example.com';
 const E2E_PASSWORD = 'Test!1Aa';
 
-test.describe('This suite verifies the login-page for the bucket-owner user.', () => {
+test.describe('Login-page for the bucket-owner user', () => {
   test('When an authenticated user visits the login-page, they are redirected to the dashboard.', async ({
     page,
   }, testInfo) => {

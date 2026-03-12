@@ -30,7 +30,7 @@ async function createRoleAndGetId(page: import('@playwright/test').Page): Promis
   return match[1];
 }
 
-test.describe('This suite verifies the bucket-role-edit-page for the bucket-admin user.', () => {
+test.describe('Bucket-role-edit-page for the bucket-admin user', () => {
   test('When the non-owner-admin with bucket roles permission opens the bucket-role-edit-page for an invalid role id, they see not found.', async ({
     page,
   }, testInfo) => {

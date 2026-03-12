@@ -8,7 +8,7 @@ import { setE2EUserContext } from './helpers/userContext';
 const E2E_BUCKET1_SHORT_ID = 'e2ebkt000001';
 const E2E_BUCKET2_SHORT_ID = 'e2ebkt000002';
 
-test.describe('This suite verifies the public send-message-page for the bucket-admin user.', () => {
+test.describe('Public send-message-page for the bucket-admin user', () => {
   test('When the non-owner-admin opens the public send-message-page for a public bucket, they see the send-message form.', async ({
     page,
   }, testInfo) => {

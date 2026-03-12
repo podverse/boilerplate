@@ -3,7 +3,7 @@ import { expect, test } from '@playwright/test';
 import { loginAsWebE2ENonAdmin } from './helpers/advancedFixtures';
 import { setE2EUserContext } from './helpers/userContext';
 
-test.describe('This suite verifies the new-bucket-page for the basic-user.', () => {
+test.describe('New-bucket-page for the basic-user', () => {
   test('When the basic-user opens the new-bucket-page, they see the new-bucket form.', async ({
     page,
   }, testInfo) => {

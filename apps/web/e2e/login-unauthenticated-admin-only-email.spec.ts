@@ -3,7 +3,7 @@ import { expect, test } from '@playwright/test';
 import { actionAndCapture, capturePageLoad } from './helpers/stepScreenshots';
 import { setE2EUserContext } from './helpers/userContext';
 
-test.describe('Login page in admin_only_email mode.', () => {
+test.describe('Login page (admin_only_email)', () => {
   test('When an unauthenticated user visits login, the signup link is hidden and forgot-password link is visible.', async ({
     page,
   }, testInfo) => {

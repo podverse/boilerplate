@@ -4,7 +4,7 @@ import { loginAsManagementSuperAdmin, nextFixtureName } from './helpers/advanced
 import { actionAndCapture, capturePageLoad } from './helpers/stepScreenshots';
 import { setE2EUserContext } from './helpers/userContext';
 
-test.describe('This suite verifies the management profile flow for the super-admin user.', () => {
+test.describe('Management profile flow for the super-admin user', () => {
   test('When an authenticated user opens the profile-page, they are redirected to the settings-page and can see the profile-tab content.', async ({
     page,
   }, testInfo) => {

@@ -6,7 +6,7 @@ import { setE2EUserContext } from './helpers/userContext';
 
 const E2E_BUCKET1_SHORT_ID = 'e2ebkt000001';
 
-test.describe('This suite verifies the child-bucket-create-page for the bucket-admin (bucket:R bucket_create:-) user.', () => {
+test.describe('Child-bucket-create-page for the bucket-admin (bucket:R bucket_create:-) user', () => {
   test('When the bucket-admin (bucket:R bucket_create:-) without bucket create opens the child-bucket-create-page, they see not found.', async ({
     page,
   }, testInfo) => {

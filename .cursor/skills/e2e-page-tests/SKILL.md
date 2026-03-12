@@ -33,6 +33,17 @@ If the change is in **web**, add or update a spec in `apps/web/e2e/`. If it is i
 - **Separate spec files per mode (avoid `test.skip()`).** When behavior is mode-dependent (e.g. `AUTH_MODE=admin_only_username` vs `AUTH_MODE=admin_only_email` or `user_signup_email`), use **separate spec files per mode** (e.g. `settings-bucket-owner.spec.ts` for default, `settings-bucket-owner-admin-only-email.spec.ts` for admin-only-email) and run each spec only under the config where that outcome is guaranteed. Do **not** use `test.skip()` to gate mode-dependent tests so that "skipped" is not necessary; each file has a single outcome per test and runs in one config.
 - A test should fail when the non-target mode behavior appears.
 
+## Timeout increases are almost never the fix (required)
+
+- Do **not** resolve failing or flaky E2E tests by increasing timeout values (`test.setTimeout(...)`, `test.slow()`, Playwright `timeout`, `expect.timeout`, or per-call `{ timeout: ... }`) as the first response.
+- In nearly all cases, timeout failures indicate a readiness, determinism, or assertion issue, not that tests should simply wait longer.
+- Fix root cause first:
+  - add explicit destination-load verification after navigation (URL and destination-specific visible element),
+  - assert the specific success/error state tied to the user action,
+  - use deterministic setup data (especially for one-time tokens and links),
+  - remove arbitrary sleeps in favor of condition-based waits.
+- If a timeout increase is truly unavoidable, treat it as a rare exception: document why inline in the spec and keep the increase minimal.
+
 ## Where tests live
 
 | App                 | Specs directory            | Config                                         |

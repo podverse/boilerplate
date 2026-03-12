@@ -4,7 +4,7 @@ import { loginAsWebE2EUserAndExpectDashboard } from './helpers/advancedFixtures'
 import { actionAndCapture, capturePageLoad } from './helpers/stepScreenshots';
 import { setE2EUserContext } from './helpers/userContext';
 
-test.describe('This suite verifies the user-profile-page for the bucket-owner user.', () => {
+test.describe('User-profile-page for the bucket-owner user', () => {
   test('When an authenticated user opens the user-profile-page, they are redirected to settings and see the settings page (e.g. General tab).', async ({
     page,
   }, testInfo) => {

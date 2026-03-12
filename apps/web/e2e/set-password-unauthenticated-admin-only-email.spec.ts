@@ -3,7 +3,7 @@ import { expect, test } from '@playwright/test';
 import { actionAndCapture, capturePageLoad } from './helpers/stepScreenshots';
 import { setE2EUserContext } from './helpers/userContext';
 
-test.describe('Set-password invitation page in admin_only_email mode.', () => {
+test.describe('Set-password invitation page (admin_only_email)', () => {
   test('When an unauthenticated user visits set-password with a token, they see email, username, and password fields.', async ({
     page,
   }, testInfo) => {

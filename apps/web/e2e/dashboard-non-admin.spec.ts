@@ -4,7 +4,7 @@ import { loginAsWebE2ENonAdmin } from './helpers/advancedFixtures';
 import { actionAndCapture, capturePageLoad } from './helpers/stepScreenshots';
 import { setE2EUserContext } from './helpers/userContext';
 
-test.describe('This suite verifies the dashboard-page for the basic-user.', () => {
+test.describe('Dashboard-page for the basic-user', () => {
   test('When the basic-user opens the dashboard-page after login, they see the dashboard heading.', async ({
     page,
   }, testInfo) => {

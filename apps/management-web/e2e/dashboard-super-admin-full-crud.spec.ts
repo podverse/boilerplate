@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test';
 import { actionAndCapture, capturePageLoad } from './helpers/stepScreenshots';
 import { setE2EUserContext } from './helpers/userContext';
 
-test.describe('This suite verifies the management dashboard-page for the super-admin user.', () => {
+test.describe('Management dashboard-page for the super-admin user', () => {
   test('When the user logs in with the super-admin account, the dashboard-page loads and shows the dashboard heading.', async ({
     page,
   }, testInfo) => {

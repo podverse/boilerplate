@@ -4,7 +4,7 @@ import { loginAsWebE2ENonAdmin } from './helpers/advancedFixtures';
 import { actionAndCapture, capturePageLoad } from './helpers/stepScreenshots';
 import { setE2EUserContext } from './helpers/userContext';
 
-test.describe('This suite verifies the home-page for the basic-user.', () => {
+test.describe('Home-page for the basic-user', () => {
   test('When the basic-user visits the home-page while logged in, they are redirected to the dashboard.', async ({
     page,
   }, testInfo) => {

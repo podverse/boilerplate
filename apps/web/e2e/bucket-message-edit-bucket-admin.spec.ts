@@ -16,7 +16,7 @@ async function createPublicMessage(page: import('@playwright/test').Page, body: 
   await expect(page).toHaveURL(new RegExp(`/b/${E2E_BUCKET1_SHORT_ID}$`));
 }
 
-test.describe('This suite verifies the bucket-message-edit-page for the bucket-admin user.', () => {
+test.describe('Bucket-message-edit-page for the bucket-admin user', () => {
   test('When the non-owner-admin with message update permission opens the bucket-message-edit-page for a valid message, they see the bucket-message-edit-form.', async ({
     page,
   }, testInfo) => {

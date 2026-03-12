@@ -8,7 +8,7 @@ import { setE2EUserContext } from './helpers/userContext';
 const E2E_BUCKET1_SHORT_ID = 'e2ebkt000001';
 const NESTED_NEW_URL = `/bucket/${E2E_BUCKET1_SHORT_ID}/bucket/new`;
 
-test.describe('This suite verifies the nested-bucket-create-page for the bucket-admin user.', () => {
+test.describe('Nested-bucket-create-page for the bucket-admin user', () => {
   test('When the non-owner-admin with bucket permission opens the nested-bucket-create-page, they see the create form.', async ({
     page,
   }, testInfo) => {

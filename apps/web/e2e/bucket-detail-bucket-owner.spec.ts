@@ -7,7 +7,7 @@ import { setE2EUserContext } from './helpers/userContext';
 
 const E2E_BUCKET1_SHORT_ID = 'e2ebkt000001';
 
-test.describe('This suite verifies the bucket-detail-page for the bucket-owner user.', () => {
+test.describe('Bucket-detail-page for the bucket-owner user', () => {
   test('When an authenticated user opens the bucket-detail-page for the seeded bucket, they see the bucket name and content.', async ({
     page,
   }, testInfo) => {

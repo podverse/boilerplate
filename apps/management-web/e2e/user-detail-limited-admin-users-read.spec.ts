@@ -12,7 +12,7 @@ import { setE2EUserContext } from './helpers/userContext';
 
 const E2E_MAIN_USER_ID = '11111111-1111-4111-a111-111111111111';
 
-test.describe('This suite verifies the management user-detail-page for the admin (admins users events:own) user.', () => {
+test.describe('Management user-detail-page for the admin (admins users events:own) user', () => {
   test('When an admin (admins users events:own) opens the user-detail-page with an invalid user id, they see not found.', async ({
     page,
   }, testInfo) => {

@@ -55,7 +55,7 @@ async function createInvitationToken(page: import('@playwright/test').Page): Pro
   return tokenMatch[1];
 }
 
-test.describe('This suite verifies the invite-page for the basic-user.', () => {
+test.describe('Invite-page for the basic-user', () => {
   test('When the basic-user opens the invite-page with an invalid token, they see the invalid state.', async ({
     page,
   }, testInfo) => {

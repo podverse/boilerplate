@@ -7,7 +7,7 @@ import {
 import { actionAndCapture, capturePageLoad } from './helpers/stepScreenshots';
 import { setE2EUserContext } from './helpers/userContext';
 
-test.describe('This suite verifies the management events-page for the admin (buckets:R events:all_admins) user.', () => {
+test.describe('Management events-page for the admin (buckets:R events:all_admins) user', () => {
   test('When an admin (buckets:R events:all_admins) opens the events-page, only admin actor events are shown.', async ({
     page,
   }, testInfo) => {

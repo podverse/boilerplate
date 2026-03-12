@@ -5,7 +5,7 @@ import { setE2EUserContext } from './helpers/userContext';
 
 const E2E_BUCKET1_SHORT_ID = 'e2ebkt000001';
 
-test.describe('This suite verifies the child-bucket-create-page for the unauthenticated user.', () => {
+test.describe('Child-bucket-create-page for the unauthenticated user', () => {
   test('When an unauthenticated user tries to open the page to create a new child bucket, they are redirected to the login-page.', async ({
     page,
   }, testInfo) => {

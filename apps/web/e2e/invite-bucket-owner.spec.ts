@@ -54,7 +54,7 @@ async function createInvitationToken(page: import('@playwright/test').Page): Pro
 
 // Expired invite-token check is deferred until seed or API supports producing an expired token deterministically.
 
-test.describe('This suite verifies the invite-page for the bucket-owner user.', () => {
+test.describe('Invite-page for the bucket-owner user', () => {
   test('When an authenticated user opens the invite-page with an invalid token, they still see the invalid state.', async ({
     page,
   }, testInfo) => {

@@ -11,7 +11,7 @@ import { clickConfirmDeleteInModal } from './helpers/flowHelpers';
 import { actionAndCapture, capturePageLoad } from './helpers/stepScreenshots';
 import { setE2EUserContext } from './helpers/userContext';
 
-test.describe('This suite verifies the management admins-list-page for the super-admin user.', () => {
+test.describe('Management admins-list-page for the super-admin user', () => {
   test('When a permitted user opens the admins-list-page, they see the admins list or add-admin CTA.', async ({
     page,
   }, testInfo) => {

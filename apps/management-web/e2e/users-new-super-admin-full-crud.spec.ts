@@ -9,7 +9,7 @@ import { expectUnauthedRouteRedirectsToLogin } from './helpers/authAssertions';
 import { actionAndCapture, capturePageLoad } from './helpers/stepScreenshots';
 import { setE2EUserContext } from './helpers/userContext';
 
-test.describe('This suite verifies the management users-new-page for the super-admin user.', () => {
+test.describe('Management users-new-page for the super-admin user', () => {
   test('When a permitted user (super-admin) opens the users-new-page, they see the add-user-form.', async ({
     page,
   }, testInfo) => {

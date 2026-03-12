@@ -16,7 +16,7 @@ async function createPublicMessage(page: import('@playwright/test').Page, body: 
   await expect(page).toHaveURL(new RegExp(`/b/${E2E_BUCKET1_SHORT_ID}$`));
 }
 
-test.describe('This suite verifies the bucket-message-edit-page for the bucket-owner user.', () => {
+test.describe('Bucket-message-edit-page for the bucket-owner user', () => {
   test('When the user opens the bucket-message-edit-page with an invalid message id, they see not found.', async ({
     page,
   }, testInfo) => {

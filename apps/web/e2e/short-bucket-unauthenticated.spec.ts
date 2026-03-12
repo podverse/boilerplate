@@ -7,7 +7,7 @@ import { setE2EUserContext } from './helpers/userContext';
 const E2E_BUCKET1_SHORT_ID = 'e2ebkt000001';
 const E2E_BUCKET2_SHORT_ID = 'e2ebkt000002';
 
-test.describe('This suite verifies the short-bucket (public) URL for the unauthenticated user.', () => {
+test.describe('Short-bucket (public) URL for the unauthenticated user', () => {
   test('When an unauthenticated user opens a public short-bucket URL by short id, they see the destination URL and bucket name.', async ({
     page,
   }, testInfo) => {

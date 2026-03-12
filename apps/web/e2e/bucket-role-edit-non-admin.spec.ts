@@ -29,7 +29,7 @@ async function createRoleAndGetId(page: import('@playwright/test').Page): Promis
   return match[1];
 }
 
-test.describe('This suite verifies the bucket-role-edit-page for the basic-user.', () => {
+test.describe('Bucket-role-edit-page for the basic-user', () => {
   test('When the basic-user opens the bucket-role-edit-page, they see not found.', async ({
     page,
   }, testInfo) => {

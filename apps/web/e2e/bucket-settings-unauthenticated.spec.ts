@@ -5,7 +5,7 @@ import { setE2EUserContext } from './helpers/userContext';
 
 const E2E_BUCKET1_SHORT_ID = 'e2ebkt000001';
 
-test.describe('This suite verifies the bucket-settings-page for the unauthenticated user.', () => {
+test.describe('Bucket-settings-page for the unauthenticated user', () => {
   test('When an unauthenticated user tries to open the bucket-settings-page, they are redirected to the login-page.', async ({
     page,
   }, testInfo) => {

@@ -6,7 +6,7 @@ import { setE2EUserContext } from './helpers/userContext';
 
 const E2E_BUCKET1_SHORT_ID = 'e2ebkt000001';
 
-test.describe('This suite verifies the short-bucket (public) URL for the bucket-admin user.', () => {
+test.describe('Short-bucket (public) URL for the bucket-admin user', () => {
   test('When the non-owner-admin with bucket access opens the public short-bucket URL, they see the destination URL and bucket name.', async ({
     page,
   }, testInfo) => {

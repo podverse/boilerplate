@@ -4,7 +4,7 @@ import { loginAsWebE2EUserAndExpectDashboard, nextFixtureName } from './helpers/
 import { actionAndCapture, capturePageLoad } from './helpers/stepScreenshots';
 import { setE2EUserContext } from './helpers/userContext';
 
-test.describe('This suite verifies the new-bucket-page for the bucket-owner user.', () => {
+test.describe('New-bucket-page for the bucket-owner user', () => {
   test('When an authenticated user opens the new-bucket-page, they see the create-bucket form.', async ({
     page,
   }, testInfo) => {

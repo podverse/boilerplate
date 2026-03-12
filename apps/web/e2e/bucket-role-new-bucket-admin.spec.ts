@@ -7,7 +7,7 @@ import { setE2EUserContext } from './helpers/userContext';
 
 const E2E_BUCKET1_SHORT_ID = 'e2ebkt000001';
 
-test.describe('This suite verifies the bucket-role-new-page for the bucket-admin user.', () => {
+test.describe('Bucket-role-new-page for the bucket-admin user', () => {
   test('When the non-owner-admin with bucket roles permission opens the bucket-role-new-page, they see the bucket-role-new-form.', async ({
     page,
   }, testInfo) => {

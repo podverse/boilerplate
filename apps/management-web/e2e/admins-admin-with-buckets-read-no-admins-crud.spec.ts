@@ -11,7 +11,7 @@ import { clickConfirmDeleteInModal } from './helpers/flowHelpers';
 import { actionAndCapture, capturePageLoad } from './helpers/stepScreenshots';
 import { setE2EUserContext } from './helpers/userContext';
 
-test.describe('This suite verifies the management admins-list-page for the admin (buckets:R bucket_admins events:all_admins) user.', () => {
+test.describe('Management admins-list-page for the admin (buckets:R bucket_admins events:all_admins) user', () => {
   test('When an admin (buckets:R bucket_admins events:all_admins) opens the admins-list-page, they are redirected to the dashboard.', async ({
     page,
   }, testInfo) => {
