@@ -171,3 +171,24 @@ To-do's from the plan have already been created. Do not create them again. Mark 
 - .github/workflows/ci.yml
 - package.json
 - .llm/history/active/project-init/project-init-part-06.md
+
+### Session 72 - 2026-03-16
+
+#### Prompt (Developer)
+
+https://github.com/podverse/boilerplate/actions/runs/23125556763/job/67167791574 it appears that the validate action build is still failing. debug. it builds locally no problem @/Users/mitcheldowney/.cursor/projects/Users-mitcheldowney-repos-pv-pv-code-workspace/terminals/17.txt
+
+go ahead and complete the process to fix the actions in the develop branch
+
+#### Key Decisions
+
+- Root cause: `issue_comment` CI trigger always reads the workflow YAML from the `develop` branch, not the feature branch. develop's old ci.yml had a single "Build" step + "Setup web env for build" that only copied apps/web env (not management-web), causing the management-web build to fail.
+- Fixed develop's ci.yml: removed "Setup web env for build" step, replaced single "Build" with "Build packages" + "Build apps" (split around Lint), updated reporting tables.
+- Fixed develop's package.json: expanded build:packages to include management-orm and helpers-i18n; expanded build:apps to include management-api and management-web.
+- develop is branch-protected; created PR #31 (fix/ci-build-develop → develop) with the changes.
+
+#### Files Modified
+
+- .github/workflows/ci.yml (on fix/ci-build-develop, targets develop via PR #31)
+- package.json (on fix/ci-build-develop, targets develop via PR #31)
+- .llm/history/active/project-init/project-init-part-06.md
