@@ -1,6 +1,6 @@
 # --- Test requirements (local). Ports 5532 (Postgres) and 6479 (Valkey) avoid conflict with Podverse (5432, 6379). ---
 
-.PHONY: test_deps test_postgres_up test_valkey_up test_db_init test_db_init_management test_db_list help_test test_check test_clean
+.PHONY: test_deps test_postgres_up test_valkey_up test_db_init test_db_init_management test_db_list help_test test_check test_clean validate_ci
 
 # Default test ports (must match apps/api/src/test/setup.ts and apps/management-api/src/test/setup.ts defaults)
 TEST_DB_PORT ?= 5532
@@ -12,6 +12,23 @@ TEST_MANAGEMENT_DB_NAME ?= boilerplate_management_test
 
 TEST_PG_CONTAINER := boilerplate_test_postgres
 TEST_VALKEY_CONTAINER := boilerplate_test_valkey
+
+# Run the same steps as the CI validate job (verify-migrations, build, lint, i18n, type-check, test_deps, npm run test). Use after npm ci.
+validate_ci:
+	@echo "============================================"
+	@echo "  CI validate (local)"
+	@echo "============================================"
+	@bash scripts/database/verify-migrations-combined.sh
+	@npm run build:packages
+	@npm run lint
+	@npm run build:apps
+	@npm run i18n:validate
+	@npm run type-check
+	@$(MAKE) test_deps
+	@npm run test
+	@echo "============================================"
+	@echo "  All CI checks passed!"
+	@echo "============================================"
 
 # Ensure Postgres, Valkey, and Mailpit are running and both main and management test DBs exist. Run this before npm run test or e2e_test_report.
 # Note: Both databases live in the same Postgres container (boilerplate_test_postgres). There is no separate management DB container.

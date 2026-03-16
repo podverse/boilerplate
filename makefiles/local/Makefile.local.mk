@@ -18,7 +18,7 @@
 #   local_create_super_admin - Interactive: prompt for super admin username, create user, print password once (run by local_infra_up)
 #   local_infra_up            - Start Postgres, Valkey, and management DB, then create super admin (for API + Management API on host)
 #   local_all_up              - Start full stack in Docker (API, web, sidecar, Postgres, Valkey)
-#   test_deps, test_postgres_up, test_valkey_up, test_db_init, test_db_init_management, test_db_list, help_test, test_clean - Test requirements (ports 5532, 6479)
+#   test_deps, test_postgres_up, test_valkey_up, test_db_init, test_db_init_management, test_db_list, help_test, test_clean, validate_ci - Test requirements (ports 5532, 6479); validate_ci runs same steps as CI validate job
 #   e2e_deps, e2e_seed, e2e_seed_web, e2e_seed_management_web, e2e_test_api, e2e_test, e2e_test_web, e2e_test_management_web, e2e_teardown - E2E page testing (see docs/testing/E2E-PAGE-TESTING.md)
 #
 SHELL := /bin/bash

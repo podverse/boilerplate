@@ -130,9 +130,9 @@ jobs:
         env:
           PGPASSWORD: postgres
         run: |
-          psql -h localhost -U postgres -c "CREATE DATABASE boilerplate_test;"
-          psql -h localhost -U postgres -d boilerplate_test -f infra/database/combined/init_database.sql
-          psql -h localhost -U postgres -d postgres -c "
+          psql -h localhost -p $DB_PORT -U postgres -c "CREATE DATABASE boilerplate_test;"
+          psql -h localhost -p $DB_PORT -U postgres -d boilerplate_test -f infra/database/combined/init_database.sql
+          psql -h localhost -p $DB_PORT -U postgres -d postgres -c "
           DO \$\$
           BEGIN
             IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = 'read') THEN
@@ -143,7 +143,7 @@ jobs:
             END IF;
           END \$\$;
           "
-          psql -h localhost -U postgres -d boilerplate_test -c "
+          psql -h localhost -p $DB_PORT -U postgres -d boilerplate_test -c "
           GRANT CONNECT ON DATABASE boilerplate_test TO read, read_write;
           GRANT USAGE ON SCHEMA public TO read, read_write;
           GRANT SELECT ON ALL TABLES IN SCHEMA public TO read;
@@ -155,9 +155,9 @@ jobs:
           ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO read_write;
           ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT, USAGE, UPDATE ON SEQUENCES TO read_write;
           "
-          psql -h localhost -U postgres -c "CREATE DATABASE boilerplate_management_test;"
-          psql -h localhost -U postgres -d boilerplate_management_test -f infra/management-database/combined/init_management_database.sql
-          psql -h localhost -U postgres -d boilerplate_management_test -c "
+          psql -h localhost -p $DB_PORT -U postgres -c "CREATE DATABASE boilerplate_management_test;"
+          psql -h localhost -p $DB_PORT -U postgres -d boilerplate_management_test -f infra/management-database/combined/init_management_database.sql
+          psql -h localhost -p $DB_PORT -U postgres -d boilerplate_management_test -c "
           GRANT CONNECT ON DATABASE boilerplate_management_test TO read, read_write;
           GRANT USAGE ON SCHEMA public TO read, read_write;
           GRANT SELECT ON ALL TABLES IN SCHEMA public TO read;
