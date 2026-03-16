@@ -68,3 +68,4 @@ export {
 export type { ValidationResult, ValidationSummary } from './startup/validation.js';
 export { formatUserLabel } from './userLabel.js';
 export type { UserLabelInput } from './userLabel.js';
+export { getEffectiveUserAgent } from './userAgent.js';

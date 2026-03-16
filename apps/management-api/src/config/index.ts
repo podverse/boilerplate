@@ -1,4 +1,9 @@
-import { normalizeVersionPath, parseCookieSameSite, parseCorsOrigins } from '@boilerplate/helpers';
+import {
+  getEffectiveUserAgent,
+  normalizeVersionPath,
+  parseCookieSameSite,
+  parseCorsOrigins,
+} from '@boilerplate/helpers';
 
 const getEnv = (key: string): string => {
   const value = process.env[key];
@@ -70,11 +75,20 @@ export const getAuthModeCapabilities = (authMode: AuthMode): AuthModeCapabilitie
 const authMode = parseAuthMode(getEnv('AUTH_MODE'));
 const authModeCapabilities = getAuthModeCapabilities(authMode);
 
+/** User-Agent suffix when USER_AGENT is blank. Boilerplate uses version 1 (Podverse uses 5). */
+const USER_AGENT_SUFFIX = ' Bot Local/Management-API/1';
+
 export const config = {
   authMode,
   authModeCapabilities,
   port: Number.parseInt(getEnv('MANAGEMENT_API_PORT'), 10),
-  appName: getEnv('MANAGEMENT_APP_NAME'),
+  brandName: getEnv('BRAND_NAME'),
+  /** Effective User-Agent for outbound requests. When USER_AGENT is blank, built from BRAND_NAME + suffix. */
+  userAgent: getEffectiveUserAgent({
+    userAgentRaw: getEnvOptional('USER_AGENT'),
+    brandName: getEnv('BRAND_NAME'),
+    suffix: USER_AGENT_SUFFIX,
+  }),
   jwtSecret: getEnv('MANAGEMENT_JWT_SECRET'),
   apiVersionPath: normalizeVersionPath(getEnvOptional('MANAGEMENT_API_VERSION_PATH') ?? 'v1'),
   /** Access token expiry in seconds (JWT and cookie max-age). Required; e.g. 900 = 15m. */

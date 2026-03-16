@@ -32,7 +32,7 @@ export function NavBar({ mainNavItems }: { mainNavItems: NavBarMainNavItem[] }) 
 
   return (
     <UINavBar
-      title={<AppTypeTitle appName={t('appTitle')} titleIcon={titleIcon} />}
+      title={<AppTypeTitle brandName={t('appTitle')} titleIcon={titleIcon} />}
       homeHref={ROUTES.HOME}
       user={user}
       onLogout={handleLogout}

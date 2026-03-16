@@ -10,10 +10,15 @@
 #   local_apps_up, local_apps_down  - Start or stop only app containers (API, management-api, sidecar, web, management-web); infra unchanged
 #   local_down                 - Stop all local Docker services (keeps volumes)
 #   local_down_volumes         - Stop services and remove volumes (clean DB/Valkey data)
-#   local_clean               - Run local_down then local_down_volumes (full teardown)
-#   env_setup                  - Copy env templates to infra/config/local and apps (idempotent)
-#   local_env_remove           - Run local_clean (tear down containers and volumes), then remove .env files (prompts for Y); run env_setup to recreate
-#   local_reset_env_infra      - Run local_env_remove, env_setup, then local_infra_up. Use testSuperAdmin=1 for username superadmin / Test!1Aa
+#   local_clean               - Run local_down, local_down_volumes, and test_clean (full teardown: dev + test/E2E)
+#   local_env_prepare          - Create override files in ~/.config/boilerplate/local-env-overrides/ from dev/env-overrides/local/*.env.example
+#   local_env_link             - Symlink dev/env-overrides/local/*.env to home directory (share overrides across work trees)
+#   local_env_setup            - Generate infra + app env from templates and overrides (see docs/development/LOCAL-ENV-OVERRIDES.md)
+#   local_env_clean            - Remove generated env files; keep dev/env-overrides/local/*.env (symlinks)
+#   local_setup                - local_env_setup + local_infra_up
+#   env_setup                  - Alias for local_env_setup (backward compatible)
+#   local_env_remove           - Run local_clean, then remove .env files (prompts for Y); prefer prepare/link/setup flow
+#   local_reset_env_infra      - Run local_env_remove, env_setup, then local_infra_up. Use testSuperAdmin=1 for superadmin / Test!1Aa
 #   local_db_init_management  - Create boilerplate_management DB in local Postgres (also run by local_infra_up)
 #   local_create_super_admin - Interactive: prompt for super admin username, create user, print password once (run by local_infra_up)
 #   local_infra_up            - Start Postgres, Valkey, and management DB, then create super admin (for API + Management API on host)

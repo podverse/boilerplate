@@ -7,11 +7,9 @@ conflict with podverse monorepo (5432/6379).
 
 ## First run
 
-1. Copy env templates into local (gitignored):  
-   `cp infra/config/env-templates/api.env.example infra/config/local/api.env`  
-   `cp infra/config/env-templates/web.env.example infra/config/local/web.env`  
-   `cp infra/config/env-templates/db.env.example infra/config/local/db.env`  
-   `cp infra/config/env-templates/valkey.env.example infra/config/local/valkey.env`
+1. Prepare env (from repo root): `make local_env_setup` (or use the home-directory flow:
+   `make local_env_prepare`, edit `~/.config/boilerplate/local-env-overrides/`, `make local_env_link`,
+   `make local_env_setup` — see [docs/development/LOCAL-ENV-OVERRIDES.md](../../docs/development/LOCAL-ENV-OVERRIDES.md)).
 2. From repo root:  
    `docker compose -f infra/docker/local/docker-compose.yml --project-directory . up --build`
 

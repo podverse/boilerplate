@@ -34,6 +34,19 @@ Node and npm are provided by the repo's Nix flake, not a global install. When ru
 - `apps/web/` – Next.js app (fetches runtime config from sidecar when `RUNTIME_CONFIG_URL` is set)
 - `apps/web/sidecar/` – Runtime-config sidecar (serves env-derived config for the Next.js app)
 
+## Local env (aligned with Podverse)
+
+Secrets (JWT, DB, Valkey, etc.) are **auto-generated** by `make local_env_setup` via
+`scripts/env-setup-secrets.sh`. Override files in `dev/env-overrides/local/` are applied when present:
+**brand.env** (brand name, app title icon), **management-superuser.env**, **mailer.env** (SMTP — no defaults; devs bring their own; tests use mailpit), **auth.env** (AUTH_MODE), **locale.env** (DEFAULT_LOCALE, SUPPORTED_LOCALES with sensible defaults). **APP_BASE_URL, CORS_ORIGINS, WEB_APP_URL, MANAGEMENT_CORS_ORIGINS** stay as local dev defaults in each app’s `.env.example` (not in overrides). Prepare and link are no-ops when no `*.env.example` exist; otherwise they copy/link to `~/.config/boilerplate/local-env-overrides/`.
+
+- **Prepare:** `make local_env_prepare` — no-op when no override examples; creates home files from examples when present
+- **Link:** `make local_env_link` — no-op when no override examples; symlinks when present
+- **Setup:** `make local_env_setup` — generate env files from templates, auto-generated secrets, and overrides (brand, management-superuser, mailer, auth, locale); missing override `.env` files are bootstrapped from `.env.example` so sensible defaults apply
+- **One-shot:** `make local_setup` — `local_env_setup` + `local_infra_up`
+
+See [docs/development/LOCAL-ENV-OVERRIDES.md](docs/development/LOCAL-ENV-OVERRIDES.md).
+
 ## LLM History
 
 See [.llm/LLM.md](.llm/LLM.md) for full guidelines. Use the **llm-history** skill when updating history or starting feature work.

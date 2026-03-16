@@ -59,7 +59,7 @@ jobs:
       VALKEY_PORT: 6479
       VALKEY_PASSWORD: "test"
       API_PORT: "3999"
-      APP_NAME: boilerplate-api-test
+      BRAND_NAME: boilerplate-api-test
       JWT_SECRET: "ci-test-jwt-secret-min-32-chars-long-for-validation"
     steps:
       - name: Add reaction to comment

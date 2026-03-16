@@ -5,10 +5,10 @@ import { NavBar } from '../../components/NavBar';
 
 export default async function MainLayout({ children }: { children: React.ReactNode }) {
   const runtimeConfig = getRuntimeConfig();
-  const appName = runtimeConfig.env.NEXT_PUBLIC_APP_NAME ?? 'boilerplate-web';
+  const brandName = runtimeConfig.env.NEXT_PUBLIC_BRAND_NAME ?? 'boilerplate-web';
   return (
     <>
-      <NavBar appName={appName} />
+      <NavBar brandName={brandName} />
       <Main>{children}</Main>
     </>
   );

@@ -1,6 +1,6 @@
 # Combined local stack: api, management-api, web, management-web, sidecar, postgres, valkey.
 # From repo root: docker compose -f infra/docker/local/docker-compose.yml --project-directory . up --build
-# Env: make env_setup (copies to infra/config/local/*.env)
+# Env: make local_env_setup (copies to infra/config/local/*.env)
 
 networks:
   boilerplate_local_network:

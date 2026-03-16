@@ -4,6 +4,9 @@ globs:
   - "**/.env"
   - "**/.env.*"
   - "**/.env.example"
+  - "infra/config/local/*.env"
+  - "dev/env-overrides/local/*.env"
+  - "dev/env-overrides/local/*.env.example"
 alwaysApply: false
 ---
 

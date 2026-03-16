@@ -35,10 +35,10 @@ export default router;
 
 ### Config and startup validation
 
-- **Startup validation**: `lib/startup/validation.ts` runs after loadEnv() and before importing config. It validates required env vars (e.g. API_PORT, APP_NAME), logs results by category, and throws if any required are missing or invalid. Pattern aligned with Podverse’s API startup validation.
+- **Startup validation**: `lib/startup/validation.ts` runs after loadEnv() and before importing config. It validates required env vars (e.g. API_PORT, BRAND_NAME), logs results by category, and throws if any required are missing or invalid. Pattern aligned with Podverse’s API startup validation.
 - Read env in `config/index.ts` only after validation has passed.
 - Use `.env.example` for documented variables; non-empty values in `.env` use double quotes; empty/unset use no value after `=`.
-- **Env alignment**: All `.env` files (including `infra/config/local/*.env`) must match the organization, section comments, and variable order of their authoritative `.env.example`; only values may differ.
+- **Env alignment**: All `.env` files (including `infra/config/local/*.env`) must match the organization, section comments, and variable order of their authoritative `.env.example`; only values may differ. Generated files are filled by `make local_env_setup` (auto-generated secrets plus overrides from brand.env and management-superuser.env when present). BRAND_NAME is set from dev/env-overrides/local/brand.env. See [docs/development/LOCAL-ENV-OVERRIDES.md](../../docs/development/LOCAL-ENV-OVERRIDES.md).
 
 ### Async handlers
 

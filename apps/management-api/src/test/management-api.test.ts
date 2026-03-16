@@ -1,6 +1,7 @@
 /**
  * Management API integration tests: auth, admins CRUD, events.
  * Requires main and management test DBs to exist and be initialized.
+ * For root routes see root-routes.test.ts.
  */
 import crypto from 'crypto';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
@@ -35,21 +36,6 @@ describe('management-api', () => {
 
   afterAll(async () => {
     await destroyManagementApiTestDataSources();
-  });
-
-  describe('versioned root', () => {
-    it('GET /health returns 200 with status and app name', async () => {
-      const res = await request(app).get(`${API}/health`).expect(200);
-      expect(res.body).toEqual({ status: 'ok', app: config.appName });
-    });
-
-    it('GET / returns 200 with message and env', async () => {
-      const res = await request(app).get(`${API}/`).expect(200);
-      expect(res.body).toHaveProperty('message');
-      expect(res.body.message).toContain(config.appName);
-      expect(res.body).toHaveProperty('env');
-      expect(res.body.env).toHaveProperty('port');
-    });
   });
 
   describe('Swagger /api-docs', () => {

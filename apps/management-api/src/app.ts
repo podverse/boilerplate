@@ -34,6 +34,10 @@ export function createApp(): Express {
   };
   app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(openApiDoc));
 
+  app.get('/', (_req: Request, res: Response): void => {
+    res.status(200).json({ status: 'ok', message: 'Management API is online' });
+  });
+
   const requireAuth = requireManagementAuth({
     jwtSecret: config.jwtSecret,
     sessionCookieName: config.sessionCookieName,
@@ -42,13 +46,10 @@ export function createApp(): Express {
 
   const versionedRouter = express.Router();
   versionedRouter.get('/health', (_req: Request, res: Response): void => {
-    res.json({ status: 'ok', app: config.appName });
+    res.json({ status: 'ok', app: config.brandName });
   });
   versionedRouter.get('/', (_req: Request, res: Response): void => {
-    res.json({
-      message: `Hello from ${config.appName}`,
-      env: { port: config.port },
-    });
+    res.status(200).json({ status: 'ok', message: 'Management API is online' });
   });
   versionedRouter.use('/auth', createAuthRouter(requireAuth));
   versionedRouter.use('/admins', createAdminsRouter(requireAuth, requireSuperAdminMiddleware));

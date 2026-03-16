@@ -3,7 +3,7 @@ import { validatePositiveInteger, validateStartupRequirements } from '@boilerpla
 import http from 'node:http';
 import { URL } from 'node:url';
 
-const APP_NAME_KEY = 'NEXT_PUBLIC_APP_NAME';
+const BRAND_NAME_KEY = 'NEXT_PUBLIC_BRAND_NAME';
 const APP_TITLE_ICON_KEY = 'NEXT_PUBLIC_APP_TITLE_ICON';
 const API_URL_KEY = 'NEXT_PUBLIC_API_URL';
 const API_VERSION_PATH_KEY = 'NEXT_PUBLIC_API_VERSION_PATH';
@@ -15,7 +15,7 @@ const port = Number.parseInt(process.env.PORT ?? '', 10);
 function buildRuntimeConfig(): { env: Record<string, string | undefined> } {
   return {
     env: {
-      [APP_NAME_KEY]: process.env[APP_NAME_KEY] ?? undefined,
+      [BRAND_NAME_KEY]: process.env[BRAND_NAME_KEY] ?? undefined,
       [APP_TITLE_ICON_KEY]: process.env[APP_TITLE_ICON_KEY] ?? undefined,
       [API_URL_KEY]: process.env[API_URL_KEY] ?? undefined,
       [API_VERSION_PATH_KEY]: process.env[API_VERSION_PATH_KEY] ?? undefined,

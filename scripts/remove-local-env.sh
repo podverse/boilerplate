@@ -41,4 +41,4 @@ fi
 
 rm -f "${EXISTING[@]}"
 echo "Removed ${#EXISTING[@]} file(s)."
-echo "Run 'make env_setup' to recreate env files with new passwords, then 'make local_infra_up' or 'make local_all_up' so Postgres and Valkey start fresh with those passwords."
+echo "Run 'make local_env_setup' (or 'make env_setup') to recreate env files. If using home overrides, run 'make local_env_link' first. Then 'make local_infra_up' or 'make local_all_up' so Postgres and Valkey start fresh with those passwords."

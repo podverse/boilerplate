@@ -9,7 +9,7 @@
 const testEnv: Record<string, string> = {
   NODE_ENV: 'test',
   API_PORT: '3999',
-  APP_NAME: 'boilerplate-api-test',
+  BRAND_NAME: 'boilerplate-api-test',
   AUTH_MODE: 'admin_only_username',
   JWT_SECRET: 'test-jwt-secret-min-32-chars-long-for-validation',
   SESSION_COOKIE_NAME: 'session',

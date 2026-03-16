@@ -8,7 +8,7 @@ import { useAuth } from '../context/AuthContext';
 import { getRuntimeConfig } from '../config/runtime-config-store';
 import { ROUTES } from '../lib/routes';
 
-export function NavBar({ appName }: { appName: string }) {
+export function NavBar({ brandName }: { brandName: string }) {
   const t = useTranslations('common');
   const { user, logout } = useAuth();
   const router = useRouter();
@@ -20,7 +20,7 @@ export function NavBar({ appName }: { appName: string }) {
     router.push(ROUTES.HOME);
   };
 
-  const title = <AppTypeTitle appName={appName} titleIcon={titleIcon} />;
+  const title = <AppTypeTitle brandName={brandName} titleIcon={titleIcon} />;
 
   return (
     <UINavBar

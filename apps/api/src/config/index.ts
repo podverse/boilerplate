@@ -1,4 +1,9 @@
-import { normalizeVersionPath, parseCookieSameSite, parseCorsOrigins } from '@boilerplate/helpers';
+import {
+  getEffectiveUserAgent,
+  normalizeVersionPath,
+  parseCookieSameSite,
+  parseCorsOrigins,
+} from '@boilerplate/helpers';
 
 const getEnv = (key: string): string => {
   const value = process.env[key];
@@ -76,12 +81,21 @@ export const isSignupEnabled = (): boolean => {
 const authMode = parseAuthMode(getEnv('AUTH_MODE'));
 const authModeCapabilities = getAuthModeCapabilities(authMode);
 
+/** User-Agent suffix when USER_AGENT is blank. Boilerplate uses version 1 (Podverse uses 5). */
+const USER_AGENT_SUFFIX = ' Bot Local/API/1';
+
 export const config = {
   /** Auth mode (required at startup): admin_only_username, admin_only_email, user_signup_email. */
   authMode,
   authModeCapabilities,
   port: Number.parseInt(getEnv('API_PORT'), 10),
-  appName: getEnv('APP_NAME'),
+  brandName: getEnv('BRAND_NAME'),
+  /** Effective User-Agent for outbound requests. When USER_AGENT is blank, built from BRAND_NAME + suffix. */
+  userAgent: getEffectiveUserAgent({
+    userAgentRaw: getEnvOptional('USER_AGENT'),
+    brandName: getEnv('BRAND_NAME'),
+    suffix: USER_AGENT_SUFFIX,
+  }),
   jwtSecret: getEnv('JWT_SECRET'),
   /** API version path prefix (e.g. /v1). Optional; set API_VERSION_PATH in env. */
   apiVersionPath: normalizeVersionPath(getEnvOptional('API_VERSION_PATH') ?? 'v1'),

@@ -34,7 +34,7 @@ local_infra_up: local_network_create
 local_create_super_admin:
 	$(if $(testSuperAdmin),LOCAL_SUPERADMIN_PASSWORD='Test!1Aa',) node scripts/management-api/create-super-admin.mjs
 
-# Full stack in Docker (Path B: API, web, sidecar, Postgres, Valkey). Does not run env_setup.
+# Full stack in Docker (Path B: API, web, sidecar, Postgres, Valkey). Does not run local_env_setup.
 local_all_up: local_network_create
 	docker compose -f $(COMPOSE_LOCAL) --project-directory . up --build
 
@@ -98,4 +98,5 @@ local_down:
 local_down_volumes:
 	docker compose -f $(COMPOSE_LOCAL) --project-directory . down -v --rmi local
 
-local_clean: local_down local_down_volumes
+# Also stop and remove test/E2E containers (boilerplate_test_postgres, boilerplate_test_valkey, boilerplate_e2e_mailpit).
+local_clean: local_down local_down_volumes test_clean

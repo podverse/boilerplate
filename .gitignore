@@ -12,6 +12,8 @@ out/
 .direnv/
 TODOS
 infra/config/local/
+dev/env-overrides/local/*.env
+!dev/env-overrides/local/*.env.example
 .artifacts/
 **/test-results/
 

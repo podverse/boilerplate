@@ -14,7 +14,7 @@ export const hasRuntimeConfig = (): boolean =>
 function buildFromProcessEnv(): WebRuntimeConfig {
   return {
     env: {
-      NEXT_PUBLIC_APP_NAME: process.env.NEXT_PUBLIC_APP_NAME,
+      NEXT_PUBLIC_BRAND_NAME: process.env.NEXT_PUBLIC_BRAND_NAME,
       NEXT_PUBLIC_APP_TITLE_ICON: process.env.NEXT_PUBLIC_APP_TITLE_ICON,
       NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL,
       NEXT_PUBLIC_API_VERSION_PATH: process.env.NEXT_PUBLIC_API_VERSION_PATH,

@@ -5,6 +5,7 @@
  */
 import type { ValidationResult } from '@boilerplate/helpers';
 import {
+  getEffectiveUserAgent,
   validateJwtSecret,
   validatePositiveInteger,
   validateRequired,
@@ -77,11 +78,70 @@ function validateAuthMode(): ValidationResult {
   };
 }
 
+const USER_AGENT_PATTERN = /^[^/]+\/[^/]+\/[^/]+$/;
+const USER_AGENT_SUFFIX = ' Bot Local/API/1';
+
+/**
+ * Validates USER_AGENT (or effective value when blank, built from BRAND_NAME).
+ * Format: BrandName Bot Environment/AppName/Version, e.g. "Boilerplate Bot Local/API/1"
+ */
+function validateUserAgent(): ValidationResult {
+  const brandName = process.env.BRAND_NAME;
+  if (brandName === undefined || brandName === null || brandName.trim() === '') {
+    return {
+      name: 'USER_AGENT',
+      isSet: false,
+      isValid: false,
+      isRequired: true,
+      message: 'BRAND_NAME required to validate USER_AGENT',
+      category: 'Auth & Security',
+    };
+  }
+  const effectiveUserAgent = getEffectiveUserAgent({
+    userAgentRaw: process.env.USER_AGENT,
+    brandName,
+    suffix: USER_AGENT_SUFFIX,
+  });
+
+  if (!USER_AGENT_PATTERN.test(effectiveUserAgent)) {
+    return {
+      name: 'USER_AGENT',
+      isSet: process.env.USER_AGENT?.trim() !== '',
+      isValid: false,
+      isRequired: true,
+      message: `Invalid format: "${effectiveUserAgent}" - must follow format: BrandName Bot Environment/AppName/Version`,
+      category: 'Auth & Security',
+    };
+  }
+
+  const firstPart = effectiveUserAgent.split('/')[0];
+  if (firstPart && !firstPart.includes('Bot')) {
+    return {
+      name: 'USER_AGENT',
+      isSet: process.env.USER_AGENT?.trim() !== '',
+      isValid: false,
+      isRequired: true,
+      message: `Missing "Bot" in first part: "${effectiveUserAgent}"`,
+      category: 'Auth & Security',
+    };
+  }
+
+  return {
+    name: 'USER_AGENT',
+    isSet: true,
+    isValid: true,
+    isRequired: true,
+    message: 'Valid format',
+    category: 'Auth & Security',
+  };
+}
+
 function apiValidationResults(): ValidationResult[] {
   const results: ValidationResult[] = [
     validateAuthMode(),
     validatePositiveInteger('API_PORT', 'API'),
-    validateRequired('APP_NAME', 'API'),
+    validateRequired('BRAND_NAME', 'API'),
+    validateUserAgent(),
     validateJwtSecret('JWT_SECRET', 'API'),
     validateRequired('SESSION_COOKIE_NAME', 'Session cookies'),
     validateRequired('REFRESH_COOKIE_NAME', 'Session cookies'),

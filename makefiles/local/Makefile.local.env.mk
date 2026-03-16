@@ -1,5 +1,6 @@
-# --- Env setup and local .env removal. ---
+# --- Local env setup (aligned with Podverse: prepare, link, setup, clean). ---
 
+.PHONY: local_env_prepare local_env_link local_env_setup local_env_clean local_setup
 .PHONY: env_setup local_env_remove local_db_init_management local_reset_env_infra
 
 # Local Postgres container (from docker-compose) and management DB name for dev
@@ -7,31 +8,53 @@ LOCAL_PG_CONTAINER ?= boilerplate_local_postgres
 LOCAL_PG_USER ?= postgres
 LOCAL_MANAGEMENT_DB_NAME ?= boilerplate_management
 
-# Copy env templates so Docker and apps have env (idempotent). App envs use app .env.example as source.
-env_setup:
-	@mkdir -p infra/config/local
-	@[ -f infra/config/local/api.env ] || cp apps/api/.env.example infra/config/local/api.env
-	@[ -f infra/config/local/web.env ] || cp apps/web/.env.example infra/config/local/web.env
-	@[ -f infra/config/local/management-api.env ] || cp apps/management-api/.env.example infra/config/local/management-api.env
-	@[ -f infra/config/local/management-web.env ] || cp apps/management-web/.env.example infra/config/local/management-web.env
-	@[ -f infra/config/local/db.env ] || cp $(ENV_TEMPLATES)/db.env.example infra/config/local/db.env
-	@[ -f infra/config/local/valkey.env ] || cp $(ENV_TEMPLATES)/valkey.env.example infra/config/local/valkey.env
-	@[ -f apps/api/.env ] || cp apps/api/.env.example apps/api/.env
-	@[ -f apps/web/.env.local ] || cp apps/web/.env.example apps/web/.env.local
-	@[ -f apps/management-api/.env ] || cp apps/management-api/.env.example apps/management-api/.env
-	@[ -f apps/management-web/.env.local ] || cp apps/management-web/.env.example apps/management-web/.env.local
-	@bash scripts/env-setup-secrets.sh
+local_env_prepare:
+	bash scripts/local-env/prepare-overrides.sh
+
+local_env_link:
+	bash scripts/local-env/link-overrides.sh
+
+# Non-destructive local env setup: create missing env files, generate secrets, apply overrides from dev/env-overrides/local/*.env
+local_env_setup:
+	bash scripts/local-env/setup.sh
+	@echo "Local env setup complete."
+
+local_env_clean:
+	@running=$$(docker ps -q --filter "name=boilerplate_local_" 2>/dev/null); \
+	if [ -n "$$running" ]; then \
+		echo "ERROR: local_env_clean cannot run while Boilerplate local containers are running."; \
+		echo "Stop them first with: make local_down"; \
+		docker ps --filter "name=boilerplate_local_" --format "  {{.Names}}"; \
+		exit 1; \
+	fi
+	@echo "Removing local env files (keeping dev/env-overrides/local/*.env)..."
+	@rm -f \
+		infra/config/local/db.env \
+		infra/config/local/valkey.env \
+		infra/config/local/api.env \
+		infra/config/local/web.env \
+		infra/config/local/management-api.env \
+		infra/config/local/management-web.env \
+		apps/api/.env \
+		apps/web/.env.local \
+		apps/management-api/.env \
+		apps/management-web/.env.local
+	@echo "Local env files removed. Run make local_env_setup to regenerate."
+
+# One-shot: env setup then start Postgres, Valkey, management DB, and create super admin.
+local_setup: local_env_setup local_infra_up
+
+# Backward-compatible alias (canonical target is local_env_setup). See docs/development/LOCAL-ENV-OVERRIDES.md.
+env_setup: local_env_setup
 	@echo "Env files ready (infra/config/local/*.env, apps/*/.env or .env.local)."
 	@echo "apps/api/.env is set for API-on-host (localhost:5433, localhost:6380). infra/config/local/api.env is for Docker (postgres, valkey)."
-	@echo "apps/management-api/.env is set for Management API on host. make local_infra_up creates the management DB and then prompts for super admin email (password is generated and printed once)."
+	@echo "apps/management-api/.env is set for Management API on host. make local_infra_up creates the management DB and then prompts for super admin (password generated and printed once)."
 
-# Remove local .env files (prompts for Y). Runs local_clean first so Postgres and Valkey
-# containers and volumes are removed; after env_setup, next local_infra_up or local_all_up
-# will create DB and Valkey fresh with the new passwords.
+# Remove local .env files (prompts for Y). Runs local_clean first. Prefer prepare/link/setup flow; see docs/development/LOCAL-ENV-OVERRIDES.md.
 local_env_remove: local_clean
 	@bash scripts/remove-local-env.sh
 
-# Full reset: remove env and containers, recreate env from templates, then bring up Postgres, Valkey, and management DB.
+# Full reset: remove env and containers, recreate env, then bring up Postgres, Valkey, and management DB.
 # Pass testSuperAdmin=1 to create username superadmin with password Test!1Aa (local-only): make local_reset_env_infra testSuperAdmin=1
 local_reset_env_infra:
 	$(MAKE) local_env_remove

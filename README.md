@@ -25,7 +25,7 @@ npm install
 
 ```bash
 cp apps/api/.env.example apps/api/.env
-# Edit apps/api/.env: API_PORT, APP_NAME
+# Edit apps/api/.env: API_PORT, BRAND_NAME
 npm run dev:api
 ```
 
@@ -39,7 +39,7 @@ npm run dev:web
 
 ```bash
 cp apps/web/.env.example apps/web/.env.local
-# Set RUNTIME_CONFIG_URL=http://localhost:4101, NEXT_PUBLIC_APP_NAME, NEXT_PUBLIC_API_URL
+# Set RUNTIME_CONFIG_URL=http://localhost:4101, NEXT_PUBLIC_BRAND_NAME, NEXT_PUBLIC_API_URL
 npm run dev:web-sidecar
 ```
 
@@ -47,14 +47,14 @@ This builds the sidecar, then starts the sidecar (port 4101) and the Next.js app
 
 ## Env examples
 
-- **API**: `API_PORT`, `APP_NAME`, `JWT_SECRET`, and optionally `AUTH_MODE`, `MAILER_ENABLED` (see `apps/api/.env.example`)
-- **Web**: `RUNTIME_CONFIG_URL`, `NEXT_PUBLIC_APP_NAME`, `NEXT_PUBLIC_API_URL` (see `apps/web/.env.example`)
+- **API**: `API_PORT`, `BRAND_NAME`, `JWT_SECRET`, and optionally `AUTH_MODE`, `MAILER_ENABLED` (see `apps/api/.env.example`)
+- **Web**: `RUNTIME_CONFIG_URL`, `NEXT_PUBLIC_BRAND_NAME`, `NEXT_PUBLIC_API_URL` (see `apps/web/.env.example`)
 
 ## API auth
 
 The API is versioned under a path prefix (default **/v1**; set `API_VERSION_PATH` to change, e.g. `API_VERSION_PATH=/v2`). Example: `GET /v1/health`, `POST /v1/auth/login`. Use JWT: send `Authorization: Bearer <token>` for protected routes (e.g. `GET /v1/auth/me`, `POST /v1/auth/change-password`). Set `MAILER_ENABLED=true` for self-service signup (`POST /v1/auth/signup`). When mailer is disabled (default or `AUTH_MODE=admin_only`), signup is disabled; user creation is handled by the Management API when the Management track (plans 31–33) is in use.
 
-**JWT_SECRET** and all other passwords (DB, Valkey) are generated and written by `make env_setup`. Do not put placeholder passwords in env examples; re-run `make env_setup` to create or refresh local env files with generated secrets.
+**JWT_SECRET** and all other passwords (DB, Valkey) are generated and written by `make local_env_setup` (or `make env_setup`). Do not put placeholder passwords in env examples; re-run `make local_env_setup` to create or refresh local env files. Override files (brand.env, management-superuser.env) are applied when present; use prepare/link to share them across work trees. See [docs/development/LOCAL-ENV-OVERRIDES.md](docs/development/LOCAL-ENV-OVERRIDES.md).
 
 **API docs (Swagger):** With the API running, open [http://localhost:4000/api-docs](http://localhost:4000/api-docs) for interactive OpenAPI docs. Use **Authorize** to set a Bearer token from login/signup, then try protected endpoints.
 

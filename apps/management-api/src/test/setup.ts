@@ -8,7 +8,7 @@ const testEnv: Record<string, string> = {
   NODE_ENV: 'test',
   AUTH_MODE: 'admin_only_username',
   MANAGEMENT_API_PORT: '4100',
-  MANAGEMENT_APP_NAME: 'boilerplate-management-api-test',
+  BRAND_NAME: 'boilerplate-management-api-test',
   MANAGEMENT_JWT_SECRET: 'test-management-jwt-secret-min-32-chars-long',
   MANAGEMENT_SESSION_COOKIE_NAME: 'management_session',
   MANAGEMENT_REFRESH_COOKIE_NAME: 'management_refresh',

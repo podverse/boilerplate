@@ -87,7 +87,7 @@ async function main() {
 
   if (!host || !database || !user) {
     console.error(
-      'Missing MANAGEMENT_DB_HOST, MANAGEMENT_DB_NAME, or MANAGEMENT_DB_USERNAME. Set apps/management-api/.env (e.g. from .env.example or make env_setup).'
+      'Missing MANAGEMENT_DB_HOST, MANAGEMENT_DB_NAME, or MANAGEMENT_DB_USERNAME. Set apps/management-api/.env (e.g. from .env.example or make local_env_setup or make env_setup).'
     );
     process.exit(1);
   }

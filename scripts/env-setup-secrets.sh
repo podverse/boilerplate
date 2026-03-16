@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Generate and assign all required passwords/secrets into env files.
-# Run from repo root after env_setup has copied templates. Idempotent: skips vars that are already set.
+# Run from repo root after local_env_setup (or env_setup) has copied templates. Idempotent: skips vars that are already set.
 
 set -e
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

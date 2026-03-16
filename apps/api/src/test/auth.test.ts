@@ -1,7 +1,7 @@
 /**
  * API integration tests: auth endpoints unaffected by mailer mode.
- * Covers versioned root, login, logout, me, change-password.
- * For mode-specific flows see auth-no-mailer.test.ts and auth-mailer.test.ts.
+ * Covers login, logout, me, change-password.
+ * For root routes see root-routes.test.ts; for mode-specific flows see auth-no-mailer.test.ts and auth-mailer.test.ts.
  */
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import request from 'supertest';
@@ -34,21 +34,6 @@ describe('auth (shared)', () => {
 
   afterAll(async () => {
     await destroyApiTestDataSources();
-  });
-
-  describe('versioned root routes', () => {
-    it('GET /health returns 200 with status and app name', async () => {
-      const res = await request(app).get(`${API}/health`).expect(200);
-      expect(res.body).toEqual({ status: 'ok', app: config.appName });
-    });
-
-    it('GET / returns 200 with message and env', async () => {
-      const res = await request(app).get(`${API}/`).expect(200);
-      expect(res.body).toHaveProperty('message');
-      expect(res.body.message).toContain(config.appName);
-      expect(res.body).toHaveProperty('env');
-      expect(res.body.env).toHaveProperty('port');
-    });
   });
 
   describe('POST /auth/login', () => {
