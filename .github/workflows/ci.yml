@@ -180,7 +180,7 @@ jobs:
         if: always()
         run: |
           echo "::warning::Tests are intentionally skipped in GitHub Actions for this workflow."
-          echo "::warning::Run tests locally before merge: npm run test"
+          echo "::warning::Run tests locally before merge: make E2E_API_GATE_MODE=on e2e_test (or make E2E_API_GATE_MODE=on e2e_test_report for reports)"
 
       - name: Report success
         if: success()
@@ -206,7 +206,7 @@ jobs:
               '| Type-check | ✅ |',
               '| Test | ⏭️ Skipped in CI (run locally) |',
               '',
-              '> Reminder: run `npm run test` locally before merging.',
+              '> Reminder: run `make E2E_API_GATE_MODE=on e2e_test` locally before merging (or `make E2E_API_GATE_MODE=on e2e_test_report` for reports).',
               '',
               `[View full run](${process.env.RUN_URL})`
             ].join('\n');
@@ -275,7 +275,7 @@ jobs:
               '',
               'Legend: ✅ Passed | ❌ Failed | ⏭️ Skipped',
               '',
-              '> Reminder: run `npm run test` locally before merging.',
+              '> Reminder: run `make E2E_API_GATE_MODE=on e2e_test` locally before merging (or `make E2E_API_GATE_MODE=on e2e_test_report` for reports).',
               '',
               `[View full run for details](${process.env.RUN_URL})`
             ].join('\n');

@@ -24,3 +24,17 @@ To-do's from the plan have already been created. Do not create them again. Mark 
 #### Files Created/Modified
 
 - `.github/workflows/ci.yml`
+
+### Session 2 - 2026-03-16
+
+#### Prompt (Developer)
+
+i don't think "npm run test" is the proper command for the comment since the make e2e with api tests is more thorough
+
+#### Key Decisions
+
+- Updated CI reminder (step warning and bot success/failure comments) to recommend `make E2E_API_GATE_MODE=on e2e_test` (and `e2e_test_report` for reports) instead of `npm run test`.
+
+#### Files Modified
+
+- `.github/workflows/ci.yml`
