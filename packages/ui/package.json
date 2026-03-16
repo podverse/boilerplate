@@ -35,14 +35,14 @@
     "next": "^16.1.6",
     "next-intl": "^4.0.0",
     "@fortawesome/fontawesome-free": "^6.7.2",
-    "@storybook/react": "^10.2.13",
-    "@storybook/react-vite": "^10.2.13",
+    "@storybook/react": "^10.2.19",
+    "@storybook/react-vite": "^10.2.19",
     "@types/react": "^19.2.11",
     "react-dom": "^19.2.4",
-    "sass": "^1.81.0",
+    "sass": "^1.98.0",
     "storybook": "^10.2.13",
     "typescript": "^5.9.2",
-    "eslint-plugin-storybook": "10.2.13",
-    "@storybook/addon-docs": "^10.2.13"
+    "eslint-plugin-storybook": "10.2.19",
+    "@storybook/addon-docs": "^10.2.19"
   }
 }
