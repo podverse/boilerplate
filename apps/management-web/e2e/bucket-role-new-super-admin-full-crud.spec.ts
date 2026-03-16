@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 
-import { loginAsManagementSuperAdmin } from './helpers/advancedFixtures';
+import { loginAsManagementSuperAdmin, nextFixtureName } from './helpers/advancedFixtures';
 import { expectInvalidRouteShowsNotFound } from './helpers/flowHelpers';
 import { actionAndCapture, capturePageLoad } from './helpers/stepScreenshots';
 import { setE2EUserContext } from './helpers/userContext';
