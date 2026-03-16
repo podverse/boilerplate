@@ -105,17 +105,17 @@ jobs:
         id: install
         run: npm ci
 
-      # Web build may need env (e.g. RUNTIME_CONFIG_URL, NEXT_PUBLIC_*). Copy example so build has same shape as local.
-      - name: Setup web env for build
-        run: cp apps/web/.env.example apps/web/.env.local
-
-      - name: Build
-        id: build
-        run: npm run build
+      - name: Build packages
+        id: build-packages
+        run: npm run build:packages
 
       - name: Lint
         id: lint
         run: npm run lint
+
+      - name: Build apps
+        id: build-apps
+        run: npm run build:apps
 
       - name: i18n validate
         id: i18n-validate
@@ -191,8 +191,9 @@ jobs:
               '|-------|--------|',
               '| Database migrations synced | ✅ |',
               '| Dependencies installed | ✅ |',
-              '| Build | ✅ |',
+              '| Build packages | ✅ |',
               '| Lint | ✅ |',
+              '| Build apps | ✅ |',
               '| i18n validate | ✅ |',
               '| Type-check | ✅ |',
               '| Test | ✅ |',
@@ -233,8 +234,9 @@ jobs:
           PR_NUMBER: ${{ steps.pr-comment.outputs.pr_number }}
           DB_VERIFY: ${{ steps.db-verify.outcome }}
           INSTALL: ${{ steps.install.outcome }}
-          BUILD: ${{ steps.build.outcome }}
+          BUILD_PACKAGES: ${{ steps.build-packages.outcome }}
           LINT: ${{ steps.lint.outcome }}
+          BUILD_APPS: ${{ steps.build-apps.outcome }}
           I18N_VALIDATE: ${{ steps.i18n-validate.outcome }}
           TYPE_CHECK: ${{ steps.type-check.outcome }}
           TEST: ${{ steps.test.outcome }}
@@ -255,8 +257,9 @@ jobs:
               '|-------|--------|',
               `| Database migrations synced | ${status(process.env.DB_VERIFY)} |`,
               `| Dependencies installed | ${status(process.env.INSTALL)} |`,
-              `| Build | ${status(process.env.BUILD)} |`,
+              `| Build packages | ${status(process.env.BUILD_PACKAGES)} |`,
               `| Lint | ${status(process.env.LINT)} |`,
+              `| Build apps | ${status(process.env.BUILD_APPS)} |`,
               `| i18n validate | ${status(process.env.I18N_VALIDATE)} |`,
               `| Type-check | ${status(process.env.TYPE_CHECK)} |`,
               `| Test | ${status(process.env.TEST)} |`,

@@ -147,3 +147,27 @@ To-do's from the plan have already been created. Do not create them again. Mark 
 - apps/management-web/e2e/users-super-admin-full-crud.spec.ts
 - apps/management-web/e2e/users-unauthenticated.spec.ts
 - .llm/history/active/project-init/project-init-part-06.md
+
+### Session 71 - 2026-03-16
+
+#### Prompt (Developer)
+
+Align Boilerplate CI with Podverse Monorepo Process
+
+Implement the plan as specified, it is attached for your reference. Do NOT edit the plan file itself.
+
+To-do's from the plan have already been created. Do not create them again. Mark them as in_progress as you work, starting with the first one. Don't stop until you have completed all the to-dos.
+
+#### Key Decisions
+
+- Removed "Setup web env for build" step and NODE_OPTIONS from CI (align with Podverse: no .env copy).
+- Replaced single Build step with "Build packages" then "Build apps" (after Lint), matching Podverse order.
+- Updated build:packages to include helpers, helpers-backend-api, helpers-requests, orm, management-orm, helpers-i18n (excluded ui: no build script).
+- Updated build:apps to include api, management-api, web, web-sidecar, management-web.
+- Verified build:packages and build:apps succeed without .env.local; no job env or app defaults added.
+
+#### Files Modified
+
+- .github/workflows/ci.yml
+- package.json
+- .llm/history/active/project-init/project-init-part-06.md
