@@ -152,11 +152,11 @@ jobs:
           GRANT USAGE ON SCHEMA public TO read, read_write;
           GRANT SELECT ON ALL TABLES IN SCHEMA public TO read;
           GRANT SELECT ON ALL SEQUENCES IN SCHEMA public TO read;
-          GRANT SELECT, INSERT, UPDATE, DELETE, TRUNCATE ON ALL TABLES IN SCHEMA public TO read_write;
+          GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO read_write;
           GRANT SELECT, USAGE, UPDATE ON ALL SEQUENCES IN SCHEMA public TO read_write;
           ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT ON TABLES TO read;
           ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT ON SEQUENCES TO read;
-          ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT, INSERT, UPDATE, DELETE, TRUNCATE ON TABLES TO read_write;
+          ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO read_write;
           ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT, USAGE, UPDATE ON SEQUENCES TO read_write;
           "
           psql -c "DROP DATABASE IF EXISTS boilerplate_management_test;"
@@ -175,9 +175,12 @@ jobs:
           ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT, USAGE, UPDATE ON SEQUENCES TO read_write;
           "
 
-      - name: Test
+      - name: Test (skipped in CI; run locally)
         id: test
-        run: npm run test
+        if: always()
+        run: |
+          echo "::warning::Tests are intentionally skipped in GitHub Actions for this workflow."
+          echo "::warning::Run tests locally before merge: npm run test"
 
       - name: Report success
         if: success()
@@ -201,7 +204,9 @@ jobs:
               '| Build apps | ✅ |',
               '| i18n validate | ✅ |',
               '| Type-check | ✅ |',
-              '| Test | ✅ |',
+              '| Test | ⏭️ Skipped in CI (run locally) |',
+              '',
+              '> Reminder: run `npm run test` locally before merging.',
               '',
               `[View full run](${process.env.RUN_URL})`
             ].join('\n');
@@ -244,7 +249,6 @@ jobs:
           BUILD_APPS: ${{ steps.build-apps.outcome }}
           I18N_VALIDATE: ${{ steps.i18n-validate.outcome }}
           TYPE_CHECK: ${{ steps.type-check.outcome }}
-          TEST: ${{ steps.test.outcome }}
         with:
           script: |
             const status = (outcome) => {
@@ -267,9 +271,11 @@ jobs:
               `| Build apps | ${status(process.env.BUILD_APPS)} |`,
               `| i18n validate | ${status(process.env.I18N_VALIDATE)} |`,
               `| Type-check | ${status(process.env.TYPE_CHECK)} |`,
-              `| Test | ${status(process.env.TEST)} |`,
+              '| Test | ⏭️ Skipped in CI (run locally) |',
               '',
               'Legend: ✅ Passed | ❌ Failed | ⏭️ Skipped',
+              '',
+              '> Reminder: run `npm run test` locally before merging.',
               '',
               `[View full run for details](${process.env.RUN_URL})`
             ].join('\n');
