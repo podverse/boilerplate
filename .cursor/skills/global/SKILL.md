@@ -32,6 +32,7 @@ version: 1.1.0
 
 ## Code Quality
 
+- **Import path casing:** Relative import paths must match the exact casing of files and directories on disk so builds pass on Linux/CI. See **.cursor/skills/path-casing-imports/SKILL.md** and **.cursor/rules/path-casing-imports.mdc**.
 - Strict equality (`===` / `!==` only). Semicolons in JS/TS. Prefer `import type` for type-only imports.
 - **Exports:** Do not re-export symbols from app code (e.g. `lib/validation.ts`) when they are already exported by a shared package (e.g. `@boilerplate/helpers`). Callers should import from the canonical source; unnecessary re-exports add indirection and maintenance cost.
 - **Catch blocks:** If the error value is not used, use `catch { ... }` (no variable). See **.cursor/skills/catch-unused-error/SKILL.md**.
