@@ -6,7 +6,7 @@ version: 1.0.0
 
 # LLM History Tracking
 
-This skill provides guidelines for maintaining LLM development history in the Boilerplate repo.
+This skill provides guidelines for maintaining LLM development history in the Boilerplate repo. The Cursor rule `llm-history-tracking.mdc` is the always-applied requirement.
 
 ## Critical Rule: 10-Session Maximum Per File
 
@@ -52,6 +52,14 @@ When a history file has 10 sessions and you need to add session 11: create a new
 ## When to Update History
 
 Update when modifying code, config, docs, or plans. Skip for pure Q&A with no file changes.
+
+## Required sequence
+
+1. Record the prompt first in the active history file (verbatim text, correct prompt source label).
+2. Make the file changes.
+3. Finalize the same session entry with key decisions and files modified.
+
+This skill is the canonical source for history timing and entry format.
 
 ## Response Ending
 

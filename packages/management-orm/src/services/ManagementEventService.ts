@@ -17,13 +17,21 @@ type RecordEventParams = {
 
 export type EventsSortOrder = 'recent' | 'oldest';
 
+/** Allowed sort fields for findEventsWithVisibility (matches UI column ids). */
+export const EVENTS_SORT_FIELDS = ['timestamp', 'actor', 'action', 'target', 'details'] as const;
+
 export type ListEventsOptions = {
   visibility: EventVisibility;
   actorId: string;
   actorType: ActorType;
   limit?: number;
   offset?: number;
+  /** Legacy: timestamp order only (recent = DESC, oldest = ASC). Ignored when sortBy is set. */
   order?: EventsSortOrder;
+  /** Sort field (timestamp, actor, action, target, details). When set, sortOrder is used. */
+  sortBy?: string;
+  /** asc or desc. Used when sortBy is set. */
+  sortOrder?: 'asc' | 'desc';
   /** When set, ILIKE search over action, actor_type, target_type, target_id, details. */
   search?: string;
 };
@@ -65,8 +73,34 @@ export class ManagementEventService {
     const repo = managementDataSource.getRepository(ManagementEvent);
     const limit = options.limit ?? 100;
     const offset = options.offset ?? 0;
-    const order = options.order === 'oldest' ? 'ASC' : 'DESC';
-    const qb = repo.createQueryBuilder('e').orderBy('e.timestamp', order).take(limit).skip(offset);
+    const sortBy =
+      options.sortBy !== undefined &&
+      (EVENTS_SORT_FIELDS as readonly string[]).includes(options.sortBy)
+        ? options.sortBy
+        : undefined;
+    const sortOrder: 'ASC' | 'DESC' =
+      options.sortOrder === 'asc' ? 'ASC' : options.sortOrder === 'desc' ? 'DESC' : 'DESC';
+    const order = sortBy !== undefined ? sortOrder : options.order === 'oldest' ? 'ASC' : 'DESC';
+
+    const qb = repo.createQueryBuilder('e').take(limit).skip(offset);
+
+    if (sortBy !== undefined) {
+      if (sortBy === 'timestamp') {
+        qb.orderBy('e.timestamp', sortOrder);
+      } else if (sortBy === 'actor') {
+        qb.orderBy('COALESCE(e.actorDisplayName, e.actorId)', sortOrder);
+      } else if (sortBy === 'action') {
+        qb.orderBy('e.action', sortOrder);
+      } else if (sortBy === 'target') {
+        qb.orderBy("COALESCE(e.targetType, e.targetId, '')", sortOrder);
+      } else if (sortBy === 'details') {
+        qb.orderBy("COALESCE(e.details, '')", sortOrder);
+      } else {
+        qb.orderBy('e.timestamp', sortOrder);
+      }
+    } else {
+      qb.orderBy('e.timestamp', order);
+    }
 
     if (options.visibility === 'own') {
       qb.andWhere('e.actor_id = :actorId', { actorId: options.actorId });

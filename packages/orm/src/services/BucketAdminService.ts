@@ -20,7 +20,8 @@ export class BucketAdminService {
     bucketId: string;
     userId: string;
     bucketCrud: number;
-    messageCrud: number;
+    bucketMessagesCrud: number;
+    bucketAdminsCrud: number;
   }): Promise<BucketAdmin> {
     const repo = appDataSourceReadWrite.getRepository(BucketAdmin);
     const admin = repo.create(data);
@@ -30,12 +31,17 @@ export class BucketAdminService {
   static async update(
     bucketId: string,
     userId: string,
-    data: { bucketCrud?: number; messageCrud?: number }
+    data: { bucketCrud?: number; bucketMessagesCrud?: number; bucketAdminsCrud?: number }
   ): Promise<void> {
     const repo = appDataSourceReadWrite.getRepository(BucketAdmin);
-    const update: Partial<Pick<BucketAdmin, 'bucketCrud' | 'messageCrud'>> = {};
+    const update: Partial<
+      Pick<BucketAdmin, 'bucketCrud' | 'bucketMessagesCrud' | 'bucketAdminsCrud'>
+    > = {};
     if (data.bucketCrud !== undefined) update.bucketCrud = data.bucketCrud;
-    if (data.messageCrud !== undefined) update.messageCrud = data.messageCrud;
+    if (data.bucketMessagesCrud !== undefined) {
+      update.bucketMessagesCrud = data.bucketMessagesCrud;
+    }
+    if (data.bucketAdminsCrud !== undefined) update.bucketAdminsCrud = data.bucketAdminsCrud;
     if (Object.keys(update).length > 0) {
       await repo.update({ bucketId, userId }, update);
     }

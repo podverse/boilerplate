@@ -9,9 +9,9 @@ import { getRuntimeConfig } from '../config/runtime-config-store';
 export type ServerUser = {
   id: string;
   shortId: string;
-  email: string;
+  email: string | null;
+  username: string | null;
   displayName: string | null;
-  profileVisibility: boolean;
 };
 
 const AUTH_USER_HEADER = 'x-auth-user';
@@ -33,19 +33,21 @@ function parseAuthUserHeader(value: string | null): ServerUser | null {
     const parsed = JSON.parse(value) as {
       id?: string;
       shortId?: string;
-      email?: string;
+      email?: string | null;
+      username?: string | null;
       displayName?: string | null;
-      profileVisibility?: boolean;
     };
-    if (typeof parsed.id !== 'string' || typeof parsed.email !== 'string') {
-      return null;
-    }
+    if (typeof parsed.id !== 'string') return null;
+    const hasEmail = parsed.email !== undefined && parsed.email !== null && parsed.email !== '';
+    const hasUsername =
+      parsed.username !== undefined && parsed.username !== null && parsed.username !== '';
+    if (!hasEmail && !hasUsername) return null;
     return {
       id: parsed.id,
       shortId: typeof parsed.shortId === 'string' ? parsed.shortId : parsed.id,
-      email: parsed.email,
+      email: hasEmail ? (parsed.email as string) : null,
+      username: hasUsername ? (parsed.username as string) : null,
       displayName: parsed.displayName ?? null,
-      profileVisibility: parsed.profileVisibility === true,
     };
   } catch {
     return null;
@@ -93,12 +95,18 @@ export async function getServerUser(): Promise<ServerUser | null> {
       return null;
     }
 
+    const u = data.user;
+    const hasEmail = u.email !== undefined && u.email !== null && u.email !== '';
+    const hasUsername = u.username !== undefined && u.username !== null && u.username !== '';
+    if (typeof u.id !== 'string' || (!hasEmail && !hasUsername)) {
+      return null;
+    }
     return {
-      id: data.user.id,
-      shortId: typeof data.user.shortId === 'string' ? data.user.shortId : data.user.id,
-      email: data.user.email,
-      displayName: data.user.displayName ?? null,
-      profileVisibility: data.user.profileVisibility === true,
+      id: u.id,
+      shortId: typeof u.shortId === 'string' ? u.shortId : u.id,
+      email: hasEmail ? (u.email as string) : null,
+      username: hasUsername ? (u.username as string) : null,
+      displayName: u.displayName ?? null,
     };
   } catch {
     return null;

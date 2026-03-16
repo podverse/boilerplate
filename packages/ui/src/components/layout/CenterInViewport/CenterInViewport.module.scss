@@ -30,3 +30,15 @@
   min-width: 0;
   box-sizing: border-box;
 }
+
+.contentReadable {
+  max-width: $content-readable-max-width;
+}
+
+.contentForm {
+  max-width: $input-max-width;
+}
+
+.contentTextCenter {
+  text-align: center;
+}

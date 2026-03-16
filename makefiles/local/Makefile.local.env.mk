@@ -32,7 +32,7 @@ local_env_remove: local_clean
 	@bash scripts/remove-local-env.sh
 
 # Full reset: remove env and containers, recreate env from templates, then bring up Postgres, Valkey, and management DB.
-# Pass testSuperAdmin=1 to create superadmin@example.com with password Test!1Aa (local-only): make local_reset_env_infra testSuperAdmin=1
+# Pass testSuperAdmin=1 to create username superadmin with password Test!1Aa (local-only): make local_reset_env_infra testSuperAdmin=1
 local_reset_env_infra:
 	$(MAKE) local_env_remove
 	$(MAKE) env_setup

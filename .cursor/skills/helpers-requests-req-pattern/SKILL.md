@@ -12,23 +12,23 @@ All outbound API requests from apps (web, management-web) must go through **@boi
 1. **No raw fetch for API calls**  
    App code must not call `fetch(url, ...)` for app/management API endpoints. Use a `req...` helper from `@boilerplate/helpers-requests` instead.
 
-2. **Req... naming**  
+2. **Req... naming**
    - **GET**: `reqFetch...` (e.g. `reqFetchBucket`, `reqFetchPublicBucket`, `reqFetchPublicBucketMessages`).
    - **POST**: `reqPost...` (e.g. `reqPostPublicBucketMessage`).
    - Other verbs: `reqPatch...`, `reqPut...`, `reqDelete...` as needed.
 
-3. **Where helpers live**  
+3. **Where helpers live**
    - **Web app API**: `packages/helpers-requests/src/web/` (e.g. `web/buckets.ts`, `web/auth.ts`). Exported as `webBuckets`, `webAuth`, etc.
    - **Management-web API**: `packages/helpers-requests/src/management-web/`. Exported as `managementWebAuth`, `managementWebAdmins`, etc.
    - Each helper calls the shared `request()` from `packages/helpers-requests/src/request.js` (consistent URL building, JSON, error shape, optional auth/locale).
 
-4. **Adding a new endpoint**  
+4. **Adding a new endpoint**
    - Add a `req...` function in the appropriate module under `web/` or `management-web/`.
    - Use `request<T>(baseUrl, path, options)` with `method`, `body`, `headers`, `credentials` as needed.
    - Export the function via the existing namespace (e.g. `webBuckets`) in `packages/helpers-requests/src/index.ts`.
    - In the app, call e.g. `webBuckets.reqPostPublicBucketMessage(baseUrl, bucketId, body)` and handle `res.ok` / `res.error.message`.
 
-5. **Base URL**  
+5. **Base URL**
    - Server-side: use `getServerApiBaseUrl()` (from app lib); base URL already includes API version path.
    - Client-side: use `getApiBaseUrl()` from app’s api-client (or equivalent); it includes version path.
 

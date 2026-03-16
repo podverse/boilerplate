@@ -1,12 +1,12 @@
 import { redirect } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
 import { request } from '@boilerplate/helpers-requests';
-import { Stack } from '@boilerplate/ui';
+import { FilterTablePageLayout, Stack } from '@boilerplate/ui';
 
-import { ResourcePageCard } from '../../../components/ResourcePageCard';
 import { UsersTableWithFilter } from '../../../components/UsersTableWithFilter';
+import { TABLE_SORT_PREFS_COOKIE_NAME } from '../../../lib/cookies';
 import { getServerUser } from '../../../lib/server-auth';
-import { getManagementApiBaseUrl } from '../../../config/env';
+import { getManagementApiBaseUrl, getServerManagementApiBaseUrl } from '../../../config/env';
 import { getCrudFlags, hasReadPermission } from '../../../lib/main-nav';
 import { ROUTES } from '../../../lib/routes';
 import { getCookieHeader, parseFilterColumns } from '../../../lib/server-request';
@@ -16,11 +16,29 @@ type UsersResponse = {
   users: MainAppUser[];
 };
 
-async function fetchUsers(): Promise<{ data: UsersResponse | null; error: string | null }> {
+async function fetchUsers(
+  search?: string,
+  filterColumns?: string[],
+  sortBy?: string,
+  sortOrder?: string
+): Promise<{ data: UsersResponse | null; error: string | null }> {
   const cookieHeader = await getCookieHeader();
-  const baseUrl = getManagementApiBaseUrl();
+  const baseUrl = getServerManagementApiBaseUrl();
+  const params = new URLSearchParams();
+  if (search !== undefined && search.trim() !== '') params.set('search', search.trim());
+  if (
+    filterColumns !== undefined &&
+    filterColumns.length > 0 &&
+    search !== undefined &&
+    search.trim() !== ''
+  ) {
+    params.set('filterColumns', filterColumns.join(','));
+  }
+  if (sortBy !== undefined && sortBy.trim() !== '') params.set('sortBy', sortBy.trim());
+  if (sortOrder === 'asc' || sortOrder === 'desc') params.set('sortOrder', sortOrder);
+  const path = params.toString() !== '' ? `/users?${params.toString()}` : '/users';
   try {
-    const res = await request(baseUrl, '/users', {
+    const res = await request(baseUrl, path, {
       headers: { Cookie: cookieHeader },
       cache: 'no-store',
     });
@@ -43,6 +61,8 @@ type PageProps = {
   searchParams?: Promise<{
     filterColumns?: string;
     search?: string;
+    sortBy?: string;
+    sortOrder?: string;
   }>;
 };
 
@@ -60,12 +80,15 @@ export default async function UsersPage({ searchParams }: PageProps) {
   }
 
   const resolved = searchParams !== undefined ? await searchParams : {};
-  const userColumnIds = ['email', 'displayName', 'profileVisibility'];
+  const userColumnIds = ['email', 'displayName'];
   const effectiveFilterColumns = parseFilterColumns(resolved, userColumnIds);
   const search = resolved.search ?? '';
+  const sortBy = resolved.sortBy?.trim();
+  const sortOrder =
+    resolved.sortOrder === 'asc' || resolved.sortOrder === 'desc' ? resolved.sortOrder : undefined;
 
   const tCommon = await getTranslations('common');
-  const { data, error } = await fetchUsers();
+  const { data, error } = await fetchUsers(search, effectiveFilterColumns, sortBy, sortOrder);
 
   const users = data?.users ?? [];
   const crud = getCrudFlags(user.isSuperAdmin === true, user.permissions, 'usersCrud');
@@ -74,29 +97,32 @@ export default async function UsersPage({ searchParams }: PageProps) {
   const tableRows = users.map((u) => ({
     id: u.id,
     cells: {
-      email: u.email,
+      email: u.email !== null && u.email !== '' ? u.email : '—',
       displayName: u.displayName !== null && u.displayName !== '' ? u.displayName : '—',
-      profileVisibility: u.profileVisibility
-        ? tCommon('usersTable.visibilityYes')
-        : tCommon('usersTable.visibilityNo'),
     },
   }));
 
   const userColumns = [
-    { id: 'email', label: tCommon('usersTable.email') },
-    { id: 'displayName', label: tCommon('usersTable.displayName') },
-    { id: 'profileVisibility', label: tCommon('usersTable.profileVisibility') },
+    { id: 'email', label: tCommon('usersTable.email'), defaultSortOrder: 'asc' as const },
+    {
+      id: 'displayName',
+      label: tCommon('usersTable.displayName'),
+      defaultSortOrder: 'asc' as const,
+    },
   ];
 
   const currentQueryParams: Record<string, string> = {};
   if ((resolved.filterColumns ?? '').trim() !== '')
     currentQueryParams.filterColumns = resolved.filterColumns ?? '';
   if (search !== '') currentQueryParams.search = search;
+  if (sortBy !== undefined && sortBy !== '') currentQueryParams.sortBy = sortBy;
+  if (sortOrder !== undefined) currentQueryParams.sortOrder = sortOrder;
 
   return (
-    <ResourcePageCard
+    <FilterTablePageLayout
       title={tCommon('users')}
       error={error !== null ? tCommon('failedToLoadUsers') : undefined}
+      errorVariant="error"
     >
       {error === null && (
         <Stack>
@@ -108,13 +134,17 @@ export default async function UsersPage({ searchParams }: PageProps) {
             initialSearch={search}
             basePath={ROUTES.USERS}
             currentQueryParams={currentQueryParams}
+            filterableColumnIds={['email', 'displayName']}
+            canViewUser={crud.read}
             canUpdateUser={crud.update}
             canDeleteUser={crud.delete}
             userApiBaseUrl={apiBaseUrl}
             addUserHref={crud.create ? ROUTES.USERS_NEW : undefined}
+            sortPrefsCookieName={TABLE_SORT_PREFS_COOKIE_NAME}
+            sortPrefsListKey="users"
           />
         </Stack>
       )}
-    </ResourcePageCard>
+    </FilterTablePageLayout>
   );
 }

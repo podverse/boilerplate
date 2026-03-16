@@ -5,6 +5,7 @@ export type {
   LoginBody,
   RequestEmailChangeBody,
   ResetPasswordBody,
+  SetPasswordBody,
   SignupBody,
   UpdateProfileBody,
   VerifyEmailBody,
@@ -29,6 +30,7 @@ export type {
   Bucket,
   BucketMessage,
   PublicBucket,
+  PublicBucketAncestor,
   PublicBucketMessage,
   PublicSubmitMessageBody,
 } from './bucket-types.js';

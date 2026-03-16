@@ -1,5 +1,6 @@
 {
   "auth": {
+    "checkEmailVerification": "",
     "login": {
       "title": "",
       "email": "",
@@ -13,6 +14,11 @@
     "signup": {
       "title": "",
       "email": "",
+      "username": "",
+      "placeholderUsername": "",
+      "usernameRequired": "",
+      "usernameMaxLength": "",
+      "usernameAlreadyInUse": "",
       "displayName": "",
       "placeholderEmail": "",
       "placeholderDisplayName": "",
@@ -48,29 +54,103 @@
     "addBucket": "",
     "noBuckets": "",
     "name": "",
+    "slug": "",
     "isPublic": "",
     "publicTooltip": "",
+    "messagePublicTooltip": "",
+    "charCount": "",
+    "charCountNoMax": "",
+    "messageBodyMaxLengthLabel": "",
+    "messageBodyMaxLengthPlaceholder": "",
+    "bodyLabel": "",
+    "messageLabel": "",
+    "yourName": "",
+    "submit": "",
+    "sendMessage": "",
+    "submitMessageTitle": "",
     "publicYes": "",
     "publicNo": "",
-    "topics": "",
+    "publicLabel": "",
+    "publicPage": "",
+    "privateLabel": "",
+    "buckets": "",
+    "lastMessage": "",
+    "created": "",
+    "actions": "",
     "messages": "",
+    "messagesSort": {
+      "label": ""
+    },
+    "messagesSortOptions": {
+      "recent": "",
+      "oldest": ""
+    },
+    "noMessagesYet": "",
+    "noPublicMessagesYet": "",
+    "noBucketsYet": "",
     "admins": "",
+    "noAdmins": "",
     "edit": "",
+    "editAdminTitle": "",
+    "cannotEditBucketOwnerAdmin": "",
+    "view": "",
     "delete": "",
     "detail": "",
     "newTitle": "",
     "editTitle": "",
-    "createTopic": "",
     "failedToLoad": "",
     "owner": "",
+    "anonymous": "",
     "admin": "",
     "cancel": "",
     "save": "",
+    "settings": "",
+    "bucketSettings": "",
+    "general": "",
     "backToBucket": "",
     "crudCreate": "",
     "crudRead": "",
     "crudUpdate": "",
-    "crudDelete": ""
+    "crudDelete": "",
+    "adminPermissionsLabel": "",
+    "bucketPermissions": "",
+    "bucketPermissionsInfo": "",
+    "bucketMessagesPermissions": "",
+    "addAdmin": "",
+    "addAdminDescription": "",
+    "inviteLinkCopy": "",
+    "pendingInvitations": "",
+    "pendingInvitationsEmpty": "",
+    "invitationLink": "",
+    "expires": "",
+    "copy": "",
+    "copied": "",
+    "roles": "",
+    "roleName": "",
+    "createRole": "",
+    "editRole": "",
+    "deleteRole": "",
+    "deleteConfirmRole": "",
+    "noCustomRolesYet": "",
+    "predefinedRoles": "",
+    "customRoles": "",
+    "customRole": "",
+    "roleDescriptionBucketFull": "",
+    "roleDescriptionBucketRead": "",
+    "roleDescriptionCustomRole": ""
+  },
+  "roles": {
+    "adminFull": "",
+    "adminRead": "",
+    "bucketFull": "",
+    "bucketRead": "",
+    "everything": "",
+    "readEverything": "",
+    "descriptionEverything": "",
+    "descriptionBucketFull": "",
+    "descriptionReadEverything": "",
+    "descriptionBucketRead": "",
+    "descriptionCustomRole": ""
   },
   "common": {
     "loading": "",
@@ -78,6 +158,19 @@
     "profile": "",
     "settings": "",
     "buckets": "",
+    "addBucket": "",
+    "bucketsTable": {
+      "actions": "",
+      "view": "",
+      "edit": "",
+      "delete": ""
+    },
+    "confirmDeleteBucket": {
+      "message": "",
+      "fallbackName": "",
+      "cancel": "",
+      "delete": ""
+    },
     "logout": "",
     "logIn": "",
     "signUp": "",
@@ -91,10 +184,12 @@
   },
   "profile": {
     "title": "",
+    "profileInformation": "",
     "displayName": "",
     "displayNamePlaceholder": "",
     "email": "",
-    "profileVisibility": "",
+    "username": "",
+    "usernameNotAvailable": "",
     "changePassword": "",
     "currentPassword": "",
     "newPassword": "",
@@ -115,6 +210,11 @@
   },
   "settings": {
     "title": "",
+    "generalTab": "",
+    "profileTab": "",
+    "passwordTab": "",
+    "emailTab": "",
+    "preferences": "",
     "theme": "",
     "currentTheme": "",
     "languages": {
@@ -130,15 +230,19 @@
     "resetFailed": "",
     "passwordsDoNotMatch": "",
     "resetTokenRequired": "",
-    "loginFailed": ""
+    "invalidOrExpiredLink": "",
+    "loginFailed": "",
+    "deleteFailed": ""
   },
   "ui": {
     "auth": {
       "login": {
         "title": "",
         "email": "",
-        "password": "",
+        "emailOrUsername": "",
         "placeholderEmail": "",
+        "placeholderEmailOrUsername": "",
+        "password": "",
         "placeholderPassword": "",
         "submit": "",
         "signUp": "",
@@ -147,6 +251,11 @@
       "signup": {
         "title": "",
         "email": "",
+        "username": "",
+        "placeholderUsername": "",
+        "usernameRequired": "",
+        "usernameMaxLength": "",
+        "usernameAlreadyInUse": "",
         "displayName": "",
         "placeholderEmail": "",
         "placeholderDisplayName": "",
@@ -175,6 +284,14 @@
         "placeholderPassword": "",
         "submit": "",
         "backToLogin": ""
+      },
+      "verifyEmail": {
+        "title": "",
+        "success": ""
+      },
+      "confirmEmailChange": {
+        "title": "",
+        "success": ""
       }
     },
     "header": {
@@ -251,5 +368,22 @@
         "placeholder": ""
       }
     }
+  },
+  "invite": {
+    "title": "",
+    "invitedTo": "",
+    "loginRequired": "",
+    "loginButton": "",
+    "accept": "",
+    "reject": "",
+    "accepted": "",
+    "youAreOwner": "",
+    "alreadyAdmin": "",
+    "rejected": "",
+    "linkInvalidAfterReject": "",
+    "acceptFailed": "",
+    "rejectFailed": "",
+    "loading": "",
+    "goHome": ""
   }
 }

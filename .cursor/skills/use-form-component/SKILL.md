@@ -19,7 +19,7 @@ Do **not** use raw `<form>` in app code. Use one of:
 
 - Wrap **FormContainer** children in **`Stack`** for consistent vertical spacing (flex column + gap).
 - Use **Form** when the whole block is “card + form” (e.g. auth screens); use **FormContainer** when the form lives inside an existing card or page section.
-- For margins around the form (e.g. bottom margin), wrap **FormContainer** in a `div` with `style` or `className`; **FormContainer** does not accept a `style` prop.
+- For spacing around the form, use a layout component (e.g. `Stack` with gap or `Container`) rather than a bare `div`; see **avoid-wrapper-elements**.
 
 ## Checklist
 

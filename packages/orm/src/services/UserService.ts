@@ -31,19 +31,40 @@ export class UserService {
     return this.findById(cred.userId) as Promise<UserWithRelations | null>;
   }
 
+  static async findByUsername(username: string): Promise<UserWithRelations | null> {
+    const credRepo = appDataSourceRead.getRepository(UserCredentials);
+    const cred = await credRepo.findOne({ where: { username } });
+    if (cred === null) return null;
+    return this.findById(cred.userId) as Promise<UserWithRelations | null>;
+  }
+
+  /**
+   * Resolve user by email or username (single identifier for login).
+   */
+  static async findByEmailOrUsername(identifier: string): Promise<UserWithRelations | null> {
+    const byEmail = await this.findByEmail(identifier);
+    if (byEmail !== null) return byEmail;
+    return this.findByUsername(identifier);
+  }
+
   /**
    * Create a user with credentials (and optionally bio) in a single transaction.
-   * Atomicity is enforced at the application layer; FK ON DELETE CASCADE on user_credentials
-   * and user_bio handles cleanup when a user row is deleted.
-   * Display name (user_bio) is optional in main.
+   * At least one of email or username must be set. For username-only users (e.g. set-password
+   * flow), caller may pass a placeholder password hash until the user sets a password.
    * Retries on short_id unique violation (up to 5 attempts).
    */
   static async create(data: {
-    email: string;
+    email?: string | null;
+    username?: string | null;
     password: string;
     displayName?: string | null;
-    profileVisibility?: boolean;
   }): Promise<UserWithRelations> {
+    const hasEmail = data.email !== undefined && data.email !== null && data.email !== '';
+    const hasUsername =
+      data.username !== undefined && data.username !== null && data.username !== '';
+    if (!hasEmail && !hasUsername) {
+      throw new Error('UserService.create: at least one of email or username is required');
+    }
     const maxRetries = 5;
     for (let attempt = 0; attempt < maxRetries; attempt++) {
       const shortId = generateShortId();
@@ -57,13 +78,13 @@ export class UserService {
 
         const user = userRepo.create({
           shortId,
-          profileVisibility: data.profileVisibility ?? false,
         });
         const savedUser = await userRepo.save(user);
 
         const cred = credRepo.create({
           userId: savedUser.id,
-          email: data.email,
+          email: data.email ?? null,
+          username: data.username ?? null,
           passwordHash: data.password,
         });
         await credRepo.save(cred);
@@ -108,18 +129,18 @@ export class UserService {
     await repo.update(userId, { emailVerifiedAt: new Date() });
   }
 
-  static async updateEmail(userId: string, newEmail: string): Promise<void> {
+  static async updateEmail(userId: string, newEmail: string | null): Promise<void> {
     const repo = appDataSourceReadWrite.getRepository(UserCredentials);
     await repo.update({ userId }, { email: newEmail });
+  }
+
+  static async updateUsername(userId: string, username: string | null): Promise<void> {
+    const repo = appDataSourceReadWrite.getRepository(UserCredentials);
+    await repo.update({ userId }, { username });
   }
 
   static async updateDisplayName(userId: string, displayName: string | null): Promise<void> {
     const repo = appDataSourceReadWrite.getRepository(UserBio);
     await repo.update({ userId }, { displayName });
-  }
-
-  static async updateProfileVisibility(userId: string, profileVisibility: boolean): Promise<void> {
-    const repo = appDataSourceReadWrite.getRepository(User);
-    await repo.update(userId, { profileVisibility });
   }
 }

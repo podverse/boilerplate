@@ -1,15 +1,15 @@
 /**
  * Interactive script to create the super admin user in the management database.
- * Used during infra up (make local_infra_up). Prompts for email, generates a secure
+ * Used during infra up (make local_infra_up). Prompts for username, generates a secure
  * password, creates the user, and prints the password once with instructions.
  *
  * Run from repo root: node scripts/management-api/create-super-admin.mjs
  *
  * Loads .env from apps/management-api (MANAGEMENT_DB_*). If stdin is not a TTY,
- * uses default email (superadmin@example.com) and still creates user if none exists.
+ * uses default username "superadmin" and still creates user if none exists.
  *
  * Local-only: when LOCAL_SUPERADMIN_PASSWORD is set (e.g. by Make), creates
- * superadmin@example.com with that password (insecure; local dev only).
+ * username "superadmin" with that password (insecure; local dev only).
  */
 import { createInterface } from 'readline';
 import { randomBytes } from 'crypto';
@@ -35,37 +35,36 @@ function readLine(question) {
   });
 }
 
-const DEFAULT_EMAIL = 'superadmin@example.com';
-const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const DEFAULT_USERNAME = 'superadmin';
 
-function isValidEmail(email) {
-  return typeof email === 'string' && EMAIL_REGEX.test(email);
+function isValidUsername(username) {
+  return typeof username === 'string' && username.trim().length > 0 && username.length <= 50;
 }
 
-async function promptEmail() {
+async function promptUsername() {
   const isTty = process.stdin.isTTY === true;
 
   const blurb = [
     '',
     'The super admin is the initial management user with full access (admins, users, settings).',
-    'You will be prompted for an email; a strong password will be generated and shown once.',
+    'You will be prompted for a username; a strong password will be generated and shown once.',
     '',
   ].join('\n');
 
   if (isTty) {
     process.stdout.write(blurb);
-    const raw = await readLine(`Email for super admin (blank = ${DEFAULT_EMAIL}): `);
-    const email = raw === '' ? DEFAULT_EMAIL : raw;
-    if (!isValidEmail(email)) {
+    const raw = await readLine(`Username for super admin (blank = ${DEFAULT_USERNAME}): `);
+    const username = (raw === '' ? DEFAULT_USERNAME : raw).trim();
+    if (!isValidUsername(username)) {
       console.error(
-        'Invalid email. Use a valid address or leave blank for superadmin@example.com.'
+        'Invalid username. Use a non-empty string (max 50 chars) or leave blank for superadmin.'
       );
       process.exit(1);
     }
-    return email;
+    return username;
   }
 
-  return DEFAULT_EMAIL;
+  return DEFAULT_USERNAME;
 }
 
 function generatePassword() {
@@ -94,10 +93,10 @@ async function main() {
   }
 
   const localPassword = process.env.LOCAL_SUPERADMIN_PASSWORD;
-  const email =
+  const username =
     typeof localPassword === 'string' && localPassword.length > 0
-      ? DEFAULT_EMAIL
-      : await promptEmail();
+      ? DEFAULT_USERNAME
+      : await promptUsername();
   const plainPassword =
     typeof localPassword === 'string' && localPassword.length > 0
       ? localPassword
@@ -142,9 +141,9 @@ async function main() {
         [id]
       );
       await client.query(
-        `INSERT INTO management_user_credentials (management_user_id, email, password_hash)
+        `INSERT INTO management_user_credentials (management_user_id, username, password_hash)
          VALUES ($1, $2, $3)`,
-        [id, email, passwordHash]
+        [id, username, passwordHash]
       );
       await client.query(
         `INSERT INTO management_user_bio (management_user_id, display_name)
@@ -159,7 +158,7 @@ async function main() {
 
     console.log('');
     console.log('Super admin created.');
-    console.log('Email:', email);
+    console.log('Username:', username);
     if (localPassword) {
       console.log('Password: Test!1Aa (local-only insecure; change in production.)');
     } else {
@@ -167,6 +166,7 @@ async function main() {
       console.log('  ' + plainPassword);
     }
     console.log('');
+    console.log('Management-web login: use the username above and the password.');
     console.log('You can change this password later in the management app settings.');
     console.log('');
   } catch (err) {

@@ -12,8 +12,11 @@ import { UserBio } from './entities/UserBio.js';
 import { VerificationToken } from './entities/VerificationToken.js';
 import { RefreshToken } from './entities/RefreshToken.js';
 import { Bucket } from './entities/Bucket.js';
+import { BucketSettings } from './entities/BucketSettings.js';
 import { BucketAdmin } from './entities/BucketAdmin.js';
+import { BucketAdminInvitation } from './entities/BucketAdminInvitation.js';
 import { BucketMessage } from './entities/BucketMessage.js';
+import { BucketRole } from './entities/BucketRole.js';
 
 const ENTITIES = [
   User,
@@ -22,8 +25,11 @@ const ENTITIES = [
   VerificationToken,
   RefreshToken,
   Bucket,
+  BucketSettings,
   BucketAdmin,
+  BucketAdminInvitation,
   BucketMessage,
+  BucketRole,
 ];
 
 function getReadOptions(): DataSourceOptions {

@@ -1,5 +1,6 @@
 {
   "auth": {
+    "checkEmailVerification": "Revisa tu correo para ver el email de verificación y poder iniciar sesión.",
     "login": {
       "title": "Iniciar sesión",
       "email": "Correo electrónico",
@@ -13,6 +14,11 @@
     "signup": {
       "title": "Registrarse",
       "email": "Correo electrónico",
+      "username": "Nombre de usuario",
+      "placeholderUsername": "usuario",
+      "usernameRequired": "El nombre de usuario es obligatorio",
+      "usernameMaxLength": "El nombre de usuario debe tener como máximo {max} caracteres",
+      "usernameAlreadyInUse": "Nombre de usuario ya en uso",
       "displayName": "Nombre para mostrar (opcional)",
       "placeholderEmail": "tú@ejemplo.com",
       "placeholderDisplayName": "Tu nombre",
@@ -48,29 +54,103 @@
     "addBucket": "Añadir cubo",
     "noBuckets": "Aún no hay cubos. Crea uno para empezar.",
     "name": "Nombre",
+    "slug": "Slug",
     "isPublic": "Público",
     "publicTooltip": "Cubos públicos: todos los mensajes visibles para todos. No públicos: solo tú y los administradores del cubo podéis ver los mensajes.",
+    "messagePublicTooltip": "Este mensaje será visible para todos, no solo para el destinatario.",
+    "charCount": "{current}/{max}",
+    "charCountNoMax": "{current}",
+    "messageBodyMaxLengthLabel": "Longitud máxima del cuerpo del mensaje",
+    "messageBodyMaxLengthPlaceholder": "Sin límite",
+    "bodyLabel": "Cuerpo",
+    "messageLabel": "Mensaje",
+    "yourName": "Tu nombre",
+    "submit": "Enviar",
+    "sendMessage": "Enviar mensaje",
+    "submitMessageTitle": "Enviar un mensaje",
     "publicYes": "Sí",
     "publicNo": "No",
-    "topics": "Temas",
+    "publicLabel": "Público",
+    "publicPage": "Página pública",
+    "privateLabel": "Privado",
+    "buckets": "Cubos",
+    "lastMessage": "Último mensaje",
+    "created": "Creado",
+    "actions": "Acciones",
     "messages": "Mensajes",
+    "messagesSort": {
+      "label": "Ordenar mensajes"
+    },
+    "messagesSortOptions": {
+      "recent": "Recientes",
+      "oldest": "Antiguos"
+    },
+    "noMessagesYet": "Aún no hay mensajes.",
+    "noPublicMessagesYet": "Aún no hay mensajes públicos.",
+    "noBucketsYet": "Aún no hay cubos.",
     "admins": "Administradores",
+    "noAdmins": "Ninguno",
     "edit": "Editar",
+    "editAdminTitle": "Editar administrador",
+    "cannotEditBucketOwnerAdmin": "No puedes editar la configuración de administrador del propietario de un bucket.",
+    "view": "Ver",
     "delete": "Eliminar",
     "detail": "Detalle del cubo",
     "newTitle": "Nuevo cubo",
     "editTitle": "Editar cubo",
-    "createTopic": "Añadir tema",
     "failedToLoad": "Error al cargar los cubos",
     "owner": "Propietario",
+    "anonymous": "Anónimo",
     "admin": "Administrador",
     "cancel": "Cancelar",
     "save": "Guardar",
-    "backToBucket": "← Volver al cubo",
+    "settings": "Ajustes",
+    "bucketSettings": "Ajustes del cubo",
+    "general": "General",
+    "backToBucket": "Volver al cubo",
     "crudCreate": "Crear",
     "crudRead": "Leer",
     "crudUpdate": "Actualizar",
-    "crudDelete": "Eliminar"
+    "crudDelete": "Eliminar",
+    "adminPermissionsLabel": "Permisos de administrador",
+    "bucketPermissions": "Permisos de bucket",
+    "bucketPermissionsInfo": "Los permisos de bucket se aplican a este cubo y a los cubos anidados.",
+    "bucketMessagesPermissions": "Permisos de mensajes",
+    "addAdmin": "Añadir administrador",
+    "addAdminDescription": "Selecciona los permisos que quieres asignar al nuevo administrador. Al pulsar \"Añadir administrador\" se crea un enlace que puedes enviarles; al abrirlo, podrán aceptar o rechazar la invitación.",
+    "inviteLinkCopy": "Comparte este enlace. Al abrirlo, podrán aceptar o rechazar.",
+    "pendingInvitations": "Invitaciones activas",
+    "pendingInvitationsEmpty": "No hay invitaciones activas.",
+    "invitationLink": "Enlace de invitación",
+    "expires": "Caduca",
+    "copy": "Copiar",
+    "copied": "Copiado",
+    "roles": "Roles",
+    "roleName": "Nombre del rol",
+    "createRole": "Crear rol",
+    "editRole": "Editar rol",
+    "deleteRole": "Eliminar",
+    "deleteConfirmRole": "¿Eliminar este rol?",
+    "noCustomRolesYet": "Aún no hay roles personalizados.",
+    "predefinedRoles": "Roles predefinidos",
+    "customRoles": "Roles personalizados",
+    "customRole": "Rol personalizado",
+    "roleDescriptionBucketFull": "Otorga permisos completos de crear, leer, actualizar y eliminar para cubos, mensajes y administradores.",
+    "roleDescriptionBucketRead": "Otorga permisos de solo lectura para buckets y mensajes.",
+    "roleDescriptionCustomRole": "Usa un rol personalizado cuando necesites permisos que no coincidan con una opción predefinida."
+  },
+  "roles": {
+    "adminFull": "Admin completo",
+    "adminRead": "Admin solo lectura",
+    "bucketFull": "Bucket completo",
+    "bucketRead": "Bucket solo lectura",
+    "everything": "Todo",
+    "readEverything": "Leer todo",
+    "descriptionEverything": "Otorga permisos completos de crear, leer, actualizar y eliminar para buckets, mensajes y administradores.",
+    "descriptionBucketFull": "Otorga permisos completos de crear, leer, actualizar y eliminar para cubos, mensajes y administradores.",
+    "descriptionReadEverything": "Otorga permisos de solo lectura para buckets, mensajes y administradores.",
+    "descriptionBucketRead": "Otorga permisos de solo lectura para buckets y mensajes.",
+    "descriptionCustomRole": "Usa un rol personalizado cuando necesites permisos que no coincidan con una opción predefinida."
   },
   "common": {
     "loading": "Cargando…",
@@ -78,6 +158,19 @@
     "profile": "Perfil",
     "settings": "Ajustes",
     "buckets": "Cubos",
+    "addBucket": "Añadir cubo",
+    "bucketsTable": {
+      "actions": "Acciones",
+      "view": "Ver",
+      "edit": "Editar",
+      "delete": "Eliminar"
+    },
+    "confirmDeleteBucket": {
+      "message": "¿Seguro que quieres eliminar {name}? Esta acción no se puede deshacer.",
+      "fallbackName": "este cubo",
+      "cancel": "Cancelar",
+      "delete": "Eliminar"
+    },
     "logout": "Cerrar sesión",
     "logIn": "Iniciar sesión",
     "signUp": "Registrarse",
@@ -91,10 +184,12 @@
   },
   "profile": {
     "title": "Perfil",
+    "profileInformation": "Perfil",
     "displayName": "Nombre para mostrar",
     "displayNamePlaceholder": "Tu nombre",
     "email": "Correo electrónico",
-    "profileVisibility": "Perfil visible para otros",
+    "username": "Nombre de usuario",
+    "usernameNotAvailable": "Nombre de usuario no disponible",
     "changePassword": "Cambiar contraseña",
     "currentPassword": "Contraseña actual",
     "newPassword": "Nueva contraseña",
@@ -115,6 +210,11 @@
   },
   "settings": {
     "title": "Ajustes",
+    "generalTab": "General",
+    "profileTab": "Perfil",
+    "passwordTab": "Cambiar contraseña",
+    "emailTab": "Cambiar correo",
+    "preferences": "Preferencias",
     "theme": "Tema",
     "currentTheme": "Tema actual: {theme}",
     "languages": {
@@ -130,15 +230,19 @@
     "resetFailed": "Error al restablecer",
     "passwordsDoNotMatch": "Las contraseñas no coinciden",
     "resetTokenRequired": "Se requiere el token de restablecimiento",
-    "loginFailed": "Error al iniciar sesión"
+    "invalidOrExpiredLink": "Enlace no válido o caducado",
+    "loginFailed": "Error al iniciar sesión",
+    "deleteFailed": "Error al eliminar"
   },
   "ui": {
     "auth": {
       "login": {
         "title": "Iniciar sesión",
         "email": "Correo electrónico",
-        "password": "Contraseña",
+        "emailOrUsername": "Correo o nombre de usuario",
         "placeholderEmail": "tú@ejemplo.com",
+        "placeholderEmailOrUsername": "tú@ejemplo.com o nombre de usuario",
+        "password": "Contraseña",
         "placeholderPassword": "••••••••",
         "submit": "Iniciar sesión",
         "signUp": "Registrarse",
@@ -147,6 +251,11 @@
       "signup": {
         "title": "Registrarse",
         "email": "Correo electrónico",
+        "username": "Nombre de usuario",
+        "placeholderUsername": "usuario",
+        "usernameRequired": "El nombre de usuario es obligatorio",
+        "usernameMaxLength": "El nombre de usuario debe tener como máximo {max} caracteres",
+        "usernameAlreadyInUse": "Nombre de usuario ya en uso",
         "displayName": "Nombre para mostrar (opcional)",
         "placeholderEmail": "tú@ejemplo.com",
         "placeholderDisplayName": "Tu nombre",
@@ -175,6 +284,14 @@
         "placeholderPassword": "••••••••",
         "submit": "Restablecer contraseña",
         "backToLogin": "Volver a iniciar sesión"
+      },
+      "verifyEmail": {
+        "title": "Verificar correo",
+        "success": "Correo verificado"
+      },
+      "confirmEmailChange": {
+        "title": "Confirmar cambio de correo",
+        "success": "Correo actualizado"
       }
     },
     "header": {
@@ -251,5 +368,22 @@
         "placeholder": "1–{max}"
       }
     }
+  },
+  "invite": {
+    "title": "Invitación a administrador del cubo",
+    "invitedTo": "Te han invitado a ser administrador del cubo",
+    "loginRequired": "Debes iniciar sesión para aceptar o rechazar esta invitación.",
+    "loginButton": "Iniciar sesión",
+    "accept": "Aceptar",
+    "reject": "Rechazar",
+    "accepted": "Has sido añadido como administrador. Redirigiendo…",
+    "youAreOwner": "Eres el propietario de este cubo. Redirigiendo…",
+    "alreadyAdmin": "Ya eres administrador de este cubo. Redirigiendo…",
+    "rejected": "Invitación rechazada.",
+    "linkInvalidAfterReject": "Este enlace ya no es válido.",
+    "acceptFailed": "Error al aceptar la invitación.",
+    "rejectFailed": "Error al rechazar la invitación.",
+    "loading": "Cargando invitación…",
+    "goHome": "Ir al inicio"
   }
 }

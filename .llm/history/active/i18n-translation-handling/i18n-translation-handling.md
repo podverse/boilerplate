@@ -58,3 +58,20 @@ Add the ability to set a default locale As an environment variable in any app th
 - `apps/web/.env.example` (DEFAULT_LOCALE, SUPPORTED_LOCALES)
 - `apps/management-web/.env.example` (new file with PORT, DEFAULT_LOCALE, SUPPORTED_LOCALES)
 - `docs/localization/I18N.md` (locale detection section)
+
+---
+
+### Session 3 - 2025-03-15
+
+#### Prompt (Developer)
+
+make sure these files are fully translated [apps/management-web/i18n/originals/es.json, apps/web/i18n/originals/es.json]
+
+#### Key Decisions
+
+- Replaced every empty string in both es originals with Spanish translations; placeholders (e.g. placeholderPassword) use "••••••••" or "usuario" where appropriate; ICU placeholders preserved.
+
+#### Files Modified
+
+- `apps/web/i18n/originals/es.json` (buckets slug, messagePublicTooltip, charCount, bodyLabel, messageLabel, yourName, submit, publicNo, settings, bucketSettings, general, roles, profile username/usernameNotAvailable, settings generalTab, ui themeSelector.dracula, formLinks.separator, pagination goToPageModal.placeholder; all placeholderPassword/placeholderUsername)
+- `apps/management-web/i18n/originals/es.json` (buckets general/roles, common profile/edit/eventsTable.actor/buckets/bucketDetail.publicNo/usersTable.username, userForm createUserWith/createModeEmailPassword/createModeUsernameOnly/username/usernameRequired, profile profileInformation, settings generalTab, all placeholderPassword, ui dracula/separator/goToPageModal.placeholder)

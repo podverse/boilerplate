@@ -9,6 +9,12 @@ import styles from './TableFilterBar.module.scss';
 export type TableFilterBarColumn = {
   id: string;
   label: string;
+  /** Optional per-column link; when set, this column's cell is a link to the returned href. Use for columns that link somewhere other than the main view route (e.g. a "public" column linking to a public page). */
+  getHref?: (row: { id: string; cells: Record<string, string> }) => string | undefined;
+  /** When set, used as the sortBy value in the URL/API instead of column id (e.g. when API expects a different field name). */
+  sortKey?: string;
+  /** Default sort order when this column is the active sort and URL has no sortOrder. String columns typically 'asc', date columns 'desc', number 'asc'. Omit for legacy desc. */
+  defaultSortOrder?: 'asc' | 'desc';
 };
 
 export type TableFilterBarProps = {

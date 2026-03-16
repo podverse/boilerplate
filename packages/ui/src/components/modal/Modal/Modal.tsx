@@ -10,6 +10,10 @@ export type ModalProps = {
   withBackdrop?: boolean;
   /** When true (and withBackdrop), backdrop is opaque for better readability. Default false. */
   backdropOpaque?: boolean;
+  /** When true, overlay and content do not capture pointer events; clicks pass through to the page. Use for non-blocking indicators (e.g. navigation loading spinner). Default false. */
+  clickThrough?: boolean;
+  /** When true, content area has transparent background (e.g. for centered spinner only). Default false. */
+  contentTransparent?: boolean;
   /** Optional className for the overlay. */
   className?: string;
   /** When provided, a close button is shown in the upper-right corner of the modal content. */
@@ -25,6 +29,8 @@ export function Modal({
   children,
   withBackdrop = false,
   backdropOpaque = false,
+  clickThrough = false,
+  contentTransparent = false,
   className = '',
   onClose,
 }: ModalProps) {
@@ -36,15 +42,20 @@ export function Modal({
         ? styles.overlayBackdropOpaque
         : styles.overlayBackdrop
       : styles.overlayTransparent,
+    clickThrough ? styles.overlayClickThrough : '',
     className,
   ]
     .filter(Boolean)
     .join(' ');
 
+  const contentInnerClass = contentTransparent
+    ? `${styles.contentInner} ${styles.contentInnerTransparent}`
+    : styles.contentInner;
+
   return (
     <div className={overlayClass} role="presentation">
       <div className={styles.content}>
-        <div className={styles.contentInner}>
+        <div className={contentInnerClass}>
           {onClose !== undefined && (
             <button
               type="button"

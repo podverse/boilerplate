@@ -8,6 +8,7 @@ import { DataSource } from 'typeorm';
 import type { DataSourceOptions } from 'typeorm';
 
 import { AdminPermissions } from './entities/AdminPermissions.js';
+import { ManagementAdminRole } from './entities/ManagementAdminRole.js';
 import { ManagementEvent } from './entities/ManagementEvent.js';
 import { ManagementRefreshToken } from './entities/ManagementRefreshToken.js';
 import { ManagementUser } from './entities/ManagementUser.js';
@@ -43,6 +44,7 @@ function getManagementOptions(): DataSourceOptions {
       ManagementUserCredentials,
       ManagementUserBio,
       AdminPermissions,
+      ManagementAdminRole,
       ManagementEvent,
       ManagementRefreshToken,
     ],

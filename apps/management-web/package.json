@@ -6,15 +6,17 @@
     "i18n:compile": "node ../../scripts/i18n/compile.mjs management-web",
     "prebuild": "npm run i18n:compile",
     "build": "next build --webpack",
-    "dev": "npm run i18n:compile && env PORT=4102 next dev --webpack",
-    "dev:watch": "env PORT=4102 next dev --webpack",
+    "dev": "npm run i18n:compile && NODE_OPTIONS='--no-deprecation' env PORT=${PORT:-4102} next dev --webpack",
+    "dev:watch": "NODE_OPTIONS='--no-deprecation' env PORT=${PORT:-4102} next dev --webpack",
     "start": "next start",
     "lint": "eslint ./src --max-warnings 0",
     "lint:fix": "eslint ./src --fix",
-    "type-check": "tsc --noEmit"
+    "type-check": "tsc --noEmit",
+    "test:e2e": "playwright test"
   },
   "dependencies": {
     "@boilerplate/helpers": "*",
+    "@boilerplate/helpers-i18n": "*",
     "@boilerplate/helpers-requests": "*",
     "@boilerplate/ui": "*",
     "@fortawesome/fontawesome-free": "^6.7.2",
@@ -25,6 +27,7 @@
     "server-only": "^0.0.1"
   },
   "devDependencies": {
+    "@playwright/test": "^1.49.0",
     "@types/node": "^24.10.12",
     "@types/react": "^19.2.11",
     "@types/react-dom": "^19.2.2",

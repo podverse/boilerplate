@@ -16,13 +16,44 @@ import {
 
 const SALT_ROUNDS = 10;
 
-export async function createSuperAdminForTest(email: string, password: string): Promise<void> {
+export async function createSuperAdminForTest(username: string, password: string): Promise<void> {
   const existing = await ManagementUserService.findSuperAdmin();
+  const passwordHash = await bcrypt.hash(password, SALT_ROUNDS);
   if (existing !== null) {
+    await managementDataSource.transaction(async (manager) => {
+      const credRepo = manager.getRepository(ManagementUserCredentials);
+      const bioRepo = manager.getRepository(ManagementUserBio);
+
+      const existingCred = await credRepo.findOne({
+        where: { managementUserId: existing.id },
+      });
+      if (existingCred !== null) {
+        existingCred.username = username;
+        existingCred.passwordHash = passwordHash;
+        await credRepo.save(existingCred);
+      } else {
+        const cred = credRepo.create({
+          managementUserId: existing.id,
+          username,
+          passwordHash,
+        });
+        await credRepo.save(cred);
+      }
+
+      const existingBio = await bioRepo.findOne({
+        where: { managementUserId: existing.id },
+      });
+      if (existingBio === null) {
+        const bio = bioRepo.create({
+          managementUserId: existing.id,
+          displayName: 'Super Admin',
+        });
+        await bioRepo.save(bio);
+      }
+    });
     return;
   }
   const id = uuidv4();
-  const passwordHash = await bcrypt.hash(password, SALT_ROUNDS);
 
   try {
     await managementDataSource.transaction(async (manager) => {
@@ -38,7 +69,7 @@ export async function createSuperAdminForTest(email: string, password: string): 
       await userRepo.save(user);
       const cred = credRepo.create({
         managementUserId: id,
-        email,
+        username,
         passwordHash,
       });
       await credRepo.save(cred);

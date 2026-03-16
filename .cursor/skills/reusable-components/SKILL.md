@@ -1,6 +1,6 @@
 ---
 name: reusable-components
-description: Prefer reusable components and keep globals minimal
+description: Prefer reusable components and keep globals minimal. Use when adding layout, form, or UI that could be reused, or when adding styles to globals.scss.
 version: 1.0.0
 ---
 

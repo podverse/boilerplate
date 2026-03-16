@@ -12,12 +12,33 @@ export {
 } from './pagination/constants.js';
 export { generateShortId, SHORT_ID_LENGTH } from './shortId.js';
 export { SEARCH_DEBOUNCE_MS } from './search/constants.js';
+export {
+  PREDEFINED_BUCKET_ROLES,
+  PREDEFINED_BUCKET_ROLE_IDS,
+  getPredefinedRoleById,
+} from './bucketRoles/constants.js';
+export type { PredefinedBucketRole, PredefinedBucketRoleId } from './bucketRoles/constants.js';
+export {
+  PREDEFINED_MANAGEMENT_ADMIN_ROLES,
+  PREDEFINED_MANAGEMENT_ADMIN_ROLE_IDS,
+  getPredefinedManagementAdminRoleById,
+} from './managementAdminRoles/constants.js';
+export type {
+  PredefinedManagementAdminRole,
+  PredefinedManagementAdminRoleId,
+} from './managementAdminRoles/constants.js';
+export {
+  BUCKET_ADMIN_INVITATION_EXPIRY_DAYS,
+  BUCKET_ADMIN_INVITATION_TOKEN_BYTES,
+} from './invitation/constants.js';
 export { ALL_AVAILABLE_LOCALES, DEFAULT_LOCALE, type Locale } from './locale/constants.js';
 export {
+  DEFAULT_MESSAGE_BODY_MAX_LENGTH,
   EMAIL_MAX_LENGTH,
   PASSWORD_HASH_LENGTH,
   PASSWORD_MAX_LENGTH,
   SHORT_TEXT_MAX_LENGTH,
+  USERNAME_MAX_LENGTH,
   TOKEN_HASH_HEX_LENGTH,
   VERIFICATION_TOKEN_KIND_MAX_LENGTH,
 } from './db/index.js';
@@ -45,3 +66,5 @@ export {
   validateStartupRequirements,
 } from './startup/validation.js';
 export type { ValidationResult, ValidationSummary } from './startup/validation.js';
+export { formatUserLabel } from './userLabel.js';
+export type { UserLabelInput } from './userLabel.js';

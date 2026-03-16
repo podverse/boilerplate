@@ -11,10 +11,10 @@ CREATE TABLE IF NOT EXISTS management_user (
 -- At most one row with is_super_admin = true
 CREATE UNIQUE INDEX IF NOT EXISTS idx_one_super_admin ON management_user(is_super_admin) WHERE is_super_admin = true;
 
--- Credentials: email and password (1:1 with management_user)
+-- Credentials: username and password (1:1 with management_user); management-web auth is username-only
 CREATE TABLE IF NOT EXISTS management_user_credentials (
     management_user_id UUID PRIMARY KEY REFERENCES management_user(id) ON DELETE CASCADE,
-    email varchar_email UNIQUE NOT NULL,
+    username varchar_short UNIQUE NOT NULL,
     password_hash varchar_password NOT NULL
 );
 

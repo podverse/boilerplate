@@ -1,7 +1,7 @@
 ---
 name: i18n-translations
 description: How i18n translations work in the Boilerplate repo. Use when adding or editing translation keys, adding locales, or generating translations so you can do it reliably.
-version: 1.0.0
+version: 1.1.0
 ---
 
 # i18n in Boilerplate
@@ -18,14 +18,15 @@ Each app with i18n (`apps/web`, `apps/management-web`) and the backend package (
 
 ## Commands (run from repo root)
 
-- **`npm run i18n:compile`** — For web, management-web, and **helpers-i18n**: sync override file structure from originals (new keys get empty string in overrides), then merge originals + overrides into compiled. Run after changing originals or overrides.
-- **`npm run i18n:validate`** — Check that all locale files (originals + overrides) have the same keys as `en-US`, that `en-US` has no empty values, and that override structure matches. Validates web, management-web, and helpers-i18n. Fails the build if not. Run in CI and locally before committing i18n changes.
+- **`npm run i18n:sync`** — Sync originals from en-US for web, management-web, and helpers-i18n: add any keys present in en-US but missing in other locales’ originals with **empty string** (do not put English into es or other locale files; those must be in the target language, e.g. Spanish for es). Run after adding keys to en-US so key parity is achieved; then translate empty keys to the locale language. The **compile** step does not sync from en-US; sync is done by this script or by the i18n workflow.
+- **`npm run i18n:compile`** — For web, management-web, and **helpers-i18n**: sync override file structure **from each locale’s originals** (new keys get empty string in overrides), then merge originals + overrides into compiled. Run after changing originals or overrides.
+- **`npm run i18n:validate`** — Check that all locale files (originals + overrides) have the same keys **and key order** as `en-US`; **en-US** originals must have no empty values; non–en-US originals may have empty (pending translation). Overrides match structure. Validates web, management-web, and helpers-i18n. Run in CI and locally before committing i18n changes.
 
 ## Adding or changing keys
 
-1. Edit **`i18n/originals/en-US.json`** in the app. Use nested keys and namespaces (e.g. `auth.login.title`, `common.loading`, `ui.auth.login.email`). Do **not** leave empty values in en-US.
-2. **Other locales:** Every other file in `originals/` (e.g. `es.json`) and every file in `overrides/` must have the **same set of keys** as `en-US`. Add the new key to those files with a translated value (or temporary placeholder); for overrides you can use `""` if the original value is fine.
-3. Run **`npm run i18n:compile`** then **`npm run i18n:validate`** to confirm.
+1. Edit **`i18n/originals/en-US.json`** in the app (or in each app/package that has the key). Use nested keys and namespaces (e.g. `auth.login.title`, `common.loading`, `ui.auth.login.email`). Do **not** leave empty values in en-US.
+2. **Other locales:** Run **`npm run i18n:sync`** then **`npm run i18n:compile`** so originals and overrides for other locales get the new keys (sync adds missing keys with empty string; do not put English in es or other locale files—translate to the target language, e.g. Spanish for es). Alternatively, merge to the mainline branch and let the **i18n workflow** run sync + compile + validate; then add translations for any new empty keys.
+3. Run **`npm run i18n:validate`** to confirm (same keys and key order as en-US; only en-US must have no empty).
 4. In code: `useTranslations('auth')` then `t('login.title')`, or `useTranslations('ui')` then `t('auth.login.email')` for UI package keys.
 
 ## Key conventions
@@ -40,11 +41,15 @@ There is **no built-in auto-translate**. Translations for non–en-US locales ca
 1. Write the result to the correct `i18n/originals/<locale>.json` (or use overrides for corrections).
 2. Run **`npm run i18n:compile`** and **`npm run i18n:validate`** to ensure key parity and compile.
 
+## Non–en-US originals must be in the target language
+
+**Do not put English text into non–en-US originals** (e.g. `es.json`). Spanish originals must be in Spanish; other locales in their language. The sync script adds missing keys with empty string so they can be filled with the correct translation. When adding or editing translations, use the target language for that locale.
+
 ## Validation rules (what i18n:validate enforces)
 
 - `en-US.json` exists in originals and has no empty or undefined values.
-- Every other file in `originals/` has exactly the same keys as `en-US` (no missing, no extra).
-- Every file in `overrides/` has exactly the same keys as `en-US`.
+- Non–en-US files in `originals/` may have empty values (pending translation); only en-US is required to have no empty.
+- Every file in `originals/` and `overrides/` has exactly the same keys as `en-US` (no missing, no extra) and in the **same key order** (depth-first) as en-US.
 
 ## Locale list and environment variables
 
@@ -70,18 +75,22 @@ Locale list and default are defined once in **`packages/helpers/src/locale/const
 | App originals                         | `apps/<app>/i18n/originals/` (e.g. `en-US.json`, `es.json`)                                                                                                                                             |
 | App overrides                         | `apps/<app>/i18n/overrides/` (e.g. `es.json`)                                                                                                                                                           |
 | App compiled                          | `apps/<app>/i18n/compiled/` (generated; do not edit)                                                                                                                                                    |
-| App locale list / request config      | `apps/<app>/src/i18n/request.ts` (hardcoded `ALL_AVAILABLE_LOCALES`; align with env)                                                                                                                    |
+| App locale list / request config      | Apps import `ALL_AVAILABLE_LOCALES` from `@boilerplate/helpers`; `request.ts` (or app i18n config) uses that for locale list.                                                                           |
 | Backend i18n (API / management-api)   | `packages/helpers-i18n/` — same originals/overrides/compiled; `resolveLocale()`, `getPasswordValidationMessages()`, email content helpers. User-facing messages only (password validation, email body). |
 | Locale constants (all apps + backend) | `packages/helpers/src/locale/constants.ts`; import from `@boilerplate/helpers` everywhere.                                                                                                              |
 | UI keys reference                     | `packages/ui/I18N-KEYS.md`                                                                                                                                                                              |
 | Full doc                              | `docs/localization/I18N.md`                                                                                                                                                                             |
 
+## i18n workflow (Podverse-style)
+
+When en-US changes are pushed to **develop**, `.github/workflows/i18n.yml` runs: **sync** originals from en-US (add missing keys with en-US value), **compile** (sync overrides from each locale’s originals, merge to compiled), **validate**, then commit and push originals + overrides if changed (message: `chore: sync i18n keys from en-US [skip ci]`). No LLM; key parity is achieved by the sync script. Locally you can run `npm run i18n:sync` then `npm run i18n:compile` to get the same result before pushing.
+
 ## Quick checklist when you add or change strings
 
 - [ ] Add or edit key in `apps/<app>/i18n/originals/en-US.json` (no empty values).
 - [ ] If the string is from `@boilerplate/ui`, add/update key in `packages/ui/I18N-KEYS.md` and ensure each app’s `ui` object has it.
-- [ ] Add the same key to every other locale in `originals/` (and to `overrides/` if present) with a value (translated or placeholder).
-- [ ] Run `npm run i18n:compile` and `npm run i18n:validate`.
+- [ ] Run `npm run i18n:sync` then `npm run i18n:compile` (or merge to develop and let the workflow do it).
+- [ ] Run `npm run i18n:validate`.
 - [ ] Use `useTranslations('namespace')` and `t('key')` in code (or pass translated strings as props from app to UI components).
 
 When **adding a new locale** (e.g. `fr`): add the locale to **`packages/helpers/src/locale/constants.ts`** (`ALL_AVAILABLE_LOCALES`). Web and management-web import from `@boilerplate/helpers`; helpers-i18n re-exports from helpers. Then add originals/overrides for the new locale in each app and in helpers-i18n (see **Sync points** above).

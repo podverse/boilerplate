@@ -64,7 +64,8 @@ odd versions (18.x–23.x, 25.x, 27.x, 29.x) are ignored.
 
 **Labels**: `dependencies`
 
-The PR labeler may also add `ci` when paths under `.github/` change.
+The PR labeler may also add `ci` when paths under `.github/` change. Keep `node-version`
+in workflow files on LTS (even: 24, 26, …); set these manually.
 
 ## Labels
 

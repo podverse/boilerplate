@@ -9,7 +9,7 @@ import type { EventVisibility } from '@boilerplate/management-orm';
  */
 export interface PublicManagementUser {
   id: string;
-  email: string;
+  username: string;
   displayName: string;
   isSuperAdmin: boolean;
   createdAt: string;
@@ -17,6 +17,9 @@ export interface PublicManagementUser {
   permissions?: {
     adminsCrud: number;
     usersCrud: number;
+    bucketsCrud: number;
+    bucketMessagesCrud: number;
+    bucketAdminsCrud: number;
     eventVisibility: EventVisibility;
   } | null;
 }
@@ -25,7 +28,7 @@ export function managementUserToJson(user: ManagementUser): PublicManagementUser
   const perm = user.permissions;
   return {
     id: user.id,
-    email: user.credentials.email,
+    username: user.credentials.username,
     displayName: user.bio?.displayName ?? '',
     isSuperAdmin: user.isSuperAdmin,
     createdAt: user.createdAt.toISOString(),
@@ -35,6 +38,9 @@ export function managementUserToJson(user: ManagementUser): PublicManagementUser
         ? {
             adminsCrud: perm.adminsCrud,
             usersCrud: perm.usersCrud,
+            bucketsCrud: perm.bucketsCrud,
+            bucketMessagesCrud: perm.bucketMessagesCrud,
+            bucketAdminsCrud: perm.bucketAdminsCrud,
             eventVisibility: perm.eventVisibility,
           }
         : null,

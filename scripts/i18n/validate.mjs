@@ -1,7 +1,7 @@
 /**
- * i18n validate: same keys as en-US, no empty values in en-US originals, overrides match structure.
+ * i18n validate: same keys and key order as en-US; no empty in en-US originals; non-en-US originals may have empty (pending translation). Overrides match structure.
  * Run from repo root: node scripts/i18n/validate.mjs [appName]
- * If appName omitted, validates both web and management-web.
+ * If appName omitted, validates both web and management-web and helpers-i18n.
  */
 
 import fs from 'fs';
@@ -26,17 +26,25 @@ function allKeys(obj, prefix = '') {
   return keys;
 }
 
-function checkEmptyInEnUs(obj, prefix = '', errors) {
+function checkEmptyInOriginals(obj, prefix, errors, fileLabel) {
   if (typeof obj !== 'object' || obj === null) return;
   for (const key of Object.keys(obj)) {
     const full = prefix ? `${prefix}.${key}` : key;
     const val = obj[key];
     if (typeof val === 'object' && val !== null && !Array.isArray(val)) {
-      checkEmptyInEnUs(val, full, errors);
+      checkEmptyInOriginals(val, full, errors, fileLabel);
     } else if (val === '' || val === undefined) {
-      errors.push(`en-US originals: empty value for "${full}"`);
+      errors.push(`${fileLabel}: empty value for "${full}"`);
     }
   }
+}
+
+function keysOrderMismatch(enUsKeysOrdered, localeKeysOrdered) {
+  if (enUsKeysOrdered.length !== localeKeysOrdered.length) return true;
+  for (let i = 0; i < enUsKeysOrdered.length; i++) {
+    if (enUsKeysOrdered[i] !== localeKeysOrdered[i]) return true;
+  }
+  return false;
 }
 
 function validateI18nDir(originalsDir, overridesDir, label) {
@@ -49,8 +57,9 @@ function validateI18nDir(originalsDir, overridesDir, label) {
   }
   const errors = [];
   const enUs = JSON.parse(fs.readFileSync(enPath, 'utf8'));
-  const enUsKeys = new Set(allKeys(enUs));
-  checkEmptyInEnUs(enUs, '', errors);
+  const enUsKeysOrdered = allKeys(enUs);
+  const enUsKeys = new Set(enUsKeysOrdered);
+  checkEmptyInOriginals(enUs, '', errors, 'originals/en-US.json');
 
   const localeFiles = fs
     .readdirSync(originalsDir)
@@ -61,7 +70,8 @@ function validateI18nDir(originalsDir, overridesDir, label) {
     if (locale === 'en-US') continue;
     const filePath = path.join(originalsDir, `${locale}.json`);
     const data = JSON.parse(fs.readFileSync(filePath, 'utf8'));
-    const keys = new Set(allKeys(data));
+    const keysOrdered = allKeys(data);
+    const keys = new Set(keysOrdered);
     for (const k of enUsKeys) {
       if (!keys.has(k)) {
         errors.push(`originals/${locale}.json: missing key "${k}" (present in en-US)`);
@@ -72,6 +82,10 @@ function validateI18nDir(originalsDir, overridesDir, label) {
         errors.push(`originals/${locale}.json: extra key "${k}" (not in en-US)`);
       }
     }
+    if (keysOrderMismatch(enUsKeysOrdered, keysOrdered)) {
+      errors.push(`originals/${locale}.json: keys in different order than en-US.json`);
+    }
+    /* Non-en-US originals may have empty values (pending translation); only en-US must have no empty. */
   }
 
   if (fs.existsSync(overridesDir)) {
@@ -82,7 +96,8 @@ function validateI18nDir(originalsDir, overridesDir, label) {
     for (const locale of overrideFiles) {
       const filePath = path.join(overridesDir, `${locale}.json`);
       const data = JSON.parse(fs.readFileSync(filePath, 'utf8'));
-      const keys = new Set(allKeys(data));
+      const keysOrdered = allKeys(data);
+      const keys = new Set(keysOrdered);
       for (const k of enUsKeys) {
         if (!keys.has(k)) {
           errors.push(`overrides/${locale}.json: missing key "${k}"`);
@@ -92,6 +107,9 @@ function validateI18nDir(originalsDir, overridesDir, label) {
         if (!enUsKeys.has(k)) {
           errors.push(`overrides/${locale}.json: extra key "${k}"`);
         }
+      }
+      if (keysOrderMismatch(enUsKeysOrdered, keysOrdered)) {
+        errors.push(`overrides/${locale}.json: keys in different order than en-US.json`);
       }
     }
   }

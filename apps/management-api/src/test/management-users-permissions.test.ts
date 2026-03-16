@@ -4,51 +4,53 @@
  * Also covers POST /users/:id/change-password permission checks.
  */
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import request from 'supertest';
+import type request from 'supertest';
+import { UserService } from '@boilerplate/orm';
 
-import { appDataSourceRead, appDataSourceReadWrite } from '@boilerplate/orm';
-import { managementDataSource } from '@boilerplate/management-orm';
-import { createApp } from '../app.js';
 import { config } from '../config/index.js';
-import { createSuperAdminForTest } from './createSuperAdminForTest.js';
+import { hashPassword } from '../lib/auth/hash.js';
+import { createManagementLoginAgent } from './helpers/login-agent.js';
+import {
+  createManagementApiTestAppWithSuperAdmin,
+  destroyManagementApiTestDataSources,
+} from './helpers/setup.js';
 
 const API = config.apiVersionPath;
-const superAdminEmail = 'test-super-admin@example.com';
-const superAdminPassword = 'test-super-admin-password-1';
+/** Unique per file to avoid collisions when tests run in parallel. */
+const FILE_PREFIX = 'mgmt-up';
+const superAdminUsername = `${FILE_PREFIX}-super-admin`;
+const superAdminPassword = `${FILE_PREFIX}-super-admin-password-1`;
+
+async function createUserFixture(email: string, displayName: string): Promise<string> {
+  const passwordHash = await hashPassword('target-user-password-1');
+  const user = await UserService.create({
+    email,
+    password: passwordHash,
+    displayName,
+  });
+  return user.id;
+}
 
 describe('management-api users permissions', () => {
-  let app: ReturnType<typeof createApp>;
+  let app: Awaited<ReturnType<typeof createManagementApiTestAppWithSuperAdmin>>;
   let superAdminAgent: ReturnType<typeof request.agent>;
 
   beforeAll(async () => {
-    await appDataSourceRead.initialize();
-    await appDataSourceReadWrite.initialize();
-    await managementDataSource.initialize();
-    await createSuperAdminForTest(superAdminEmail, superAdminPassword);
-    app = createApp();
-    superAdminAgent = request.agent(app);
-    await superAdminAgent
-      .post(`${API}/auth/login`)
-      .send({ email: superAdminEmail, password: superAdminPassword })
-      .expect(200);
+    app = await createManagementApiTestAppWithSuperAdmin(superAdminUsername, superAdminPassword);
+    superAdminAgent = await createManagementLoginAgent(app, {
+      username: superAdminUsername,
+      password: superAdminPassword,
+    });
   });
 
   afterAll(async () => {
-    if (managementDataSource.isInitialized) {
-      await managementDataSource.destroy();
-    }
-    if (appDataSourceReadWrite.isInitialized) {
-      await appDataSourceReadWrite.destroy();
-    }
-    if (appDataSourceRead.isInitialized) {
-      await appDataSourceRead.destroy();
-    }
+    await destroyManagementApiTestDataSources();
   });
 
   describe('admin with read-only permissions on users', () => {
     const ts = Date.now();
-    const readOnlyEmail = `users-read-admin-${ts}@example.com`;
-    const readOnlyPassword = 'users-read-password-1';
+    const readOnlyEmail = `${FILE_PREFIX}-read-admin-${ts}@example.com`;
+    const readOnlyPassword = `${FILE_PREFIX}-read-password-1`;
     let readOnlyAdminId: string;
     let readOnlyAgent: ReturnType<typeof request.agent>;
     let targetUserId: string;
@@ -58,7 +60,7 @@ describe('management-api users permissions', () => {
       const adminRes = await superAdminAgent
         .post(`${API}/admins`)
         .send({
-          email: readOnlyEmail,
+          username: readOnlyEmail,
           password: readOnlyPassword,
           displayName: `Users Read Admin ${ts}`,
           adminsCrud: 0,
@@ -68,22 +70,16 @@ describe('management-api users permissions', () => {
         .expect(201);
       readOnlyAdminId = adminRes.body.admin.id;
 
-      readOnlyAgent = request.agent(app);
-      await readOnlyAgent
-        .post(`${API}/auth/login`)
-        .send({ email: readOnlyEmail, password: readOnlyPassword })
-        .expect(200);
+      readOnlyAgent = await createManagementLoginAgent(app, {
+        username: readOnlyEmail,
+        password: readOnlyPassword,
+      });
 
-      // Create a target user to act on
-      const userRes = await superAdminAgent
-        .post(`${API}/users`)
-        .send({
-          email: `target-user-read-${ts}@example.com`,
-          password: 'target-user-password-1',
-          displayName: `Target User Read ${ts}`,
-        })
-        .expect(201);
-      targetUserId = userRes.body.user.id;
+      // Create a target user to act on (direct fixture; POST /users contract is covered elsewhere)
+      targetUserId = await createUserFixture(
+        `${FILE_PREFIX}-target-read-${ts}@example.com`,
+        `Target User Read ${ts}`
+      );
     });
 
     it('GET /users returns 200 (has read)', async () => {
@@ -100,7 +96,7 @@ describe('management-api users permissions', () => {
       await readOnlyAgent
         .post(`${API}/users`)
         .send({
-          email: `denied-create-${ts}@example.com`,
+          email: `${FILE_PREFIX}-denied-create-${ts}@example.com`,
           password: 'password-1',
         })
         .expect(403);
@@ -125,14 +121,18 @@ describe('management-api users permissions', () => {
     });
 
     afterAll(async () => {
-      await superAdminAgent.delete(`${API}/users/${targetUserId}`).expect(204);
-      await superAdminAgent.delete(`${API}/admins/${readOnlyAdminId}`).expect(204);
+      if (targetUserId !== undefined) {
+        await superAdminAgent.delete(`${API}/users/${targetUserId}`).expect(204);
+      }
+      if (readOnlyAdminId !== undefined) {
+        await superAdminAgent.delete(`${API}/admins/${readOnlyAdminId}`).expect(204);
+      }
     });
   });
 
   describe('admin with no permissions on users', () => {
     const ts2 = Date.now() + 1;
-    const noPermEmail = `users-no-perm-${ts2}@example.com`;
+    const noPermEmail = `${FILE_PREFIX}-no-perm-${ts2}@example.com`;
     const noPermPassword = 'users-no-perm-password-1';
     let noPermAdminId: string;
     let noPermAgent: ReturnType<typeof request.agent>;
@@ -141,7 +141,7 @@ describe('management-api users permissions', () => {
       const res = await superAdminAgent
         .post(`${API}/admins`)
         .send({
-          email: noPermEmail,
+          username: noPermEmail,
           password: noPermPassword,
           displayName: `Users No Perm Admin ${ts2}`,
           adminsCrud: 0,
@@ -151,11 +151,10 @@ describe('management-api users permissions', () => {
         .expect(201);
       noPermAdminId = res.body.admin.id;
 
-      noPermAgent = request.agent(app);
-      await noPermAgent
-        .post(`${API}/auth/login`)
-        .send({ email: noPermEmail, password: noPermPassword })
-        .expect(200);
+      noPermAgent = await createManagementLoginAgent(app, {
+        username: noPermEmail,
+        password: noPermPassword,
+      });
     });
 
     it('GET /users returns 403 (no read permission)', async () => {
@@ -167,13 +166,15 @@ describe('management-api users permissions', () => {
     });
 
     afterAll(async () => {
-      await superAdminAgent.delete(`${API}/admins/${noPermAdminId}`).expect(204);
+      if (noPermAdminId !== undefined) {
+        await superAdminAgent.delete(`${API}/admins/${noPermAdminId}`).expect(204);
+      }
     });
   });
 
   describe('admin with users update permission (implies change-password)', () => {
     const ts3 = Date.now() + 2;
-    const changePassEmail = `users-changepw-admin-${ts3}@example.com`;
+    const changePassEmail = `${FILE_PREFIX}-changepw-admin-${ts3}@example.com`;
     const changePassPassword = 'changepw-admin-password-1';
     let changePassAdminId: string;
     let changePassAgent: ReturnType<typeof request.agent>;
@@ -183,7 +184,7 @@ describe('management-api users permissions', () => {
       const adminRes = await superAdminAgent
         .post(`${API}/admins`)
         .send({
-          email: changePassEmail,
+          username: changePassEmail,
           password: changePassPassword,
           displayName: `Change PW Admin ${ts3}`,
           adminsCrud: 0,
@@ -193,20 +194,15 @@ describe('management-api users permissions', () => {
         .expect(201);
       changePassAdminId = adminRes.body.admin.id;
 
-      changePassAgent = request.agent(app);
-      await changePassAgent
-        .post(`${API}/auth/login`)
-        .send({ email: changePassEmail, password: changePassPassword })
-        .expect(200);
+      changePassAgent = await createManagementLoginAgent(app, {
+        username: changePassEmail,
+        password: changePassPassword,
+      });
 
-      const userRes = await superAdminAgent
-        .post(`${API}/users`)
-        .send({
-          email: `target-user-changepw-${ts3}@example.com`,
-          password: 'target-user-password-1',
-        })
-        .expect(201);
-      targetUserId = userRes.body.user.id;
+      targetUserId = await createUserFixture(
+        `${FILE_PREFIX}-target-changepw-${ts3}@example.com`,
+        `Target User ChangePW ${ts3}`
+      );
     });
 
     it('POST /users/:id/change-password returns 204 (has users update permission)', async () => {
@@ -225,8 +221,12 @@ describe('management-api users permissions', () => {
     });
 
     afterAll(async () => {
-      await superAdminAgent.delete(`${API}/users/${targetUserId}`).expect(204);
-      await superAdminAgent.delete(`${API}/admins/${changePassAdminId}`).expect(204);
+      if (targetUserId !== undefined) {
+        await superAdminAgent.delete(`${API}/users/${targetUserId}`).expect(204);
+      }
+      if (changePassAdminId !== undefined) {
+        await superAdminAgent.delete(`${API}/admins/${changePassAdminId}`).expect(204);
+      }
     });
   });
 });

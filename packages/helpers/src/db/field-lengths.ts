@@ -7,7 +7,12 @@ export const EMAIL_MAX_LENGTH = 255;
 export const PASSWORD_HASH_LENGTH = 60;
 export const PASSWORD_MAX_LENGTH = 72;
 export const SHORT_TEXT_MAX_LENGTH = 50;
+/** Max length for user_credentials.username. Unique, nullable; at least one of email or username required. */
+export const USERNAME_MAX_LENGTH = 50;
 /** SHA-256 hex digest length; used for verification_token.token_hash. */
 export const TOKEN_HASH_HEX_LENGTH = 64;
 /** Max length for verification_token.kind (e.g. email_verify, password_reset). */
 export const VERIFICATION_TOKEN_KIND_MAX_LENGTH = 32;
+
+/** Default max length for bucket message body (used when creating bucket_settings and for display fallback). */
+export const DEFAULT_MESSAGE_BODY_MAX_LENGTH = 1000;

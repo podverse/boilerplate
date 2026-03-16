@@ -3,12 +3,20 @@
 .row {
   display: flex;
   align-items: center;
-  gap: $space-2;
+  gap: $gap-button-row;
 }
 
 .rowWrap {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: $space-2;
+  gap: $gap-button-row;
+}
+
+.rowJustifyEnd {
+  justify-content: flex-end;
+}
+
+.rowJustifyBetween {
+  justify-content: space-between;
 }

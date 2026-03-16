@@ -4,51 +4,41 @@
  * Super admin fixtures are shared; limited-permission admin fixtures are created per describe block.
  */
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import request from 'supertest';
+import type request from 'supertest';
 
-import { appDataSourceRead, appDataSourceReadWrite } from '@boilerplate/orm';
-import { managementDataSource } from '@boilerplate/management-orm';
-import { createApp } from '../app.js';
 import { config } from '../config/index.js';
-import { createSuperAdminForTest } from './createSuperAdminForTest.js';
+import { createManagementLoginAgent } from './helpers/login-agent.js';
+import {
+  createManagementApiTestAppWithSuperAdmin,
+  destroyManagementApiTestDataSources,
+} from './helpers/setup.js';
 
 const API = config.apiVersionPath;
-const superAdminEmail = 'test-super-admin@example.com';
-const superAdminPassword = 'test-super-admin-password-1';
+/** Unique per file to avoid collisions when tests run in parallel. */
+const FILE_PREFIX = 'mgmt-ap';
+const superAdminUsername = `${FILE_PREFIX}-super-admin`;
+const superAdminPassword = `${FILE_PREFIX}-super-admin-password-1`;
 
 describe('management-api admins permissions', () => {
-  let app: ReturnType<typeof createApp>;
+  let app: Awaited<ReturnType<typeof createManagementApiTestAppWithSuperAdmin>>;
   let superAdminAgent: ReturnType<typeof request.agent>;
 
   beforeAll(async () => {
-    await appDataSourceRead.initialize();
-    await appDataSourceReadWrite.initialize();
-    await managementDataSource.initialize();
-    await createSuperAdminForTest(superAdminEmail, superAdminPassword);
-    app = createApp();
-    superAdminAgent = request.agent(app);
-    await superAdminAgent
-      .post(`${API}/auth/login`)
-      .send({ email: superAdminEmail, password: superAdminPassword })
-      .expect(200);
+    app = await createManagementApiTestAppWithSuperAdmin(superAdminUsername, superAdminPassword);
+    superAdminAgent = await createManagementLoginAgent(app, {
+      username: superAdminUsername,
+      password: superAdminPassword,
+    });
   });
 
   afterAll(async () => {
-    if (managementDataSource.isInitialized) {
-      await managementDataSource.destroy();
-    }
-    if (appDataSourceReadWrite.isInitialized) {
-      await appDataSourceReadWrite.destroy();
-    }
-    if (appDataSourceRead.isInitialized) {
-      await appDataSourceRead.destroy();
-    }
+    await destroyManagementApiTestDataSources();
   });
 
   describe('admin with read-only permissions on admins', () => {
     const ts = Date.now();
-    const readOnlyEmail = `read-only-admin-${ts}@example.com`;
-    const readOnlyPassword = 'read-only-password-1';
+    const readOnlyEmail = `${FILE_PREFIX}-read-admin-${ts}@example.com`;
+    const readOnlyPassword = `${FILE_PREFIX}-read-password-1`;
     let readOnlyAdminId: string;
     let readOnlyAgent: ReturnType<typeof request.agent>;
 
@@ -56,7 +46,7 @@ describe('management-api admins permissions', () => {
       const res = await superAdminAgent
         .post(`${API}/admins`)
         .send({
-          email: readOnlyEmail,
+          username: readOnlyEmail,
           password: readOnlyPassword,
           displayName: `Read Only Admin ${ts}`,
           adminsCrud: 2, // read only (CrudMask: create=1, read=2, update=4, delete=8)
@@ -66,11 +56,10 @@ describe('management-api admins permissions', () => {
         .expect(201);
       readOnlyAdminId = res.body.admin.id;
 
-      readOnlyAgent = request.agent(app);
-      await readOnlyAgent
-        .post(`${API}/auth/login`)
-        .send({ email: readOnlyEmail, password: readOnlyPassword })
-        .expect(200);
+      readOnlyAgent = await createManagementLoginAgent(app, {
+        username: readOnlyEmail,
+        password: readOnlyPassword,
+      });
     });
 
     it('GET /admins returns 200 (has read)', async () => {
@@ -87,7 +76,7 @@ describe('management-api admins permissions', () => {
       await readOnlyAgent
         .post(`${API}/admins`)
         .send({
-          email: `new-by-readonly-${ts}@example.com`,
+          username: `${FILE_PREFIX}-new-by-readonly-${ts}@example.com`,
           password: 'password-1',
           displayName: `New By Readonly ${ts}`,
           adminsCrud: 0,
@@ -110,12 +99,11 @@ describe('management-api admins permissions', () => {
 
     it('PATCH /admins/:id permission update succeeds when actor has update permission', async () => {
       // Admin with update permission can update another admin's permissions (non–super-admin target)
-      const updateAgent = request.agent(app);
-      const updateEmail = `update-perm-${ts}@example.com`;
+      const updateEmail = `${FILE_PREFIX}-update-perm-${ts}@example.com`;
       const createRes = await superAdminAgent
         .post(`${API}/admins`)
         .send({
-          email: updateEmail,
+          username: updateEmail,
           password: 'update-password-1',
           displayName: `Update Perm Admin ${ts}`,
           adminsCrud: 4, // update only
@@ -124,10 +112,10 @@ describe('management-api admins permissions', () => {
         })
         .expect(201);
       const updateAdminId = createRes.body.admin.id;
-      await updateAgent
-        .post(`${API}/auth/login`)
-        .send({ email: updateEmail, password: 'update-password-1' })
-        .expect(200);
+      const updateAgent = await createManagementLoginAgent(app, {
+        username: updateEmail,
+        password: 'update-password-1',
+      });
       const patchRes = await updateAgent
         .patch(`${API}/admins/${readOnlyAdminId}`)
         .send({ adminsCrud: 15 })
@@ -138,14 +126,15 @@ describe('management-api admins permissions', () => {
     });
 
     afterAll(async () => {
-      // Cleanup read-only admin
-      await superAdminAgent.delete(`${API}/admins/${readOnlyAdminId}`).expect(204);
+      if (readOnlyAdminId !== undefined) {
+        await superAdminAgent.delete(`${API}/admins/${readOnlyAdminId}`).expect(204);
+      }
     });
   });
 
   describe('admin with no permissions on admins', () => {
     const ts2 = Date.now() + 1;
-    const noPermEmail = `no-perm-${ts2}@example.com`;
+    const noPermEmail = `${FILE_PREFIX}-no-perm-${ts2}@example.com`;
     const noPermPassword = 'no-perm-password-1';
     let noPermAdminId: string;
     let noPermAgent: ReturnType<typeof request.agent>;
@@ -154,7 +143,7 @@ describe('management-api admins permissions', () => {
       const res = await superAdminAgent
         .post(`${API}/admins`)
         .send({
-          email: noPermEmail,
+          username: noPermEmail,
           password: noPermPassword,
           displayName: `No Perm Admin ${ts2}`,
           adminsCrud: 0,
@@ -164,11 +153,10 @@ describe('management-api admins permissions', () => {
         .expect(201);
       noPermAdminId = res.body.admin.id;
 
-      noPermAgent = request.agent(app);
-      await noPermAgent
-        .post(`${API}/auth/login`)
-        .send({ email: noPermEmail, password: noPermPassword })
-        .expect(200);
+      noPermAgent = await createManagementLoginAgent(app, {
+        username: noPermEmail,
+        password: noPermPassword,
+      });
     });
 
     it('GET /admins returns 403 (no read permission)', async () => {
@@ -180,17 +168,18 @@ describe('management-api admins permissions', () => {
     });
 
     afterAll(async () => {
-      await superAdminAgent.delete(`${API}/admins/${noPermAdminId}`).expect(204);
+      if (noPermAdminId !== undefined) {
+        await superAdminAgent.delete(`${API}/admins/${noPermAdminId}`).expect(204);
+      }
     });
   });
 
-  describe('super admin cannot be retrieved via GET /admins/:id', () => {
-    it('returns 404 when looking up super admin by id (super admins are hidden)', async () => {
-      // Get super admin's id via me
+  describe('super admin retrieval', () => {
+    it('returns 200 when looking up super admin by id', async () => {
       const meRes = await superAdminAgent.get(`${API}/auth/me`).expect(200);
       const superAdminId = meRes.body.user.id;
-      // GET /admins/:id should return 404 for super admin (hidden from admin list)
-      await superAdminAgent.get(`${API}/admins/${superAdminId}`).expect(404);
+      const res = await superAdminAgent.get(`${API}/admins/${superAdminId}`).expect(200);
+      expect(res.body.admin.id).toBe(superAdminId);
     });
   });
 
@@ -202,7 +191,7 @@ describe('management-api admins permissions', () => {
       const res = await superAdminAgent
         .post(`${API}/admins`)
         .send({
-          email: `dn-a-${ts3}@example.com`,
+          username: `${FILE_PREFIX}-dn-a-${ts3}@example.com`,
           password: 'dn-a-password',
           displayName: `Unique DN Admin ${ts3}`,
           adminsCrud: 0,
@@ -217,7 +206,7 @@ describe('management-api admins permissions', () => {
       await superAdminAgent
         .post(`${API}/admins`)
         .send({
-          email: `dn-b-${ts3}@example.com`,
+          username: `${FILE_PREFIX}-dn-b-${ts3}@example.com`,
           password: 'dn-b-password',
           displayName: `Unique DN Admin ${ts3}`,
           adminsCrud: 0,

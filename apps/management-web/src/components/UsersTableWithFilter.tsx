@@ -1,10 +1,10 @@
 'use client';
 
 import { managementWebUsers } from '@boilerplate/helpers-requests';
+import { ResourceTableWithFilter, type FilterableTableRow } from '@boilerplate/ui';
 import type { TableFilterBarColumn } from '@boilerplate/ui';
 
-import { userEditRoute } from '../lib/routes';
-import { ResourceTableWithFilter, type FilterableTableRow } from './ResourceTableWithFilter';
+import { userEditRoute, userViewRoute } from '../lib/routes';
 
 export type { FilterableTableRow };
 
@@ -16,10 +16,15 @@ export type UsersTableWithFilterProps = {
   initialSearch: string;
   basePath: string;
   currentQueryParams: Record<string, string>;
+  /** Column IDs that can be selected in the filter dropdown (default: all columns). */
+  filterableColumnIds?: string[];
+  canViewUser: boolean;
   canUpdateUser: boolean;
   canDeleteUser: boolean;
   userApiBaseUrl: string;
   addUserHref?: string;
+  sortPrefsCookieName?: string;
+  sortPrefsListKey?: string;
 };
 
 export function UsersTableWithFilter({
@@ -30,10 +35,14 @@ export function UsersTableWithFilter({
   initialSearch,
   basePath,
   currentQueryParams,
+  filterableColumnIds,
+  canViewUser,
   canUpdateUser,
   canDeleteUser,
   userApiBaseUrl,
   addUserHref,
+  sortPrefsCookieName,
+  sortPrefsListKey,
 }: UsersTableWithFilterProps) {
   return (
     <ResourceTableWithFilter
@@ -44,6 +53,12 @@ export function UsersTableWithFilter({
       initialSearch={initialSearch}
       basePath={basePath}
       currentQueryParams={currentQueryParams}
+      filterableColumnIds={filterableColumnIds}
+      sortPrefsCookieName={sortPrefsCookieName}
+      sortPrefsListKey={sortPrefsListKey}
+      viewRoute={userViewRoute}
+      viewLabelKey="usersTable.view"
+      canView={canViewUser}
       editRoute={userEditRoute}
       onDelete={(baseUrl, id) => managementWebUsers.deleteUser(baseUrl, id)}
       addHref={addUserHref}

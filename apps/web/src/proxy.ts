@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
-import { PUBLIC_PATHS, ROUTES } from './lib/routes';
+import { getWebAuthModeCapabilities } from './lib/authMode';
+import { isPublicPath, ROUTES } from './lib/routes';
 
 const SESSION_COOKIE_NAME = 'session';
 const REFRESH_COOKIE_NAME = 'refresh';
@@ -18,20 +19,29 @@ function getApiBaseUrl(): string {
   return trimmed + getApiVersionPath();
 }
 
-async function trySessionRestore(
-  request: NextRequest
-): Promise<{ response: NextResponse; hasRestoredSession: boolean }> {
+/** Clear session/refresh cookies (Path=/; Max-Age=0) so the client drops them. */
+function appendClearSessionCookies(res: NextResponse): void {
+  const opts = 'Path=/; Max-Age=0; HttpOnly; SameSite=lax';
+  res.headers.append('Set-Cookie', `${SESSION_COOKIE_NAME}=; ${opts}`);
+  res.headers.append('Set-Cookie', `${REFRESH_COOKIE_NAME}=; ${opts}`);
+}
+
+async function trySessionRestore(request: NextRequest): Promise<{
+  response: NextResponse;
+  hasRestoredSession: boolean;
+  sessionInvalidated: boolean;
+}> {
   const sessionCookie = request.cookies.get(SESSION_COOKIE_NAME);
   const refreshCookie = request.cookies.get(REFRESH_COOKIE_NAME);
   if (sessionCookie === undefined && refreshCookie === undefined) {
-    return { response: NextResponse.next(), hasRestoredSession: false };
+    return { response: NextResponse.next(), hasRestoredSession: false, sessionInvalidated: false };
   }
 
   const cookieHeader = request.headers.get('cookie') ?? '';
   const baseUrl = getApiBaseUrl();
   const versionPath = getApiVersionPath();
   if (baseUrl === versionPath || baseUrl === '') {
-    return { response: NextResponse.next(), hasRestoredSession: false };
+    return { response: NextResponse.next(), hasRestoredSession: false, sessionInvalidated: false };
   }
 
   const meRes = await fetch(`${baseUrl}/auth/me`, {
@@ -39,10 +49,10 @@ async function trySessionRestore(
     cache: 'no-store',
   });
   if (meRes.status === 200) {
-    return { response: NextResponse.next(), hasRestoredSession: false };
+    return { response: NextResponse.next(), hasRestoredSession: false, sessionInvalidated: false };
   }
   if (meRes.status !== 401) {
-    return { response: NextResponse.next(), hasRestoredSession: false };
+    return { response: NextResponse.next(), hasRestoredSession: false, sessionInvalidated: false };
   }
 
   const refreshRes = await fetch(`${baseUrl}/auth/refresh`, {
@@ -51,34 +61,47 @@ async function trySessionRestore(
     cache: 'no-store',
   });
   if (refreshRes.status !== 200) {
-    return { response: NextResponse.next(), hasRestoredSession: false };
+    const res = NextResponse.next();
+    appendClearSessionCookies(res);
+    return { response: res, hasRestoredSession: false, sessionInvalidated: true };
   }
 
   let body: {
     user?: {
       id?: string;
       shortId?: string;
-      email?: string;
+      email?: string | null;
+      username?: string | null;
       displayName?: string | null;
-      profileVisibility?: boolean;
     };
   };
   try {
     body = (await refreshRes.json()) as typeof body;
   } catch {
-    return { response: NextResponse.next(), hasRestoredSession: false };
+    const res = NextResponse.next();
+    appendClearSessionCookies(res);
+    return { response: res, hasRestoredSession: false, sessionInvalidated: true };
   }
   const user = body?.user;
-  if (user === undefined || typeof user.id !== 'string' || typeof user.email !== 'string') {
-    return { response: NextResponse.next(), hasRestoredSession: false };
+  if (user === undefined || typeof user.id !== 'string') {
+    const res = NextResponse.next();
+    appendClearSessionCookies(res);
+    return { response: res, hasRestoredSession: false, sessionInvalidated: true };
+  }
+  const hasEmail = user.email !== undefined && user.email !== null && user.email !== '';
+  const hasUsername = user.username !== undefined && user.username !== null && user.username !== '';
+  if (!hasEmail && !hasUsername) {
+    const res = NextResponse.next();
+    appendClearSessionCookies(res);
+    return { response: res, hasRestoredSession: false, sessionInvalidated: true };
   }
 
   const authUser = JSON.stringify({
     id: user.id,
     shortId: typeof user.shortId === 'string' ? user.shortId : user.id,
-    email: user.email,
+    email: hasEmail ? user.email : null,
+    username: hasUsername ? user.username : null,
     displayName: user.displayName ?? null,
-    profileVisibility: user.profileVisibility === true,
   });
   const newHeaders = new Headers(request.headers);
   newHeaders.set(AUTH_USER_HEADER, authUser);
@@ -89,7 +112,7 @@ async function trySessionRestore(
       nextRes.headers.append('Set-Cookie', value);
     }
   }
-  return { response: nextRes, hasRestoredSession: true };
+  return { response: nextRes, hasRestoredSession: true, sessionInvalidated: false };
 }
 
 export async function proxy(request: NextRequest) {
@@ -100,20 +123,59 @@ export async function proxy(request: NextRequest) {
     return NextResponse.next();
   }
 
-  const { response, hasRestoredSession } = await trySessionRestore(request);
-  const hasSession = request.cookies.has(SESSION_COOKIE_NAME) || hasRestoredSession;
-  const isPublic = PUBLIC_PATHS.includes(pathname);
+  const { response, hasRestoredSession, sessionInvalidated } = await trySessionRestore(request);
+  const hasSession =
+    (request.cookies.has(SESSION_COOKIE_NAME) || hasRestoredSession) && !sessionInvalidated;
+  const isPublic = isPublicPath(pathname);
+  const authModeCapabilities = getWebAuthModeCapabilities(process.env.NEXT_PUBLIC_AUTH_MODE);
+
+  // Mode-disabled auth routes should not be accessible.
+  if (pathname === ROUTES.SIGNUP && !authModeCapabilities.canPublicSignup) {
+    const redirectRes = NextResponse.redirect(new URL(ROUTES.LOGIN, request.url));
+    if (sessionInvalidated) {
+      appendClearSessionCookies(redirectRes);
+    }
+    return redirectRes;
+  }
+  if (
+    (pathname === ROUTES.FORGOT_PASSWORD ||
+      pathname === ROUTES.RESET_PASSWORD ||
+      pathname === ROUTES.VERIFY_EMAIL ||
+      pathname === ROUTES.CONFIRM_EMAIL_CHANGE) &&
+    !authModeCapabilities.canUseEmailVerificationFlows
+  ) {
+    const redirectRes = NextResponse.redirect(new URL(ROUTES.LOGIN, request.url));
+    if (sessionInvalidated) {
+      appendClearSessionCookies(redirectRes);
+    }
+    return redirectRes;
+  }
+  if (pathname === ROUTES.SET_PASSWORD && !authModeCapabilities.canIssueAdminInviteLink) {
+    const redirectRes = NextResponse.redirect(new URL(ROUTES.LOGIN, request.url));
+    if (sessionInvalidated) {
+      appendClearSessionCookies(redirectRes);
+    }
+    return redirectRes;
+  }
 
   // Protected route without session -> redirect to login
   if (!isPublic && !hasSession) {
     const loginUrl = new URL(ROUTES.LOGIN, request.url);
-    return NextResponse.redirect(loginUrl);
+    const redirectRes = NextResponse.redirect(loginUrl);
+    if (sessionInvalidated) {
+      appendClearSessionCookies(redirectRes);
+    }
+    return redirectRes;
   }
 
-  // Already logged in visiting login/signup -> redirect to dashboard
+  // Already logged in visiting login/signup -> redirect to dashboard or returnUrl
   if (hasSession && (pathname === ROUTES.LOGIN || pathname === ROUTES.SIGNUP)) {
-    const dashboardUrl = new URL(ROUTES.DASHBOARD, request.url);
-    return NextResponse.redirect(dashboardUrl);
+    const returnUrl = new URL(request.url).searchParams.get('returnUrl');
+    const safeReturn =
+      returnUrl !== null && returnUrl.trim().startsWith('/') && !returnUrl.trim().startsWith('//');
+    const target = safeReturn ? returnUrl.trim() : ROUTES.DASHBOARD;
+    const redirectUrl = new URL(target, request.url);
+    return NextResponse.redirect(redirectUrl);
   }
 
   return response;

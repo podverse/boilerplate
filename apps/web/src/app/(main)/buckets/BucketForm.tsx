@@ -2,10 +2,10 @@
 
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
-import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import {
   Button,
+  ButtonLink,
   CheckboxField,
   FormActions,
   FormContainer,
@@ -22,6 +22,7 @@ export type BucketForForm = {
   id: string;
   name: string;
   isPublic: boolean;
+  messageBodyMaxLength: number | null;
 };
 
 type BucketFormProps = {
@@ -36,6 +37,11 @@ export function BucketForm({ mode, bucket, successHref, cancelHref }: BucketForm
   const router = useRouter();
   const [name, setName] = useState(bucket?.name ?? '');
   const [isPublic, setIsPublic] = useState(bucket?.isPublic ?? true);
+  const [messageBodyMaxLength, setMessageBodyMaxLength] = useState<string>(
+    bucket?.messageBodyMaxLength !== undefined && bucket?.messageBodyMaxLength !== null
+      ? String(bucket.messageBodyMaxLength)
+      : ''
+  );
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -48,10 +54,16 @@ export function BucketForm({ mode, bucket, successHref, cancelHref }: BucketForm
     }
     setLoading(true);
     const baseUrl = getApiBaseUrl();
-    const body = {
+    const body: { name: string; isPublic: boolean; messageBodyMaxLength?: number | null } = {
       name: name.trim(),
       isPublic,
     };
+    if (mode === 'edit') {
+      body.messageBodyMaxLength =
+        messageBodyMaxLength.trim() === ''
+          ? null
+          : Math.max(1, Math.floor(Number(messageBodyMaxLength))) || null;
+    }
 
     try {
       if (mode === 'create') {
@@ -102,6 +114,17 @@ export function BucketForm({ mode, bucket, successHref, cancelHref }: BucketForm
           disabled={loading}
           required
         />
+        {mode === 'edit' && (
+          <Input
+            label={t('messageBodyMaxLengthLabel')}
+            type="number"
+            min={1}
+            value={messageBodyMaxLength}
+            onChange={setMessageBodyMaxLength}
+            disabled={loading}
+            placeholder={t('messageBodyMaxLengthPlaceholder')}
+          />
+        )}
         <Row>
           <CheckboxField
             label={t('isPublic')}
@@ -122,11 +145,9 @@ export function BucketForm({ mode, bucket, successHref, cancelHref }: BucketForm
           <Button type="submit" variant="primary" loading={loading}>
             {mode === 'create' ? t('addBucket') : t('save')}
           </Button>
-          <Link href={cancelHref}>
-            <Button type="button" variant="secondary">
-              {t('cancel')}
-            </Button>
-          </Link>
+          <ButtonLink href={cancelHref} variant="secondary">
+            {t('cancel')}
+          </ButtonLink>
         </FormActions>
       </Stack>
     </FormContainer>

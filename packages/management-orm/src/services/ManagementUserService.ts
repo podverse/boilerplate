@@ -8,29 +8,35 @@ import { ManagementUserCredentials } from '../entities/ManagementUserCredentials
 import type { EventVisibility } from '../entities/AdminPermissions.js';
 
 export type CreateAdminData = {
-  email: string;
+  username: string;
   passwordHash: string;
   displayName: string;
   createdBy: string;
   adminsCrud: number;
   usersCrud: number;
+  bucketsCrud: number;
+  bucketMessagesCrud: number;
+  bucketAdminsCrud: number;
   eventVisibility: EventVisibility;
 };
 
 export type UpdateAdminData = {
-  email?: string;
+  username?: string;
   displayName?: string;
   passwordHash?: string;
   adminsCrud?: number;
   usersCrud?: number;
+  bucketsCrud?: number;
+  bucketMessagesCrud?: number;
+  bucketAdminsCrud?: number;
   eventVisibility?: EventVisibility;
 };
 
 export class ManagementUserService {
-  static async findByEmail(email: string): Promise<ManagementUser | null> {
+  static async findByUsername(username: string): Promise<ManagementUser | null> {
     const repo = managementDataSource.getRepository(ManagementUser);
     return repo.findOne({
-      where: { credentials: { email } },
+      where: { credentials: { username } },
       relations: ['credentials', 'bio', 'permissions'],
     });
   }
@@ -69,23 +75,59 @@ export class ManagementUserService {
     });
   }
 
-  /** Paginated list of admins (non–super-admin users) and total count. Optional ILIKE search over email and display_name. */
+  /** Allowed sort fields for listAdminsPaginated. */
+  static readonly LIST_ADMINS_SORT_FIELDS = ['username', 'displayName', 'createdAt'] as const;
+
+  /** Paginated list of all management users (super admin and admins) and total count. Optional ILIKE search over username and display_name. */
   static async listAdminsPaginated(
     limit: number,
     offset: number,
-    search?: string
+    search?: string,
+    sortBy?: string,
+    sortOrder?: 'asc' | 'desc'
   ): Promise<{ admins: ManagementUser[]; total: number }> {
     const repo = managementDataSource.getRepository(ManagementUser);
     const searchTrim = search?.trim();
     const hasSearch = searchTrim !== undefined && searchTrim !== '';
+    const orderBy =
+      sortBy !== undefined &&
+      (ManagementUserService.LIST_ADMINS_SORT_FIELDS as readonly string[]).includes(sortBy)
+        ? sortBy
+        : 'username';
+    const orderDir: 'ASC' | 'DESC' =
+      sortOrder === 'asc'
+        ? 'ASC'
+        : sortOrder === 'desc'
+          ? 'DESC'
+          : orderBy === 'createdAt'
+            ? 'DESC'
+            : 'ASC';
+
     if (!hasSearch) {
-      const [admins, total] = await repo.findAndCount({
-        where: { isSuperAdmin: false },
-        relations: ['credentials', 'bio', 'permissions'],
-        order: { createdAt: 'ASC' },
-        take: limit,
-        skip: offset,
-      });
+      if (orderBy === 'createdAt') {
+        const [admins, total] = await repo.findAndCount({
+          relations: ['credentials', 'bio', 'permissions'],
+          order: { createdAt: orderDir },
+          take: limit,
+          skip: offset,
+        });
+        return { admins, total };
+      }
+      const qb = repo
+        .createQueryBuilder('u')
+        .leftJoinAndSelect('u.credentials', 'credentials')
+        .leftJoinAndSelect('u.bio', 'bio')
+        .leftJoinAndSelect('u.permissions', 'permissions')
+        .take(limit)
+        .skip(offset);
+      if (orderBy === 'username') {
+        qb.orderBy('credentials.username', orderDir);
+      } else if (orderBy === 'displayName') {
+        qb.orderBy('bio.displayName', orderDir);
+      } else {
+        qb.orderBy('u.createdAt', orderDir);
+      }
+      const [admins, total] = await qb.getManyAndCount();
       return { admins, total };
     }
     const qb = repo
@@ -93,14 +135,21 @@ export class ManagementUserService {
       .leftJoinAndSelect('u.credentials', 'credentials')
       .leftJoinAndSelect('u.bio', 'bio')
       .leftJoinAndSelect('u.permissions', 'permissions')
-      .where('u.is_super_admin = :superAdmin', { superAdmin: false })
-      .andWhere(
-        '(credentials.email ILIKE :searchPattern OR bio.display_name ILIKE :searchPattern)',
-        { searchPattern: `%${searchTrim}%` }
+      .where(
+        '(credentials.username ILIKE :searchPattern OR bio.display_name ILIKE :searchPattern)',
+        {
+          searchPattern: `%${searchTrim}%`,
+        }
       )
-      .orderBy('u.createdAt', 'ASC')
       .take(limit)
       .skip(offset);
+    if (orderBy === 'username') {
+      qb.orderBy('credentials.username', orderDir);
+    } else if (orderBy === 'displayName') {
+      qb.orderBy('bio.displayName', orderDir);
+    } else {
+      qb.orderBy('u.createdAt', orderDir);
+    }
     const [admins, total] = await qb.getManyAndCount();
     return { admins, total };
   }
@@ -125,14 +174,14 @@ export class ManagementUserService {
       const id = uuidv4();
       const user = userRepo.create({
         id,
-        isSuperAdmin: false,
+        isSuperAdmin: false, // Only seed/migration can create super admin; API cannot.
         createdBy: data.createdBy,
       });
       await userRepo.save(user);
 
       const cred = credRepo.create({
         managementUserId: id,
-        email: data.email,
+        username: data.username,
         passwordHash: data.passwordHash,
       });
       await credRepo.save(cred);
@@ -147,6 +196,9 @@ export class ManagementUserService {
         adminId: id,
         adminsCrud: data.adminsCrud,
         usersCrud: data.usersCrud,
+        bucketsCrud: data.bucketsCrud,
+        bucketMessagesCrud: data.bucketMessagesCrud,
+        bucketAdminsCrud: data.bucketAdminsCrud,
         eventVisibility: data.eventVisibility,
       });
       await permRepo.save(perm);
@@ -165,16 +217,16 @@ export class ManagementUserService {
 
   static async updateAdmin(id: string, data: UpdateAdminData): Promise<ManagementUser | null> {
     const existing = await this.findById(id);
-    if (existing === null || existing.isSuperAdmin) return null;
+    if (existing === null) return null;
 
     const qr = managementDataSource.createQueryRunner();
     await qr.connect();
     await qr.startTransaction();
     try {
-      if (data.email !== undefined) {
+      if (data.username !== undefined) {
         await qr.manager
           .getRepository(ManagementUserCredentials)
-          .update({ managementUserId: id }, { email: data.email });
+          .update({ managementUserId: id }, { username: data.username });
       }
       if (data.displayName !== undefined && data.displayName.trim() !== '') {
         await qr.manager
@@ -188,14 +240,22 @@ export class ManagementUserService {
       }
       const permRepo = qr.manager.getRepository(AdminPermissions);
       const perm = existing.permissions;
-      if (perm !== undefined && perm !== null) {
+      const allowPermissionUpdates = !existing.isSuperAdmin && perm !== undefined && perm !== null;
+      if (allowPermissionUpdates) {
         const updates: {
           adminsCrud?: number;
           usersCrud?: number;
+          bucketsCrud?: number;
+          bucketMessagesCrud?: number;
+          bucketAdminsCrud?: number;
           eventVisibility?: EventVisibility;
         } = {};
         if (data.adminsCrud !== undefined) updates.adminsCrud = data.adminsCrud;
         if (data.usersCrud !== undefined) updates.usersCrud = data.usersCrud;
+        if (data.bucketsCrud !== undefined) updates.bucketsCrud = data.bucketsCrud;
+        if (data.bucketMessagesCrud !== undefined)
+          updates.bucketMessagesCrud = data.bucketMessagesCrud;
+        if (data.bucketAdminsCrud !== undefined) updates.bucketAdminsCrud = data.bucketAdminsCrud;
         if (data.eventVisibility !== undefined) updates.eventVisibility = data.eventVisibility;
         if (Object.keys(updates).length > 0) {
           await permRepo.update({ adminId: id }, updates);
@@ -213,7 +273,7 @@ export class ManagementUserService {
 
   static async deleteById(id: string): Promise<boolean> {
     const existing = await this.findById(id);
-    if (existing === null || existing.isSuperAdmin) return false;
+    if (existing === null || existing.isSuperAdmin) return false; // Super admin is never deletable.
     const repo = managementDataSource.getRepository(ManagementUser);
     const result = await repo.delete(id);
     return (result.affected ?? 0) > 0;
@@ -230,9 +290,9 @@ export class ManagementUserService {
     await repo.update({ managementUserId }, { displayName: displayName.trim() });
   }
 
-  /** Update the logged-in user's email (for profile page). Direct change; no verification email. */
-  static async updateEmail(managementUserId: string, email: string): Promise<void> {
+  /** Update the logged-in user's username (for profile page). */
+  static async updateUsername(managementUserId: string, username: string): Promise<void> {
     const repo = managementDataSource.getRepository(ManagementUserCredentials);
-    await repo.update({ managementUserId }, { email: email.trim() });
+    await repo.update({ managementUserId }, { username: username.trim() });
   }
 }

@@ -14,7 +14,31 @@ export function getManagementApiVersionPath(): string {
   return path.startsWith('/') ? path : `/${path}`;
 }
 
-/** Full base URL for API requests (base URL + version path). */
+/** Full base URL for API requests (base URL + version path). Used by client and by server when MANAGEMENT_API_BACKEND_URL is not set. */
 export function getManagementApiBaseUrl(): string {
   return getManagementApiUrl() + getManagementApiVersionPath();
+}
+
+/**
+ * Server-only: base URL for backend API (used by proxy and getServerUser).
+ * When set (e.g. in dev with proxied client), server calls backend directly so cookies from the app origin are forwarded and validated.
+ * When not set, falls back to getManagementApiBaseUrl() (e.g. production same-host).
+ */
+export function getServerManagementApiBaseUrl(): string {
+  const backend = process.env.MANAGEMENT_API_BACKEND_URL?.trim();
+  if (backend !== undefined && backend !== '') {
+    return backend.replace(/\/$/, '') + getManagementApiVersionPath();
+  }
+  return getManagementApiBaseUrl();
+}
+
+/**
+ * Base URL of the main web app (e.g. http://localhost:4002). No trailing slash.
+ * Used for: "Public page" link from bucket detail; invitation links (so they point to the web app, not management-web).
+ * When set, public and invite links use this base. When unset, public link falls back to same-origin; invite link is path-only.
+ */
+export function getWebAppUrl(): string | undefined {
+  const url = process.env.NEXT_PUBLIC_WEB_APP_URL?.trim();
+  if (url === undefined || url === '') return undefined;
+  return url.replace(/\/$/, '');
 }

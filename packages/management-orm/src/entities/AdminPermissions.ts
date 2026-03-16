@@ -24,6 +24,15 @@ export class AdminPermissions {
   @Column({ name: 'users_crud', type: 'integer', default: 0 })
   usersCrud!: number;
 
+  @Column({ name: 'buckets_crud', type: 'integer', default: 0 })
+  bucketsCrud!: number;
+
+  @Column({ name: 'bucket_messages_crud', type: 'integer', default: 0 })
+  bucketMessagesCrud!: number;
+
+  @Column({ name: 'bucket_admins_crud', type: 'integer', default: 0 })
+  bucketAdminsCrud!: number;
+
   @Column({ name: 'event_visibility', type: 'text', default: 'all_admins' })
   eventVisibility!: EventVisibility;
 

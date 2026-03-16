@@ -11,6 +11,11 @@
   box-sizing: border-box;
 }
 
+/* Allow clicks to pass through to the page underneath (e.g. navigation loading overlay). */
+.overlayClickThrough {
+  pointer-events: none;
+}
+
 .overlayTransparent {
   background: transparent;
 }
@@ -35,6 +40,11 @@
   box-shadow: $shadow-modal;
 }
 
+.contentInnerTransparent {
+  background-color: transparent;
+  box-shadow: none;
+}
+
 .closeButton {
   position: absolute;
   top: $space-2;
@@ -46,7 +56,6 @@
   align-items: center;
   justify-content: center;
   font-size: $icon-size;
-  line-height: 1;
   color: var(--color-text);
   background: transparent;
   border: none;

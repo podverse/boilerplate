@@ -3,12 +3,13 @@ import { getLocale, getTranslations } from 'next-intl/server';
 import { DEFAULT_PAGE_LIMIT } from '@boilerplate/helpers';
 import { request } from '@boilerplate/helpers-requests';
 import { formatDateTimeReadable } from '@boilerplate/helpers-i18n';
-import { Card, Container, Stack, Text } from '@boilerplate/ui';
+import { Container, SectionWithHeading, Text } from '@boilerplate/ui';
 
 import { EventsSortSelect } from '../../../components/EventsSortSelect';
 import { EventsTableWithFilter } from '../../../components/EventsTableWithFilter';
+import { TABLE_SORT_PREFS_COOKIE_NAME } from '../../../lib/cookies';
 import { getServerUser } from '../../../lib/server-auth';
-import { getManagementApiBaseUrl } from '../../../config/env';
+import { getServerManagementApiBaseUrl } from '../../../config/env';
 import { ROUTES } from '../../../lib/routes';
 import { getCookieHeader } from '../../../lib/server-request';
 
@@ -36,14 +37,18 @@ async function fetchEvents(
   page: number,
   limit: number,
   sort: string,
-  search?: string
+  search?: string,
+  sortBy?: string,
+  sortOrder?: string
 ): Promise<{ data: EventsResponse | null; error: string | null }> {
   const cookieHeader = await getCookieHeader();
-  const baseUrl = getManagementApiBaseUrl();
+  const baseUrl = getServerManagementApiBaseUrl();
   const params = new URLSearchParams();
   if (page > 1) params.set('page', String(page));
   if (limit !== DEFAULT_PAGE_LIMIT) params.set('limit', String(limit));
   if (sort === 'oldest') params.set('sort', 'oldest');
+  if (sortBy !== undefined && sortBy.trim() !== '') params.set('sortBy', sortBy.trim());
+  if (sortOrder === 'asc' || sortOrder === 'desc') params.set('sortOrder', sortOrder);
   if (search !== undefined && search !== '') params.set('search', search);
   const query = params.toString();
   const path = query ? `${ROUTES.EVENTS}?${query}` : ROUTES.EVENTS;
@@ -79,6 +84,8 @@ type PageProps = {
     page?: string;
     limit?: string;
     sort?: string;
+    sortBy?: string;
+    sortOrder?: string;
     filterColumns?: string;
     search?: string;
   }>;
@@ -95,8 +102,11 @@ export default async function EventsPage({ searchParams }: PageProps) {
   const page = Math.max(1, Number(resolved.page) || 1);
   const limit = DEFAULT_PAGE_LIMIT;
   const sort = resolved.sort === 'oldest' ? 'oldest' : 'recent';
+  const sortBy = resolved.sortBy?.trim();
+  const sortOrder =
+    resolved.sortOrder === 'asc' || resolved.sortOrder === 'desc' ? resolved.sortOrder : undefined;
   const filterColumnsRaw = resolved.filterColumns ?? '';
-  const eventColumnIds = ['timestamp', 'actor', 'action', 'target', 'details'];
+  const eventColumnIds = ['actor', 'action', 'target', 'details'];
   const initialFilterColumns =
     filterColumnsRaw.trim() === ''
       ? eventColumnIds
@@ -110,7 +120,14 @@ export default async function EventsPage({ searchParams }: PageProps) {
 
   const locale = await getLocale();
   const tCommon = await getTranslations('common');
-  const { data, error } = await fetchEvents(page, limit, sort, search === '' ? undefined : search);
+  const { data, error } = await fetchEvents(
+    page,
+    limit,
+    sort,
+    search === '' ? undefined : search,
+    sortBy,
+    sortOrder
+  );
 
   const events = data?.events ?? [];
   const totalPages = data?.totalPages ?? 1;
@@ -137,61 +154,66 @@ export default async function EventsPage({ searchParams }: PageProps) {
   });
 
   const eventColumns = [
-    { id: 'timestamp', label: tCommon('eventsTable.timestamp') },
-    { id: 'actor', label: tCommon('eventsTable.actor') },
-    { id: 'action', label: tCommon('eventsTable.action') },
-    { id: 'target', label: tCommon('eventsTable.target') },
-    { id: 'details', label: tCommon('eventsTable.details') },
+    {
+      id: 'timestamp',
+      label: tCommon('eventsTable.timestamp'),
+      defaultSortOrder: 'desc' as const,
+    },
+    { id: 'actor', label: tCommon('eventsTable.actor'), defaultSortOrder: 'asc' as const },
+    { id: 'action', label: tCommon('eventsTable.action'), defaultSortOrder: 'asc' as const },
+    { id: 'target', label: tCommon('eventsTable.target'), defaultSortOrder: 'asc' as const },
+    { id: 'details', label: tCommon('eventsTable.details'), defaultSortOrder: 'asc' as const },
   ];
 
   const currentQueryParams: Record<string, string> = {};
   if (page > 1) currentQueryParams.page = String(page);
   if (sort === 'oldest') currentQueryParams.sort = 'oldest';
+  if (sortBy !== undefined && sortBy !== '') currentQueryParams.sortBy = sortBy;
+  if (sortOrder !== undefined) currentQueryParams.sortOrder = sortOrder;
   if (filterColumnsRaw.trim() !== '') currentQueryParams.filterColumns = filterColumnsRaw;
   if (search !== '') currentQueryParams.search = search;
 
   return (
     <Container>
-      <Stack>
-        <Card title={tCommon('events')}>
-          {error !== null && (
-            <Text variant="error" role="alert">
-              {error}
-            </Text>
-          )}
-          {error === null && (
-            <Stack>
-              <EventsTableWithFilter
-                tableRows={tableRows}
-                emptyMessage={events.length === 0 ? tCommon('noEvents') : undefined}
-                columns={eventColumns}
-                initialFilterColumns={effectiveFilterColumns}
-                initialSearch={search}
-                basePath={ROUTES.EVENTS}
-                currentQueryParams={currentQueryParams}
-                currentPage={currentPage}
-                totalPages={totalPages}
+      <SectionWithHeading title={tCommon('events')}>
+        {error !== null && (
+          <Text variant="error" role="alert">
+            {error}
+          </Text>
+        )}
+        {error === null && (
+          <EventsTableWithFilter
+            tableRows={tableRows}
+            emptyMessage={events.length === 0 ? tCommon('noEvents') : undefined}
+            columns={eventColumns}
+            initialFilterColumns={effectiveFilterColumns}
+            initialSearch={search}
+            basePath={ROUTES.EVENTS}
+            currentQueryParams={currentQueryParams}
+            currentPage={currentPage}
+            totalPages={totalPages}
+            limit={limit}
+            defaultLimit={DEFAULT_PAGE_LIMIT}
+            sort={sort}
+            maxGoToPage={500}
+            filterableColumnIds={['actor', 'action', 'target', 'details']}
+            sortPrefsCookieName={TABLE_SORT_PREFS_COOKIE_NAME}
+            sortPrefsListKey="events"
+            trailingToolbar={
+              <EventsSortSelect
+                sort={sort}
                 limit={limit}
                 defaultLimit={DEFAULT_PAGE_LIMIT}
-                sort={sort}
-                maxGoToPage={500}
-                trailingToolbar={
-                  <EventsSortSelect
-                    sort={sort}
-                    limit={limit}
-                    defaultLimit={DEFAULT_PAGE_LIMIT}
-                    label={tCommon('eventsSort.label')}
-                    sortOptionLabels={{
-                      recent: tCommon('eventsSortOptions.recent'),
-                      oldest: tCommon('eventsSortOptions.oldest'),
-                    }}
-                  />
-                }
+                label={tCommon('eventsSort.label')}
+                sortOptionLabels={{
+                  recent: tCommon('eventsSortOptions.recent'),
+                  oldest: tCommon('eventsSortOptions.oldest'),
+                }}
               />
-            </Stack>
-          )}
-        </Card>
-      </Stack>
+            }
+          />
+        )}
+      </SectionWithHeading>
     </Container>
   );
 }

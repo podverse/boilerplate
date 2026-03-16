@@ -4,7 +4,7 @@ import type { ManagementUser } from '@boilerplate/management-orm';
 /** JWT payload: sub is used to load the management user from DB; isSuperAdmin comes from the loaded user, not the token. */
 export interface ManagementJwtPayload {
   sub: string;
-  email: string;
+  username: string;
 }
 
 /** Sign a JWT. Caller must pass expiresIn (seconds or string e.g. "7d"). */
@@ -15,7 +15,7 @@ export function signManagementToken(
 ): string {
   const options = { expiresIn } as SignOptions;
   return jwt.sign(
-    { sub: user.id, email: user.credentials.email } as ManagementJwtPayload,
+    { sub: user.id, username: user.credentials.username } as ManagementJwtPayload,
     secret,
     options
   );
@@ -24,7 +24,9 @@ export function signManagementToken(
 export function verifyManagementToken(token: string, secret: string): ManagementJwtPayload | null {
   try {
     const decoded = jwt.verify(token, secret) as ManagementJwtPayload;
-    return decoded !== null && typeof decoded.sub === 'string' && typeof decoded.email === 'string'
+    return decoded !== null &&
+      typeof decoded.sub === 'string' &&
+      typeof decoded.username === 'string'
       ? decoded
       : null;
   } catch {
@@ -40,7 +42,7 @@ export function signManagementAccessToken(
 ): string {
   const options = { expiresIn: expiresInSeconds } as SignOptions;
   return jwt.sign(
-    { sub: user.id, email: user.credentials.email } as ManagementJwtPayload,
+    { sub: user.id, username: user.credentials.username } as ManagementJwtPayload,
     secret,
     options
   );

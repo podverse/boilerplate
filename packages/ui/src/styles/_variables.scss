@@ -6,6 +6,7 @@ $color-text: #1a1a1a;
 $color-text-muted: #666;
 $color-bg: #fff;
 $color-border: #e0e0e0;
+$color-navbar-bg: #e8e8e8;
 $color-primary: #2563eb;
 $color-primary-hover: #1d4ed8;
 $color-on-primary: #fff;
@@ -27,6 +28,12 @@ $space-4: 1rem;
 $space-5: 1.25rem;
 $space-6: 1.5rem;
 $space-8: 2rem;
+
+/** Shared gap for Stack and UnorderedList (vertical spacing between items). */
+$gap-standard: $space-6;
+
+/** Gap between buttons in a horizontal row (Row, FormActions, CrudButtons, etc.). */
+$gap-button-row: $space-4;
 
 // Border
 $border-width: 1px;
@@ -73,7 +80,7 @@ $rotation-full: 360deg;
 $z-dropdown-panel: 50;
 $z-modal: 100;
 
-// CenterInViewport (centered auth/form content)
+// CenterInViewport (centered content: auth, invite, splash, etc.)
 $center-in-viewport-content-max-width: 24rem;
 
 // Form / modal form (min width for small forms e.g. go-to-page modal)
@@ -85,7 +92,10 @@ $dropdown-panel-min-width: 10rem;
 $dropdown-panel-min-width-lg: 14rem;
 
 // Input (text, email, password, etc.)
-$input-max-width: 28rem;
+$input-max-width: 32rem;
+
+// Content readable width (e.g. bucket detail, messages list — Stack/Container maxWidth="readable")
+$content-readable-max-width: 660px;
 
 // Password strength meter
 $password-strength-label-min-width: 4.5rem;
@@ -111,3 +121,11 @@ $breakpoint-lg: 1280px;
 $breakpoint-sm-max-width: 767px;
 $breakpoint-md-max-width: 1023px;
 $breakpoint-lg-max-width: 1279px;
+
+// Content / navbar horizontal padding — shared by Container and NavBar so they align.
+$content-padding-inline: $space-4;
+$content-padding-inline-sm: $space-4;
+$content-padding-inline-md: $space-6;
+
+// Navbar height
+$navbar-height: 64px;

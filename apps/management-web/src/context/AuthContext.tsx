@@ -13,9 +13,28 @@ import {
 import { getApiBaseUrl } from '../lib/api-client';
 import { isPublicPath, ROUTES } from '../lib/routes';
 
+function getRequiredSessionRefreshIntervalMs(): number {
+  const raw =
+    typeof process !== 'undefined'
+      ? process.env.NEXT_PUBLIC_MANAGEMENT_SESSION_REFRESH_INTERVAL_MS
+      : undefined;
+  if (raw === undefined || raw === '') {
+    throw new Error(
+      'NEXT_PUBLIC_MANAGEMENT_SESSION_REFRESH_INTERVAL_MS is required. Set it to a positive number (ms) less than MANAGEMENT_JWT_ACCESS_EXPIRY_SECONDS * 1000 (e.g. 1800000 for 30 minutes).'
+    );
+  }
+  const ms = Number.parseInt(raw, 10);
+  if (!Number.isFinite(ms) || ms <= 0) {
+    throw new Error(
+      'NEXT_PUBLIC_MANAGEMENT_SESSION_REFRESH_INTERVAL_MS must be a positive number (ms).'
+    );
+  }
+  return ms;
+}
+
 export type AuthUser = {
   id: string;
-  email: string;
+  username: string;
   displayName: string | null;
 };
 
@@ -23,7 +42,7 @@ export type AuthContextValue = {
   user: AuthUser | null;
   loading: boolean;
   login: (
-    email: string,
+    username: string,
     password: string
   ) => Promise<
     { ok: true } | { ok: false; message: string; rateLimit?: { retryAfterSeconds: number } }
@@ -38,11 +57,12 @@ const AuthContext = createContext<AuthContextValue | null>(null);
 function parseUserFromMe(data: unknown): AuthUser | null {
   if (data === undefined || typeof data !== 'object' || data === null) return null;
   if (!('user' in data) || typeof (data as { user: unknown }).user !== 'object') return null;
-  const u = (data as { user: { id?: string; email?: string; displayName?: string | null } }).user;
-  if (typeof u.id !== 'string' || typeof u.email !== 'string') return null;
+  const u = (data as { user: { id?: string; username?: string; displayName?: string | null } })
+    .user;
+  if (typeof u.id !== 'string' || typeof u.username !== 'string') return null;
   return {
     id: u.id,
-    email: u.email,
+    username: u.username,
     displayName: u.displayName ?? null,
   };
 }
@@ -50,11 +70,12 @@ function parseUserFromMe(data: unknown): AuthUser | null {
 function parseUserFromLoginOrRefresh(data: unknown): AuthUser | null {
   if (data === undefined || typeof data !== 'object' || data === null) return null;
   if (!('user' in data) || typeof (data as { user: unknown }).user !== 'object') return null;
-  const u = (data as { user: { id?: string; email?: string; displayName?: string | null } }).user;
-  if (typeof u.id !== 'string' || typeof u.email !== 'string') return null;
+  const u = (data as { user: { id?: string; username?: string; displayName?: string | null } })
+    .user;
+  if (typeof u.id !== 'string' || typeof u.username !== 'string') return null;
   return {
     id: u.id,
-    email: u.email,
+    username: u.username,
     displayName: u.displayName ?? null,
   };
 }
@@ -102,6 +123,7 @@ export function AuthProvider({ children, initialUser }: AuthProviderProps) {
 
   // Proactively refresh the access token before it expires (shared helper).
   const LOGOUT_REDIRECT_TIMEOUT_MS = 5000;
+  const refreshIntervalMs = getRequiredSessionRefreshIntervalMs();
   useEffect(() => {
     if (user === null) return;
     const stop = createSessionRefreshLoop({
@@ -109,16 +131,14 @@ export function AuthProvider({ children, initialUser }: AuthProviderProps) {
       authApi: managementWebAuth,
       parseUser: parseUserFromLoginOrRefresh,
       onSuccess: setUser,
+      refreshIntervalMs,
       onFailure: () => {
         setUser(null);
         void (async () => {
           const timeout = new Promise<void>((resolve) =>
             setTimeout(resolve, LOGOUT_REDIRECT_TIMEOUT_MS)
           );
-          await Promise.race([
-            managementWebAuth.logout(getApiBaseUrl()).catch(() => {}),
-            timeout,
-          ]);
+          await Promise.race([managementWebAuth.logout(getApiBaseUrl()).catch(() => {}), timeout]);
           window.location.href = ROUTES.LOGIN;
         })();
       },
@@ -128,13 +148,13 @@ export function AuthProvider({ children, initialUser }: AuthProviderProps) {
 
   const login = useCallback(
     async (
-      email: string,
+      username: string,
       password: string
     ): Promise<
       { ok: true } | { ok: false; message: string; rateLimit?: { retryAfterSeconds: number } }
     > => {
       const baseUrl = getApiBaseUrl();
-      const res = await managementWebAuth.login(baseUrl, email, password);
+      const res = await managementWebAuth.login(baseUrl, username, password);
       if (!res.ok) {
         const message = res.error?.message ?? AUTH_MESSAGE_LOGIN_FAILED;
         const rateLimit =
@@ -148,11 +168,13 @@ export function AuthProvider({ children, initialUser }: AuthProviderProps) {
             : undefined;
         return { ok: false, message, rateLimit };
       }
-      const data = res.data as { user?: { id: string; email: string; displayName: string | null } };
+      const data = res.data as {
+        user?: { id: string; username: string; displayName: string | null };
+      };
       const u = data?.user
         ? {
             id: data.user.id,
-            email: data.user.email,
+            username: data.user.username,
             displayName: data.user.displayName ?? null,
           }
         : null;

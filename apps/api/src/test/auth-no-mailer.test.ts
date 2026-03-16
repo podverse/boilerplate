@@ -6,50 +6,49 @@
 import { afterAll, beforeAll, describe, it } from 'vitest';
 import request from 'supertest';
 
-import { UserService, appDataSourceRead, appDataSourceReadWrite } from '@boilerplate/orm';
-import { createApp } from '../app.js';
+import { UserService } from '@boilerplate/orm';
 import { config } from '../config/index.js';
 import { hashPassword } from '../lib/auth/hash.js';
+import { createApiLoginAgent } from './helpers/login-agent.js';
+import { createApiTestApp, destroyApiTestDataSources } from './helpers/setup.js';
 
 const API = config.apiVersionPath;
+/** Unique per file to avoid collisions when tests run in parallel. */
+const FILE_PREFIX = 'auth-no-mailer';
 
 describe('no-mailer (admin-only)', () => {
-  let app: ReturnType<typeof createApp>;
+  let app: Awaited<ReturnType<typeof createApiTestApp>>;
   let authAgent: ReturnType<typeof request.agent>;
-  const testUserEmail = `no-mailer-${Date.now()}@example.com`;
-  const testUserPassword = 'test-password-1';
+  const testUserEmail = `${FILE_PREFIX}-${Date.now()}@example.com`;
+  const testUserPassword = `${FILE_PREFIX}-password-1`;
 
   beforeAll(async () => {
-    await appDataSourceRead.initialize();
-    await appDataSourceReadWrite.initialize();
-    app = createApp();
+    app = await createApiTestApp();
     const hashed = await hashPassword(testUserPassword);
     await UserService.create({
       email: testUserEmail,
       password: hashed,
       displayName: 'No-Mailer User',
     });
-    authAgent = request.agent(app);
-    await authAgent
-      .post(`${API}/auth/login`)
-      .send({ email: testUserEmail, password: testUserPassword })
-      .expect(200);
+    authAgent = await createApiLoginAgent(app, {
+      email: testUserEmail,
+      password: testUserPassword,
+    });
   });
 
   afterAll(async () => {
-    if (appDataSourceReadWrite.isInitialized) {
-      await appDataSourceReadWrite.destroy();
-    }
-    if (appDataSourceRead.isInitialized) {
-      await appDataSourceRead.destroy();
-    }
+    await destroyApiTestDataSources();
   });
 
   describe('POST /auth/signup returns 403 when signup disabled', () => {
     it('returns 403', async () => {
       await request(app)
         .post(`${API}/auth/signup`)
-        .send({ email: 'new@example.com', password: 'pass' })
+        .send({
+          email: `${FILE_PREFIX}-new@example.com`,
+          username: `${FILE_PREFIX}-newuser`,
+          password: 'pass',
+        })
         .expect(403, { message: 'Registration is by admin only' });
     });
   });

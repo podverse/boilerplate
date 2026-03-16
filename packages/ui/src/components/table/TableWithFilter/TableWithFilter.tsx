@@ -9,6 +9,7 @@ import { SEARCH_DEBOUNCE_MS } from '@boilerplate/helpers';
 import { Pagination } from '../../navigation/Pagination';
 import { Table } from '../Table';
 import { TableFilterBar, type TableFilterBarColumn } from '../TableFilterBar';
+import { getSortPrefsFromCookie, setSortPrefInCookie } from '../sortPrefsCookie';
 
 import styles from './TableWithFilter.module.scss';
 
@@ -37,6 +38,14 @@ export type TableWithFilterProps = {
   maxGoToPage?: number;
   /** Optional content rendered on the same row as the filter bar (e.g. sort select), aligned to the end. Row wraps when space is tight. */
   trailingToolbar?: React.ReactNode;
+  /** When set, only these column IDs appear in the filter dropdown. Omit to allow all columns. */
+  filterableColumnIds?: string[];
+  /** When set, only these column IDs have sortable headers. Omit to make all data columns sortable. */
+  sortableColumnIds?: string[];
+  /** Cookie name for persisting sort preferences (e.g. management_table_sort_prefs). When set with sortPrefsListKey, sort is saved on change and restored when URL has no sort. */
+  sortPrefsCookieName?: string;
+  /** List key for this table (e.g. buckets, admins, events). Used with sortPrefsCookieName to scope preferences. */
+  sortPrefsListKey?: string;
 };
 
 function filterRows(
@@ -69,6 +78,10 @@ export function TableWithFilter({
   extraPaginationParams,
   maxGoToPage,
   trailingToolbar,
+  filterableColumnIds,
+  sortableColumnIds,
+  sortPrefsCookieName,
+  sortPrefsListKey,
 }: TableWithFilterProps) {
   const router = useRouter();
   const tFilterBar = useTranslations('ui.tableFilterBar');
@@ -92,7 +105,14 @@ export function TableWithFilter({
     }),
     [tPagination, tGoToModal]
   );
-  const allColumnIds = useMemo(() => columns.map((c) => c.id), [columns]);
+  const filterColumns = useMemo(
+    () =>
+      filterableColumnIds !== undefined && filterableColumnIds.length > 0
+        ? columns.filter((c) => filterableColumnIds.includes(c.id))
+        : columns,
+    [columns, filterableColumnIds]
+  );
+  const allColumnIds = useMemo(() => filterColumns.map((c) => c.id), [filterColumns]);
   const [filter, setFilter] = useState(initialSearch);
   const lastInitialSearchRef = useRef(initialSearch);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -141,6 +161,91 @@ export function TableWithFilter({
     return Object.keys(merged).length > 0 ? merged : undefined;
   }, [currentQueryParams, extraPaginationParams]);
 
+  const isColumnSortable = useCallback(
+    (colId: string) => sortableColumnIds === undefined || sortableColumnIds.includes(colId),
+    [sortableColumnIds]
+  );
+
+  const firstSortableColumn = useMemo(
+    () => columns.find((c) => isColumnSortable(c.id)),
+    [columns, isColumnSortable]
+  );
+  const firstSortableColumnKey = useMemo(
+    () =>
+      firstSortableColumn !== undefined
+        ? (firstSortableColumn.sortKey ?? firstSortableColumn.id)
+        : undefined,
+    [firstSortableColumn]
+  );
+
+  useEffect(() => {
+    if (firstSortableColumnKey === undefined) return;
+    const hasSortBy =
+      currentQueryParams.sortBy !== undefined && currentQueryParams.sortBy.trim() !== '';
+    if (hasSortBy) return;
+    const params = new URLSearchParams(currentQueryParams);
+    if (
+      sortPrefsCookieName !== undefined &&
+      sortPrefsListKey !== undefined &&
+      sortPrefsCookieName.trim() !== '' &&
+      sortPrefsListKey.trim() !== ''
+    ) {
+      const pref = getSortPrefsFromCookie(sortPrefsCookieName, sortPrefsListKey);
+      if (pref !== null) {
+        params.set('sortBy', pref.sortBy);
+        params.set('sortOrder', pref.sortOrder);
+        router.replace(`${basePath}?${params.toString()}`);
+        return;
+      }
+    }
+    params.set('sortBy', firstSortableColumnKey);
+    params.set('sortOrder', firstSortableColumn?.defaultSortOrder ?? 'desc');
+    router.replace(`${basePath}?${params.toString()}`);
+  }, [
+    basePath,
+    currentQueryParams,
+    firstSortableColumn,
+    firstSortableColumnKey,
+    router,
+    sortPrefsCookieName,
+    sortPrefsListKey,
+  ]);
+
+  const effectiveSortBy = currentQueryParams.sortBy?.trim() ?? firstSortableColumnKey;
+  const effectiveSortOrder: 'asc' | 'desc' =
+    currentQueryParams.sortOrder === 'asc' || currentQueryParams.sortOrder === 'desc'
+      ? currentQueryParams.sortOrder
+      : (columns.find((c) => (c.sortKey ?? c.id) === effectiveSortBy)?.defaultSortOrder ?? 'desc');
+
+  const handleSortHeaderClick = useCallback(
+    (sortKey: string) => {
+      const nextOrder =
+        effectiveSortBy === sortKey && effectiveSortOrder === 'asc' ? 'desc' : 'asc';
+      const params = new URLSearchParams(currentQueryParams);
+      params.set('sortBy', sortKey);
+      params.set('sortOrder', nextOrder);
+      params.set('page', '1');
+      router.push(`${basePath}?${params.toString()}`);
+      if (
+        sortPrefsCookieName !== undefined &&
+        sortPrefsListKey !== undefined &&
+        sortPrefsCookieName.trim() !== '' &&
+        sortPrefsListKey.trim() !== ''
+      ) {
+        setSortPrefInCookie(sortPrefsCookieName, sortPrefsListKey, sortKey, nextOrder);
+      }
+    },
+    [
+      basePath,
+      currentQueryParams,
+      router,
+      effectiveSortBy,
+      effectiveSortOrder,
+      sortPrefsCookieName,
+      sortPrefsListKey,
+    ]
+  );
+
   return (
     <>
       <div className={styles.filterRow}>
@@ -148,7 +253,7 @@ export function TableWithFilter({
           <TableFilterBar
             searchValue={filter}
             onSearchChange={setFilter}
-            columns={columns}
+            columns={filterColumns}
             selectedColumnIds={selectedColumnIds}
             onSelectedColumnIdsChange={handleFilterColumnsChange}
             placeholder={filterPlaceholder}
@@ -167,9 +272,22 @@ export function TableWithFilter({
         <Table>
           <Table.Head>
             <Table.Row>
-              {columns.map((col) => (
-                <Table.HeaderCell key={col.id}>{col.label}</Table.HeaderCell>
-              ))}
+              {columns.map((col) => {
+                const sortKey = col.sortKey ?? col.id;
+                const sortable = isColumnSortable(col.id);
+                return sortable ? (
+                  <Table.SortableHeaderCell
+                    key={col.id}
+                    sortKey={sortKey}
+                    label={col.label}
+                    activeSortBy={effectiveSortBy}
+                    sortOrder={effectiveSortOrder}
+                    onSort={handleSortHeaderClick}
+                  />
+                ) : (
+                  <Table.HeaderCell key={col.id}>{col.label}</Table.HeaderCell>
+                );
+              })}
             </Table.Row>
           </Table.Head>
           <Table.Body>

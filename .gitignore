@@ -12,6 +12,8 @@ out/
 .direnv/
 TODOS
 infra/config/local/
+.artifacts/
+**/test-results/
 
 # i18n compiled output (generated at build)
 apps/web/i18n/compiled/

@@ -3,13 +3,15 @@
  * Verification flows use captured tokens from the mailer mock; no real SMTP.
  * Locale behavior (email locale, password validation locale) is in auth-locale.test.ts.
  * Shared auth endpoints in auth.test.ts; no-mailer flows in auth-no-mailer.test.ts.
+ * Env overrides (AUTH_MODE, SMTP_*, APP_BASE_URL) are set here; app/config are loaded in beforeAll so overrides apply.
  */
-process.env.MAILER_ENABLED = 'true';
+process.env.AUTH_MODE = 'user_signup_email';
 process.env.SMTP_HOST = 'localhost';
 process.env.SMTP_PORT = '25';
 process.env.MAIL_FROM = 'test@test.com';
 process.env.APP_BASE_URL = 'http://localhost:3999';
 
+import type { Express } from 'express';
 import { vi } from 'vitest';
 
 const { captured } = vi.hoisted(() => ({
@@ -42,61 +44,90 @@ vi.mock('../lib/mailer/send.js', () => ({
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import request from 'supertest';
 
-import { appDataSourceRead, appDataSourceReadWrite } from '@boilerplate/orm';
-import { createApp } from '../app.js';
-import { config } from '../config/index.js';
-
-const API = config.apiVersionPath;
+/** Unique per file to avoid collisions when tests run in parallel. */
+const FILE_PREFIX = 'auth-mailer';
 
 describe('mailer-enabled (mocked)', () => {
-  let app: ReturnType<typeof createApp>;
-  const signupEmail = `signup-${Date.now()}@example.com`;
-  const signupPassword = 'signup-pass-1';
+  let app: Express;
+  let API: string;
+  let createApiLoginAgent: (
+    app: Express,
+    credentials: { email: string; password: string }
+  ) => Promise<ReturnType<typeof request.agent>>;
+  const ts = Date.now();
+  const signupEmail = `${FILE_PREFIX}-${ts}@example.com`;
+  const signupUsername = `${FILE_PREFIX}-${ts}`;
+  const signupPassword = `${FILE_PREFIX}-pass-1`;
 
   beforeAll(async () => {
-    await appDataSourceRead.initialize();
-    await appDataSourceReadWrite.initialize();
-    app = createApp();
+    const configMod = await import('../config/index.js');
+    const setupMod = await import('./helpers/setup.js');
+    const loginAgentMod = await import('./helpers/login-agent.js');
+    API = configMod.config.apiVersionPath;
+    app = await setupMod.createApiTestApp();
+    createApiLoginAgent = loginAgentMod.createApiLoginAgent;
   });
 
   afterAll(async () => {
-    if (appDataSourceReadWrite.isInitialized) {
-      await appDataSourceReadWrite.destroy();
-    }
-    if (appDataSourceRead.isInitialized) {
-      await appDataSourceRead.destroy();
-    }
+    const setupMod = await import('./helpers/setup.js');
+    await setupMod.destroyApiTestDataSources();
   });
 
   describe('POST /auth/signup', () => {
-    it('returns 201 with user and Set-Cookie (no token in body); captures verify token', async () => {
+    it('returns 201 with message only (no user, no session when mailer enabled); captures verify token', async () => {
       captured.verifyEmail = '';
       captured.verifyLocale = '';
       const res = await request(app)
         .post(`${API}/auth/signup`)
-        .send({ email: signupEmail, password: signupPassword, displayName: 'Signup User' })
+        .send({
+          email: signupEmail,
+          username: signupUsername,
+          password: signupPassword,
+          displayName: 'Signup User',
+        })
         .expect(201);
       expect(res.body).not.toHaveProperty('token');
-      expect(res.body).toHaveProperty('user');
-      expect(res.body.user.email).toBe(signupEmail);
+      expect(res.body).not.toHaveProperty('user');
+      expect(res.body.message).toBeDefined();
       expect(captured.verifyEmail).not.toBe('');
     });
 
     it('returns 400 when email missing', async () => {
-      await request(app).post(`${API}/auth/signup`).send({ password: signupPassword }).expect(400);
+      await request(app)
+        .post(`${API}/auth/signup`)
+        .send({ username: `${FILE_PREFIX}-noemail-${Date.now()}`, password: signupPassword })
+        .expect(400);
+    });
+
+    it('returns 400 when username missing', async () => {
+      await request(app)
+        .post(`${API}/auth/signup`)
+        .send({
+          email: `${FILE_PREFIX}-nousername-${Date.now()}@example.com`,
+          password: signupPassword,
+        })
+        .expect(400);
     });
 
     it('returns 400 when password missing', async () => {
       await request(app)
         .post(`${API}/auth/signup`)
-        .send({ email: 'missing-pass@example.com' })
+        .send({
+          email: `${FILE_PREFIX}-missing-pass@example.com`,
+          username: `${FILE_PREFIX}-missing-pass`,
+        })
         .expect(400);
     });
 
     it('returns 400 when password fails validation (too short)', async () => {
+      const t = Date.now();
       const res = await request(app)
         .post(`${API}/auth/signup`)
-        .send({ email: `weak-${Date.now()}@example.com`, password: 'x' })
+        .send({
+          email: `${FILE_PREFIX}-weak-${t}@example.com`,
+          username: `${FILE_PREFIX}-weak-${t}`,
+          password: 'x',
+        })
         .expect(400);
       expect(res.body.message).toBeDefined();
     });
@@ -104,7 +135,11 @@ describe('mailer-enabled (mocked)', () => {
     it('returns 201 for duplicate email without leaking existence (anti-enumeration)', async () => {
       const res = await request(app)
         .post(`${API}/auth/signup`)
-        .send({ email: signupEmail, password: signupPassword })
+        .send({
+          email: signupEmail,
+          username: `${FILE_PREFIX}-dup-email-${Date.now()}`,
+          password: signupPassword,
+        })
         .expect(201);
       expect(res.body.message).toBeDefined();
     });
@@ -141,7 +176,7 @@ describe('mailer-enabled (mocked)', () => {
     it('forgot-password returns 200 for unknown email (anti-enumeration)', async () => {
       const res = await request(app)
         .post(`${API}/auth/forgot-password`)
-        .send({ email: 'no-such-user@example.com' })
+        .send({ email: `${FILE_PREFIX}-no-such-user@example.com` })
         .expect(200);
       expect(res.body.message).toBeDefined();
     });
@@ -181,11 +216,13 @@ describe('mailer-enabled (mocked)', () => {
     it('reset-password returns 400 when newPassword fails validation (too short)', async () => {
       // First obtain a fresh reset token via forgot-password
       captured.passwordReset = '';
-      const freshEmail = `reset-weak-${Date.now()}@example.com`;
+      const t = Date.now();
+      const freshEmail = `${FILE_PREFIX}-reset-weak-${t}@example.com`;
+      const freshUsername = `${FILE_PREFIX}-reset-weak-${t}`;
       const freshAgent = request.agent(app);
       await freshAgent
         .post(`${API}/auth/signup`)
-        .send({ email: freshEmail, password: signupPassword })
+        .send({ email: freshEmail, username: freshUsername, password: signupPassword })
         .expect(201);
       await request(app)
         .post(`${API}/auth/forgot-password`)
@@ -203,12 +240,11 @@ describe('mailer-enabled (mocked)', () => {
 
   describe('POST /auth/request-email-change and confirm-email-change', () => {
     it('request returns 200 and captures token; confirm returns 200', async () => {
-      const agent = request.agent(app);
-      await agent
-        .post(`${API}/auth/login`)
-        .send({ email: signupEmail, password: 'reset-new-pass' })
-        .expect(200);
-      const newEmail = `new-${Date.now()}@example.com`;
+      const agent = await createApiLoginAgent(app, {
+        email: signupEmail,
+        password: 'reset-new-pass',
+      });
+      const newEmail = `${FILE_PREFIX}-new-${Date.now()}@example.com`;
       captured.emailChange = '';
       await agent
         .post(`${API}/auth/request-email-change`)
@@ -226,12 +262,17 @@ describe('mailer-enabled (mocked)', () => {
     });
 
     it('request-email-change returns 400 when new email equals current', async () => {
-      const sameEmailAgent = request.agent(app);
-      const sameEmailAddr = `same-email-${Date.now()}@example.com`;
-      await sameEmailAgent
+      const t = Date.now();
+      const sameEmailAddr = `${FILE_PREFIX}-same-email-${t}@example.com`;
+      const sameEmailUsername = `${FILE_PREFIX}-same-email-${t}`;
+      await request(app)
         .post(`${API}/auth/signup`)
-        .send({ email: sameEmailAddr, password: signupPassword })
+        .send({ email: sameEmailAddr, username: sameEmailUsername, password: signupPassword })
         .expect(201);
+      const sameEmailAgent = await createApiLoginAgent(app, {
+        email: sameEmailAddr,
+        password: signupPassword,
+      });
       const res = await sameEmailAgent
         .post(`${API}/auth/request-email-change`)
         .send({ newEmail: sameEmailAddr })
@@ -240,17 +281,23 @@ describe('mailer-enabled (mocked)', () => {
     });
 
     it('request-email-change returns 409 when new email already in use', async () => {
-      const conflictAgent = request.agent(app);
-      const conflictEmail1 = `conflict-a-${Date.now()}@example.com`;
-      const conflictEmail2 = `conflict-b-${Date.now()}@example.com`;
-      await conflictAgent
+      const t = Date.now();
+      const conflictEmail1 = `${FILE_PREFIX}-conflict-a-${t}@example.com`;
+      const conflictEmail2 = `${FILE_PREFIX}-conflict-b-${t}@example.com`;
+      const conflictUsername1 = `${FILE_PREFIX}-conflict-a-${t}`;
+      const conflictUsername2 = `${FILE_PREFIX}-conflict-b-${t}`;
+      await request(app)
         .post(`${API}/auth/signup`)
-        .send({ email: conflictEmail1, password: signupPassword })
+        .send({ email: conflictEmail1, username: conflictUsername1, password: signupPassword })
         .expect(201);
+      const conflictAgent = await createApiLoginAgent(app, {
+        email: conflictEmail1,
+        password: signupPassword,
+      });
       // Also create user 2 so that email2 is taken
       await request(app)
         .post(`${API}/auth/signup`)
-        .send({ email: conflictEmail2, password: signupPassword })
+        .send({ email: conflictEmail2, username: conflictUsername2, password: signupPassword })
         .expect(201);
       const res = await conflictAgent
         .post(`${API}/auth/request-email-change`)
@@ -262,17 +309,22 @@ describe('mailer-enabled (mocked)', () => {
     it('request-email-change returns 401 without cookie or Authorization', async () => {
       await request(app)
         .post(`${API}/auth/request-email-change`)
-        .send({ newEmail: 'other@example.com' })
+        .send({ newEmail: `${FILE_PREFIX}-other@example.com` })
         .expect(401, { message: 'Authentication required' });
     });
 
     it('request-email-change returns 400 when newEmail missing', async () => {
-      const oneOffEmail = `oneoff-${Date.now()}@example.com`;
-      const agent = request.agent(app);
-      await agent
+      const t = Date.now();
+      const oneOffEmail = `${FILE_PREFIX}-oneoff-${t}@example.com`;
+      const oneOffUsername = `${FILE_PREFIX}-oneoff-${t}`;
+      await request(app)
         .post(`${API}/auth/signup`)
-        .send({ email: oneOffEmail, password: signupPassword })
+        .send({ email: oneOffEmail, username: oneOffUsername, password: signupPassword })
         .expect(201);
+      const agent = await createApiLoginAgent(app, {
+        email: oneOffEmail,
+        password: signupPassword,
+      });
       const res = await agent.post(`${API}/auth/request-email-change`).send({}).expect(400);
       expect(res.body.message).toBeDefined();
       expect(

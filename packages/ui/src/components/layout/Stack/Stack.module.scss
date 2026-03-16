@@ -3,6 +3,27 @@
 .stack {
   display: flex;
   flex-direction: column;
-  gap: $space-5;
+  gap: $gap-standard;
   min-width: 0;
+}
+
+.stackReadable {
+  width: 100%;
+  max-width: $content-readable-max-width;
+  box-sizing: border-box;
+}
+
+.stackForm {
+  width: 100%;
+  max-width: $input-max-width;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+.stackCenterContent {
+  margin-inline: auto;
+}
+
+.stackAlignCenter {
+  align-items: center;
 }

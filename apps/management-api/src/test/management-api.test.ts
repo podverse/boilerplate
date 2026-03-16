@@ -2,47 +2,39 @@
  * Management API integration tests: auth, admins CRUD, events.
  * Requires main and management test DBs to exist and be initialized.
  */
+import crypto from 'crypto';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import request from 'supertest';
 
 import { AUTH_MESSAGE_INVALID_CREDENTIALS } from '@boilerplate/helpers';
-import { appDataSourceRead, appDataSourceReadWrite } from '@boilerplate/orm';
-import { managementDataSource } from '@boilerplate/management-orm';
-import { createApp } from '../app.js';
+import { VerificationToken, appDataSourceRead } from '@boilerplate/orm';
 import { config } from '../config/index.js';
-import { createSuperAdminForTest } from './createSuperAdminForTest.js';
+import { createManagementLoginAgent } from './helpers/login-agent.js';
+import {
+  createManagementApiTestAppWithSuperAdmin,
+  destroyManagementApiTestDataSources,
+} from './helpers/setup.js';
 
 const API = config.apiVersionPath;
-const superAdminEmail = 'test-super-admin@example.com';
-const superAdminPassword = 'test-super-admin-password-1';
+/** Unique per file to avoid collisions when tests run in parallel. */
+const FILE_PREFIX = 'mgmt-api';
+const superAdminUsername = `${FILE_PREFIX}-super-admin`;
+const superAdminPassword = `${FILE_PREFIX}-super-admin-password-1`;
 
 describe('management-api', () => {
-  let app: ReturnType<typeof createApp>;
+  let app: Awaited<ReturnType<typeof createManagementApiTestAppWithSuperAdmin>>;
   let superAdminAgent: ReturnType<typeof request.agent>;
 
   beforeAll(async () => {
-    await appDataSourceRead.initialize();
-    await appDataSourceReadWrite.initialize();
-    await managementDataSource.initialize();
-    await createSuperAdminForTest(superAdminEmail, superAdminPassword);
-    app = createApp();
-    superAdminAgent = request.agent(app);
-    await superAdminAgent
-      .post(`${API}/auth/login`)
-      .send({ email: superAdminEmail, password: superAdminPassword })
-      .expect(200);
+    app = await createManagementApiTestAppWithSuperAdmin(superAdminUsername, superAdminPassword);
+    superAdminAgent = await createManagementLoginAgent(app, {
+      username: superAdminUsername,
+      password: superAdminPassword,
+    });
   });
 
   afterAll(async () => {
-    if (managementDataSource.isInitialized) {
-      await managementDataSource.destroy();
-    }
-    if (appDataSourceReadWrite.isInitialized) {
-      await appDataSourceReadWrite.destroy();
-    }
-    if (appDataSourceRead.isInitialized) {
-      await appDataSourceRead.destroy();
-    }
+    await destroyManagementApiTestDataSources();
   });
 
   describe('versioned root', () => {
@@ -68,34 +60,34 @@ describe('management-api', () => {
   });
 
   describe('POST /auth/login', () => {
-    it('returns 400 when email or password missing', async () => {
+    it('returns 400 when username or password missing', async () => {
       await request(app).post(`${API}/auth/login`).send({}).expect(400);
-      await request(app).post(`${API}/auth/login`).send({ email: 'a@b.com' }).expect(400);
+      await request(app).post(`${API}/auth/login`).send({ username: 'a' }).expect(400);
       await request(app).post(`${API}/auth/login`).send({ password: 'x' }).expect(400);
     });
 
-    it('returns 401 for unknown email', async () => {
+    it('returns 401 for unknown username', async () => {
       await request(app)
         .post(`${API}/auth/login`)
-        .send({ email: 'unknown@example.com', password: 'any' })
+        .send({ username: `${FILE_PREFIX}-unknown-user`, password: 'any' })
         .expect(401, { message: AUTH_MESSAGE_INVALID_CREDENTIALS });
     });
 
     it('returns 401 for wrong password', async () => {
       await request(app)
         .post(`${API}/auth/login`)
-        .send({ email: superAdminEmail, password: 'wrong' })
+        .send({ username: superAdminUsername, password: 'wrong' })
         .expect(401, { message: AUTH_MESSAGE_INVALID_CREDENTIALS });
     });
 
     it('returns 200 with user and Set-Cookie (no token in body) for valid credentials', async () => {
       const res = await request(app)
         .post(`${API}/auth/login`)
-        .send({ email: superAdminEmail, password: superAdminPassword })
+        .send({ username: superAdminUsername, password: superAdminPassword })
         .expect(200);
       expect(res.body).not.toHaveProperty('token');
       expect(res.body).toHaveProperty('user');
-      expect(res.body.user.email).toBe(superAdminEmail);
+      expect(res.body.user.username).toBe(superAdminUsername);
       expect(res.body.user.isSuperAdmin).toBe(true);
     });
   });
@@ -107,7 +99,7 @@ describe('management-api', () => {
 
     it('returns 200 with user when authenticated via cookie', async () => {
       const res = await superAdminAgent.get(`${API}/auth/me`).expect(200);
-      expect(res.body.user.email).toBe(superAdminEmail);
+      expect(res.body.user.username).toBe(superAdminUsername);
       expect(res.body.user.isSuperAdmin).toBe(true);
     });
   });
@@ -118,11 +110,10 @@ describe('management-api', () => {
     });
 
     it('returns 204 and clears cookies when authenticated', async () => {
-      const tempAgent = request.agent(app);
-      await tempAgent
-        .post(`${API}/auth/login`)
-        .send({ email: superAdminEmail, password: superAdminPassword })
-        .expect(200);
+      const tempAgent = await createManagementLoginAgent(app, {
+        username: superAdminUsername,
+        password: superAdminPassword,
+      });
       const res = await tempAgent.post(`${API}/auth/logout`).expect(204);
       const setCookie = res.headers['set-cookie'];
       const cookies = Array.isArray(setCookie)
@@ -155,14 +146,13 @@ describe('management-api', () => {
     });
 
     it('returns 200 with user and new cookies for valid refresh token', async () => {
-      const refreshAgent = request.agent(app);
-      await refreshAgent
-        .post(`${API}/auth/login`)
-        .send({ email: superAdminEmail, password: superAdminPassword })
-        .expect(200);
+      const refreshAgent = await createManagementLoginAgent(app, {
+        username: superAdminUsername,
+        password: superAdminPassword,
+      });
       const res = await refreshAgent.post(`${API}/auth/refresh`).expect(200);
       expect(res.body).toHaveProperty('user');
-      expect(res.body.user.email).toBe(superAdminEmail);
+      expect(res.body.user.username).toBe(superAdminUsername);
       const setCookie = res.headers['set-cookie'];
       const cookies = Array.isArray(setCookie)
         ? setCookie
@@ -192,9 +182,8 @@ describe('management-api', () => {
 
   describe('admins CRUD (super admin)', () => {
     let adminId: string;
-    const adminEmail = `admin-${Date.now()}@example.com`;
-    const adminPassword = 'admin-password-1';
-    const ts = Date.now();
+    const adminUsername = `${FILE_PREFIX}-admin-${Date.now()}`;
+    const adminPassword = `${FILE_PREFIX}-admin-password-1`;
 
     it('GET /admins returns 401 without auth', async () => {
       await request(app).get(`${API}/admins`).expect(401);
@@ -207,7 +196,7 @@ describe('management-api', () => {
     it('POST /admins returns 401 without auth', async () => {
       await request(app)
         .post(`${API}/admins`)
-        .send({ email: 'x@x.com', password: 'p', displayName: 'd' })
+        .send({ username: 'x', password: 'p', displayName: 'd' })
         .expect(401);
     });
 
@@ -233,7 +222,7 @@ describe('management-api', () => {
       const res = await superAdminAgent
         .post(`${API}/admins`)
         .send({
-          email: adminEmail,
+          username: adminUsername,
           password: adminPassword,
           displayName: 'Test Admin',
           adminsCrud: 0,
@@ -242,7 +231,7 @@ describe('management-api', () => {
         })
         .expect(201);
       expect(res.body.admin).toHaveProperty('id');
-      expect(res.body.admin.email).toBe(adminEmail);
+      expect(res.body.admin.username).toBe(adminUsername);
       expect(res.body.admin.displayName).toBe('Test Admin');
       expect(res.body.admin.isSuperAdmin).toBe(false);
       adminId = res.body.admin.id;
@@ -253,13 +242,13 @@ describe('management-api', () => {
       expect(res.body.admins).toBeDefined();
       const found = res.body.admins.find((a: { id: string }) => a.id === adminId);
       expect(found).toBeDefined();
-      expect(found.email).toBe(adminEmail);
+      expect(found.username).toBe(adminUsername);
     });
 
     it('GET /admins/:id returns admin', async () => {
       const res = await superAdminAgent.get(`${API}/admins/${adminId}`).expect(200);
       expect(res.body.admin.id).toBe(adminId);
-      expect(res.body.admin.email).toBe(adminEmail);
+      expect(res.body.admin.username).toBe(adminUsername);
     });
 
     it('GET /admins/:id returns 404 for nonexistent id', async () => {
@@ -283,26 +272,25 @@ describe('management-api', () => {
         .expect(404);
     });
 
-    it('POST /admins returns 409 when email already in use', async () => {
+    it('POST /admins returns 409 when username already in use', async () => {
       await superAdminAgent
         .post(`${API}/admins`)
         .send({
-          email: adminEmail,
+          username: adminUsername,
           password: 'another-password',
-          displayName: `Dup Admin ${ts}`,
+          displayName: `Dup Admin ${Date.now()}`,
           adminsCrud: 0,
           usersCrud: 0,
           eventVisibility: 'all_admins',
         })
-        .expect(409, { message: 'Email already in use' });
+        .expect(409, { message: 'Username already in use' });
     });
 
     it('POST /admins/change-password returns 401 when current password wrong', async () => {
-      const adminAgent = request.agent(app);
-      await adminAgent
-        .post(`${API}/auth/login`)
-        .send({ email: adminEmail, password: adminPassword })
-        .expect(200);
+      const adminAgent = await createManagementLoginAgent(app, {
+        username: adminUsername,
+        password: adminPassword,
+      });
       await adminAgent
         .post(`${API}/admins/change-password`)
         .send({ currentPassword: 'wrong-password', newPassword: 'new-admin-pass' })
@@ -310,11 +298,10 @@ describe('management-api', () => {
     });
 
     it('POST /admins/change-password changes own password', async () => {
-      const adminAgent = request.agent(app);
-      await adminAgent
-        .post(`${API}/auth/login`)
-        .send({ email: adminEmail, password: adminPassword })
-        .expect(200);
+      const adminAgent = await createManagementLoginAgent(app, {
+        username: adminUsername,
+        password: adminPassword,
+      });
       const newPassword = 'admin-password-2';
       await adminAgent
         .post(`${API}/admins/change-password`)
@@ -322,7 +309,7 @@ describe('management-api', () => {
         .expect(204);
       await request(app)
         .post(`${API}/auth/login`)
-        .send({ email: adminEmail, password: newPassword })
+        .send({ username: adminUsername, password: newPassword })
         .expect(200);
     });
 
@@ -334,7 +321,7 @@ describe('management-api', () => {
 
   describe('users CRUD (super admin, main DB)', () => {
     let userId: string;
-    const userEmail = `user-crud-${Date.now()}@example.com`;
+    const userEmail = `${FILE_PREFIX}-user-crud-${Date.now()}@example.com`;
     const userPassword = 'user-password-1';
 
     it('GET /users returns 401 without auth', async () => {
@@ -342,7 +329,14 @@ describe('management-api', () => {
     });
 
     it('POST /users returns 401 without auth', async () => {
-      await request(app).post(`${API}/users`).send({ email: 'x@x.com', password: 'p' }).expect(401);
+      await request(app)
+        .post(`${API}/users`)
+        .send({ email: 'x@x.com', password: 'password1' })
+        .expect(401);
+    });
+
+    it('POST /users returns 400 when neither email nor username', async () => {
+      await superAdminAgent.post(`${API}/users`).send({ displayName: 'No identifier' }).expect(400);
     });
 
     it('GET /users returns 200 with users array', async () => {
@@ -384,6 +378,70 @@ describe('management-api', () => {
           displayName: 'Duplicate User',
         })
         .expect(409, { message: 'Email already in use' });
+    });
+
+    it('POST /users creates user with username only and returns setPasswordLink', async () => {
+      const usernameOnly = `${FILE_PREFIX}-username-only-${Date.now()}`;
+      const startedAtMs = Date.now();
+      const res = await superAdminAgent
+        .post(`${API}/users`)
+        .send({ username: usernameOnly, displayName: 'Username Only User' })
+        .expect(201);
+      expect(res.body.user).toHaveProperty('id');
+      expect(res.body.user.username).toBe(usernameOnly);
+      expect(res.body.user.email).toBeNull();
+      expect(res.body.setPasswordLink).toBeDefined();
+      expect(typeof res.body.setPasswordLink).toBe('string');
+      expect(res.body.setPasswordLink).toContain('/auth/set-password');
+
+      const setPasswordUrl = new URL(res.body.setPasswordLink, 'http://localhost');
+      const rawToken = setPasswordUrl.searchParams.get('token');
+      expect(rawToken).toBeTruthy();
+
+      const tokenHash = crypto
+        .createHash('sha256')
+        .update(rawToken ?? '', 'utf8')
+        .digest('hex');
+      const verificationTokenRepo = appDataSourceRead.getRepository(VerificationToken);
+      const tokenRecord = await verificationTokenRepo.findOne({
+        where: { tokenHash, kind: 'set_password', userId: res.body.user.id },
+      });
+
+      expect(tokenRecord).not.toBeNull();
+      if (tokenRecord !== null) {
+        const expectedTtlMs = config.userInvitationTtlHours * 60 * 60 * 1000;
+        const elapsedMs = tokenRecord.expiresAt.getTime() - startedAtMs;
+        const lowerBound = expectedTtlMs - 60 * 1000;
+        const upperBound = expectedTtlMs + 60 * 1000;
+        expect(elapsedMs).toBeGreaterThanOrEqual(lowerBound);
+        expect(elapsedMs).toBeLessThanOrEqual(upperBound);
+      }
+      await superAdminAgent.delete(`${API}/users/${res.body.user.id}`).expect(204);
+    });
+
+    it('POST /users creates user with email only and no password returns setPasswordLink', async () => {
+      const emailOnly = `${FILE_PREFIX}-email-only-${Date.now()}@example.com`;
+      const res = await superAdminAgent
+        .post(`${API}/users`)
+        .send({ email: emailOnly, displayName: 'Email Only User' })
+        .expect(201);
+      expect(res.body.user).toHaveProperty('id');
+      expect(res.body.user.email).toBe(emailOnly);
+      expect(res.body.setPasswordLink).toBeDefined();
+      await superAdminAgent.delete(`${API}/users/${res.body.user.id}`).expect(204);
+    });
+
+    it('POST /users returns 409 when username already in use', async () => {
+      const takenUsername = `${FILE_PREFIX}-taken-username-${Date.now()}`;
+      const first = await superAdminAgent
+        .post(`${API}/users`)
+        .send({ username: takenUsername, password: userPassword })
+        .expect(201);
+      await superAdminAgent
+        .post(`${API}/users`)
+        .send({ username: takenUsername, email: `${FILE_PREFIX}-other-${Date.now()}@example.com` })
+        .expect(409, { message: 'Username already in use' });
+      await superAdminAgent.delete(`${API}/users/${first.body.user.id}`).expect(204);
     });
 
     it('PATCH /users/:id updates user', async () => {
@@ -449,7 +507,7 @@ describe('management-api', () => {
       const res = await superAdminAgent
         .post(`${API}/admins`)
         .send({
-          email: actorEmail,
+          username: actorEmail,
           password: actorPassword,
           displayName: 'ActorOriginalName',
           adminsCrud: 0,
@@ -458,11 +516,10 @@ describe('management-api', () => {
         })
         .expect(201);
       actorId = res.body.admin.id;
-      actorAgent = request.agent(app);
-      await actorAgent
-        .post(`${API}/auth/login`)
-        .send({ email: actorEmail, password: actorPassword })
-        .expect(200);
+      actorAgent = await createManagementLoginAgent(app, {
+        username: actorEmail,
+        password: actorPassword,
+      });
     });
 
     afterAll(async () => {

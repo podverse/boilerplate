@@ -1,9 +1,12 @@
 @use '../../../styles/variables' as *;
 
-.root {
+// Use element+class so Card background wins when consumer adds a className that also sets
+// background-color (e.g. .messageCard). Otherwise load order can make the background "randomly"
+// disappear when both rules have the same specificity.
+div.root {
   min-width: 0; // allow shrinking inside flex so content doesn't overflow
-  padding: $space-4 $space-4;
-  background-color: var(--color-bg);
+  padding: $space-5 $space-5;
+  background-color: var(--color-bg-muted);
   border-radius: $radius-md;
 }
 
@@ -12,6 +15,10 @@
   font-size: $font-size-lead;
   font-weight: $font-weight-semibold;
   color: var(--color-text);
+}
+
+.rootSurface {
+  background-color: color-mix(in srgb, var(--color-border) 15%, var(--color-bg-muted));
 }
 
 // Reset first/last paragraph margins inside card content

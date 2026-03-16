@@ -5,8 +5,12 @@ export { UserBio } from './entities/UserBio.js';
 export { VerificationToken } from './entities/VerificationToken.js';
 export { RefreshToken } from './entities/RefreshToken.js';
 export { Bucket } from './entities/Bucket.js';
+export { BucketSettings } from './entities/BucketSettings.js';
 export { BucketAdmin } from './entities/BucketAdmin.js';
+export { BucketAdminInvitation } from './entities/BucketAdminInvitation.js';
+export type { BucketAdminInvitationStatus } from './entities/BucketAdminInvitation.js';
 export { BucketMessage } from './entities/BucketMessage.js';
+export { BucketRole } from './entities/BucketRole.js';
 export type { UserWithRelations } from './types/UserWithRelations.js';
 export { UserService } from './services/UserService.js';
 export {
@@ -17,4 +21,6 @@ export {
 export { RefreshTokenService } from './services/RefreshTokenService.js';
 export { BucketService } from './services/BucketService.js';
 export { BucketAdminService } from './services/BucketAdminService.js';
+export { BucketAdminInvitationService } from './services/BucketAdminInvitationService.js';
 export { BucketMessageService } from './services/BucketMessageService.js';
+export { BucketRoleService } from './services/BucketRoleService.js';

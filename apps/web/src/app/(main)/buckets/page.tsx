@@ -1,12 +1,19 @@
 import { redirect } from 'next/navigation';
-import Link from 'next/link';
 import { getTranslations } from 'next-intl/server';
 import { request } from '@boilerplate/helpers-requests';
-import { Button, Card, Container, Stack, Text } from '@boilerplate/ui';
+import { BucketsTableWithFilter } from '../../../components/BucketsTableWithFilter';
+import { FilterTablePageLayout } from '@boilerplate/ui';
 
+import { TABLE_SORT_PREFS_COOKIE_NAME } from '../../../lib/cookies';
 import { getServerUser } from '../../../lib/server-auth';
-import { getCookieHeader, getServerApiBaseUrl } from '../../../lib/server-request';
-import { ROUTES, bucketDetailRoute, bucketEditRoute } from '../../../lib/routes';
+import {
+  getCookieHeader,
+  getServerApiBaseUrl,
+  parseFilterColumns,
+} from '../../../lib/server-request';
+import { ROUTES } from '../../../lib/routes';
+
+export const dynamic = 'force-dynamic';
 
 export type Bucket = {
   id: string;
@@ -22,11 +29,20 @@ export type Bucket = {
 
 type BucketsResponse = { buckets: Bucket[] };
 
-async function fetchBuckets(): Promise<{ data: BucketsResponse | null; error: string | null }> {
+async function fetchBuckets(
+  search?: string,
+  sortBy?: string,
+  sortOrder?: string
+): Promise<{ data: BucketsResponse | null; error: string | null }> {
   const cookieHeader = await getCookieHeader();
   const baseUrl = getServerApiBaseUrl();
+  const params = new URLSearchParams();
+  if (search !== undefined && search.trim() !== '') params.set('search', search.trim());
+  if (sortBy !== undefined && sortBy.trim() !== '') params.set('sortBy', sortBy.trim());
+  if (sortOrder === 'asc' || sortOrder === 'desc') params.set('sortOrder', sortOrder);
+  const path = params.toString() !== '' ? `/buckets?${params.toString()}` : '/buckets';
   try {
-    const res = await request(baseUrl, '/buckets', {
+    const res = await request(baseUrl, path, {
       headers: { Cookie: cookieHeader },
       cache: 'no-store',
     });
@@ -43,67 +59,73 @@ async function fetchBuckets(): Promise<{ data: BucketsResponse | null; error: st
   }
 }
 
-export default async function BucketsPage() {
+type PageProps = {
+  searchParams?: Promise<{
+    filterColumns?: string;
+    search?: string;
+    sortBy?: string;
+    sortOrder?: string;
+  }>;
+};
+
+export default async function BucketsPage({ searchParams }: PageProps) {
   const user = await getServerUser();
   if (user === null) {
     redirect(ROUTES.LOGIN);
   }
 
   const t = await getTranslations('buckets');
-  const { data, error } = await fetchBuckets();
+  const resolved = searchParams !== undefined ? await searchParams : {};
+  const bucketColumnIds = ['name'];
+  const effectiveFilterColumns = parseFilterColumns(resolved, bucketColumnIds);
+  const search = resolved.search ?? '';
+  const sortBy = resolved.sortBy?.trim();
+  const sortOrder =
+    resolved.sortOrder === 'asc' || resolved.sortOrder === 'desc' ? resolved.sortOrder : undefined;
+
+  const { data, error } = await fetchBuckets(search, sortBy, sortOrder);
   const buckets = data?.buckets ?? [];
 
+  const tableRows = buckets.map((b) => ({
+    id: b.shortId,
+    cells: {
+      name: b.name,
+      isPublic: b.isPublic ? t('publicYes') : t('publicNo'),
+    },
+  }));
+
+  const columns = [
+    { id: 'name', label: t('name'), defaultSortOrder: 'asc' as const },
+    { id: 'isPublic', label: t('isPublic'), defaultSortOrder: 'asc' as const },
+  ];
+
+  const currentQueryParams: Record<string, string> = {};
+  if ((resolved.filterColumns ?? '').trim() !== '')
+    currentQueryParams.filterColumns = resolved.filterColumns ?? '';
+  if (search !== '') currentQueryParams.search = search;
+  if (sortBy !== undefined && sortBy !== '') currentQueryParams.sortBy = sortBy;
+  if (sortOrder !== undefined) currentQueryParams.sortOrder = sortOrder;
+
   return (
-    <Container>
-      <Stack>
-        <Card title={t('title')}>
-          <div style={{ marginBottom: '1rem' }}>
-            <Link href={ROUTES.BUCKETS_NEW}>
-              <Button variant="primary">{t('addBucket')}</Button>
-            </Link>
-          </div>
-          {error !== null && <Text variant="muted">{t('failedToLoad')}</Text>}
-          {error === null && buckets.length === 0 && <Text variant="muted">{t('noBuckets')}</Text>}
-          {error === null && buckets.length > 0 && (
-            <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
-              {buckets.map((b) => (
-                <li
-                  key={b.id}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    padding: '0.75rem 0',
-                    borderBottom: '1px solid var(--pv-color-border, #eee)',
-                  }}
-                >
-                  <div>
-                    <Link
-                      href={bucketDetailRoute(b.shortId)}
-                      style={{ fontWeight: 600, textDecoration: 'none' }}
-                    >
-                      {b.name}
-                    </Link>
-                    <Text variant="muted" style={{ marginLeft: '0.5rem' }}>
-                      {[
-                        b.slug?.trim(),
-                        `${t('isPublic')}: ${b.isPublic ? t('publicYes') : t('publicNo')}`,
-                      ]
-                        .filter(Boolean)
-                        .join(', ')}
-                    </Text>
-                  </div>
-                  <div style={{ display: 'flex', gap: '0.5rem' }}>
-                    <Link href={bucketEditRoute(b.shortId)}>
-                      <Button variant="secondary">{t('edit')}</Button>
-                    </Link>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          )}
-        </Card>
-      </Stack>
-    </Container>
+    <FilterTablePageLayout
+      title={t('title')}
+      error={error !== null ? t('failedToLoad') : undefined}
+    >
+      {error === null && (
+        <BucketsTableWithFilter
+          tableRows={tableRows}
+          emptyMessage={buckets.length === 0 ? t('noBuckets') : undefined}
+          columns={columns}
+          initialFilterColumns={effectiveFilterColumns}
+          initialSearch={search}
+          basePath={ROUTES.BUCKETS}
+          currentQueryParams={currentQueryParams}
+          addBucketHref={ROUTES.BUCKETS_NEW}
+          filterableColumnIds={['name']}
+          sortPrefsCookieName={TABLE_SORT_PREFS_COOKIE_NAME}
+          sortPrefsListKey="buckets"
+        />
+      )}
+    </FilterTablePageLayout>
   );
 }

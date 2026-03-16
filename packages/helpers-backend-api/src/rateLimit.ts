@@ -129,19 +129,22 @@ export function ipAndPathKeyGenerator(req: {
   return `${ip}:${path}`;
 }
 
-/** In test environments use a high limit so test suites don't hit 429. */
+/**
+ * In test: rate limiting is effectively disabled by using a very high limit (100k)
+ * so integration tests never hit 429. We do not add dedicated rate-limit tests.
+ */
 const isTest = process.env.NODE_ENV === 'test';
-const TEST_LIMIT = 100;
+const TEST_LIMIT_HIGH = 100_000;
 
 /**
- * Pre-configured strict auth rate limiter: 10 req / 15 min per IP+path (100 in test).
- * Suitable for login, signup, and password-reset flows. Pass overrides to customise.
+ * Pre-configured strict auth rate limiter: 10 req / 15 min per IP+path in production;
+ * in test, a very high limit so tests never hit 429.
  */
 export function createStrictAuthRateLimiter(
   overrides: Partial<RateLimiterOptions> = {}
 ): ReturnType<typeof rateLimit> {
   return createStrictRateLimiter({
-    limit: isTest ? TEST_LIMIT : STRICT_DEFAULT_MAX,
+    limit: isTest ? TEST_LIMIT_HIGH : STRICT_DEFAULT_MAX,
     windowMs: STRICT_DEFAULT_WINDOW_MS,
     keyGenerator: ipAndPathKeyGenerator,
     ...overrides,
@@ -149,14 +152,14 @@ export function createStrictAuthRateLimiter(
 }
 
 /**
- * Pre-configured moderate auth rate limiter: 30 req / 15 min per IP+path (100 in test).
- * Suitable for change-password and similar flows. Pass overrides to customise.
+ * Pre-configured moderate auth rate limiter: 30 req / 15 min per IP+path in production;
+ * in test, a very high limit so tests never hit 429.
  */
 export function createModerateAuthRateLimiter(
   overrides: Partial<RateLimiterOptions> = {}
 ): ReturnType<typeof rateLimit> {
   return createModerateRateLimiter({
-    limit: isTest ? TEST_LIMIT : MODERATE_DEFAULT_MAX,
+    limit: isTest ? TEST_LIMIT_HIGH : MODERATE_DEFAULT_MAX,
     windowMs: MODERATE_DEFAULT_WINDOW_MS,
     keyGenerator: ipAndPathKeyGenerator,
     ...overrides,

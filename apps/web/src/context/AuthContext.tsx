@@ -13,11 +13,28 @@ import {
 import { getApiBaseUrl } from '../lib/api-client';
 import { isPublicPath, ROUTES } from '../lib/routes';
 
+function getRequiredSessionRefreshIntervalMs(): number {
+  const raw =
+    typeof process !== 'undefined'
+      ? process.env.NEXT_PUBLIC_SESSION_REFRESH_INTERVAL_MS
+      : undefined;
+  if (raw === undefined || raw === '') {
+    throw new Error(
+      'NEXT_PUBLIC_SESSION_REFRESH_INTERVAL_MS is required. Set it to a positive number (ms) less than JWT_ACCESS_EXPIRY_SECONDS * 1000 (e.g. 600000 for 10 minutes).'
+    );
+  }
+  const ms = Number.parseInt(raw, 10);
+  if (!Number.isFinite(ms) || ms <= 0) {
+    throw new Error('NEXT_PUBLIC_SESSION_REFRESH_INTERVAL_MS must be a positive number (ms).');
+  }
+  return ms;
+}
+
 export type AuthUser = {
   id: string;
-  email: string;
+  email: string | null;
+  username: string | null;
   displayName: string | null;
-  profileVisibility: boolean;
 };
 
 export type AuthContextValue = {
@@ -43,18 +60,21 @@ function parseUserFromMe(data: unknown): AuthUser | null {
     data as {
       user: {
         id?: string;
-        email?: string;
+        email?: string | null;
+        username?: string | null;
         displayName?: string | null;
-        profileVisibility?: boolean;
       };
     }
   ).user;
-  if (typeof u.id !== 'string' || typeof u.email !== 'string') return null;
+  if (typeof u.id !== 'string') return null;
+  const hasEmail = u.email !== undefined && u.email !== null && u.email !== '';
+  const hasUsername = u.username !== undefined && u.username !== null && u.username !== '';
+  if (!hasEmail && !hasUsername) return null;
   return {
     id: u.id,
-    email: u.email,
+    email: hasEmail ? (u.email as string) : null,
+    username: hasUsername ? (u.username as string) : null,
     displayName: u.displayName ?? null,
-    profileVisibility: u.profileVisibility === true,
   };
 }
 
@@ -65,18 +85,21 @@ function parseUserFromLoginOrRefresh(data: unknown): AuthUser | null {
     data as {
       user: {
         id?: string;
-        email?: string;
+        email?: string | null;
+        username?: string | null;
         displayName?: string | null;
-        profileVisibility?: boolean;
       };
     }
   ).user;
-  if (typeof u.id !== 'string' || typeof u.email !== 'string') return null;
+  if (typeof u.id !== 'string') return null;
+  const hasEmail = u.email !== undefined && u.email !== null && u.email !== '';
+  const hasUsername = u.username !== undefined && u.username !== null && u.username !== '';
+  if (!hasEmail && !hasUsername) return null;
   return {
     id: u.id,
-    email: u.email,
+    email: hasEmail ? (u.email as string) : null,
+    username: hasUsername ? (u.username as string) : null,
     displayName: u.displayName ?? null,
-    profileVisibility: u.profileVisibility === true,
   };
 }
 
@@ -123,6 +146,7 @@ export function AuthProvider({ children, initialUser }: AuthProviderProps) {
   // Proactively refresh the session before the access token expires (shared helper).
   // On failure, await logout (with timeout) before redirect so cookies are cleared.
   const LOGOUT_REDIRECT_TIMEOUT_MS = 5000;
+  const refreshIntervalMs = getRequiredSessionRefreshIntervalMs();
   useEffect(() => {
     if (user === null) return;
     const stop = createSessionRefreshLoop({
@@ -130,16 +154,14 @@ export function AuthProvider({ children, initialUser }: AuthProviderProps) {
       authApi: webAuth,
       parseUser: parseUserFromLoginOrRefresh,
       onSuccess: setUser,
+      refreshIntervalMs,
       onFailure: () => {
         setUser(null);
         void (async () => {
           const timeout = new Promise<void>((resolve) =>
             setTimeout(resolve, LOGOUT_REDIRECT_TIMEOUT_MS)
           );
-          await Promise.race([
-            webAuth.logout(getApiBaseUrl()).catch(() => {}),
-            timeout,
-          ]);
+          await Promise.race([webAuth.logout(getApiBaseUrl()).catch(() => {}), timeout]);
           window.location.href = ROUTES.LOGIN;
         })();
       },
@@ -174,16 +196,28 @@ export function AuthProvider({ children, initialUser }: AuthProviderProps) {
           id: string;
           email: string;
           displayName: string | null;
-          profileVisibility?: boolean;
         };
       };
       const u = data?.user
-        ? {
-            id: data.user.id,
-            email: data.user.email,
-            displayName: data.user.displayName ?? null,
-            profileVisibility: data.user.profileVisibility === true,
-          }
+        ? (() => {
+            const us = data.user as {
+              id?: string;
+              email?: string | null;
+              username?: string | null;
+              displayName?: string | null;
+            };
+            if (typeof us.id !== 'string') return null;
+            const hasEmail = us.email !== undefined && us.email !== null && us.email !== '';
+            const hasUsername =
+              us.username !== undefined && us.username !== null && us.username !== '';
+            if (!hasEmail && !hasUsername) return null;
+            return {
+              id: us.id,
+              email: hasEmail ? (us.email as string) : null,
+              username: hasUsername ? (us.username as string) : null,
+              displayName: us.displayName ?? null,
+            };
+          })()
         : null;
       if (u !== null) setUser(u);
       return { ok: true };

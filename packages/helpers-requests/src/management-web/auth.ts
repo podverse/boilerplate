@@ -21,10 +21,10 @@ export async function logout(baseUrl: string): AuthResponse {
   return request(baseUrl, '/auth/logout', { method: 'POST' });
 }
 
-export async function login(baseUrl: string, email: string, password: string): AuthResponse {
+export async function login(baseUrl: string, username: string, password: string): AuthResponse {
   return request(baseUrl, '/auth/login', {
     method: 'POST',
-    body: JSON.stringify({ email, password }),
+    body: JSON.stringify({ username, password }),
   });
 }
 
@@ -42,10 +42,10 @@ export async function changePassword(
   });
 }
 
-/** Call PATCH /auth/me to update profile (display name, optional email). Uses cookies by default. */
+/** Call PATCH /auth/me to update profile (display name only). Uses cookies by default. */
 export async function updateProfile(
   baseUrl: string,
-  body: { displayName: string; email?: string },
+  body: { displayName: string },
   options?: { token?: string | null }
 ): AuthResponse {
   return request(baseUrl, '/auth/me', {

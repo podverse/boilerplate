@@ -2,9 +2,15 @@ import { appDataSourceReadWrite } from '../data-source.js';
 import type { User } from '../entities/User.js';
 import { VerificationToken } from '../entities/VerificationToken.js';
 
-export type VerificationKind = 'email_verify' | 'password_reset' | 'email_change';
+export type VerificationKind = 'email_verify' | 'password_reset' | 'email_change' | 'set_password';
 
 export interface ConsumedToken {
+  user: User;
+  payload: Record<string, unknown> | null;
+}
+
+export interface ValidToken {
+  id: string;
   user: User;
   payload: Record<string, unknown> | null;
 }
@@ -46,5 +52,33 @@ export class VerificationTokenService {
       user,
       payload: token.payload,
     };
+  }
+
+  static async findValidToken(
+    tokenHash: string,
+    kind: VerificationKind
+  ): Promise<ValidToken | null> {
+    const repo = appDataSourceReadWrite.getRepository(VerificationToken);
+    const token = await repo.findOne({
+      where: { tokenHash, kind },
+      relations: ['user'],
+    });
+    if (token === null) return null;
+    if (token.expiresAt < new Date()) return null;
+    return {
+      id: token.id,
+      user: token.user,
+      payload: token.payload,
+    };
+  }
+
+  static async consumeTokenById(
+    id: string,
+    tokenHash: string,
+    kind: VerificationKind
+  ): Promise<boolean> {
+    const repo = appDataSourceReadWrite.getRepository(VerificationToken);
+    const result = await repo.delete({ id, tokenHash, kind });
+    return (result.affected ?? 0) > 0;
   }
 }

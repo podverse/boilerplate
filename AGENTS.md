@@ -38,13 +38,13 @@ Node and npm are provided by the repo's Nix flake, not a global install. When ru
 
 See [.llm/LLM.md](.llm/LLM.md) for full guidelines. Use the **llm-history** skill when updating history or starting feature work.
 
-- **Before file-modifying work:** If the current branch matches an existing `.llm/history/active/[feature]/` (e.g. branch `chore/first-test-issue` → `first-test-issue`), update that history file; no exception for small changes.
+- Follow `.cursor/skills/llm-history/SKILL.md` as the canonical process for history timing and format.
 
 ## Testing
 
-- **API integration tests:** `npm run test` from repo root. The **first step** is a requirements check: Postgres
-  and Valkey must be reachable at the test ports (defaults 5532, 6479). If not, the script exits with instructions
-  (e.g. `make test_deps`). In Nix/agent environments use `./scripts/nix/with-env npm run test`.
+When implementing features or executing plans that touch **api** or **management-api**, include **integration tests** (see api-testing). When they touch **web** or **management-web**, include **E2E tests** (see e2e-page-tests). If an API change affects UI in web or management-web, add or update the relevant E2E specs as well.
+
+- **API integration tests:** One setup file ([apps/api/src/test/setup.ts](apps/api/src/test/setup.ts)) provides smart-default env for all tests. Tests that need different env (e.g. signup/mailer) override only those vars at the top of the file and load app/config via dynamic import in `beforeAll` so overrides apply. Full coverage: `npm run test` from repo root. The **first step** is a requirements check: Postgres and Valkey must be reachable at the test ports (defaults 5532, 6479). If not, the script exits with instructions (e.g. `make test_deps`). In Nix/agent environments use `./scripts/nix/with-env npm run test`.
 - **Test requirements (Makefile):** Test-related commands live in `makefiles/local/Makefile.local.test.mk`. From
   repo root: `make test_deps` starts Postgres on 5532 and Valkey on 6479, creates **two** test databases:
   `boilerplate_test` (main app; `infra/database/combined/init_database.sql`) and `boilerplate_management_test`

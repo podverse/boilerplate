@@ -9,6 +9,14 @@ version: 1.0.0
 - **Location**: `apps/api/`
 - **Stack**: Express, TypeScript, ESM
 
+## API change triad (use every time)
+
+When you add or change an API route, update these together:
+
+1. Route/controller/schema implementation in API or management-api.
+2. API integration tests (see **api-testing**).
+3. OpenAPI spec updates (see **swagger-openapi**).
+
 ## Patterns
 
 ### Route and handler
@@ -40,7 +48,7 @@ Wrap async route handlers to avoid unhandled rejections (e.g. try/catch and pass
 
 - **Validate at the route**: Use `validateBody(schema)` middleware (Joi) on any route that accepts a JSON body. Validation runs before the controller; invalid requests get 400 with details and never reach the controller.
 - **Type the validated body**: In the schema file, export an interface that matches the shape Joi validates (e.g. `CreateAdminBody` for `createAdminSchema`). Use `.default()` in Joi so optional fields have a known shape after validation.
-- **Controllers assume valid body**: In the controller, cast `req.body` to the exported type (e.g. `req.body as CreateAdminBody`). Do **not** repeat “field is required” or “field must be a string” checks for fields that are required and validated by the schema; those errors are already handled by the middleware. Controllers only do business checks (e.g. “email already in use”, “display name already in use”, auth checks).
+- **Controllers assume valid body**: In the controller, use the validated schema shape (for example the exported body interface from the schema module) and avoid redundant field-type checks. Do **not** repeat “field is required” or “field must be a string” checks for fields already validated by middleware; controllers should only do business checks (e.g. “email already in use”, “display name already in use”, auth checks).
 - **Same pattern in management-api**: Apply the same pattern in `apps/management-api`: schemas in `schemas/*.ts` with exported body types, routes using `validateBody(schema)`, controllers using the types and no redundant presence/type checks for validated fields.
 
 ## Scripts

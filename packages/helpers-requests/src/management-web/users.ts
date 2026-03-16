@@ -26,12 +26,18 @@ export async function getUser(
   });
 }
 
+export type CreateUserResponse = {
+  user: PublicMainAppUser;
+  /** Present when password was omitted (set-password link flow). */
+  setPasswordLink?: string;
+};
+
 export async function createUser(
   baseUrl: string,
   body: CreateUserBody,
   token?: string | null
-): Promise<ApiResponse<{ user: PublicMainAppUser }>> {
-  return request<{ user: PublicMainAppUser }>(baseUrl, '/users', {
+): Promise<ApiResponse<CreateUserResponse>> {
+  return request<CreateUserResponse>(baseUrl, '/users', {
     method: 'POST',
     body: JSON.stringify(body),
     token: token ?? undefined,

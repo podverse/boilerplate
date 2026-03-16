@@ -1,7 +1,7 @@
 /**
  * Express app factory for management API. Used by server (index.ts) and integration tests.
  */
-import type { Application } from 'express';
+import type { Express } from 'express';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import express from 'express';
@@ -14,10 +14,11 @@ import { requireSuperAdmin } from './middleware/requireSuperAdmin.js';
 import { openApiDocument } from './openapi.js';
 import { createAdminsRouter } from './routes/admins.js';
 import { createAuthRouter } from './routes/auth.js';
+import { createBucketsRouter } from './routes/buckets.js';
 import { createEventsRouter } from './routes/events.js';
 import { createUsersRouter } from './routes/users.js';
 
-export function createApp(): Application {
+export function createApp(): Express {
   const app = express();
   const corsOptions: { origin: string[] | boolean; credentials: boolean } = {
     origin: config.corsOrigins ?? true,
@@ -52,6 +53,7 @@ export function createApp(): Application {
   versionedRouter.use('/auth', createAuthRouter(requireAuth));
   versionedRouter.use('/admins', createAdminsRouter(requireAuth, requireSuperAdminMiddleware));
   versionedRouter.use('/users', createUsersRouter(requireAuth));
+  versionedRouter.use('/buckets', createBucketsRouter(requireAuth));
   versionedRouter.use('/events', createEventsRouter(requireAuth));
 
   app.use(config.apiVersionPath, versionedRouter);

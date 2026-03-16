@@ -10,17 +10,23 @@ export class BucketMessageService {
   /**
    * List messages in a bucket with optional pagination.
    * When publicOnly is true, only rows with is_public = true are returned.
+   * order: 'DESC' = recent first (default), 'ASC' = oldest first.
    */
   static async findByBucketId(
     bucketId: string,
-    options: { limit?: number; offset?: number; publicOnly?: boolean } = {}
+    options: {
+      limit?: number;
+      offset?: number;
+      publicOnly?: boolean;
+      order?: 'ASC' | 'DESC';
+    } = {}
   ): Promise<BucketMessage[]> {
     const repo = appDataSourceRead.getRepository(BucketMessage);
-    const { limit = 50, offset = 0, publicOnly = false } = options;
+    const { limit = 50, offset = 0, publicOnly = false, order = 'DESC' } = options;
     const qb = repo
       .createQueryBuilder('msg')
       .where('msg.bucket_id = :bucketId', { bucketId })
-      .orderBy('msg.created_at', 'DESC')
+      .orderBy('msg.created_at', order)
       .take(limit)
       .skip(offset);
     if (publicOnly) {
@@ -36,6 +42,30 @@ export class BucketMessageService {
       qb.andWhere('msg.is_public = true');
     }
     return qb.getCount();
+  }
+
+  /**
+   * Returns the latest message createdAt per bucket for the given bucket IDs.
+   * Only buckets that have at least one message are included.
+   */
+  static async getLatestMessageCreatedAtByBucketIds(
+    bucketIds: string[]
+  ): Promise<Map<string, Date>> {
+    if (bucketIds.length === 0) return new Map();
+    const repo = appDataSourceRead.getRepository(BucketMessage);
+    const rows = await repo
+      .createQueryBuilder('msg')
+      .select('msg.bucket_id', 'bucketId')
+      .addSelect('MAX(msg.created_at)', 'latest')
+      .where('msg.bucket_id IN (:...ids)', { ids: bucketIds })
+      .groupBy('msg.bucket_id')
+      .getRawMany<{ bucketId: string; latest: string | Date }>();
+    const map = new Map<string, Date>();
+    for (const row of rows) {
+      const date = typeof row.latest === 'string' ? new Date(row.latest) : row.latest;
+      map.set(row.bucketId, date);
+    }
+    return map;
   }
 
   static async create(data: {

@@ -9,6 +9,7 @@ import type {
   LoginBody,
   RequestEmailChangeBody,
   ResetPasswordBody,
+  SetPasswordBody,
   SignupBody,
   UpdateProfileBody,
   WithOptionalToken,
@@ -17,6 +18,7 @@ import { config } from '../config/index.js';
 import { hashPassword, comparePassword } from '../lib/auth/hash.js';
 import { signAccessToken } from '../lib/auth/jwt.js';
 import { setSessionCookies, clearSessionCookies } from '../lib/auth/cookies.js';
+import { verifyToken } from '../lib/auth/jwt.js';
 import {
   generateToken,
   hashToken,
@@ -25,7 +27,6 @@ import {
   getEmailChangeExpiry,
 } from '../lib/auth/verification-token.js';
 import {
-  isMailerEnabled,
   sendVerificationEmail,
   sendPasswordResetEmail,
   sendEmailChangeVerificationEmail,
@@ -43,9 +44,9 @@ function getCookieOptions() {
 }
 
 export async function login(req: Request, res: Response): Promise<void> {
-  const { email, password } = req.body as LoginBody;
+  const { email: identifier, password } = req.body as LoginBody;
 
-  const user = await UserService.findByEmail(email);
+  const user = await UserService.findByEmailOrUsername(identifier);
   if (user === null) {
     res.status(401).json({ message: AUTH_MESSAGE_INVALID_CREDENTIALS });
     return;
@@ -141,44 +142,44 @@ export async function signup(req: Request, res: Response): Promise<void> {
     return;
   }
 
-  const existing = await UserService.findByEmail(body.email);
-  if (existing !== null) {
-    res.status(201).json({ message: 'Registration complete.' });
+  const existingEmail = await UserService.findByEmail(body.email);
+  if (existingEmail !== null) {
+    res.status(201).json({ message: 'Check your email to verify your account.' });
+    return;
+  }
+
+  const existingUsername = await UserService.findByUsername(body.username);
+  if (existingUsername !== null) {
+    res.status(409).json({ message: 'Username already in use' });
     return;
   }
 
   const hashed = await hashPassword(body.password);
   const user = await UserService.create({
     email: body.email,
+    username: body.username,
     password: hashed,
     displayName: body.displayName ?? null,
   });
 
-  if (isMailerEnabled()) {
-    try {
-      const rawToken = generateToken();
-      const tokenHash = hashToken(rawToken);
-      await VerificationTokenService.createToken(
-        user.id,
-        'email_verify',
-        tokenHash,
-        getEmailVerifyExpiry(),
-        null
-      );
-      await sendVerificationEmail(user.credentials.email, rawToken, locale);
-    } catch {
-      // Continue; user is created, verification email best-effort
+  try {
+    const rawToken = generateToken();
+    const tokenHash = hashToken(rawToken);
+    await VerificationTokenService.createToken(
+      user.id,
+      'email_verify',
+      tokenHash,
+      getEmailVerifyExpiry(),
+      null
+    );
+    const email = user.credentials.email;
+    if (email !== null && email !== undefined && email !== '') {
+      await sendVerificationEmail(email, rawToken, locale);
     }
+  } catch {
+    // Continue; user is created, verification email best-effort
   }
-
-  const accessToken = signAccessToken(user, config.jwtSecret, config.accessTokenMaxAgeSeconds);
-  const refreshRaw = generateToken();
-  const refreshHash = hashToken(refreshRaw);
-  const refreshExpiresAt = new Date(Date.now() + config.refreshTokenMaxAgeSeconds * 1000);
-  await RefreshTokenService.createToken(user.id, refreshHash, refreshExpiresAt);
-
-  setSessionCookies(res, accessToken, refreshRaw, getCookieOptions());
-  res.status(201).json({ user: userToJson(user) });
+  res.status(201).json({ message: 'Check your email to verify your account.' });
 }
 
 export async function verifyEmail(req: Request, res: Response): Promise<void> {
@@ -212,7 +213,10 @@ export async function forgotPassword(req: Request, res: Response): Promise<void>
         getPasswordResetExpiry(),
         null
       );
-      await sendPasswordResetEmail(user.credentials.email, rawToken, locale);
+      const email = user.credentials.email;
+      if (email !== null && email !== undefined && email !== '') {
+        await sendPasswordResetEmail(email, rawToken, locale);
+      }
     } catch {
       // No enumeration: still return success
     }
@@ -238,6 +242,74 @@ export async function resetPassword(req: Request, res: Response): Promise<void> 
   }
   const hashed = await hashPassword(newPassword);
   await UserService.updatePassword(consumed.user.id, hashed);
+  res.status(204).send();
+}
+
+export async function setPassword(req: Request, res: Response): Promise<void> {
+  const { token, newPassword, username, email } = req.body as SetPasswordBody;
+  const tokenHash = hashToken(token);
+  const tokenRecord = await VerificationTokenService.findValidToken(tokenHash, 'set_password');
+  if (tokenRecord === null) {
+    res.status(400).json({ message: 'Invalid or expired link' });
+    return;
+  }
+
+  const requiresUsername = config.authModeCapabilities.canIssueAdminInviteLink;
+  const requiresEmail = config.authModeCapabilities.requiresEmailAtInviteCompletion;
+  const normalizedUsername =
+    typeof username === 'string' && username.trim() !== '' ? username.trim() : null;
+  const normalizedEmail = typeof email === 'string' && email.trim() !== '' ? email.trim() : null;
+
+  if (requiresUsername && normalizedUsername === null) {
+    res.status(400).json({ message: 'Username is required' });
+    return;
+  }
+  if (requiresEmail && normalizedEmail === null) {
+    res.status(400).json({ message: 'Email is required' });
+    return;
+  }
+
+  if (normalizedUsername !== null) {
+    const existingUsername = await UserService.findByUsername(normalizedUsername);
+    if (existingUsername !== null && existingUsername.id !== tokenRecord.user.id) {
+      res.status(409).json({ message: 'Username already in use' });
+      return;
+    }
+  }
+  if (normalizedEmail !== null) {
+    const existingEmail = await UserService.findByEmail(normalizedEmail);
+    if (existingEmail !== null && existingEmail.id !== tokenRecord.user.id) {
+      res.status(409).json({ message: 'Email already in use' });
+      return;
+    }
+  }
+
+  const locale = resolveLocale(req.get('Accept-Language'));
+  const passwordCheck = validatePassword(newPassword, getPasswordValidationMessages(locale));
+  if (!passwordCheck.valid) {
+    res.status(400).json({ message: passwordCheck.message });
+    return;
+  }
+
+  const consumed = await VerificationTokenService.consumeTokenById(
+    tokenRecord.id,
+    tokenHash,
+    'set_password'
+  );
+  if (!consumed) {
+    res.status(400).json({ message: 'Invalid or expired link' });
+    return;
+  }
+
+  const hashed = await hashPassword(newPassword);
+  await UserService.updatePassword(tokenRecord.user.id, hashed);
+  if (normalizedUsername !== null) {
+    await UserService.updateUsername(tokenRecord.user.id, normalizedUsername);
+  }
+  if (normalizedEmail !== null) {
+    await UserService.updateEmail(tokenRecord.user.id, normalizedEmail);
+    await UserService.setEmailVerifiedAt(tokenRecord.user.id);
+  }
   res.status(204).send();
 }
 
@@ -307,10 +379,30 @@ export async function updateProfile(req: Request, res: Response): Promise<void> 
     res.status(401).json({ message: 'Authentication required' });
     return;
   }
-  const { displayName, profileVisibility } = req.body as UpdateProfileBody;
-  await UserService.updateDisplayName(user.id, displayName ?? null);
-  if (profileVisibility !== undefined) {
-    await UserService.updateProfileVisibility(user.id, profileVisibility);
+  const body = req.body as UpdateProfileBody;
+  if (body.username !== undefined) {
+    const normalizedUsername =
+      body.username === null || body.username === '' ? null : body.username.trim();
+    if (normalizedUsername === null) {
+      const current = await UserService.findById(user.id);
+      if (
+        current !== null &&
+        (current.credentials.email === null || current.credentials.email === '')
+      ) {
+        res.status(400).json({ message: 'Must have email or username' });
+        return;
+      }
+    } else {
+      const existing = await UserService.findByUsername(normalizedUsername);
+      if (existing !== null && existing.id !== user.id) {
+        res.status(409).json({ message: 'Username already in use' });
+        return;
+      }
+    }
+    await UserService.updateUsername(user.id, normalizedUsername);
+  }
+  if (body.displayName !== undefined) {
+    await UserService.updateDisplayName(user.id, body.displayName ?? null);
   }
   const updated = await UserService.findById(user.id);
   if (updated !== null) {
@@ -327,4 +419,33 @@ export function me(req: Request, res: Response): void {
     return;
   }
   res.status(200).json({ user: userToJson(user) });
+}
+
+/**
+ * GET /auth/username-available?username=... — check if username is available.
+ * If authenticated, current user's own username is considered available.
+ */
+export async function usernameAvailable(req: Request, res: Response): Promise<void> {
+  const raw = typeof req.query.username === 'string' ? req.query.username.trim() : '';
+  if (raw === '') {
+    res.status(200).json({ available: false });
+    return;
+  }
+
+  const cookieToken =
+    typeof req.cookies?.[config.sessionCookieName] === 'string' &&
+    req.cookies[config.sessionCookieName] !== ''
+      ? req.cookies[config.sessionCookieName]
+      : undefined;
+  const authHeader = req.headers.authorization;
+  const bearerToken = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : undefined;
+  const token =
+    cookieToken ?? (bearerToken !== undefined && bearerToken !== '' ? bearerToken : undefined);
+  const tokenPayload = token !== undefined ? verifyToken(token, config.jwtSecret) : null;
+
+  const existing = await UserService.findByUsername(raw);
+  const currentUserId = req.user?.id ?? tokenPayload?.sub;
+  const available =
+    existing === null || (currentUserId !== undefined && existing.id === currentUserId);
+  res.status(200).json({ available });
 }

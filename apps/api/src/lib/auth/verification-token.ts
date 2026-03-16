@@ -5,6 +5,7 @@ const HASH_ALGO = 'sha256';
 
 const EMAIL_VERIFY_EXPIRY_HOURS = 24;
 const PASSWORD_RESET_EXPIRY_HOURS = 1;
+const SET_PASSWORD_EXPIRY_DAYS = 7;
 const EMAIL_CHANGE_EXPIRY_HOURS = 24;
 
 export function generateToken(): string {
@@ -24,6 +25,13 @@ export function getEmailVerifyExpiry(): Date {
 export function getPasswordResetExpiry(): Date {
   const d = new Date();
   d.setHours(d.getHours() + PASSWORD_RESET_EXPIRY_HOURS);
+  return d;
+}
+
+/** Expiry for set_password tokens (e.g. 7 days). Used when creating username-only users. */
+export function getSetPasswordExpiry(): Date {
+  const d = new Date();
+  d.setDate(d.getDate() + SET_PASSWORD_EXPIRY_DAYS);
   return d;
 }
 

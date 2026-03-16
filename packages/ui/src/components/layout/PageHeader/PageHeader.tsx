@@ -10,7 +10,7 @@ export type PageHeaderProps = {
 
 export function PageHeader({ title, className = '' }: PageHeaderProps) {
   return (
-    <header className={`${styles.root} ${className}`.trim()}>
+    <header className={className}>
       <h1 className={styles.title}>{title}</h1>
     </header>
   );
