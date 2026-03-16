@@ -74,3 +74,76 @@ To-do's from the plan have already been created. Do not create them again. Mark 
 - .llm/plans/active/e2e-suite-title-normalization/03-management-web-suite-title-sweep.md
 - .llm/plans/active/e2e-suite-title-normalization/04-validation-and-report-smoke.md
 - .llm/plans/active/e2e-suite-title-normalization/COPY-PASTA.md
+
+### Session 70 - 2026-03-15
+
+#### Prompt (Developer)
+
+Fix lint errors from terminal logs
+
+Implement the plan as specified, it is attached for your reference. Do NOT edit the plan file itself.
+
+To-do's from the plan have already been created. Do not create them again. Mark them as in_progress as you work, starting with the first one. Don't stop until you have completed all the to-dos.
+
+#### Key Decisions
+
+- Fixed TableWithSort non-null assertions by adding explicit guards (`sortPrefsCookieName !== undefined && sortPrefsListKey !== undefined`) so TypeScript narrows without `!`.
+- Removed all unused imports and variables from 45 management-web E2E spec files per avoid-unused-props-vars (no `_` prefix; remove unused symbols).
+- Removed unused const `E2E_VALID_PASSWORD` / `E2E_PASSWORD` where applicable; removed unused `expect` from Playwright import where not used.
+- Verified with `./scripts/nix/with-env npm run lint:fix` (exit 0).
+
+#### Files Modified
+
+- packages/ui/src/components/table/TableWithSort/TableWithSort.tsx
+- apps/management-web/e2e/admin-detail-admin-with-buckets-read-no-admins-crud.spec.ts
+- apps/management-web/e2e/admin-detail-limited-admin-admins-read.spec.ts
+- apps/management-web/e2e/admin-detail-super-admin-full-crud.spec.ts
+- apps/management-web/e2e/admin-detail-unauthenticated.spec.ts
+- apps/management-web/e2e/admin-edit-admin-with-buckets-read-no-admins-crud.spec.ts
+- apps/management-web/e2e/admin-edit-super-admin-full-crud.spec.ts
+- apps/management-web/e2e/admin-edit-unauthenticated.spec.ts
+- apps/management-web/e2e/admin-role-new-admin-with-buckets-read-no-admins-crud.spec.ts
+- apps/management-web/e2e/admin-role-new-super-admin-full-crud.spec.ts
+- apps/management-web/e2e/admin-role-new-unauthenticated.spec.ts
+- apps/management-web/e2e/admins-admin-with-buckets-read-no-admins-crud.spec.ts
+- apps/management-web/e2e/admins-new-admin-with-buckets-read-no-admins-crud.spec.ts
+- apps/management-web/e2e/admins-new-super-admin-full-crud.spec.ts
+- apps/management-web/e2e/admins-new-unauthenticated.spec.ts
+- apps/management-web/e2e/admins-super-admin-full-crud.spec.ts
+- apps/management-web/e2e/admins-unauthenticated.spec.ts
+- apps/management-web/e2e/bucket-child-new-admin-with-buckets-read-no-create.spec.ts
+- apps/management-web/e2e/bucket-child-new-limited-admin-no-buckets-read.spec.ts
+- apps/management-web/e2e/bucket-child-new-super-admin-full-crud.spec.ts
+- apps/management-web/e2e/bucket-child-new-unauthenticated.spec.ts
+- apps/management-web/e2e/bucket-detail-limited-admin-no-buckets-read.spec.ts
+- apps/management-web/e2e/bucket-detail-super-admin-full-crud.spec.ts
+- apps/management-web/e2e/bucket-detail-unauthenticated.spec.ts
+- apps/management-web/e2e/bucket-edit-limited-admin-no-buckets-read.spec.ts
+- apps/management-web/e2e/bucket-edit-super-admin-full-crud.spec.ts
+- apps/management-web/e2e/bucket-edit-unauthenticated.spec.ts
+- apps/management-web/e2e/bucket-message-edit-limited-admin-no-buckets-read.spec.ts
+- apps/management-web/e2e/bucket-message-edit-super-admin-full-crud.spec.ts
+- apps/management-web/e2e/bucket-message-edit-unauthenticated.spec.ts
+- apps/management-web/e2e/bucket-messages-limited-admin-no-buckets-read.spec.ts
+- apps/management-web/e2e/bucket-messages-super-admin-full-crud.spec.ts
+- apps/management-web/e2e/bucket-messages-unauthenticated.spec.ts
+- apps/management-web/e2e/bucket-role-edit-limited-admin-no-buckets-read.spec.ts
+- apps/management-web/e2e/bucket-role-edit-super-admin-full-crud.spec.ts
+- apps/management-web/e2e/bucket-role-edit-unauthenticated.spec.ts
+- apps/management-web/e2e/bucket-role-new-limited-admin-no-buckets-read.spec.ts
+- apps/management-web/e2e/bucket-role-new-super-admin-full-crud.spec.ts
+- apps/management-web/e2e/bucket-role-new-unauthenticated.spec.ts
+- apps/management-web/e2e/login-unauthenticated.spec.ts
+- apps/management-web/e2e/user-detail-admin-with-buckets-read-no-users-crud.spec.ts
+- apps/management-web/e2e/user-detail-limited-admin-users-read.spec.ts
+- apps/management-web/e2e/user-detail-unauthenticated.spec.ts
+- apps/management-web/e2e/user-edit-admin-with-buckets-read-no-users-crud.spec.ts
+- apps/management-web/e2e/user-edit-super-admin-full-crud.spec.ts
+- apps/management-web/e2e/user-edit-unauthenticated.spec.ts
+- apps/management-web/e2e/users-admin-with-buckets-read-no-users-crud.spec.ts
+- apps/management-web/e2e/users-new-admin-with-buckets-read-no-users-crud.spec.ts
+- apps/management-web/e2e/users-new-super-admin-full-crud.spec.ts
+- apps/management-web/e2e/users-new-unauthenticated.spec.ts
+- apps/management-web/e2e/users-super-admin-full-crud.spec.ts
+- apps/management-web/e2e/users-unauthenticated.spec.ts
+- .llm/history/active/project-init/project-init-part-06.md

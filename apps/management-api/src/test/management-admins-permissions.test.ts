@@ -4,7 +4,7 @@
  * Super admin fixtures are shared; limited-permission admin fixtures are created per describe block.
  */
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import request from 'supertest';
+import type request from 'supertest';
 
 import { config } from '../config/index.js';
 import { createManagementLoginAgent } from './helpers/login-agent.js';

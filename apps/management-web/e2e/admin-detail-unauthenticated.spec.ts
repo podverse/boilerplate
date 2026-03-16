@@ -1,13 +1,6 @@
-import { expect, test } from '@playwright/test';
+import { test } from '@playwright/test';
 
-import {
-  loginAsLimitedAdmin,
-  loginAsManagementAdminWithBucketAdmins,
-  loginAsManagementSuperAdmin,
-} from './helpers/advancedFixtures';
 import { expectUnauthedRouteRedirectsToLogin } from './helpers/authAssertions';
-import { expectInvalidRouteShowsNotFound } from './helpers/flowHelpers';
-import { actionAndCapture, capturePageLoad } from './helpers/stepScreenshots';
 import { setE2EUserContext } from './helpers/userContext';
 
 const E2E_SUPER_ADMIN_ID = 'aaaaaaaa-aaaa-4aaa-aaaa-aaaaaaaaaaaa';

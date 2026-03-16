@@ -101,8 +101,8 @@ export function TableWithSort({
       const column = columns.find((c) => (c.sortKey ?? c.id) === sortKey);
       const defaultOrder = column?.defaultSortOrder ?? 'asc';
       const nextOrder = sortBy === sortKey ? (sortOrder === 'asc' ? 'desc' : 'asc') : defaultOrder;
-      if (hasCookiePrefs) {
-        setSortPrefInCookie(sortPrefsCookieName!, sortPrefsListKey!, sortKey, nextOrder);
+      if (hasCookiePrefs && sortPrefsCookieName !== undefined && sortPrefsListKey !== undefined) {
+        setSortPrefInCookie(sortPrefsCookieName, sortPrefsListKey, sortKey, nextOrder);
       }
       onSortChange(sortKey, nextOrder);
     },

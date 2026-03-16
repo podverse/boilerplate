@@ -4,7 +4,6 @@ import { actionAndCapture, capturePageLoad } from './helpers/stepScreenshots';
 import { setE2EUserContext } from './helpers/userContext';
 
 const E2E_USERNAME = 'e2e-superadmin';
-const E2E_PASSWORD = 'Test!1Aa';
 
 test.describe('Management login-page for the unauthenticated user', () => {
   test('When an unauthenticated user visits the login-page, they see the login-form.', async ({

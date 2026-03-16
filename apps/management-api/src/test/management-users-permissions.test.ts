@@ -4,7 +4,7 @@
  * Also covers POST /users/:id/change-password permission checks.
  */
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import request from 'supertest';
+import type request from 'supertest';
 import { UserService } from '@boilerplate/orm';
 
 import { config } from '../config/index.js';

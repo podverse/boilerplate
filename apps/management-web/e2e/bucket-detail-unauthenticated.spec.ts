@@ -1,13 +1,6 @@
-import { expect, test } from '@playwright/test';
+import { test } from '@playwright/test';
 
-import {
-  loginAsLimitedAdmin,
-  loginAsManagementAdminWithBucketAdmins,
-  loginAsManagementSuperAdmin,
-} from './helpers/advancedFixtures';
 import { expectUnauthedRouteRedirectsToLogin } from './helpers/authAssertions';
-import { expectInvalidRouteShowsNotFound } from './helpers/flowHelpers';
-import { actionAndCapture, capturePageLoad } from './helpers/stepScreenshots';
 import { setE2EUserContext } from './helpers/userContext';
 
 /** UUID from tools/web/seed-e2e.mjs E2E_BUCKET1_ID (main DB; management E2E runs after full seed). */

@@ -1,11 +1,6 @@
-import { expect, test } from '@playwright/test';
+import { test } from '@playwright/test';
 
-import {
-  loginAsManagementAdminWithBucketAdmins,
-  loginAsManagementSuperAdmin,
-} from './helpers/advancedFixtures';
 import { expectUnauthedRouteRedirectsToLogin } from './helpers/authAssertions';
-import { actionAndCapture, capturePageLoad } from './helpers/stepScreenshots';
 import { setE2EUserContext } from './helpers/userContext';
 
 test.describe('Management users-new-page for the unauthenticated user', () => {

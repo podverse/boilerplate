@@ -1,12 +1,7 @@
 import { expect, test } from '@playwright/test';
 
-import {
-  loginAsManagementAdminWithBucketAdmins,
-  loginAsManagementSuperAdmin,
-  nextFixtureName,
-} from './helpers/advancedFixtures';
-import { expectUnauthedRouteRedirectsToLogin } from './helpers/authAssertions';
-import { actionAndCapture, capturePageLoad } from './helpers/stepScreenshots';
+import { loginAsManagementAdminWithBucketAdmins } from './helpers/advancedFixtures';
+import { capturePageLoad } from './helpers/stepScreenshots';
 import { setE2EUserContext } from './helpers/userContext';
 
 test.describe('Management admin-role-new-page for the admin (buckets:R bucket_admins events:all_admins) user', () => {

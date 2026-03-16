@@ -1,12 +1,7 @@
 import { expect, test } from '@playwright/test';
 
-import {
-  loginAsManagementAdminWithBucketAdmins,
-  loginAsManagementSuperAdmin,
-} from './helpers/advancedFixtures';
-import { expectUnauthedRouteRedirectsToLogin } from './helpers/authAssertions';
-import { expectInvalidRouteShowsNotFound } from './helpers/flowHelpers';
-import { actionAndCapture, capturePageLoad } from './helpers/stepScreenshots';
+import { loginAsManagementAdminWithBucketAdmins } from './helpers/advancedFixtures';
+import { capturePageLoad } from './helpers/stepScreenshots';
 import { setE2EUserContext } from './helpers/userContext';
 
 const E2E_MAIN_USER_ID = '11111111-1111-4111-a111-111111111111';

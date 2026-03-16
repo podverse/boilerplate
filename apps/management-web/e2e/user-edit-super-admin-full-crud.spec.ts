@@ -1,10 +1,6 @@
 import { expect, test } from '@playwright/test';
 
-import {
-  loginAsManagementAdminWithBucketAdmins,
-  loginAsManagementSuperAdmin,
-} from './helpers/advancedFixtures';
-import { expectUnauthedRouteRedirectsToLogin } from './helpers/authAssertions';
+import { loginAsManagementSuperAdmin } from './helpers/advancedFixtures';
 import { expectInvalidRouteShowsNotFound } from './helpers/flowHelpers';
 import { actionAndCapture, capturePageLoad } from './helpers/stepScreenshots';
 import { setE2EUserContext } from './helpers/userContext';

@@ -1,13 +1,6 @@
 import { expect, test } from '@playwright/test';
 
-import {
-  loginAsLimitedAdmin,
-  loginAsManagementAdminWithBucketAdmins,
-  loginAsManagementSuperAdmin,
-  nextFixtureName,
-} from './helpers/advancedFixtures';
-import { expectUnauthedRouteRedirectsToLogin } from './helpers/authAssertions';
-import { clickConfirmDeleteInModal } from './helpers/flowHelpers';
+import { loginAsManagementSuperAdmin } from './helpers/advancedFixtures';
 import { actionAndCapture, capturePageLoad } from './helpers/stepScreenshots';
 import { setE2EUserContext } from './helpers/userContext';
 

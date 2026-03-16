@@ -1,14 +1,7 @@
-import { expect, test } from '@playwright/test';
+import { test } from '@playwright/test';
 
-import {
-  loginAsLimitedAdmin,
-  loginAsManagementAdminWithBucketAdmins,
-  loginAsManagementSuperAdmin,
-  nextFixtureName,
-} from './helpers/advancedFixtures';
-import { expectUnauthedRouteRedirectsToLogin } from './helpers/authAssertions';
+import { loginAsManagementAdminWithBucketAdmins } from './helpers/advancedFixtures';
 import { expectInvalidRouteShowsNotFound } from './helpers/flowHelpers';
-import { actionAndCapture, capturePageLoad } from './helpers/stepScreenshots';
 import { setE2EUserContext } from './helpers/userContext';
 
 const E2E_BUCKET1_ID = '22222222-2222-4222-a222-222222222222';
