@@ -9,8 +9,7 @@ export default defineConfig({
     setupFiles: ['src/test/setup.ts'],
     pool: 'forks',
     fileParallelism: false,
-    minWorkers: 1,
-    maxWorkers: 3, // cap at 3 to avoid socket hang ups / connection pressure
+    maxWorkers: 1, // sequential execution for reliability (Vitest 4: minWorkers removed)
   },
   resolve: {
     extensions: ['.ts', '.js'],
