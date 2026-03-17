@@ -56,9 +56,10 @@ test.describe('Bucket-admin-edit-page for the bucket-owner user', () => {
         await page.goto(`/bucket/${E2E_BUCKET1_SHORT_ID}/settings?tab=admins`);
       }
     );
-    await expect(
-      page.getByText(/E2E Bucket Admin|e2e-bucket-admin@example.com/i).first()
-    ).toBeVisible();
+    const adminEditLinkFromList = page
+      .locator(`a[href*="admins/${E2E_BUCKET1_ADMIN2_SHORT_ID}/edit"]`)
+      .first();
+    await expect(adminEditLinkFromList).toBeVisible({ timeout: 10_000 });
     await actionAndCapture(
       page,
       testInfo,
@@ -101,9 +102,10 @@ test.describe('Bucket-admin-edit-page for the bucket-owner user', () => {
     await expect(page).toHaveURL(
       new RegExp(`/bucket/${E2E_BUCKET1_SHORT_ID}/settings\\?tab=admins`)
     );
-    await expect(
-      page.getByText(/E2E Bucket Admin|e2e-bucket-admin@example.com/i).first()
-    ).toBeVisible();
+    const adminEditLinkFromCancel = page
+      .locator(`a[href*="admins/${E2E_BUCKET1_ADMIN2_SHORT_ID}/edit"]`)
+      .first();
+    await expect(adminEditLinkFromCancel).toBeVisible({ timeout: 10_000 });
     await capturePageLoad(page, testInfo, 'The admins-list is visible after Cancel.');
   });
 
@@ -158,9 +160,10 @@ test.describe('Bucket-admin-edit-page for the bucket-owner user', () => {
     await expect(page).toHaveURL(
       new RegExp(`/bucket/${E2E_BUCKET1_SHORT_ID}/settings\\?tab=admins`)
     );
-    await expect(
-      page.getByText(/E2E Bucket Admin|e2e-bucket-admin@example.com/i).first()
-    ).toBeVisible();
+    const adminEditLinkAfterSave = page
+      .locator(`a[href*="admins/${E2E_BUCKET1_ADMIN2_SHORT_ID}/edit"]`)
+      .first();
+    await expect(adminEditLinkAfterSave).toBeVisible({ timeout: 10_000 });
     await capturePageLoad(
       page,
       testInfo,

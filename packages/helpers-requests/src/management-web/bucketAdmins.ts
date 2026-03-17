@@ -1,11 +1,12 @@
 import { request } from '../request.js';
 import type { ApiResponse } from '../request.js';
 
-/** Main-app user in bucket admin context (id, shortId for URLs, email, displayName). */
+/** Main-app user in bucket admin context (id, shortId for URLs, username, displayName; email optional). */
 export type BucketAdminUser = {
   id: string;
   shortId: string;
-  email: string;
+  email: string | null;
+  username: string | null;
   displayName: string | null;
 };
 

@@ -35,3 +35,20 @@ const testEnv: Record<string, string> = {
 for (const [key, value] of Object.entries(testEnv)) {
   process.env[key] = value;
 }
+
+declare global {
+  // eslint-disable-next-line no-var -- set once for process-scoped diagnostics wiring
+  var __MANAGEMENT_API_TEST_DIAGNOSTICS_INSTALLED__: boolean | undefined;
+}
+
+if (!globalThis.__MANAGEMENT_API_TEST_DIAGNOSTICS_INSTALLED__) {
+  globalThis.__MANAGEMENT_API_TEST_DIAGNOSTICS_INSTALLED__ = true;
+
+  process.on('unhandledRejection', (reason) => {
+    console.error('[management-api test] unhandledRejection:', reason);
+  });
+
+  process.on('uncaughtException', (error) => {
+    console.error('[management-api test] uncaughtException:', error);
+  });
+}

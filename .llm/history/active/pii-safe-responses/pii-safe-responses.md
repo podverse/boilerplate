@@ -29,3 +29,32 @@ Implement the plan as specified, it is attached for your reference. Do NOT edit 
 - apps/management-api/src/CREDENTIALS-PROTECTION.md (admin-only PII note)
 - .cursor/rules/api-no-pii-credentials-in-responses.mdc (new)
 - apps/api/src/test/pii-credentials-responses.test.ts (new)
+
+### Session 2 - 2026-03-16
+
+#### Prompt (Developer)
+
+Align PII Policy With Intended UX
+
+Implement the plan as specified, it is attached for your reference. Do NOT edit the plan file itself.
+
+To-do's from the plan have already been created. Do not create them again. Mark them as in_progress as you work, starting with the first one. Don't stop until you have completed all the to-dos.
+
+@/Users/mitcheldowney/.cursor/projects/Users-mitcheldowney-repos-pv-pv-code-workspace/terminals/17.txt it seems like the PII feature is implemented incorrectly, because it is a display name and displayName and username should display in web and management web. the only things we never want to display is password (NEVER) and we sometimes want to display "email" when the logged in user requests their OWN user data (we need this email for example for their personal private profile page)
+
+#### Key Decisions
+
+- Updated `PublicUserSummary` to include `username` while keeping `email` excluded for non-self user summaries.
+- Kept bucket-admin controller serialization centralized through `userToPublicSummary`; no direct entity serialization was added.
+- Updated PII guidance docs/rules to clarify: credentials/password never exposed, email is self-only, username/displayName are allowed for non-self identity in UI lists/details.
+- Updated API integration test expectations so non-self summaries must not include email but do include username.
+- Aligned management-web bucket-admin request types to include `username` and nullable email.
+
+#### Files Created/Modified
+
+- .llm/history/active/pii-safe-responses/pii-safe-responses.md
+- apps/api/src/lib/userToJson.ts
+- .cursor/rules/api-no-pii-credentials-in-responses.mdc
+- AGENTS.md
+- apps/api/src/test/pii-credentials-responses.test.ts
+- packages/helpers-requests/src/management-web/bucketAdmins.ts

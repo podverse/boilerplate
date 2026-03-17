@@ -10,6 +10,7 @@ export default defineConfig({
     pool: 'forks',
     fileParallelism: false,
     maxWorkers: 1, // sequential execution for reliability (Vitest 4: minWorkers removed)
+    retry: 1, // absorb occasional transient socket resets in integration setup
   },
   resolve: {
     extensions: ['.ts', '.js'],

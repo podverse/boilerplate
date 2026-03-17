@@ -1,6 +1,6 @@
 /**
- * API integration tests: responses must never contain passwordHash, credentials, or
- * PII (email/username) for other users. Auth and bucket-admins endpoints are asserted.
+ * API integration tests: responses must never contain passwordHash/credentials, and
+ * other-user summaries must exclude email while allowing username/displayName.
  */
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import request from 'supertest';
@@ -84,7 +84,7 @@ describe('PII and credentials in API responses', () => {
     assertNoCredentialsInObject(res.body);
   });
 
-  it('bucket admins list returns other users as PublicUserSummary (no email or username)', async () => {
+  it('bucket admins list returns other users as PublicUserSummary (no email, includes username)', async () => {
     const agent = await createApiLoginAgent(app, {
       email: ownerEmail,
       password: ownerPassword,
@@ -97,9 +97,9 @@ describe('PII and credentials in API responses', () => {
       if (admin.user !== null && typeof admin.user === 'object') {
         expect(admin.user).toHaveProperty('id');
         expect(admin.user).toHaveProperty('shortId');
+        expect(admin.user).toHaveProperty('username');
         expect(admin.user).toHaveProperty('displayName');
         expect(admin.user).not.toHaveProperty('email');
-        expect(admin.user).not.toHaveProperty('username');
       }
     }
   });

@@ -9,8 +9,9 @@ export type UserLabelInput = {
 
 /**
  * Format a user for display: "username (displayName)" or "username"; fallback to
- * "email (displayName)" or "email" when username is not set. Returns "—" when
- * neither username nor email is set.
+ * "email (displayName)" or "email" when username is not set. If both username
+ * and email are absent, displayName alone is used. Returns "—" only when all
+ * values are empty.
  */
 export function formatUserLabel(user: UserLabelInput): string {
   const username =
@@ -25,7 +26,9 @@ export function formatUserLabel(user: UserLabelInput): string {
       : null;
 
   const primary = username ?? email;
-  if (primary === null) return '—';
+  if (primary === null) {
+    return displayName ?? '—';
+  }
   if (displayName !== null) return `${primary} (${displayName})`;
   return primary;
 }

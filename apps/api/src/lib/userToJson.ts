@@ -15,12 +15,13 @@ export interface PublicUser {
 
 /**
  * Non-PII shape for returning *another* user (e.g. bucket admins list). Use this when the
- * response describes a user other than the authenticated user. Email and username must not
- * be returned for other users (PII policy: only on login, me, signup, etc.).
+ * response describes a user other than the authenticated user. Email must not be returned
+ * for other users. Username and displayName are safe to return for identity in lists/details.
  */
 export interface PublicUserSummary {
   id: string;
   shortId: string;
+  username: string | null;
   displayName: string | null;
 }
 
@@ -39,13 +40,14 @@ export function userToJson(user: UserWithRelations): PublicUser {
 }
 
 /**
- * Serialize user for responses that describe *another* user. Omits email and username
- * so PII is never returned for other users.
+ * Serialize user for responses that describe *another* user. Omits email so PII is never
+ * returned for other users while keeping username/displayName available for UI identity.
  */
 export function userToPublicSummary(user: UserWithRelations): PublicUserSummary {
   return {
     id: user.id,
     shortId: user.shortId,
+    username: user.credentials.username ?? null,
     displayName: user.bio?.displayName ?? null,
   };
 }

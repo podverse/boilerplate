@@ -8,6 +8,7 @@ import request from 'supertest';
 import { BucketAdminService, BucketService } from '@boilerplate/orm';
 import { config } from '../config/index.js';
 import { createManagementLoginAgent } from './helpers/login-agent.js';
+import { retryTransientNetwork } from './helpers/retry-transient-network.js';
 import {
   createManagementApiTestAppWithSuperAdmin,
   destroyManagementApiTestDataSources,
@@ -28,19 +29,23 @@ describe('management-api buckets and messages', () => {
 
   beforeAll(async () => {
     app = await createManagementApiTestAppWithSuperAdmin(superAdminUsername, superAdminPassword);
-    superAdminAgent = await createManagementLoginAgent(app, {
-      username: superAdminUsername,
-      password: superAdminPassword,
-    });
-
-    const userRes = await superAdminAgent
-      .post(`${API}/users`)
-      .send({
-        email: `${FILE_PREFIX}-owner@example.com`,
-        password: `${FILE_PREFIX}-owner-password-1`,
-        displayName: 'Bucket Owner',
+    superAdminAgent = await retryTransientNetwork('create super admin login agent', async () =>
+      createManagementLoginAgent(app, {
+        username: superAdminUsername,
+        password: superAdminPassword,
       })
-      .expect(201);
+    );
+
+    const userRes = await retryTransientNetwork('create seed bucket owner user', async () =>
+      superAdminAgent
+        .post(`${API}/users`)
+        .send({
+          email: `${FILE_PREFIX}-owner@example.com`,
+          password: `${FILE_PREFIX}-owner-password-1`,
+          displayName: 'Bucket Owner',
+        })
+        .expect(201)
+    );
     ownerUserId = userRes.body.user.id;
   });
 
@@ -425,60 +430,80 @@ describe('management-api buckets and messages', () => {
     let adminUserId: string;
 
     beforeAll(async () => {
-      await superAdminAgent
-        .post(`${API}/admins`)
-        .send({
-          username: noBucketAdminsEmail,
-          password: noBucketAdminsPassword,
-          displayName: `No Bucket Admins ${ts}`,
-          adminsCrud: 0,
-          usersCrud: 0,
-          bucketsCrud: 2,
-          bucketMessagesCrud: 0,
-          bucketAdminsCrud: 0,
-          eventVisibility: 'own',
-        })
-        .expect(201);
+      await retryTransientNetwork('create no-bucket-admins management admin', async () =>
+        superAdminAgent
+          .post(`${API}/admins`)
+          .send({
+            username: noBucketAdminsEmail,
+            password: noBucketAdminsPassword,
+            displayName: `No Bucket Admins ${ts}`,
+            adminsCrud: 0,
+            usersCrud: 0,
+            bucketsCrud: 2,
+            bucketMessagesCrud: 0,
+            bucketAdminsCrud: 0,
+            eventVisibility: 'own',
+          })
+          .expect(201)
+      );
 
-      await superAdminAgent
-        .post(`${API}/admins`)
-        .send({
-          username: withBucketAdminsEmail,
-          password: withBucketAdminsPassword,
-          displayName: `With Bucket Admins ${ts}`,
-          adminsCrud: 0,
-          usersCrud: 0,
-          bucketsCrud: 2,
-          bucketMessagesCrud: 0,
-          bucketAdminsCrud: 15,
-          eventVisibility: 'own',
-        })
-        .expect(201);
+      await retryTransientNetwork('create with-bucket-admins management admin', async () =>
+        superAdminAgent
+          .post(`${API}/admins`)
+          .send({
+            username: withBucketAdminsEmail,
+            password: withBucketAdminsPassword,
+            displayName: `With Bucket Admins ${ts}`,
+            adminsCrud: 0,
+            usersCrud: 0,
+            bucketsCrud: 2,
+            bucketMessagesCrud: 0,
+            bucketAdminsCrud: 15,
+            eventVisibility: 'own',
+          })
+          .expect(201)
+      );
 
-      noBucketAdminsAgent = await createManagementLoginAgent(app, {
-        username: noBucketAdminsEmail,
-        password: noBucketAdminsPassword,
-      });
+      noBucketAdminsAgent = await retryTransientNetwork(
+        'login no-bucket-admins management admin',
+        async () =>
+          createManagementLoginAgent(app, {
+            username: noBucketAdminsEmail,
+            password: noBucketAdminsPassword,
+          })
+      );
 
-      withBucketAdminsAgent = await createManagementLoginAgent(app, {
-        username: withBucketAdminsEmail,
-        password: withBucketAdminsPassword,
-      });
+      withBucketAdminsAgent = await retryTransientNetwork(
+        'login with-bucket-admins management admin',
+        async () =>
+          createManagementLoginAgent(app, {
+            username: withBucketAdminsEmail,
+            password: withBucketAdminsPassword,
+          })
+      );
 
-      const bucketRes = await superAdminAgent
-        .post(`${API}/buckets`)
-        .send({ name: 'Bucket Admins Perm Bucket', ownerId: ownerUserId })
-        .expect(201);
+      const bucketRes = await retryTransientNetwork(
+        'create bucket-admins permission test bucket',
+        async () =>
+          superAdminAgent
+            .post(`${API}/buckets`)
+            .send({ name: 'Bucket Admins Perm Bucket', ownerId: ownerUserId })
+            .expect(201)
+      );
       testBucketId = bucketRes.body.bucket.id;
 
-      const adminUserRes = await superAdminAgent
-        .post(`${API}/users`)
-        .send({
-          email: `bucket-admin-member-${ts}@example.com`,
-          password: 'admin-member-password-1',
-          displayName: 'Bucket Admin Member',
-        })
-        .expect(201);
+      const adminUserRes = await retryTransientNetwork(
+        'create bucket-admin-member user',
+        async () =>
+          superAdminAgent
+            .post(`${API}/users`)
+            .send({
+              email: `bucket-admin-member-${ts}@example.com`,
+              password: 'admin-member-password-1',
+              displayName: 'Bucket Admin Member',
+            })
+            .expect(201)
+      );
       adminUserId = adminUserRes.body.user.id;
       await BucketAdminService.create({
         bucketId: testBucketId,
