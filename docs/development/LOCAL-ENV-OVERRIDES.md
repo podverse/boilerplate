@@ -11,8 +11,8 @@ customizable values: management superuser, brand (including app title icon), aut
 prepare/link/setup flow and home-directory layout align with Podverse. **APP_BASE_URL, CORS_ORIGINS,
 WEB_APP_URL, MANAGEMENT_CORS_ORIGINS** stay as local dev defaults (not in overrides). Web and
 management-web app `.env.example` files contain only `RUNTIME_CONFIG_URL`; the full list is in the
-sidecar env templates (`infra/config/env-templates/web-sidecar.env.example`,
-`management-web-sidecar.env.example`).
+sidecar env templates (`apps/web/sidecar/.env.example`,
+`apps/management-web/sidecar/.env.example`).
 
 ## Recommended flow (one consistent process)
 

@@ -9,7 +9,7 @@ description: Env-templates for app envs must only point to the app .env.example;
 
 **`infra/config/env-templates/`** files for **app** env (api, web, management-api, management-web) must **not** duplicate the app’s env. They must only contain a short comment that points to the canonical source.
 
-- **Canonical source**: `apps/<app>/.env.example` (e.g. `apps/api/.env.example`, `apps/web/.env.example`). For **web** and **management-web**, the app `.env.example` contains only `RUNTIME_CONFIG_URL`; the full variable list is in `infra/config/env-templates/web-sidecar.env.example` and `management-web-sidecar.env.example`.
+- **Canonical source**: `apps/<app>/.env.example` (e.g. `apps/api/.env.example`, `apps/web/.env.example`). For **web** and **management-web**, the app `.env.example` contains only `RUNTIME_CONFIG_URL`; the full variable list is in `apps/web/sidecar/.env.example` and `apps/management-web/sidecar/.env.example`.
 - **Stub file**: `infra/config/env-templates/<app>.env.example` contains only a comment pointing to that path and how to copy (e.g. `make local_env_setup` or `cp apps/api/.env.example infra/config/local/api.env`).
 
 ## Local env (Boilerplate)
@@ -35,6 +35,6 @@ One source of truth per app. Add or change variables only in the app’s `.env.e
 
 ## When adding management-api or management-web
 
-1. Add `apps/management-api/.env.example` with full variables. For **management-web** (and **web**), the app `.env.example` contains only `RUNTIME_CONFIG_URL`; add the full list to the corresponding sidecar env example instead.
+1. Add `apps/management-api/.env.example` with full variables. For **management-web** (and **web**), the app `.env.example` contains only `RUNTIME_CONFIG_URL`; add the full list to the corresponding sidecar `.env.example` in `apps/web/sidecar/` or `apps/management-web/sidecar/` instead.
 2. Add `infra/config/env-templates/management-api.env.example` (or `management-web.env.example`) with only a comment pointing to that app’s `.env.example`.
 3. In `local_env_setup` (scripts/local-env/setup.sh), copy from the app’s `.env.example` to `infra/config/local/management-api.env` (or `management-web.env`).
