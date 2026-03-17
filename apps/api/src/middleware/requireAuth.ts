@@ -35,7 +35,13 @@ export function requireAuth(options: RequireAuthOptions | string) {
       return;
     }
 
-    const user = await UserService.findById(payload.sub);
+    let user: Awaited<ReturnType<typeof UserService.findById>>;
+    try {
+      user = await UserService.findById(payload.sub);
+    } catch (err) {
+      next(err);
+      return;
+    }
     if (user === null) {
       res.status(401).json({ message: 'User not found' });
       return;

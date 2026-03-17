@@ -8,19 +8,19 @@ import { createUserSchema, updateUserSchema, changeUserPasswordSchema } from '..
 export function createUsersRouter(requireAuth: RequestHandler): Router {
   const router = Router();
 
-  router.get('/', requireAuth, requireCrud('users', 'read'), (req, res) => {
-    void usersController.listUsers(req, res);
+  router.get('/', requireAuth, requireCrud('users', 'read'), (req, res, next) => {
+    usersController.listUsers(req, res).catch(next);
   });
-  router.get('/:id', requireAuth, requireCrud('users', 'read'), (req, res) => {
-    void usersController.getUser(req, res);
+  router.get('/:id', requireAuth, requireCrud('users', 'read'), (req, res, next) => {
+    usersController.getUser(req, res).catch(next);
   });
   router.post(
     '/',
     requireAuth,
     requireCrud('users', 'create'),
     validateBody(createUserSchema),
-    (req, res) => {
-      void usersController.createUser(req, res);
+    (req, res, next) => {
+      usersController.createUser(req, res).catch(next);
     }
   );
   router.patch(
@@ -28,19 +28,19 @@ export function createUsersRouter(requireAuth: RequestHandler): Router {
     requireAuth,
     requireCrud('users', 'update'),
     validateBody(updateUserSchema),
-    (req, res) => {
-      void usersController.updateUser(req, res);
+    (req, res, next) => {
+      usersController.updateUser(req, res).catch(next);
     }
   );
-  router.delete('/:id', requireAuth, requireCrud('users', 'delete'), (req, res) => {
-    void usersController.deleteUser(req, res);
+  router.delete('/:id', requireAuth, requireCrud('users', 'delete'), (req, res, next) => {
+    usersController.deleteUser(req, res).catch(next);
   });
   router.post(
     '/:id/change-password',
     requireAuth,
     validateBody(changeUserPasswordSchema),
-    (req, res) => {
-      void usersController.changeUserPassword(req, res);
+    (req, res, next) => {
+      usersController.changeUserPassword(req, res).catch(next);
     }
   );
 

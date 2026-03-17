@@ -1,16 +1,25 @@
 /**
  * Management web app env. Use NEXT_PUBLIC_* for client.
+ * When RUNTIME_CONFIG_URL is set, values come from the sidecar (getRuntimeConfig()); otherwise from process.env.
  */
+
+import type { ManagementWebRuntimeConfigEnvKey } from './runtime-config';
+import { getRuntimeConfig } from './runtime-config-store';
+
+function env(key: ManagementWebRuntimeConfigEnvKey): string | undefined {
+  const val = getRuntimeConfig().env[key];
+  return typeof val === 'string' ? val : undefined;
+}
 
 /** Base URL of the management API (no version path). */
 export function getManagementApiUrl(): string {
-  const url = process.env.NEXT_PUBLIC_MANAGEMENT_API_URL ?? '';
+  const url = env('NEXT_PUBLIC_MANAGEMENT_API_URL') ?? '';
   return url.replace(/\/$/, '');
 }
 
 /** API version path prefix (e.g. /v1). Always starts with /. */
 export function getManagementApiVersionPath(): string {
-  const path = process.env.NEXT_PUBLIC_MANAGEMENT_API_VERSION_PATH?.trim() ?? '/v1';
+  const path = env('NEXT_PUBLIC_MANAGEMENT_API_VERSION_PATH')?.trim() ?? '/v1';
   return path.startsWith('/') ? path : `/${path}`;
 }
 
@@ -25,7 +34,7 @@ export function getManagementApiBaseUrl(): string {
  * When not set, falls back to getManagementApiBaseUrl() (e.g. production same-host).
  */
 export function getServerManagementApiBaseUrl(): string {
-  const backend = process.env.MANAGEMENT_API_BACKEND_URL?.trim();
+  const backend = env('MANAGEMENT_API_BACKEND_URL')?.trim();
   if (backend !== undefined && backend !== '') {
     return backend.replace(/\/$/, '') + getManagementApiVersionPath();
   }
@@ -38,7 +47,33 @@ export function getServerManagementApiBaseUrl(): string {
  * When set, public and invite links use this base. When unset, public link falls back to same-origin; invite link is path-only.
  */
 export function getWebAppUrl(): string | undefined {
-  const url = process.env.NEXT_PUBLIC_WEB_APP_URL?.trim();
+  const url = env('NEXT_PUBLIC_WEB_APP_URL')?.trim();
   if (url === undefined || url === '') return undefined;
   return url.replace(/\/$/, '');
+}
+
+/** NEXT_PUBLIC_BRAND_NAME (for server components; pass to client as needed). */
+export function getBrandName(): string | undefined {
+  return env('NEXT_PUBLIC_BRAND_NAME')?.trim() || undefined;
+}
+
+/** NEXT_PUBLIC_APP_TITLE_ICON (for server components; pass to client as needed). */
+export function getAppTitleIcon(): string | undefined {
+  const v = env('NEXT_PUBLIC_APP_TITLE_ICON');
+  return typeof v === 'string' && v.trim() !== '' ? v.trim() : undefined;
+}
+
+/** NEXT_PUBLIC_MANAGEMENT_SESSION_REFRESH_INTERVAL_MS (for server; pass to client as needed). */
+export function getSessionRefreshIntervalMs(): string | undefined {
+  return env('NEXT_PUBLIC_MANAGEMENT_SESSION_REFRESH_INTERVAL_MS')?.trim();
+}
+
+/** DEFAULT_LOCALE (for i18n). */
+export function getDefaultLocaleEnv(): string | undefined {
+  return env('DEFAULT_LOCALE')?.trim();
+}
+
+/** SUPPORTED_LOCALES (for i18n). */
+export function getSupportedLocalesEnv(): string | undefined {
+  return env('SUPPORTED_LOCALES')?.trim();
 }

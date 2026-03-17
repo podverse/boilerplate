@@ -1,3 +1,5 @@
+import { TEST_JWT_SECRET_API } from '@boilerplate/helpers';
+
 /**
  * Vitest setup: set test env before any module that reads process.env (config, orm) is loaded.
  * Uses a dedicated test database (DB_NAME). Create the test DB and run
@@ -11,7 +13,7 @@ const testEnv: Record<string, string> = {
   API_PORT: '3999',
   BRAND_NAME: 'boilerplate-api-test',
   AUTH_MODE: 'admin_only_username',
-  JWT_SECRET: 'test-jwt-secret-min-32-chars-long-for-validation',
+  JWT_SECRET: TEST_JWT_SECRET_API,
   SESSION_COOKIE_NAME: 'session',
   REFRESH_COOKIE_NAME: 'refresh',
   JWT_ACCESS_EXPIRY_SECONDS: '900',

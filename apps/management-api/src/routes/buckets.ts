@@ -22,22 +22,22 @@ import { createMessageSchema, updateMessageSchema } from '../schemas/messages.js
 export function createBucketsRouter(requireAuth: RequestHandler): Router {
   const router = Router();
 
-  router.get('/', requireAuth, requireCrud('buckets', 'read'), (req, res) => {
-    void bucketsController.listBuckets(req, res);
+  router.get('/', requireAuth, requireCrud('buckets', 'read'), (req, res, next) => {
+    bucketsController.listBuckets(req, res).catch(next);
   });
-  router.get('/:id', requireAuth, requireCrud('buckets', 'read'), (req, res) => {
-    void bucketsController.getBucket(req, res);
+  router.get('/:id', requireAuth, requireCrud('buckets', 'read'), (req, res, next) => {
+    bucketsController.getBucket(req, res).catch(next);
   });
-  router.get('/:id/buckets', requireAuth, requireCrud('buckets', 'read'), (req, res) => {
-    void bucketsController.listChildBuckets(req, res);
+  router.get('/:id/buckets', requireAuth, requireCrud('buckets', 'read'), (req, res, next) => {
+    bucketsController.listChildBuckets(req, res).catch(next);
   });
   router.post(
     '/:id/buckets',
     requireAuth,
     requireCrud('buckets', 'create'),
     validateBody(createChildBucketSchema),
-    (req, res) => {
-      void bucketsController.createChildBucket(req, res);
+    (req, res, next) => {
+      bucketsController.createChildBucket(req, res).catch(next);
     }
   );
   router.post(
@@ -45,8 +45,8 @@ export function createBucketsRouter(requireAuth: RequestHandler): Router {
     requireAuth,
     requireCrud('buckets', 'create'),
     validateBody(createBucketSchema),
-    (req, res) => {
-      void bucketsController.createBucket(req, res);
+    (req, res, next) => {
+      bucketsController.createBucket(req, res).catch(next);
     }
   );
   router.patch(
@@ -54,12 +54,12 @@ export function createBucketsRouter(requireAuth: RequestHandler): Router {
     requireAuth,
     requireCrud('buckets', 'update'),
     validateBody(updateBucketSchema),
-    (req, res) => {
-      void bucketsController.updateBucket(req, res);
+    (req, res, next) => {
+      bucketsController.updateBucket(req, res).catch(next);
     }
   );
-  router.delete('/:id', requireAuth, requireCrud('buckets', 'delete'), (req, res) => {
-    void bucketsController.deleteBucket(req, res);
+  router.delete('/:id', requireAuth, requireCrud('buckets', 'delete'), (req, res, next) => {
+    bucketsController.deleteBucket(req, res).catch(next);
   });
 
   // Bucket admins: require buckets read + bucketAdmins CRUD (:id = bucket id/shortId)
@@ -68,8 +68,8 @@ export function createBucketsRouter(requireAuth: RequestHandler): Router {
     requireAuth,
     requireCrud('buckets', 'read'),
     requireCrud('bucketAdmins', 'read'),
-    (req, res) => {
-      void bucketAdminsController.listBucketAdmins(req, res);
+    (req, res, next) => {
+      bucketAdminsController.listBucketAdmins(req, res).catch(next);
     }
   );
   router.get(
@@ -77,8 +77,8 @@ export function createBucketsRouter(requireAuth: RequestHandler): Router {
     requireAuth,
     requireCrud('buckets', 'read'),
     requireCrud('bucketAdmins', 'read'),
-    (req, res) => {
-      void bucketAdminsController.getBucketAdmin(req, res);
+    (req, res, next) => {
+      bucketAdminsController.getBucketAdmin(req, res).catch(next);
     }
   );
   router.patch(
@@ -87,8 +87,8 @@ export function createBucketsRouter(requireAuth: RequestHandler): Router {
     requireCrud('buckets', 'read'),
     requireCrud('bucketAdmins', 'update'),
     validateBody(updateBucketAdminSchema),
-    (req, res) => {
-      void bucketAdminsController.updateBucketAdmin(req, res);
+    (req, res, next) => {
+      bucketAdminsController.updateBucketAdmin(req, res).catch(next);
     }
   );
   router.delete(
@@ -96,8 +96,8 @@ export function createBucketsRouter(requireAuth: RequestHandler): Router {
     requireAuth,
     requireCrud('buckets', 'read'),
     requireCrud('bucketAdmins', 'delete'),
-    (req, res) => {
-      void bucketAdminsController.deleteBucketAdmin(req, res);
+    (req, res, next) => {
+      bucketAdminsController.deleteBucketAdmin(req, res).catch(next);
     }
   );
 
@@ -107,8 +107,8 @@ export function createBucketsRouter(requireAuth: RequestHandler): Router {
     requireAuth,
     requireCrud('buckets', 'read'),
     requireCrud('bucketAdmins', 'read'),
-    (req, res) => {
-      void bucketAdminInvitationsController.listBucketAdminInvitations(req, res);
+    (req, res, next) => {
+      bucketAdminInvitationsController.listBucketAdminInvitations(req, res).catch(next);
     }
   );
   router.post(
@@ -117,8 +117,8 @@ export function createBucketsRouter(requireAuth: RequestHandler): Router {
     requireCrud('buckets', 'read'),
     requireCrud('bucketAdmins', 'create'),
     validateBody(createBucketAdminInvitationSchema),
-    (req, res) => {
-      void bucketAdminInvitationsController.createBucketAdminInvitation(req, res);
+    (req, res, next) => {
+      bucketAdminInvitationsController.createBucketAdminInvitation(req, res).catch(next);
     }
   );
   router.delete(
@@ -126,8 +126,8 @@ export function createBucketsRouter(requireAuth: RequestHandler): Router {
     requireAuth,
     requireCrud('buckets', 'read'),
     requireCrud('bucketAdmins', 'delete'),
-    (req, res) => {
-      void bucketAdminInvitationsController.deleteBucketAdminInvitation(req, res);
+    (req, res, next) => {
+      bucketAdminInvitationsController.deleteBucketAdminInvitation(req, res).catch(next);
     }
   );
 
@@ -137,8 +137,8 @@ export function createBucketsRouter(requireAuth: RequestHandler): Router {
     requireAuth,
     requireCrud('buckets', 'read'),
     requireCrud('bucketAdmins', 'read'),
-    (req, res) => {
-      void bucketRolesController.listBucketRoles(req, res);
+    (req, res, next) => {
+      bucketRolesController.listBucketRoles(req, res).catch(next);
     }
   );
   router.post(
@@ -147,8 +147,8 @@ export function createBucketsRouter(requireAuth: RequestHandler): Router {
     requireCrud('buckets', 'read'),
     requireCrud('bucketAdmins', 'create'),
     validateBody(createBucketRoleSchema),
-    (req, res) => {
-      void bucketRolesController.createBucketRole(req, res);
+    (req, res, next) => {
+      bucketRolesController.createBucketRole(req, res).catch(next);
     }
   );
   router.patch(
@@ -157,8 +157,8 @@ export function createBucketsRouter(requireAuth: RequestHandler): Router {
     requireCrud('buckets', 'read'),
     requireCrud('bucketAdmins', 'update'),
     validateBody(updateBucketRoleSchema),
-    (req, res) => {
-      void bucketRolesController.updateBucketRole(req, res);
+    (req, res, next) => {
+      bucketRolesController.updateBucketRole(req, res).catch(next);
     }
   );
   router.delete(
@@ -166,8 +166,8 @@ export function createBucketsRouter(requireAuth: RequestHandler): Router {
     requireAuth,
     requireCrud('buckets', 'read'),
     requireCrud('bucketAdmins', 'delete'),
-    (req, res) => {
-      void bucketRolesController.deleteBucketRole(req, res);
+    (req, res, next) => {
+      bucketRolesController.deleteBucketRole(req, res).catch(next);
     }
   );
 
@@ -177,8 +177,8 @@ export function createBucketsRouter(requireAuth: RequestHandler): Router {
     requireAuth,
     requireCrud('buckets', 'read'),
     requireCrud('messages', 'read'),
-    (req, res) => {
-      void bucketMessagesController.listMessages(req, res);
+    (req, res, next) => {
+      bucketMessagesController.listMessages(req, res).catch(next);
     }
   );
   router.get(
@@ -186,8 +186,8 @@ export function createBucketsRouter(requireAuth: RequestHandler): Router {
     requireAuth,
     requireCrud('buckets', 'read'),
     requireCrud('messages', 'read'),
-    (req, res) => {
-      void bucketMessagesController.getMessage(req, res);
+    (req, res, next) => {
+      bucketMessagesController.getMessage(req, res).catch(next);
     }
   );
   router.post(
@@ -196,8 +196,8 @@ export function createBucketsRouter(requireAuth: RequestHandler): Router {
     requireCrud('buckets', 'read'),
     requireCrud('messages', 'create'),
     validateBody(createMessageSchema),
-    (req, res) => {
-      void bucketMessagesController.createMessage(req, res);
+    (req, res, next) => {
+      bucketMessagesController.createMessage(req, res).catch(next);
     }
   );
   router.patch(
@@ -206,8 +206,8 @@ export function createBucketsRouter(requireAuth: RequestHandler): Router {
     requireCrud('buckets', 'read'),
     requireCrud('messages', 'update'),
     validateBody(updateMessageSchema),
-    (req, res) => {
-      void bucketMessagesController.updateMessage(req, res);
+    (req, res, next) => {
+      bucketMessagesController.updateMessage(req, res).catch(next);
     }
   );
   router.delete(
@@ -215,8 +215,8 @@ export function createBucketsRouter(requireAuth: RequestHandler): Router {
     requireAuth,
     requireCrud('buckets', 'read'),
     requireCrud('messages', 'delete'),
-    (req, res) => {
-      void bucketMessagesController.deleteMessage(req, res);
+    (req, res, next) => {
+      bucketMessagesController.deleteMessage(req, res).catch(next);
     }
   );
 

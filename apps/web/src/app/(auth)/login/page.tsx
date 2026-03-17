@@ -12,7 +12,10 @@ import { ROUTES } from '../../../lib/routes';
 
 function isSafeReturnUrl(url: string): boolean {
   const trimmed = url.trim();
-  return trimmed.startsWith('/') && !trimmed.startsWith('//');
+  const normalizedPath = trimmed.replace(/\/$/, '').split('?')[0] ?? '/';
+  const isRelative = trimmed.startsWith('/') && !trimmed.startsWith('//');
+  const isAuthPath = normalizedPath === ROUTES.LOGIN || normalizedPath === ROUTES.SIGNUP;
+  return isRelative && !isAuthPath;
 }
 
 export default function LoginPage() {

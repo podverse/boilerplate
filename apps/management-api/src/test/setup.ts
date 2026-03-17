@@ -1,3 +1,5 @@
+import { TEST_JWT_SECRET_MANAGEMENT_API } from '@boilerplate/helpers';
+
 /**
  * Vitest setup: set test env before any module that reads process.env is loaded.
  * Uses dedicated test databases (main and management). Create both test DBs and run
@@ -9,7 +11,7 @@ const testEnv: Record<string, string> = {
   AUTH_MODE: 'admin_only_username',
   MANAGEMENT_API_PORT: '4100',
   BRAND_NAME: 'boilerplate-management-api-test',
-  MANAGEMENT_JWT_SECRET: 'test-management-jwt-secret-min-32-chars-long',
+  MANAGEMENT_JWT_SECRET: TEST_JWT_SECRET_MANAGEMENT_API,
   MANAGEMENT_SESSION_COOKIE_NAME: 'management_session',
   MANAGEMENT_REFRESH_COOKIE_NAME: 'management_refresh',
   MANAGEMENT_JWT_ACCESS_EXPIRY_SECONDS: '900',

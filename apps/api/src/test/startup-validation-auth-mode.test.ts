@@ -1,3 +1,4 @@
+import { TEST_JWT_SECRET_API } from '@boilerplate/helpers';
 import { afterEach, describe, expect, it } from 'vitest';
 
 import { validateStartupRequirements } from '../lib/startup/validation.js';
@@ -14,8 +15,6 @@ const withEnv = (overrides: Record<string, string | undefined>): void => {
   }
 };
 
-const VALID_JWT_SECRET = 'k9V!4pQ2z7Lx#8mT1rW5sY0uD3nH6cF1b';
-
 describe('startup validation auth mode requirements (api)', () => {
   afterEach(() => {
     process.env = { ...ORIGINAL_ENV };
@@ -24,7 +23,7 @@ describe('startup validation auth mode requirements (api)', () => {
   it('rejects invalid AUTH_MODE values', () => {
     withEnv({
       AUTH_MODE: 'admin_only',
-      JWT_SECRET: VALID_JWT_SECRET,
+      JWT_SECRET: TEST_JWT_SECRET_API,
     });
     expect(() => validateStartupRequirements()).toThrow();
   });
@@ -32,7 +31,7 @@ describe('startup validation auth mode requirements (api)', () => {
   it('requires mailer env when AUTH_MODE=admin_only_email', () => {
     withEnv({
       AUTH_MODE: 'admin_only_email',
-      JWT_SECRET: VALID_JWT_SECRET,
+      JWT_SECRET: TEST_JWT_SECRET_API,
       SMTP_HOST: undefined,
       SMTP_PORT: undefined,
       MAIL_FROM: undefined,
@@ -44,7 +43,7 @@ describe('startup validation auth mode requirements (api)', () => {
   it('does not fail startup when optional mailer env is set in admin_only_username mode', () => {
     withEnv({
       AUTH_MODE: 'admin_only_username',
-      JWT_SECRET: VALID_JWT_SECRET,
+      JWT_SECRET: TEST_JWT_SECRET_API,
       SMTP_HOST: 'localhost',
       SMTP_PORT: '25',
       MAIL_FROM: 'test@test.com',

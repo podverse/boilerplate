@@ -6,8 +6,8 @@
 #   audit, audit-fix           - Dependency audit (script from plan 06)
 #   local_network_create       - Create boilerplate_local_network (idempotent)
 #   local_postgres_up, local_valkey_up  - Start Postgres and Valkey
-#   local_sidecar_up, local_api_up, local_web_up, local_management_api_up, local_management_web_up  - Start sidecar, API, web, management-api, management-web
-#   local_apps_up, local_apps_down  - Start or stop only app containers (API, management-api, sidecar, web, management-web); infra unchanged
+#   local_sidecar_up, local_api_up, local_web_up, local_management_api_up, local_management_web_sidecar_up, local_management_web_up  - Start sidecars, API, web, management-api, management-web
+#   local_apps_up, local_apps_down  - Start or stop only app containers (API, management-api, web-sidecar, management-web-sidecar, web, management-web); infra unchanged
 #   local_down                 - Stop all local Docker services (keeps volumes)
 #   local_down_volumes         - Stop services and remove volumes (clean DB/Valkey data)
 #   local_clean               - Run local_down, local_down_volumes, and test_clean (full teardown: dev + test/E2E)

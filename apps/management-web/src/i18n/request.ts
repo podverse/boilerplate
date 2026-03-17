@@ -4,16 +4,18 @@ import { cookies, headers } from 'next/headers';
 import { ALL_AVAILABLE_LOCALES, DEFAULT_LOCALE, type Locale } from '@boilerplate/helpers';
 import { getLocaleFromSettingsCookieValue } from '@boilerplate/ui';
 
+import { getDefaultLocaleEnv, getSupportedLocalesEnv } from '../config/env';
+
 const SETTINGS_COOKIE_NAME = 'management-settings';
 
 function getDefaultLocale(): string {
-  const v = process.env.DEFAULT_LOCALE?.trim();
+  const v = getDefaultLocaleEnv();
   if (!v) return DEFAULT_LOCALE;
   return ALL_AVAILABLE_LOCALES.includes(v as Locale) ? v : DEFAULT_LOCALE;
 }
 
 function getSupportedLocales(): string[] {
-  const v = process.env.SUPPORTED_LOCALES?.trim();
+  const v = getSupportedLocalesEnv();
   if (v === undefined || v === '' || v === 'all-available') {
     return [...ALL_AVAILABLE_LOCALES];
   }

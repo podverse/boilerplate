@@ -20,12 +20,13 @@ Use this skill when answering implementation requests in this repo.
 
 1. Give the user a runnable make command they can copy and run to verify the change; include it in a fenced `bash` code block at the end of the response.
 2. End every implementation response with one or more runnable `make` commands.
-3. **E2E-affected changes (mandatory):** If the change affects E2E tests in any way (e.g. you modified UI in apps/web or apps/management-web, or you added/edited files under `apps/web/e2e/` or `apps/management-web/e2e/`), you **MUST** end the response with a fenced `bash` block containing the **EXACT** command(s) the user needs to run to E2E-verify that change. No exception. Use the specific spec path(s) that cover the changed behavior (e.g. `make e2e_test_web_report_spec SPEC=e2e/settings-bucket-owner.spec.ts`). This is non-negotiable.
-4. Prefer feature-scoped screenshot report commands over full-suite commands.
-5. Choose the smallest command set that verifies the changed behavior.
-6. Only recommend full-suite report mode when scope is broad or cross-cutting.
-7. Render final verification commands inside a fenced `bash` code block so the UI shows a copy button.
-8. Inside the fenced block, keep one command per line and avoid bullets/backticks.
+3. Do not suggest direct Playwright execution (`npx playwright test ...` or `npm run test:e2e -w ...`) for standard E2E verification; use the `make` wrappers so seed/setup is included.
+4. **E2E-affected changes (mandatory):** If the change affects E2E tests in any way (e.g. you modified UI in apps/web or apps/management-web, or you added/edited files under `apps/web/e2e/` or `apps/management-web/e2e/`), you **MUST** end the response with a fenced `bash` block containing the **EXACT** command(s) the user needs to run to E2E-verify that change. No exception. Use the specific spec path(s) that cover the changed behavior (e.g. `make e2e_test_web_report_spec SPEC=e2e/settings-bucket-owner.spec.ts`). This is non-negotiable.
+5. Prefer feature-scoped screenshot report commands over full-suite commands.
+6. Choose the smallest command set that verifies the changed behavior.
+7. Only recommend full-suite report mode when scope is broad or cross-cutting.
+8. Render final verification commands inside a fenced `bash` code block so the UI shows a copy button.
+9. Inside the fenced block, keep one command per line and avoid bullets/backticks.
 
 ## Command selection decision tree
 

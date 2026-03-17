@@ -33,8 +33,10 @@ local_env_clean:
 		infra/config/local/valkey.env \
 		infra/config/local/api.env \
 		infra/config/local/web.env \
+		infra/config/local/web-sidecar.env \
 		infra/config/local/management-api.env \
 		infra/config/local/management-web.env \
+		infra/config/local/management-web-sidecar.env \
 		apps/api/.env \
 		apps/web/.env.local \
 		apps/management-api/.env \

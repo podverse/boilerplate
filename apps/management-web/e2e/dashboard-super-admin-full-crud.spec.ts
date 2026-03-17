@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test';
 
+import { loginAsManagementSuperAdmin } from './helpers/advancedFixtures';
 import { actionAndCapture, capturePageLoad } from './helpers/stepScreenshots';
 import { setE2EUserContext } from './helpers/userContext';
 
@@ -11,40 +12,9 @@ test.describe('Management dashboard-page for the super-admin user', () => {
     await actionAndCapture(
       page,
       testInfo,
-      'User navigates to the management login-page before authenticating with the super-admin.',
+      'User logs in with the seeded super-admin identity and is transitioned to the dashboard after successful authentication.',
       async () => {
-        await page.goto('/login');
-      }
-    );
-    await capturePageLoad(
-      page,
-      testInfo,
-      'The management login-page is fully rendered before entering super-admin credentials.'
-    );
-    await expect(page.getByRole('textbox', { name: /username|email/i })).toBeVisible();
-    await actionAndCapture(
-      page,
-      testInfo,
-      'User fills the username field with the super-admin identity.',
-      async () => {
-        await page.getByRole('textbox', { name: /username|email/i }).fill('e2e-superadmin');
-      }
-    );
-    await actionAndCapture(
-      page,
-      testInfo,
-      'User fills the password field with the super-admin secret.',
-      async () => {
-        await page.getByLabel(/password/i).fill('Test!1Aa');
-      }
-    );
-    await actionAndCapture(
-      page,
-      testInfo,
-      'User submits the management login-form and is transitioned to the dashboard after successful authentication.',
-      async () => {
-        await page.getByRole('button', { name: /log in|sign in|submit/i }).click();
-        await expect(page).toHaveURL(/\/dashboard/);
+        await loginAsManagementSuperAdmin(page);
         await expect(page.getByRole('heading', { name: /dashboard/i })).toBeVisible();
       }
     );

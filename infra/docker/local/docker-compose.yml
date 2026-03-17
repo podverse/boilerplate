@@ -96,12 +96,31 @@ services:
     image: boilerplate-web-sidecar:latest
     container_name: boilerplate_local_web_sidecar
     env_file:
-      - infra/config/local/web.env
+      - infra/config/local/web-sidecar.env
     environment:
       PORT: "4001"
     depends_on:
       boilerplate_local_api:
         condition: service_started
+    networks:
+      - boilerplate_local_network
+    logging:
+      driver: "json-file"
+      options:
+        max-file: "1"
+        max-size: 50m
+
+  # Management-web sidecar: not exposed to host; only management-web container uses it via RUNTIME_CONFIG_URL.
+  boilerplate_local_management_web_sidecar:
+    build:
+      context: .
+      dockerfile: infra/docker/local/management-web-sidecar/Dockerfile
+    image: boilerplate-management-web-sidecar:latest
+    container_name: boilerplate_local_management_web_sidecar
+    env_file:
+      - infra/config/local/management-web-sidecar.env
+    environment:
+      PORT: "4101"
     networks:
       - boilerplate_local_network
     logging:
@@ -169,13 +188,15 @@ services:
     image: boilerplate-management-web:latest
     container_name: boilerplate_local_management_web
     depends_on:
+      boilerplate_local_management_web_sidecar:
+        condition: service_started
       boilerplate_local_management_api:
         condition: service_started
     env_file:
       - infra/config/local/management-web.env
     environment:
       PORT: "4102"
-      NEXT_PUBLIC_MANAGEMENT_API_URL: "http://localhost:4100"
+      RUNTIME_CONFIG_URL: "http://boilerplate_local_management_web_sidecar:4101"
     networks:
       - boilerplate_local_network
     ports:

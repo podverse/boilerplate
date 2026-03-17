@@ -5,7 +5,7 @@ import type { Express } from 'express';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import express from 'express';
-import type { Request, Response } from 'express';
+import type { NextFunction, Request, Response } from 'express';
 import swaggerUi from 'swagger-ui-express';
 
 import { config } from './config/index.js';
@@ -58,6 +58,10 @@ export function createApp(): Express {
   versionedRouter.use('/events', createEventsRouter(requireAuth));
 
   app.use(config.apiVersionPath, versionedRouter);
+
+  app.use((_err: unknown, _req: Request, res: Response, _next: NextFunction): void => {
+    res.status(500).json({ message: 'Internal server error' });
+  });
 
   return app;
 }

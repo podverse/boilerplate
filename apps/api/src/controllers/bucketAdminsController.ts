@@ -3,7 +3,7 @@ import { CRUD_BITS } from '@boilerplate/helpers';
 import { BucketAdminService, UserService } from '@boilerplate/orm';
 import type { CreateBucketAdminBody, UpdateBucketAdminBody } from '../schemas/buckets.js';
 import { normalizeBucketMessageCrud } from '../lib/bucket-admin-permissions.js';
-import { userToJson } from '../lib/userToJson.js';
+import { userToPublicSummary } from '../lib/userToJson.js';
 import { canManageBucketAdmins } from '../lib/bucket-policy.js';
 import { getBucketAndEffective } from '../lib/bucket-effective.js';
 import type { UserWithRelations } from '@boilerplate/orm';
@@ -39,7 +39,7 @@ function bucketAdminToJson(
     bucketMessagesCrud: bucketAdmin.bucketMessagesCrud,
     bucketAdminsCrud,
     createdAt: bucketAdmin.createdAt,
-    user: user !== null ? userToJson(user) : null,
+    user: user !== null ? userToPublicSummary(user) : null,
   };
 }
 

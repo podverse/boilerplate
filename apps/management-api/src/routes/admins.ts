@@ -18,19 +18,19 @@ export function createAdminsRouter(
 ): Router {
   const router = Router();
 
-  router.get('/', requireAuth, requireCrud('admins', 'read'), (req, res) => {
-    void adminsController.listAdmins(req, res);
+  router.get('/', requireAuth, requireCrud('admins', 'read'), (req, res, next) => {
+    adminsController.listAdmins(req, res).catch(next);
   });
-  router.get('/roles', requireAuth, requireCrud('admins', 'read'), (req, res) => {
-    void adminRolesController.listManagementAdminRoles(req, res);
+  router.get('/roles', requireAuth, requireCrud('admins', 'read'), (req, res, next) => {
+    adminRolesController.listManagementAdminRoles(req, res).catch(next);
   });
   router.post(
     '/roles',
     requireAuth,
     requireCrud('admins', 'create'),
     validateBody(createManagementAdminRoleSchema),
-    (req, res) => {
-      void adminRolesController.createManagementAdminRole(req, res);
+    (req, res, next) => {
+      adminRolesController.createManagementAdminRole(req, res).catch(next);
     }
   );
   router.patch(
@@ -38,23 +38,28 @@ export function createAdminsRouter(
     requireAuth,
     requireCrud('admins', 'update'),
     validateBody(updateManagementAdminRoleSchema),
-    (req, res) => {
-      void adminRolesController.updateManagementAdminRole(req, res);
+    (req, res, next) => {
+      adminRolesController.updateManagementAdminRole(req, res).catch(next);
     }
   );
-  router.delete('/roles/:roleId', requireAuth, requireCrud('admins', 'delete'), (req, res) => {
-    void adminRolesController.deleteManagementAdminRole(req, res);
-  });
-  router.get('/:id', requireAuth, requireCrud('admins', 'read'), (req, res) => {
-    void adminsController.getAdmin(req, res);
+  router.delete(
+    '/roles/:roleId',
+    requireAuth,
+    requireCrud('admins', 'delete'),
+    (req, res, next) => {
+      adminRolesController.deleteManagementAdminRole(req, res).catch(next);
+    }
+  );
+  router.get('/:id', requireAuth, requireCrud('admins', 'read'), (req, res, next) => {
+    adminsController.getAdmin(req, res).catch(next);
   });
   router.post(
     '/',
     requireAuth,
     requireSuperAdminMiddleware,
     validateBody(createAdminSchema),
-    (req, res) => {
-      void adminsController.createAdmin(req, res);
+    (req, res, next) => {
+      adminsController.createAdmin(req, res).catch(next);
     }
   );
   router.patch(
@@ -62,16 +67,21 @@ export function createAdminsRouter(
     requireAuth,
     requireCrud('admins', 'update'),
     validateBody(updateAdminSchema),
-    (req, res) => {
-      void adminsController.updateAdmin(req, res);
+    (req, res, next) => {
+      adminsController.updateAdmin(req, res).catch(next);
     }
   );
-  router.delete('/:id', requireAuth, requireCrud('admins', 'delete'), (req, res) => {
-    void adminsController.deleteAdmin(req, res);
+  router.delete('/:id', requireAuth, requireCrud('admins', 'delete'), (req, res, next) => {
+    adminsController.deleteAdmin(req, res).catch(next);
   });
-  router.post('/change-password', requireAuth, validateBody(changePasswordSchema), (req, res) => {
-    void adminsController.changePassword(req, res);
-  });
+  router.post(
+    '/change-password',
+    requireAuth,
+    validateBody(changePasswordSchema),
+    (req, res, next) => {
+      adminsController.changePassword(req, res).catch(next);
+    }
+  );
 
   return router;
 }

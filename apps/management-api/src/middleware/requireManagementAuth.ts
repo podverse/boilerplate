@@ -36,7 +36,13 @@ export function requireManagementAuth(options: RequireManagementAuthOptions | st
       return;
     }
 
-    const user = await ManagementUserService.findById(payload.sub);
+    let user: Awaited<ReturnType<typeof ManagementUserService.findById>>;
+    try {
+      user = await ManagementUserService.findById(payload.sub);
+    } catch (err) {
+      next(err);
+      return;
+    }
     if (user === null) {
       res.status(401).json({ message: 'User not found' });
       return;

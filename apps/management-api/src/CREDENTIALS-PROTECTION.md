@@ -1,6 +1,6 @@
 # Credentials protection (management-api)
 
-Same approach as the main API: **never expose credentials in responses or logs**.
+Same approach as the main API: **never expose credentials in responses or logs**. The management-api is admin-only; it may return PII (e.g. main-app user email) for user management and in event audit details. Credentials (passwordHash, etc.) must still never appear in responses.
 
 ## Rules
 

@@ -18,13 +18,49 @@ export async function getCookieHeaderFromPage(page: Page): Promise<string> {
   return cookies.map((c) => `${c.name}=${c.value}`).join('; ');
 }
 
+const LOGIN_REDIRECT_TIMEOUT_MS = 10_000;
+
 async function loginAsManagementUser(page: Page, username: string): Promise<void> {
   await page.goto('/login');
   await expect(page.getByRole('textbox', { name: /username|email/i })).toBeVisible();
   await page.getByRole('textbox', { name: /username|email/i }).fill(username);
   await page.getByLabel(/password/i).fill(MANAGEMENT_LOGIN_PASSWORD);
+
+  const loginResponsePromise = page.waitForResponse(
+    (res) =>
+      res.request().method() === 'POST' &&
+      (res.url().includes('/auth/login') || res.url().includes('auth/login')),
+    { timeout: LOGIN_REDIRECT_TIMEOUT_MS }
+  );
+
   await page.getByRole('button', { name: /log in|sign in|submit/i }).click();
-  await expect(page).toHaveURL(/\/dashboard/);
+
+  const loginResponse = await loginResponsePromise;
+  const status = loginResponse.status();
+  let responseBodySnippet = '';
+  try {
+    const text = await loginResponse.text();
+    responseBodySnippet = text.length > 200 ? `${text.slice(0, 200)}…` : text;
+  } catch {
+    // ignore body read errors
+  }
+
+  try {
+    await expect(page).toHaveURL(/\/dashboard/, { timeout: LOGIN_REDIRECT_TIMEOUT_MS });
+  } catch (err) {
+    const currentUrl = page.url();
+    const extra = [
+      `current URL: ${currentUrl}`,
+      `login response status: ${status}`,
+      responseBodySnippet !== '' ? `login response body (snippet): ${responseBodySnippet}` : '',
+    ]
+      .filter(Boolean)
+      .join('; ');
+    throw new Error(
+      `Management login did not redirect to /dashboard (username: ${username}). ${extra}`,
+      { cause: err }
+    );
+  }
 }
 
 export async function loginAsManagementSuperAdmin(page: Page): Promise<void> {

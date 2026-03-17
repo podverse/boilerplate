@@ -9,7 +9,7 @@ import { ROUTES } from '../lib/routes';
 
 export type NavBarMainNavItem = { href: string; label: string };
 
-function getTitleIcon(): string | undefined {
+function getTitleIconFallback(): string | undefined {
   const icon =
     typeof process.env.NEXT_PUBLIC_APP_TITLE_ICON === 'string'
       ? process.env.NEXT_PUBLIC_APP_TITLE_ICON.trim()
@@ -17,11 +17,17 @@ function getTitleIcon(): string | undefined {
   return icon !== '' ? icon : undefined;
 }
 
-export function NavBar({ mainNavItems }: { mainNavItems: NavBarMainNavItem[] }) {
+export function NavBar({
+  mainNavItems,
+  titleIcon: titleIconProp,
+}: {
+  mainNavItems: NavBarMainNavItem[];
+  titleIcon?: string | undefined;
+}) {
   const t = useTranslations('common');
   const { user, logout } = useAuth();
   const router = useRouter();
-  const titleIcon = getTitleIcon();
+  const titleIcon = titleIconProp ?? getTitleIconFallback();
 
   const handleLogout = () => {
     logout();

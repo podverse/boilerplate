@@ -1,99 +1,17 @@
 #!/usr/bin/env bash
-# Generate and assign all required passwords/secrets into env files.
-# Run from repo root after local_env_setup (or env_setup) has copied templates. Idempotent: skips vars that are already set.
+# Set host connection defaults in app .env files (DB_HOST, DB_PORT, VALKEY_HOST, VALKEY_PORT, etc.).
+# Secrets (DB, Valkey, JWT) are generated and written in scripts/local-env/setup.sh. This script
+# is idempotent and only sets host/port/DB name defaults for running apps on host against local Docker.
 
 set -e
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 cd "$REPO_ROOT" || exit 1
 
-generate_secret() {
-  for openssl_cmd in openssl /usr/bin/openssl; do
-    if command -v "$openssl_cmd" >/dev/null 2>&1 && secret=$("$openssl_cmd" rand -base64 32 2>/dev/null) && [ -n "$secret" ] && [ "${#secret}" -ge 32 ]; then
-      echo "$secret"
-      return 0
-    fi
-  done
-  if command -v node >/dev/null 2>&1; then
-    secret=$(node -e "console.log(require('crypto').randomBytes(32).toString('base64'))" 2>/dev/null)
-    if [ -n "$secret" ] && [ "${#secret}" -ge 32 ]; then
-      echo "$secret"
-      return 0
-    fi
-  fi
-  echo "env-setup-secrets: could not generate secret (need openssl or node)" >&2
-  return 1
-}
-
-# Returns 0 if var is empty or unset in file
-is_var_empty() {
-  local file="$1"
-  local var="$2"
-  [ ! -f "$file" ] && return 0
-  local line
-  line=$(grep -E "^${var}=" "$file" 2>/dev/null || true)
-  [ -z "$line" ] && return 0
-  local value
-  value=$(echo "$line" | sed "s/^${var}=//" | tr -d '"' | tr -d "'")
-  [ -z "$value" ] && return 0
-  return 1
-}
-
-# Set VAR="value" in file only if currently empty. Portable sed.
-set_var_if_empty() {
-  local file="$1"
-  local var="$2"
-  local value="$3"
-  [ ! -f "$file" ] && return 0
-  if ! is_var_empty "$file" "$var"; then
-    return 0
-  fi
-  if grep -q "^${var}=" "$file" 2>/dev/null; then
-    # BSD and GNU sed: -i.bak then remove .bak
-    sed -i.bak "s|^${var}=.*|${var}=\"${value}\"|" "$file"
-    rm -f "${file}.bak"
-  else
-    echo "${var}=\"${value}\"" >> "$file"
-  fi
-  echo "Set ${var} in $file"
-}
-
-# Generate all secrets once
-POSTGRES_PASSWORD=$(generate_secret) || exit 1
-DB_READ_PASSWORD=$(generate_secret) || exit 1
-DB_READ_WRITE_PASSWORD=$(generate_secret) || exit 1
-VALKEY_PASSWORD=$(generate_secret) || exit 1
-JWT_SECRET=$(generate_secret) || exit 1
-MANAGEMENT_JWT_SECRET=$(generate_secret) || exit 1
-
-DB_ENV="infra/config/local/db.env"
-VALKEY_ENV="infra/config/local/valkey.env"
-API_ENV="infra/config/local/api.env"
 API_DOT_ENV="apps/api/.env"
 MGMT_API_DOT_ENV="apps/management-api/.env"
 
-# db.env: one set of names (DB_READ_*, DB_READ_WRITE_*) for init script and API/ORM
-for f in "$DB_ENV"; do
-  [ -f "$f" ] || continue
-  set_var_if_empty "$f" "POSTGRES_PASSWORD" "$POSTGRES_PASSWORD"
-  set_var_if_empty "$f" "DB_READ_PASSWORD" "$DB_READ_PASSWORD"
-  set_var_if_empty "$f" "DB_READ_WRITE_PASSWORD" "$DB_READ_WRITE_PASSWORD"
-done
-
-# valkey.env
-[ -f "$VALKEY_ENV" ] && set_var_if_empty "$VALKEY_ENV" "VALKEY_PASSWORD" "$VALKEY_PASSWORD"
-
-# api.env and apps/api/.env: JWT, DB credentials, Valkey (must match db.env and valkey.env)
-for f in "$API_ENV" "$API_DOT_ENV"; do
-  [ -f "$f" ] || continue
-  set_var_if_empty "$f" "JWT_SECRET" "$JWT_SECRET"
-  set_var_if_empty "$f" "DB_READ_PASSWORD" "$DB_READ_PASSWORD"
-  set_var_if_empty "$f" "DB_READ_WRITE_PASSWORD" "$DB_READ_WRITE_PASSWORD"
-  set_var_if_empty "$f" "VALKEY_PASSWORD" "$VALKEY_PASSWORD"
-done
-
-# apps/api/.env is for API running on host (DB/Valkey in Docker): use localhost and mapped ports.
-# infra/config/local/api.env stays with Docker service names (postgres, valkey) for containers.
+# apps/api/.env: use localhost and mapped ports when API runs on host (DB/Valkey in Docker).
 if [ -f "$API_DOT_ENV" ]; then
   for var_value in "DB_HOST:localhost" "DB_PORT:5433" "VALKEY_HOST:localhost" "VALKEY_PORT:6380"; do
     var="${var_value%%:*}"
@@ -108,12 +26,8 @@ if [ -f "$API_DOT_ENV" ]; then
   echo "Set host connection defaults in apps/api/.env (DB_HOST=localhost, DB_PORT=5433, VALKEY_HOST=localhost, VALKEY_PORT=6380)."
 fi
 
-# apps/management-api/.env: MANAGEMENT_JWT_SECRET and DB credentials (same as API for main DB); management DB uses same host/port.
+# apps/management-api/.env: host connection defaults (main DB and management DB same host/port).
 if [ -f "$MGMT_API_DOT_ENV" ]; then
-  set_var_if_empty "$MGMT_API_DOT_ENV" "MANAGEMENT_JWT_SECRET" "$MANAGEMENT_JWT_SECRET"
-  set_var_if_empty "$MGMT_API_DOT_ENV" "DB_READ_PASSWORD" "$DB_READ_PASSWORD"
-  set_var_if_empty "$MGMT_API_DOT_ENV" "DB_READ_WRITE_PASSWORD" "$DB_READ_WRITE_PASSWORD"
-  set_var_if_empty "$MGMT_API_DOT_ENV" "MANAGEMENT_DB_PASSWORD" "$DB_READ_WRITE_PASSWORD"
   for var_value in "DB_HOST:localhost" "DB_PORT:5433" "DB_NAME:postgres" "DB_READ_USERNAME:read" "DB_READ_WRITE_USERNAME:read_write" "MANAGEMENT_DB_HOST:localhost" "MANAGEMENT_DB_PORT:5433" "MANAGEMENT_DB_NAME:boilerplate_management" "MANAGEMENT_DB_USERNAME:read_write"; do
     var="${var_value%%:*}"
     value="${var_value#*:}"
@@ -124,5 +38,5 @@ if [ -f "$MGMT_API_DOT_ENV" ]; then
       echo "${var}=\"${value}\"" >> "$MGMT_API_DOT_ENV"
     fi
   done
-  echo "Set MANAGEMENT_JWT_SECRET and host connection defaults in apps/management-api/.env (localhost:5433, boilerplate_management)."
+  echo "Set host connection defaults in apps/management-api/.env (localhost:5433, boilerplate_management)."
 fi

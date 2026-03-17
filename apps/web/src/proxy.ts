@@ -173,7 +173,11 @@ export async function proxy(request: NextRequest) {
     const returnUrl = new URL(request.url).searchParams.get('returnUrl');
     const safeReturn =
       returnUrl !== null && returnUrl.trim().startsWith('/') && !returnUrl.trim().startsWith('//');
-    const target = safeReturn ? returnUrl.trim() : ROUTES.DASHBOARD;
+    let target = safeReturn ? returnUrl.trim() : ROUTES.DASHBOARD;
+    const normalizedPath = target.replace(/\/$/, '').split('?')[0] || '/';
+    if (normalizedPath === ROUTES.LOGIN || normalizedPath === ROUTES.SIGNUP) {
+      target = ROUTES.DASHBOARD;
+    }
     const redirectUrl = new URL(target, request.url);
     return NextResponse.redirect(redirectUrl);
   }
