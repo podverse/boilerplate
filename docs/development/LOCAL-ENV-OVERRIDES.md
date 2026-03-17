@@ -9,7 +9,10 @@ existing values across runs. API and management-api get different JWT secrets (`
 customizable values: management superuser, brand (including app title icon), auth mode, locale
 (sensible defaults), and mailer (no defaults — bring your own SMTP; tests use mailpit). The
 prepare/link/setup flow and home-directory layout align with Podverse. **APP_BASE_URL, CORS_ORIGINS,
-WEB_APP_URL, MANAGEMENT_CORS_ORIGINS** stay as local dev defaults in each app’s `.env.example` (not in overrides).
+WEB_APP_URL, MANAGEMENT_CORS_ORIGINS** stay as local dev defaults (not in overrides). Web and
+management-web app `.env.example` files contain only `RUNTIME_CONFIG_URL`; the full list is in the
+sidecar env templates (`infra/config/env-templates/web-sidecar.env.example`,
+`management-web-sidecar.env.example`).
 
 ## Recommended flow (one consistent process)
 

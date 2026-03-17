@@ -35,7 +35,7 @@ export default defineConfig({
     },
     {
       command:
-        'PORT=4012 RUNTIME_CONFIG_URL=http://localhost:4011 NEXT_PUBLIC_API_URL=http://localhost:4010 NEXT_PUBLIC_AUTH_MODE=user_signup_email npm run build -w @boilerplate/web && NODE_OPTIONS="--disable-warning=DEP0060" PORT=4012 RUNTIME_CONFIG_URL=http://localhost:4011 NEXT_PUBLIC_API_URL=http://localhost:4010 NEXT_PUBLIC_AUTH_MODE=user_signup_email npm run start -w @boilerplate/web',
+        'PORT=4012 RUNTIME_CONFIG_URL=http://localhost:4011 NEXT_PUBLIC_API_URL=http://localhost:4010 NEXT_PUBLIC_AUTH_MODE=user_signup_email NEXT_PUBLIC_SESSION_REFRESH_INTERVAL_MS=600000 npm run build -w @boilerplate/web && NODE_OPTIONS="--disable-warning=DEP0060" PORT=4012 RUNTIME_CONFIG_URL=http://localhost:4011 NEXT_PUBLIC_API_URL=http://localhost:4010 NEXT_PUBLIC_AUTH_MODE=user_signup_email NEXT_PUBLIC_SESSION_REFRESH_INTERVAL_MS=600000 npm run start -w @boilerplate/web',
       port: 4012,
       cwd: '../..',
       reuseExistingServer: false,

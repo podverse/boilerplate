@@ -39,7 +39,7 @@ npm run dev:web
 
 ```bash
 cp apps/web/.env.example apps/web/.env.local
-# Set RUNTIME_CONFIG_URL=http://localhost:4101, NEXT_PUBLIC_BRAND_NAME, NEXT_PUBLIC_API_URL
+# Set RUNTIME_CONFIG_URL (e.g. http://localhost:4101); other config is loaded from the sidecar.
 npm run dev:web-sidecar
 ```
 
@@ -48,7 +48,8 @@ This builds the sidecar, then starts the sidecar (port 4101) and the Next.js app
 ## Env examples
 
 - **API**: `API_PORT`, `BRAND_NAME`, `JWT_SECRET`, and optionally `AUTH_MODE`, `MAILER_ENABLED` (see `apps/api/.env.example`)
-- **Web**: `RUNTIME_CONFIG_URL`, `NEXT_PUBLIC_BRAND_NAME`, `NEXT_PUBLIC_API_URL` (see `apps/web/.env.example`)
+- **Web**: `RUNTIME_CONFIG_URL` in app (see `apps/web/.env.example`); full list in
+  `infra/config/env-templates/web-sidecar.env.example`
 
 ## API auth
 

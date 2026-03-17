@@ -37,7 +37,6 @@ for (const [key, value] of Object.entries(testEnv)) {
 }
 
 declare global {
-  // eslint-disable-next-line no-var -- set once for process-scoped diagnostics wiring
   var __MANAGEMENT_API_TEST_DIAGNOSTICS_INSTALLED__: boolean | undefined;
 }
 

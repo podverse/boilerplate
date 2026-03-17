@@ -60,13 +60,15 @@ Locale list and default are defined once in **`packages/helpers/src/locale/const
 | Purpose                                   | File                                                                                                                                                                |
 | ----------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Locale constants (single source of truth) | `packages/helpers/src/locale/constants.ts` — `ALL_AVAILABLE_LOCALES`, `DEFAULT_LOCALE`. Web, management-web, and helpers-i18n use these via `@boilerplate/helpers`. |
-| Web: env var documentation                | `apps/web/.env.example` — `DEFAULT_LOCALE`, `SUPPORTED_LOCALES`                                                                                                     |
-| Management-web: env var documentation     | `apps/management-web/.env.example` — `DEFAULT_LOCALE`, `SUPPORTED_LOCALES`                                                                                          |
+| Web: env var documentation                | `infra/config/env-templates/web-sidecar.env.example` — `DEFAULT_LOCALE`, `SUPPORTED_LOCALES`                                                                        |
+| Management-web: env var documentation     | `infra/config/env-templates/management-web-sidecar.env.example` — `DEFAULT_LOCALE`, `SUPPORTED_LOCALES`                                                             |
 
 - **`DEFAULT_LOCALE`** (env) — Overrides the default locale (e.g. `en-US`). Must be one of the values in that app’s `ALL_AVAILABLE_LOCALES`.
 - **`SUPPORTED_LOCALES`** (env) — Unset or `all-available`: use the full hardcoded list. Comma-delimited (e.g. `en-US,es`): only those locales are active; values must be in `ALL_AVAILABLE_LOCALES`.
 
-**When you add a new locale** (e.g. `fr`): add the locale to **`packages/helpers/src/locale/constants.ts`** (`ALL_AVAILABLE_LOCALES`). Then add `originals/fr.json` and (after compile) `overrides/fr.json` for each app and for `packages/helpers-i18n`, and run compile and validate. Web and management-web read the list from `@boilerplate/helpers`; no need to edit their request.ts. Ensure each app's `.env.example` documents `DEFAULT_LOCALE` and `SUPPORTED_LOCALES` if you rely on them.
+**When you add a new locale** (e.g. `fr`): add the locale to **`packages/helpers/src/locale/constants.ts`** (`ALL_AVAILABLE_LOCALES`). Then add `originals/fr.json` and (after compile) `overrides/fr.json` for each app and for `packages/helpers-i18n`, and run compile and validate. Web and management-web read the list from `@boilerplate/helpers`; no need to edit their request.ts. Ensure the sidecar env templates (web-sidecar.env.example, management-web-sidecar.env.example)
+document `DEFAULT_LOCALE` and `SUPPORTED_LOCALES` if you rely on them; app `.env.example` files
+contain only `RUNTIME_CONFIG_URL`.
 
 ## Where things live
 

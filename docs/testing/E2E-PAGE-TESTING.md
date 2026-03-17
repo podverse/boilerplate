@@ -299,7 +299,8 @@ notice at the top: "Run aborted during execution; this report is incomplete."
 | Management-api (E2E) | 4110 |
 | Management-web (E2E) | 4112 |
 
-See apps’ `.env.example` for `NEXT_PUBLIC_*` and `RUNTIME_CONFIG_URL`.
+See each app’s `.env.example` for `RUNTIME_CONFIG_URL`. For `NEXT_PUBLIC_*` and other vars, see
+`infra/config/env-templates/web-sidecar.env.example` and `management-web-sidecar.env.example`.
 
 ## Where specs live
 
