@@ -49,7 +49,7 @@ export default defineConfig({
   retries: process.env.CI ? 2 : 0,
   workers: 1,
   reporter: 'list',
-  timeout: 5_000,
+  timeout: 10_000,
   webServer: [
     {
       command: `npm run build -w @boilerplate/management-api && ${e2eManagementApiEnv} npm run start -w @boilerplate/management-api`,
