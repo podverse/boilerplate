@@ -4,7 +4,8 @@
  * Values may be SortPref (sortBy, sortOrder) or { sort: 'recent' | 'oldest' } for messages.
  */
 
-const COOKIE_MAX_AGE_DAYS = 365;
+import { COOKIE_MAX_AGE_DAYS, ONE_DAY_SECONDS } from '@boilerplate/helpers';
+
 const COOKIE_PATH = '/';
 
 /** Path-based key for messages sort (recent/oldest) in the cookie map. */
@@ -155,7 +156,7 @@ export function setSortPrefInCookie(
 
 function writeCookieMap(cookieName: string, map: Record<string, unknown>): void {
   const value = encodeURIComponent(JSON.stringify(map));
-  const maxAge = COOKIE_MAX_AGE_DAYS * 24 * 60 * 60;
+  const maxAge = COOKIE_MAX_AGE_DAYS * ONE_DAY_SECONDS;
   document.cookie =
     encodeURIComponent(cookieName) +
     '=' +

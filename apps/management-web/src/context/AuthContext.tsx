@@ -2,7 +2,7 @@
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 
-import { AUTH_MESSAGE_LOGIN_FAILED } from '@boilerplate/helpers';
+import { AUTH_MESSAGE_LOGIN_FAILED, LOGOUT_REDIRECT_TIMEOUT_MS } from '@boilerplate/helpers';
 import {
   createSessionRefreshLoop,
   getRateLimitRetrySeconds,
@@ -122,7 +122,6 @@ export function AuthProvider({ children, initialUser }: AuthProviderProps) {
   }, [hydrate, initialUser]);
 
   // Proactively refresh the access token before it expires (shared helper).
-  const LOGOUT_REDIRECT_TIMEOUT_MS = 5000;
   const refreshIntervalMs = getRequiredSessionRefreshIntervalMs();
   useEffect(() => {
     if (user === null) return;

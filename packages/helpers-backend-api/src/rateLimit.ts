@@ -7,13 +7,11 @@
  * the exact seconds remaining in the current window (not the full windowMs). It embeds
  * retryAfterSeconds in the JSON body so the client always has the precise value.
  */
+import { FIFTEEN_MINUTES_MS, MS_PER_SECOND } from '@boilerplate/helpers';
 import type { Options } from 'express-rate-limit';
 import { rateLimit } from 'express-rate-limit';
 
 const DEFAULT_MESSAGE = 'Too many requests. Please try again later.';
-
-/** 15 minutes in ms. */
-const FIFTEEN_MINUTES_MS = 15 * 60 * 1000;
 
 /**
  * Extracts the resetTime Date set by express-rate-limit on the request object.
@@ -38,7 +36,7 @@ const rateLimitHandler: Options['handler'] = (req, res, _next, optionsUsed) => {
   const resetTime = extractResetTime(req, optionsUsed.requestPropertyName);
   let retryAfterSec: number | undefined;
   if (resetTime !== undefined) {
-    const diff = Math.ceil((resetTime.getTime() - Date.now()) / 1000);
+    const diff = Math.ceil((resetTime.getTime() - Date.now()) / MS_PER_SECOND);
     if (diff > 0) retryAfterSec = diff;
   }
   res.status(429).json({ message: DEFAULT_MESSAGE, retryAfterSeconds: retryAfterSec });

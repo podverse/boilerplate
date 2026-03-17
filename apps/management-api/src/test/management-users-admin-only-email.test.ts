@@ -5,6 +5,7 @@ import type { Express } from 'express';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import type request from 'supertest';
 
+import { ONE_HOUR_MS, ONE_MINUTE_MS } from '@boilerplate/helpers';
 import { VerificationToken, appDataSourceRead } from '@boilerplate/orm';
 
 /** Unique per file to avoid collisions when tests run in parallel. */
@@ -66,10 +67,10 @@ describe('management users in admin_only_email mode', () => {
     });
     expect(tokenRecord).not.toBeNull();
     if (tokenRecord !== null) {
-      const expectedTtlMs = invitationTtlHours * 60 * 60 * 1000;
+      const expectedTtlMs = invitationTtlHours * ONE_HOUR_MS;
       const elapsedMs = tokenRecord.expiresAt.getTime() - startedAtMs;
-      const lowerBound = expectedTtlMs - 60 * 1000;
-      const upperBound = expectedTtlMs + 60 * 1000;
+      const lowerBound = expectedTtlMs - ONE_MINUTE_MS;
+      const upperBound = expectedTtlMs + ONE_MINUTE_MS;
       expect(elapsedMs).toBeGreaterThanOrEqual(lowerBound);
       expect(elapsedMs).toBeLessThanOrEqual(upperBound);
     }

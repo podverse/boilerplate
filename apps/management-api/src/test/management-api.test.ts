@@ -7,7 +7,7 @@ import crypto from 'crypto';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import request from 'supertest';
 
-import { AUTH_MESSAGE_INVALID_CREDENTIALS } from '@boilerplate/helpers';
+import { AUTH_MESSAGE_INVALID_CREDENTIALS, ONE_HOUR_MS, ONE_MINUTE_MS } from '@boilerplate/helpers';
 import { VerificationToken, appDataSourceRead } from '@boilerplate/orm';
 import { config } from '../config/index.js';
 import { createManagementLoginAgent } from './helpers/login-agent.js';
@@ -395,10 +395,10 @@ describe('management-api', () => {
 
       expect(tokenRecord).not.toBeNull();
       if (tokenRecord !== null) {
-        const expectedTtlMs = config.userInvitationTtlHours * 60 * 60 * 1000;
+        const expectedTtlMs = config.userInvitationTtlHours * ONE_HOUR_MS;
         const elapsedMs = tokenRecord.expiresAt.getTime() - startedAtMs;
-        const lowerBound = expectedTtlMs - 60 * 1000;
-        const upperBound = expectedTtlMs + 60 * 1000;
+        const lowerBound = expectedTtlMs - ONE_MINUTE_MS;
+        const upperBound = expectedTtlMs + ONE_MINUTE_MS;
         expect(elapsedMs).toBeGreaterThanOrEqual(lowerBound);
         expect(elapsedMs).toBeLessThanOrEqual(upperBound);
       }
