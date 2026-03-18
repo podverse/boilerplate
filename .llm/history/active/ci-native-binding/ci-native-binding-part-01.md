@@ -1,3 +1,23 @@
+### Session 4 - 2026-03-18
+
+#### Prompt (Developer)
+
+Add @next/swc Linux Binary Preflight
+
+Implement the plan as specified, it is attached for your reference. Do NOT edit the plan file itself.
+
+#### Key Decisions
+
+- Even with `.mjs` config, Next.js 16 requires `@next/swc-linux-x64-gnu` at startup on Linux.
+- Add a `Verify @next/swc native binding` step after the parcel watcher step in both boilerplate
+  CI workflows, using the same bash subprocess pattern.
+
+#### Files Modified
+
+- .github/workflows/publish-alpha.yml
+- .github/workflows/ci.yml
+- .llm/history/active/ci-native-binding/ci-native-binding-part-01.md
+
 ### Session 3 - 2026-03-18
 
 #### Prompt (Developer)

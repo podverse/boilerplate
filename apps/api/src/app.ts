@@ -3,10 +3,11 @@
  * by the server (index.ts) and by integration tests (supertest).
  */
 import type { Express } from 'express';
+import type { NextFunction, Request, Response } from 'express';
+
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import express from 'express';
-import type { NextFunction, Request, Response } from 'express';
 import swaggerUi from 'swagger-ui-express';
 
 import { config } from './config/index.js';
