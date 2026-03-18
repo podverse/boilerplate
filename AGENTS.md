@@ -83,6 +83,7 @@ When implementing features or executing plans that touch **api** or **management
 ## Dependencies
 
 - **Upgrade policy:** Apply **patch and minor** updates routinely (e.g. `npm outdated` then bump versions and `npm install`). **Major** upgrades (e.g. @faker-js/faker, dotenv, eslint-plugin-perfectionist, express-rate-limit, lint-staged, nanoid, @types/node) are done separately with migration and testing. After any dependency change, run `npm run build` and `npm run lint`; commit the updated `package-lock.json` so CI and Docker use the same versions.
+- **Linux-canonical lockfile:** CI runs on Linux. Generate or refresh the lockfile under Linux so optional deps match CI: run `./scripts/update-lockfile-linux.sh` (requires Docker). The bump-version script runs this automatically before committing.
 
 ## Code Quality
 

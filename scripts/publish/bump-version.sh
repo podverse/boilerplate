@@ -76,6 +76,10 @@ done
 
 cd "$REPO_ROOT"
 
+# Regenerate lockfile under Linux so CI (Linux) gets correct optional deps
+echo -e "${YELLOW}Regenerating package-lock.json under Linux (Docker)...${NC}"
+bash "$REPO_ROOT/scripts/update-lockfile-linux.sh"
+
 # Stage root and workspace package.json (and package-lock.json if present)
 git add package.json
 if [[ -f package-lock.json ]]; then
