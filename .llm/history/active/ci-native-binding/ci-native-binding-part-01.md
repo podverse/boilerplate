@@ -1,3 +1,26 @@
+### Session 3 - 2026-03-18
+
+#### Prompt (Developer)
+
+implement
+
+#### Key Decisions
+
+- Podverse run #34 identified the real root cause: `next.config.ts` requires `@next/swc-linux-x64-gnu`
+  (Rust SWC compiler) to load TypeScript. That Linux binary is absent from the macOS lockfile.
+- Fix: convert all four `next.config.ts` files (both boilerplate apps) to `.mjs`. Plain ESM — no native
+  bindings needed.
+- Revert `--webpack` from build scripts in both boilerplate apps (wrong workaround, `next build` uses
+  Webpack by default). No `webpack` dep to remove (was never added in boilerplate).
+
+#### Files Modified
+
+- apps/web/next.config.mjs (new, replaces next.config.ts)
+- apps/management-web/next.config.mjs (new, replaces next.config.ts)
+- apps/web/package.json
+- apps/management-web/package.json
+- .llm/history/active/ci-native-binding/ci-native-binding-part-01.md
+
 ### Session 2 - 2026-03-18
 
 #### Prompt (Developer)
