@@ -61,7 +61,7 @@ export default defineConfig({
     },
     {
       command:
-        'PORT=4112 MANAGEMENT_API_BACKEND_URL=http://localhost:4110 NEXT_PUBLIC_MANAGEMENT_API_URL=/api/management NEXT_PUBLIC_WEB_APP_URL=http://localhost:4012 NEXT_PUBLIC_MANAGEMENT_SESSION_REFRESH_INTERVAL_MS=1800000 npm run build -w @boilerplate/management-web && NODE_OPTIONS="--disable-warning=DEP0060" PORT=4112 MANAGEMENT_API_BACKEND_URL=http://localhost:4110 NEXT_PUBLIC_MANAGEMENT_API_URL=/api/management NEXT_PUBLIC_WEB_APP_URL=http://localhost:4012 NEXT_PUBLIC_MANAGEMENT_SESSION_REFRESH_INTERVAL_MS=1800000 npm run start -w @boilerplate/management-web',
+        'RUNTIME_CONFIG_URL= PORT=4112 MANAGEMENT_API_BACKEND_URL=http://localhost:4110 NEXT_PUBLIC_MANAGEMENT_API_URL=/api/management NEXT_PUBLIC_WEB_APP_URL=http://localhost:4012 NEXT_PUBLIC_MANAGEMENT_SESSION_REFRESH_INTERVAL_MS=1800000 npm run build -w @boilerplate/management-web && NODE_OPTIONS="--disable-warning=DEP0060" RUNTIME_CONFIG_URL= PORT=4112 MANAGEMENT_API_BACKEND_URL=http://localhost:4110 NEXT_PUBLIC_MANAGEMENT_API_URL=/api/management NEXT_PUBLIC_WEB_APP_URL=http://localhost:4012 NEXT_PUBLIC_MANAGEMENT_SESSION_REFRESH_INTERVAL_MS=1800000 npm run start -w @boilerplate/management-web',
       port: 4112,
       cwd: '../..',
       reuseExistingServer: false,
