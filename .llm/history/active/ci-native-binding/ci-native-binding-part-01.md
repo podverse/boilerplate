@@ -1,3 +1,26 @@
+### Session 2 - 2026-03-18
+
+#### Prompt (Developer)
+
+Fix Node.js require-cache Bug in Watcher Preflight
+
+Implement the plan as specified, it is attached for your reference. Do NOT edit the plan file itself.
+
+#### Key Decisions
+
+- Root cause identified in Podverse CI (Run #33): the fallback `npm install --no-save` installed the Linux
+  binary successfully but the second `canLoad()` call in the same Node process returned the cached failure
+  from the first attempt — Node.js `require` caches module load failures within a process.
+- Fix: replace single `node -e "..."` one-liner with bash-controlled flow using separate `node` subprocess
+  calls. Each subprocess has a fresh `require.cache` so the post-install check is genuine.
+- Applied same fix here in boilerplate to keep both repos consistent.
+
+#### Files Modified
+
+- .github/workflows/publish-alpha.yml
+- .github/workflows/ci.yml
+- .llm/history/active/ci-native-binding/ci-native-binding-part-01.md
+
 ### Session 1 - 2026-03-18
 
 #### Prompt (Developer)
