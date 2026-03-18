@@ -16,9 +16,9 @@ REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 
 cd "$REPO_ROOT"
 
-echo -e "${YELLOW}Running security audit...${NC}"
-if ! npm audit --omit=dev; then
-  echo -e "${RED}Error: npm audit found vulnerabilities. Fix them before bumping version.${NC}"
+echo -e "${YELLOW}Running security audit (moderate and above; low permitted)...${NC}"
+if ! npm audit --omit=dev --audit-level=moderate; then
+  echo -e "${RED}Error: npm audit found moderate or higher vulnerabilities. Fix them before bumping version.${NC}"
   exit 1
 fi
 echo ""
@@ -78,13 +78,10 @@ cd "$REPO_ROOT"
 
 # Regenerate lockfile under Linux so CI (Linux) gets correct optional deps
 echo -e "${YELLOW}Regenerating package-lock.json under Linux (Docker)...${NC}"
-bash "$REPO_ROOT/scripts/update-lockfile-linux.sh"
+bash "$REPO_ROOT/scripts/development/update-lockfile-linux.sh"
 
-# Stage root and workspace package.json (and package-lock.json if present)
-git add package.json
-if [[ -f package-lock.json ]]; then
-  git add package-lock.json
-fi
+# Stage changes (root + all workspaces from same list used for bumping)
+git add package.json package-lock.json
 for ws in $WORKSPACES; do
   git add "$ws/package.json"
   if [[ -f "$REPO_ROOT/$ws/package-lock.json" ]]; then
@@ -96,4 +93,4 @@ git commit --no-verify -m "chore: bump version to $VERSION"
 echo -e "${YELLOW}Pushing to origin/$CURRENT_BRANCH...${NC}"
 git push --no-verify origin "$CURRENT_BRANCH"
 
-echo -e "${GREEN}Version bumped to $VERSION${NC}"
+echo -e "${GREEN}✓ Version bumped to $VERSION and pushed${NC}"

@@ -6,7 +6,7 @@
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 cd "$REPO_ROOT"
 
 if ! command -v docker &>/dev/null; then
@@ -16,8 +16,12 @@ fi
 
 # Use Node 24 to match .nvmrc and CI
 NODE_IMAGE="node:24"
+echo "Removing existing package-lock.json before Linux regeneration..."
+rm -f "$REPO_ROOT/package-lock.json"
+
 echo "Regenerating package-lock.json under Linux ($NODE_IMAGE)..."
 docker run --rm \
+  --platform linux/amd64 \
   -v "$REPO_ROOT:/app" \
   -w /app \
   "$NODE_IMAGE" \

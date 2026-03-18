@@ -11,7 +11,7 @@ The **`alpha`** branch is the release-candidate branch. Default branch remains *
 1. **Merge to alpha** – Open a PR from `develop` into `alpha` (or push to `alpha`). The workflow [.github/workflows/publish-alpha.yml](../.github/workflows/publish-alpha.yml) runs on push to `alpha`.
 2. **Manual run** – In GitHub: Actions → "Publish Alpha" → "Run workflow". Choose the `alpha` branch and run. You can optionally set **Version override** to a specific version string (e.g. `0.1.2-alpha.99`); when set, that value is used and the usual auto-increment from GHCR is skipped. Useful for re-publishing a specific version or testing.
 
-When bumping version via `scripts/publish/bump-version.sh`, the script regenerates the lockfile under Linux (Docker) before committing so CI gets the correct optional deps. If you add or change dependencies by hand, run `./scripts/update-lockfile-linux.sh` and commit the updated `package-lock.json`. See [Lockfile (Linux)](development/LOCKFILE-LINUX.md).
+When bumping version via `scripts/publish/bump-version.sh`, the script regenerates the lockfile under Linux (Docker) before committing so CI gets the correct optional deps. If you add or change dependencies by hand, run `./scripts/development/update-lockfile-linux.sh` and commit the updated `package-lock.json`. See [Lockfile (Linux)](development/LOCKFILE-LINUX.md).
 
 ## What gets published
 
