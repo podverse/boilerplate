@@ -98,14 +98,14 @@ e2e_test_web:
 e2e_test_management_web:
 	@$(call e2e_run_api_gate)
 	@$(MAKE) e2e_seed
-	@npm run test:e2e -w apps/management-web
+	@npm run test:e2e -w @boilerplate/management-web
 
 # Run API gate decision first; if gate runs and succeeds, re-seed both, then run Playwright:
 # default web, signup-enabled web (Mailpit up), admin-only-email web, management-web.
 e2e_test:
 	@$(call e2e_run_api_gate)
 	@$(MAKE) e2e_seed
-	@npm run test:e2e -w apps/web -- $(WEB_SPEC_ORDERED) && $(MAKE) e2e_mailpit_up && npm run test:e2e -w apps/web -- --config=playwright.signup-enabled.config.ts $(SIGNUP_ENABLED_WEB_SPEC_ARGS) && npm run test:e2e -w apps/web -- --config=playwright.admin-only-email.config.ts $(ADMIN_ONLY_EMAIL_WEB_SPEC_ORDERED) && npm run test:e2e -w apps/management-web
+	@npm run test:e2e -w apps/web -- $(WEB_SPEC_ORDERED) && $(MAKE) e2e_mailpit_up && npm run test:e2e -w apps/web -- --config=playwright.signup-enabled.config.ts $(SIGNUP_ENABLED_WEB_SPEC_ARGS) && npm run test:e2e -w apps/web -- --config=playwright.admin-only-email.config.ts $(ADMIN_ONLY_EMAIL_WEB_SPEC_ORDERED) && npm run test:e2e -w @boilerplate/management-web
 
 # Full E2E suite in report mode: run all web auth modes (default, signup-enabled, admin-only-email)
 # and management-web; four report dirs (web, web-signup-enabled, web-admin-only-email, management-web);
