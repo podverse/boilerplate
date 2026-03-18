@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
+
 import { LoadingSpinner } from '../../feedback/LoadingSpinner';
 import { Modal } from './Modal';
 

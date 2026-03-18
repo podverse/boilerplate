@@ -1,12 +1,13 @@
+import request from 'supertest';
 /**
  * API integration tests: no-mailer mode (admin-only).
  * Mailer is disabled; signup returns 403 and verification routes return 403.
  * Shared auth behavior is in auth.test.ts; mailer-enabled flows in auth-mailer.test.ts.
  */
 import { afterAll, beforeAll, describe, it } from 'vitest';
-import request from 'supertest';
 
 import { UserService } from '@boilerplate/orm';
+
 import { config } from '../config/index.js';
 import { hashPassword } from '../lib/auth/hash.js';
 import { createApiLoginAgent } from './helpers/login-agent.js';

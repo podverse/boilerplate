@@ -1,11 +1,16 @@
 'use client';
 
-import { useState, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
+import type { AccountSettingsTab } from '../../../lib/routes';
+import type { ServerUser } from '../../../lib/server-auth';
+import type { TabItem } from '@boilerplate/ui';
+
 import { useLocale, useTranslations } from 'next-intl';
+import { useRouter } from 'next/navigation';
 import { usePathname, useSearchParams } from 'next/navigation';
-import { managementWebAuth } from '@boilerplate/helpers-requests';
+import { useState, useCallback } from 'react';
+
 import { ALL_AVAILABLE_LOCALES, type Locale } from '@boilerplate/helpers';
+import { managementWebAuth } from '@boilerplate/helpers-requests';
 import {
   ContentPageLayout,
   FormContainer,
@@ -21,12 +26,9 @@ import {
   ThemeSelector,
   setSettingsCookie,
 } from '@boilerplate/ui';
-import type { TabItem } from '@boilerplate/ui';
 
 import { useAuth } from '../../../context/AuthContext';
 import { getApiBaseUrl } from '../../../lib/api-client';
-import type { ServerUser } from '../../../lib/server-auth';
-import type { AccountSettingsTab } from '../../../lib/routes';
 import { accountSettingsRoute } from '../../../lib/routes';
 
 function parseUserFromResponse(

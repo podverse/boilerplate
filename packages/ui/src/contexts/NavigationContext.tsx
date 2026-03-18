@@ -1,7 +1,7 @@
 'use client';
 
-import { createContext, useCallback, useContext, useEffect, useState } from 'react';
 import { usePathname, useSearchParams } from 'next/navigation';
+import { createContext, useCallback, useContext, useEffect, useState } from 'react';
 
 import { NavigationLoadingOverlay } from '../components/modal/Modal/NavigationLoadingOverlay';
 

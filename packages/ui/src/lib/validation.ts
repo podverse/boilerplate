@@ -4,6 +4,7 @@
  */
 
 import type { PasswordValidationMessages } from '@boilerplate/helpers';
+
 import { validatePassword as validatePasswordHelper } from '@boilerplate/helpers';
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;

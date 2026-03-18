@@ -1,8 +1,3 @@
-import type { Request, Response } from 'express';
-import { userToJson } from '../lib/userToJson.js';
-import { AUTH_MESSAGE_INVALID_CREDENTIALS, validatePassword } from '@boilerplate/helpers';
-import { getPasswordValidationMessages, resolveLocale } from '@boilerplate/helpers-i18n';
-import { UserService, VerificationTokenService, RefreshTokenService } from '@boilerplate/orm';
 import type {
   ChangePasswordBody,
   ForgotPasswordBody,
@@ -14,10 +9,16 @@ import type {
   UpdateProfileBody,
   WithOptionalToken,
 } from '@boilerplate/helpers-requests';
+import type { Request, Response } from 'express';
+
+import { AUTH_MESSAGE_INVALID_CREDENTIALS, validatePassword } from '@boilerplate/helpers';
+import { getPasswordValidationMessages, resolveLocale } from '@boilerplate/helpers-i18n';
+import { UserService, VerificationTokenService, RefreshTokenService } from '@boilerplate/orm';
+
 import { config } from '../config/index.js';
+import { setSessionCookies, clearSessionCookies } from '../lib/auth/cookies.js';
 import { hashPassword, comparePassword } from '../lib/auth/hash.js';
 import { signAccessToken } from '../lib/auth/jwt.js';
-import { setSessionCookies, clearSessionCookies } from '../lib/auth/cookies.js';
 import { verifyToken } from '../lib/auth/jwt.js';
 import {
   generateToken,
@@ -31,6 +32,7 @@ import {
   sendPasswordResetEmail,
   sendEmailChangeVerificationEmail,
 } from '../lib/mailer/send.js';
+import { userToJson } from '../lib/userToJson.js';
 
 function getCookieOptions() {
   return {

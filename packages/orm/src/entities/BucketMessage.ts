@@ -1,3 +1,5 @@
+import type { Bucket } from './Bucket.js';
+
 import {
   Entity,
   PrimaryGeneratedColumn,
@@ -8,8 +10,6 @@ import {
 } from 'typeorm';
 
 import { SHORT_TEXT_MAX_LENGTH } from '@boilerplate/helpers';
-
-import type { Bucket } from './Bucket.js';
 
 @Entity('bucket_message')
 export class BucketMessage {

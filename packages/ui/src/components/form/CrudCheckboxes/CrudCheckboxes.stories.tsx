@@ -1,8 +1,9 @@
+import type { CrudFlags } from './CrudCheckboxes';
 import type { Meta, StoryObj } from '@storybook/react-vite';
+
 import { useState } from 'react';
 
 import { CrudCheckboxes } from './CrudCheckboxes';
-import type { CrudFlags } from './CrudCheckboxes';
 
 const defaultLabels = {
   create: 'Create',

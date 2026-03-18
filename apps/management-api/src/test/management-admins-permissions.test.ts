@@ -1,10 +1,11 @@
+import type request from 'supertest';
+
 /**
  * Management API – admins CRUD permission-based integration tests.
  * Tests that admins with limited permissions are properly gated by requireCrud / requireSuperAdmin.
  * Super admin fixtures are shared; limited-permission admin fixtures are created per describe block.
  */
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import type request from 'supertest';
 
 import { config } from '../config/index.js';
 import { createManagementLoginAgent } from './helpers/login-agent.js';

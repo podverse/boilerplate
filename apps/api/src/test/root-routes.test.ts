@@ -1,8 +1,8 @@
+import request from 'supertest';
 /**
  * API integration tests: unversioned and versioned root routes and health.
  */
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import request from 'supertest';
 
 import { config } from '../config/index.js';
 import { createApiTestApp, destroyApiTestDataSources } from './helpers/setup.js';

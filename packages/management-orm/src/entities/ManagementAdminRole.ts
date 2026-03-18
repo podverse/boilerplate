@@ -1,6 +1,6 @@
-import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn } from 'typeorm';
-
 import type { EventVisibility } from './AdminPermissions.js';
+
+import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity('management_admin_role')
 export class ManagementAdminRole {

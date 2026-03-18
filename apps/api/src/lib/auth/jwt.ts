@@ -1,5 +1,6 @@
-import jwt, { type SignOptions } from 'jsonwebtoken';
 import type { UserWithRelations } from '@boilerplate/orm';
+
+import jwt, { type SignOptions } from 'jsonwebtoken';
 
 export interface JwtPayload {
   sub: string;

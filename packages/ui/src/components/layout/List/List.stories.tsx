@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
+
 import { List } from './List';
 
 const meta: Meta<typeof List> = {

@@ -1,4 +1,5 @@
 import type { User } from './User.js';
+
 import { Entity, Column, PrimaryColumn, OneToOne, JoinColumn } from 'typeorm';
 
 import { SHORT_TEXT_MAX_LENGTH } from '@boilerplate/helpers';

@@ -1,8 +1,11 @@
 'use client';
 
-import { useTranslations } from 'next-intl';
-import { Breadcrumbs, Link } from '@boilerplate/ui';
 import type { BreadcrumbItem } from '@boilerplate/ui';
+
+import { useTranslations } from 'next-intl';
+
+import { Breadcrumbs, Link } from '@boilerplate/ui';
+
 import { bucketDetailRoute } from '../../../../../lib/routes';
 
 type BucketMessagesBreadcrumbsProps = {

@@ -1,7 +1,8 @@
 'use client';
 
-import { useEffect, useState } from 'react';
 import { useTranslations } from 'next-intl';
+import { useEffect, useState } from 'react';
+
 import { CrudButtons, MessageCard, Row, Stack, Text } from '@boilerplate/ui';
 
 import styles from './BucketMessageList.module.scss';

@@ -1,5 +1,6 @@
-import { appDataSourceReadWrite } from '../data-source.js';
 import type { User } from '../entities/User.js';
+
+import { appDataSourceReadWrite } from '../data-source.js';
 import { VerificationToken } from '../entities/VerificationToken.js';
 
 export type VerificationKind = 'email_verify' | 'password_reset' | 'email_change' | 'set_password';

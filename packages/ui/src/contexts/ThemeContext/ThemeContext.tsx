@@ -3,8 +3,8 @@
 /// <reference lib="dom" />
 import { createContext, useCallback, useContext, useMemo, useState } from 'react';
 
-import { setSettingsCookie } from '../../lib/settingsCookieClient';
 import { THEMES, type Theme } from '../../lib/settingsCookie';
+import { setSettingsCookie } from '../../lib/settingsCookieClient';
 
 export type { Theme };
 

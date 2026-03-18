@@ -1,17 +1,22 @@
+import type { CreateBucketAdminInvitationBody } from '../schemas/buckets.js';
 import type { Request, Response } from 'express';
+
 import { randomBytes } from 'crypto';
+
 import {
   BUCKET_ADMIN_INVITATION_EXPIRY_DAYS,
   BUCKET_ADMIN_INVITATION_TOKEN_BYTES,
   CRUD_BITS,
 } from '@boilerplate/helpers';
 import { BucketAdminService, BucketAdminInvitationService } from '@boilerplate/orm';
-import type { CreateBucketAdminInvitationBody } from '../schemas/buckets.js';
+
 import { normalizeBucketMessageCrud } from '../lib/bucket-admin-permissions.js';
+import { getBucketContext } from '../lib/bucket-context.js';
 import { canManageBucketAdmins } from '../lib/bucket-policy.js';
-import { getBucketAndEffective } from '../lib/bucket-effective.js';
 
 const ADMIN_CRUD_READ = CRUD_BITS.read;
+
+const INVITATIONS_ROOT_MESSAGE = 'Admin invitations are managed on the root bucket only.';
 
 function generateInvitationToken(): string {
   return randomBytes(BUCKET_ADMIN_INVITATION_TOKEN_BYTES).toString('base64url');
@@ -50,29 +55,14 @@ export async function getInvitationByToken(req: Request, res: Response): Promise
 
 /** POST /buckets/:bucketId/admin-invitations – create invitation (auth, can manage admins). */
 export async function createBucketAdminInvitation(req: Request, res: Response): Promise<void> {
-  const user = req.user;
-  if (user === undefined) {
-    res.status(401).json({ message: 'Authentication required' });
-    return;
-  }
-  const bucketId = req.params.bucketId as string;
-  const resolved = await getBucketAndEffective(bucketId);
-  if (resolved === null) {
-    res.status(404).json({ message: 'Bucket not found' });
-    return;
-  }
-  const { effectiveBucket, isDescendant } = resolved;
-  if (isDescendant) {
-    res.status(400).json({
-      message: 'Admin invitations are managed on the root bucket only.',
-    });
-    return;
-  }
-  const bucketAdmin = await BucketAdminService.findByBucketAndUser(effectiveBucket.id, user.id);
-  if (!canManageBucketAdmins(user.id, effectiveBucket, bucketAdmin)) {
-    res.status(403).json({ message: 'Forbidden' });
-    return;
-  }
+  const ctx = await getBucketContext(req, res, {
+    paramKey: 'bucketId',
+    can: canManageBucketAdmins,
+    requireRoot: true,
+    requireRootMessage: INVITATIONS_ROOT_MESSAGE,
+  });
+  if (ctx === null) return;
+  const { effectiveBucket } = ctx.resolved;
   const body = req.body as CreateBucketAdminInvitationBody;
   const token = generateInvitationToken();
   const expiresAt = new Date(
@@ -126,23 +116,12 @@ function invitationToJson(inv: {
 
 /** GET /buckets/:bucketId/admin-invitations – list pending invitations (auth, can manage admins). */
 export async function listBucketAdminInvitations(req: Request, res: Response): Promise<void> {
-  const user = req.user;
-  if (user === undefined) {
-    res.status(401).json({ message: 'Authentication required' });
-    return;
-  }
-  const bucketId = req.params.bucketId as string;
-  const resolved = await getBucketAndEffective(bucketId);
-  if (resolved === null) {
-    res.status(404).json({ message: 'Bucket not found' });
-    return;
-  }
-  const { effectiveBucket } = resolved;
-  const bucketAdmin = await BucketAdminService.findByBucketAndUser(effectiveBucket.id, user.id);
-  if (!canManageBucketAdmins(user.id, effectiveBucket, bucketAdmin)) {
-    res.status(403).json({ message: 'Forbidden' });
-    return;
-  }
+  const ctx = await getBucketContext(req, res, {
+    paramKey: 'bucketId',
+    can: canManageBucketAdmins,
+  });
+  if (ctx === null) return;
+  const { effectiveBucket } = ctx.resolved;
   const list = await BucketAdminInvitationService.findByBucketIdPending(effectiveBucket.id);
   res.status(200).json({
     invitations: list.map((inv) => invitationToJson(inv)),
@@ -151,30 +130,15 @@ export async function listBucketAdminInvitations(req: Request, res: Response): P
 
 /** DELETE /buckets/:bucketId/admin-invitations/:invitationId – delete a pending invitation. */
 export async function deleteBucketAdminInvitation(req: Request, res: Response): Promise<void> {
-  const user = req.user;
-  if (user === undefined) {
-    res.status(401).json({ message: 'Authentication required' });
-    return;
-  }
-  const bucketId = req.params.bucketId as string;
+  const ctx = await getBucketContext(req, res, {
+    paramKey: 'bucketId',
+    can: canManageBucketAdmins,
+    requireRoot: true,
+    requireRootMessage: INVITATIONS_ROOT_MESSAGE,
+  });
+  if (ctx === null) return;
   const invitationId = req.params.invitationId as string;
-  const resolved = await getBucketAndEffective(bucketId);
-  if (resolved === null) {
-    res.status(404).json({ message: 'Bucket not found' });
-    return;
-  }
-  const { effectiveBucket, isDescendant } = resolved;
-  if (isDescendant) {
-    res.status(400).json({
-      message: 'Admin invitations are managed on the root bucket only.',
-    });
-    return;
-  }
-  const bucketAdmin = await BucketAdminService.findByBucketAndUser(effectiveBucket.id, user.id);
-  if (!canManageBucketAdmins(user.id, effectiveBucket, bucketAdmin)) {
-    res.status(403).json({ message: 'Forbidden' });
-    return;
-  }
+  const { effectiveBucket } = ctx.resolved;
   const list = await BucketAdminInvitationService.findByBucketIdPending(effectiveBucket.id);
   const inv = list.find((i) => i.id === invitationId);
   if (inv === undefined) {

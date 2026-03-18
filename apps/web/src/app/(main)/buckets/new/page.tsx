@@ -1,10 +1,11 @@
-import { redirect } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
+import { redirect } from 'next/navigation';
 
-import { getServerUser } from '../../../../lib/server-auth';
-import { ROUTES } from '../../../../lib/routes';
-import { BucketForm } from '../BucketForm';
 import { Container, SectionWithHeading } from '@boilerplate/ui';
+
+import { ROUTES } from '../../../../lib/routes';
+import { getServerUser } from '../../../../lib/server-auth';
+import { BucketForm } from '../BucketForm';
 
 export default async function NewBucketPage() {
   const user = await getServerUser();

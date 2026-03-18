@@ -1,6 +1,6 @@
-import { Entity, PrimaryColumn, Column, OneToOne, JoinColumn } from 'typeorm';
-
 import type { Bucket } from './Bucket.js';
+
+import { Entity, PrimaryColumn, Column, OneToOne, JoinColumn } from 'typeorm';
 
 @Entity('bucket_settings')
 export class BucketSettings {

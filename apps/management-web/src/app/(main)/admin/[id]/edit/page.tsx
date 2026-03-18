@@ -1,18 +1,20 @@
-import { notFound, redirect } from 'next/navigation';
+import type { AdminFormInitialValues } from '../../../../../components/admins/AdminForm';
+import type { ManagementUser } from '../../../../../types/management-api';
+import type { BreadcrumbItem } from '@boilerplate/ui';
+
 import { getTranslations } from 'next-intl/server';
+import { notFound, redirect } from 'next/navigation';
+
 import { request } from '@boilerplate/helpers-requests';
 import { Breadcrumbs, ContentPageLayout, Link } from '@boilerplate/ui';
-import type { BreadcrumbItem } from '@boilerplate/ui';
 
 import { AdminForm } from '../../../../../components/admins/AdminForm';
 import { ResourcePageCard } from '../../../../../components/ResourcePageCard';
-import type { AdminFormInitialValues } from '../../../../../components/admins/AdminForm';
-import { getServerUser } from '../../../../../lib/server-auth';
 import { getServerManagementApiBaseUrl } from '../../../../../config/env';
 import { getCrudFlags } from '../../../../../lib/main-nav';
 import { ROUTES, adminViewRoute } from '../../../../../lib/routes';
+import { getServerUser } from '../../../../../lib/server-auth';
 import { getCookieHeader } from '../../../../../lib/server-request';
-import type { ManagementUser } from '../../../../../types/management-api';
 
 type EditAdminPageProps = {
   params: Promise<{ id: string }>;

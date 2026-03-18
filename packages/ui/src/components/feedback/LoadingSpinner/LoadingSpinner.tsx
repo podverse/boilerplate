@@ -1,6 +1,7 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
+
 import styles from './LoadingSpinner.module.scss';
 
 export type LoadingSpinnerProps = {

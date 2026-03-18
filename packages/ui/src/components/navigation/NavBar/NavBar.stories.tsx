@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
+
 import { NavBar } from './NavBar';
 
 const meta: Meta<typeof NavBar> = {

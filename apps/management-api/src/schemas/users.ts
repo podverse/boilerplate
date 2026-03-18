@@ -1,3 +1,5 @@
+import Joi from 'joi';
+
 import {
   EMAIL_MAX_LENGTH,
   PASSWORD_MAX_LENGTH,
@@ -5,7 +7,6 @@ import {
   SHORT_TEXT_MAX_LENGTH,
   USERNAME_MAX_LENGTH,
 } from '@boilerplate/helpers';
-import Joi from 'joi';
 
 export type {
   ChangeUserPasswordBody,

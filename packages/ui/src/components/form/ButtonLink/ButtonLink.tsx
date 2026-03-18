@@ -1,11 +1,12 @@
 'use client';
 
+import type { LinkProps } from '../../navigation/Link';
+import type { ButtonVariant } from '../Button/Button';
+
 import NextLink from 'next/link';
 import { usePathname } from 'next/navigation';
 
 import { useNavigationContext } from '../../../contexts/NavigationContext';
-import type { LinkProps } from '../../navigation/Link';
-import type { ButtonVariant } from '../Button/Button';
 
 import styles from './ButtonLink.module.scss';
 

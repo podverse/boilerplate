@@ -1,15 +1,10 @@
 import { LoadingSpinner } from '@boilerplate/ui';
 
+import styles from './loading.module.scss';
+
 export default function BucketDetailLoading() {
   return (
-    <div
-      style={{
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        minHeight: '200px',
-      }}
-    >
+    <div className={styles.wrapper}>
       <LoadingSpinner size="lg" />
     </div>
   );

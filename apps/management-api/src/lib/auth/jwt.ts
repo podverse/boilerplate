@@ -1,5 +1,6 @@
-import jwt, { type SignOptions } from 'jsonwebtoken';
 import type { ManagementUser } from '@boilerplate/management-orm';
+
+import jwt, { type SignOptions } from 'jsonwebtoken';
 
 /** JWT payload: sub is used to load the management user from DB; isSuperAdmin comes from the loaded user, not the token. */
 export interface ManagementJwtPayload {

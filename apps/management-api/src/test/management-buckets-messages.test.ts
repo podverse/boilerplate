@@ -1,11 +1,12 @@
+import request from 'supertest';
 /**
  * Management API – buckets and messages integration tests.
  * Covers bucket CRUD, message list/get/create/update/delete, and permission gating (bucketsCrud, bucketMessagesCrud).
  */
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import request from 'supertest';
 
 import { BucketAdminService, BucketService } from '@boilerplate/orm';
+
 import { config } from '../config/index.js';
 import { createManagementLoginAgent } from './helpers/login-agent.js';
 import { retryTransientNetwork } from './helpers/retry-transient-network.js';

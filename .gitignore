@@ -16,6 +16,7 @@ dev/env-overrides/local/*.env
 !dev/env-overrides/local/*.env.example
 .artifacts/
 **/test-results/
+temp/
 
 # i18n compiled output (generated at build)
 apps/web/i18n/compiled/

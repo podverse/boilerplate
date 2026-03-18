@@ -1,3 +1,4 @@
+import dotenv from 'dotenv';
 /**
  * CLI for generate-data: seeds main and/or management DB with faker-generated test data.
  * Load env before importing ORM so DataSources see process.env.
@@ -7,8 +8,6 @@
  */
 import path from 'path';
 import { fileURLToPath } from 'url';
-
-import dotenv from 'dotenv';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 // dist/cli.js -> tools/generate-data/dist; need three levels up to reach monorepo root

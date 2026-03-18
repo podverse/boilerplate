@@ -1,6 +1,7 @@
+import type { EventVisibility } from '../entities/AdminPermissions.js';
+
 import { managementDataSource } from '../data-source.js';
 import { ManagementAdminRole } from '../entities/ManagementAdminRole.js';
-import type { EventVisibility } from '../entities/AdminPermissions.js';
 
 export type CreateManagementAdminRoleData = {
   name: string;

@@ -1,10 +1,12 @@
+import type { UpdateBucketAdminBody } from '../schemas/buckets.js';
+import type { UserWithRelations } from '@boilerplate/orm';
 import type { Request, Response } from 'express';
+
 import { CRUD_BITS } from '@boilerplate/helpers';
 import { BucketAdminService, UserService } from '@boilerplate/orm';
-import type { UserWithRelations } from '@boilerplate/orm';
-import type { UpdateBucketAdminBody } from '../schemas/buckets.js';
-import { getBucketAndEffective } from '../lib/bucket-effective.js';
+
 import { normalizeBucketMessageCrud } from '../lib/bucket-admin-permissions.js';
+import { getBucketResolved } from '../lib/bucket-context.js';
 
 const ADMIN_CRUD_READ = CRUD_BITS.read;
 
@@ -57,12 +59,8 @@ function bucketAdminToJson(
 }
 
 export async function listBucketAdmins(req: Request, res: Response): Promise<void> {
-  const bucketId = req.params.id as string;
-  const resolved = await getBucketAndEffective(bucketId);
-  if (resolved === null) {
-    res.status(404).json({ message: 'Bucket not found' });
-    return;
-  }
+  const resolved = await getBucketResolved(req, res);
+  if (resolved === null) return;
   const { effectiveBucket } = resolved;
   const bucketAdmins = await BucketAdminService.findByBucketId(effectiveBucket.id);
   const withUser = bucketAdmins.map((bucketAdmin) => {
@@ -78,13 +76,9 @@ export async function listBucketAdmins(req: Request, res: Response): Promise<voi
 }
 
 export async function getBucketAdmin(req: Request, res: Response): Promise<void> {
-  const bucketId = req.params.id as string;
   const userIdParam = req.params.userId as string;
-  const resolved = await getBucketAndEffective(bucketId);
-  if (resolved === null) {
-    res.status(404).json({ message: 'Bucket not found' });
-    return;
-  }
+  const resolved = await getBucketResolved(req, res);
+  if (resolved === null) return;
   const { effectiveBucket } = resolved;
   const targetUser = await resolveUser(userIdParam);
   if (targetUser === null) {
@@ -100,20 +94,13 @@ export async function getBucketAdmin(req: Request, res: Response): Promise<void>
 }
 
 export async function updateBucketAdmin(req: Request, res: Response): Promise<void> {
-  const bucketId = req.params.id as string;
   const userIdParam = req.params.userId as string;
-  const resolved = await getBucketAndEffective(bucketId);
-  if (resolved === null) {
-    res.status(404).json({ message: 'Bucket not found' });
-    return;
-  }
-  const { effectiveBucket, isDescendant } = resolved;
-  if (isDescendant) {
-    res.status(400).json({
-      message: 'Admins are managed on the root bucket only.',
-    });
-    return;
-  }
+  const resolved = await getBucketResolved(req, res, {
+    requireRoot: true,
+    requireRootMessage: 'Admins are managed on the root bucket only.',
+  });
+  if (resolved === null) return;
+  const { effectiveBucket } = resolved;
   const targetUser = await resolveUser(userIdParam);
   if (targetUser === null) {
     res.status(404).json({ message: 'User not found' });
@@ -153,20 +140,13 @@ export async function updateBucketAdmin(req: Request, res: Response): Promise<vo
 }
 
 export async function deleteBucketAdmin(req: Request, res: Response): Promise<void> {
-  const bucketId = req.params.id as string;
   const userIdParam = req.params.userId as string;
-  const resolved = await getBucketAndEffective(bucketId);
-  if (resolved === null) {
-    res.status(404).json({ message: 'Bucket not found' });
-    return;
-  }
-  const { effectiveBucket, isDescendant } = resolved;
-  if (isDescendant) {
-    res.status(400).json({
-      message: 'Admins are managed on the root bucket only.',
-    });
-    return;
-  }
+  const resolved = await getBucketResolved(req, res, {
+    requireRoot: true,
+    requireRootMessage: 'Admins are managed on the root bucket only.',
+  });
+  if (resolved === null) return;
+  const { effectiveBucket } = resolved;
   const targetUser = await resolveUser(userIdParam);
   if (targetUser === null) {
     res.status(404).json({ message: 'User not found' });

@@ -1,10 +1,12 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { useTranslations } from 'next-intl';
+
 import { AUTH_MESSAGE_LOGIN_FAILED } from '@boilerplate/helpers';
 import { LoginForm, RateLimitModal } from '@boilerplate/ui';
+
 import { useAuth } from '../../../context/AuthContext';
 import { ROUTES } from '../../../lib/routes';
 

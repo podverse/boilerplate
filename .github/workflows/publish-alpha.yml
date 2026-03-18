@@ -32,7 +32,7 @@ jobs:
           cache: "npm"
 
       - name: Install dependencies
-        run: npm ci
+        run: npm ci --include=optional
 
       - name: Security audit
         run: npm audit --omit=dev

@@ -5,10 +5,12 @@
 process.env.AUTH_MODE = 'admin_only_username';
 
 import type { Express } from 'express';
-import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+
 import request from 'supertest';
+import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
 import { UserService } from '@boilerplate/orm';
+
 import { hashPassword } from '../lib/auth/hash.js';
 
 /** Unique per file to avoid collisions when tests run in parallel. */

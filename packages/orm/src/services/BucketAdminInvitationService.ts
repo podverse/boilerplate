@@ -1,6 +1,7 @@
+import type { BucketAdminInvitationStatus } from '../entities/BucketAdminInvitation.js';
+
 import { appDataSourceRead, appDataSourceReadWrite } from '../data-source.js';
 import { BucketAdminInvitation } from '../entities/BucketAdminInvitation.js';
-import type { BucketAdminInvitationStatus } from '../entities/BucketAdminInvitation.js';
 
 export class BucketAdminInvitationService {
   static async findByToken(token: string): Promise<BucketAdminInvitation | null> {

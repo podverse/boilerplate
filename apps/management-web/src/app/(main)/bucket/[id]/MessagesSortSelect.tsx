@@ -1,7 +1,8 @@
 'use client';
 
-import { useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { useEffect } from 'react';
+
 import { getMessagesSortFromCookie, Select, setMessagesSortInCookie } from '@boilerplate/ui';
 
 function buildMessagesUrl(params: {

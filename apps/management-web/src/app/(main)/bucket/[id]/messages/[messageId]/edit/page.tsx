@@ -1,16 +1,18 @@
-import { notFound, redirect } from 'next/navigation';
-import { getTranslations } from 'next-intl/server';
-import { request } from '@boilerplate/helpers-requests';
 import type { ManagementBucket, ManagementBucketMessage } from '@boilerplate/helpers-requests';
-import { Breadcrumbs, ContentPageLayout, Link } from '@boilerplate/ui';
 import type { BreadcrumbItem } from '@boilerplate/ui';
 
+import { getTranslations } from 'next-intl/server';
+import { notFound, redirect } from 'next/navigation';
+
+import { request } from '@boilerplate/helpers-requests';
+import { Breadcrumbs, ContentPageLayout, Link } from '@boilerplate/ui';
+
 import { BucketMessageEditClient } from '../../../../../../../components/buckets/BucketMessageEditClient';
-import { getServerUser } from '../../../../../../../lib/server-auth';
 import { getServerManagementApiBaseUrl } from '../../../../../../../config/env';
 import { getCrudFlags, hasReadPermission } from '../../../../../../../lib/main-nav';
 import { ROUTES } from '../../../../../../../lib/routes';
 import { bucketViewRoute } from '../../../../../../../lib/routes';
+import { getServerUser } from '../../../../../../../lib/server-auth';
 import { getCookieHeader } from '../../../../../../../lib/server-request';
 
 type PageProps = { params: Promise<{ id: string; messageId: string }> };

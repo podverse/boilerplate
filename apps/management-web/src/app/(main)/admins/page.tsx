@@ -1,17 +1,19 @@
-import { redirect } from 'next/navigation';
+import type { ManagementUser } from '../../../types/management-api';
+
 import { getTranslations } from 'next-intl/server';
+import { redirect } from 'next/navigation';
+
 import { DEFAULT_PAGE_LIMIT } from '@boilerplate/helpers';
 import { request } from '@boilerplate/helpers-requests';
 import { FilterTablePageLayout, Stack } from '@boilerplate/ui';
 
 import { AdminsTableWithFilter } from '../../../components/AdminsTableWithFilter';
-import { TABLE_SORT_PREFS_COOKIE_NAME } from '../../../lib/cookies';
-import { getServerUser } from '../../../lib/server-auth';
 import { getManagementApiBaseUrl, getServerManagementApiBaseUrl } from '../../../config/env';
+import { TABLE_SORT_PREFS_COOKIE_NAME } from '../../../lib/cookies';
 import { getCrudFlags, hasReadPermission } from '../../../lib/main-nav';
 import { ROUTES } from '../../../lib/routes';
+import { getServerUser } from '../../../lib/server-auth';
 import { getCookieHeader, parseFilterColumns } from '../../../lib/server-request';
-import type { ManagementUser } from '../../../types/management-api';
 
 type AdminsResponse = {
   admins: ManagementUser[];

@@ -5,9 +5,6 @@
  * Use with PLAYWRIGHT_HTML_OUTPUT_DIR set and --reporter=scripts/e2e-html-steps-reporter.ts.
  */
 
-import fs from 'fs';
-import path from 'path';
-
 import type {
   FullConfig,
   FullResult,
@@ -16,6 +13,9 @@ import type {
   TestCase,
   TestResult,
 } from '@playwright/test/reporter';
+
+import fs from 'fs';
+import path from 'path';
 
 const STEP_DESCRIPTION_NAME = 'Step description';
 const STEP_URL_NAME = 'Step URL';

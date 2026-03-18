@@ -1,5 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
+
 import { useState } from 'react';
+
 import { Input } from './Input';
 
 const meta: Meta<typeof Input> = {

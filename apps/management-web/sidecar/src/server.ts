@@ -1,7 +1,8 @@
 /* eslint-disable no-console */
-import { validatePositiveInteger, validateStartupRequirements } from '@boilerplate/helpers';
 import http from 'node:http';
 import { URL } from 'node:url';
+
+import { validatePositiveInteger, validateStartupRequirements } from '@boilerplate/helpers';
 
 const PORT_KEY = 'PORT';
 const MGMT_API_URL_KEY = 'NEXT_PUBLIC_MANAGEMENT_API_URL';

@@ -1,5 +1,7 @@
-import React from 'react';
 import type { Preview } from '@storybook/react-vite';
+
+import React from 'react';
+
 import { ThemeProvider } from '../src/contexts/ThemeContext';
 import { THEMES, type Theme } from '../src/lib/settingsCookie';
 

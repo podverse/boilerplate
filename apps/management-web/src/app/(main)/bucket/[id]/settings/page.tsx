@@ -1,22 +1,24 @@
-import { notFound, redirect } from 'next/navigation';
-import { getTranslations } from 'next-intl/server';
-import { request } from '@boilerplate/helpers-requests';
-import { BucketSettingsTabs } from '@boilerplate/ui';
+import type { BucketSettingsTab } from '../../../../../lib/routes';
 import type { ManagementBucket } from '@boilerplate/helpers-requests';
 
+import { getTranslations } from 'next-intl/server';
+import { notFound, redirect } from 'next/navigation';
+
+import { request } from '@boilerplate/helpers-requests';
+import { BucketSettingsTabs } from '@boilerplate/ui';
+
 import { BucketForm } from '../../../../../components/buckets/BucketForm';
-import { BucketAdminsClient } from './BucketAdminsClient';
-import { BucketRolesClient } from './BucketRolesClient';
-import { getServerUser } from '../../../../../lib/server-auth';
 import { getServerManagementApiBaseUrl } from '../../../../../config/env';
 import { hasReadPermission } from '../../../../../lib/main-nav';
-import { getCookieHeader } from '../../../../../lib/server-request';
 import {
   bucketSettingsRoute,
   bucketSettingsAdminsRoute,
   bucketSettingsRolesRoute,
 } from '../../../../../lib/routes';
-import type { BucketSettingsTab } from '../../../../../lib/routes';
+import { getServerUser } from '../../../../../lib/server-auth';
+import { getCookieHeader } from '../../../../../lib/server-request';
+import { BucketAdminsClient } from './BucketAdminsClient';
+import { BucketRolesClient } from './BucketRolesClient';
 
 async function fetchBucket(id: string): Promise<ManagementBucket | null> {
   const cookieHeader = await getCookieHeader();

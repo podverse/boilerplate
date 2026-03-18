@@ -1,11 +1,12 @@
 import type { RequestHandler } from 'express';
+
 import { Router } from 'express';
 
 import * as bucketAdminInvitationsController from '../controllers/bucketAdminInvitationsController.js';
 import * as bucketAdminsController from '../controllers/bucketAdminsController.js';
+import * as bucketMessagesController from '../controllers/bucketMessagesController.js';
 import * as bucketRolesController from '../controllers/bucketRolesController.js';
 import * as bucketsController from '../controllers/bucketsController.js';
-import * as bucketMessagesController from '../controllers/bucketMessagesController.js';
 import { requireCrud } from '../middleware/requireCrud.js';
 import { validateBody } from '../middleware/validateBody.js';
 import {

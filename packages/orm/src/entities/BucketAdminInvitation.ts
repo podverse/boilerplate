@@ -1,3 +1,5 @@
+import type { Bucket } from './Bucket.js';
+
 import {
   Entity,
   PrimaryGeneratedColumn,
@@ -7,7 +9,7 @@ import {
   CreateDateColumn,
 } from 'typeorm';
 
-import type { Bucket } from './Bucket.js';
+import { INVITATION_STATUS_MAX_LENGTH, INVITATION_TOKEN_LENGTH } from '@boilerplate/helpers';
 
 export type BucketAdminInvitationStatus = 'pending' | 'accepted' | 'rejected';
 
@@ -19,7 +21,7 @@ export class BucketAdminInvitation {
   @Column({ name: 'bucket_id' })
   bucketId!: string;
 
-  @Column({ type: 'varchar', length: 64, unique: true })
+  @Column({ type: 'varchar', length: INVITATION_TOKEN_LENGTH, unique: true })
   token!: string;
 
   @Column({ name: 'bucket_crud', type: 'integer', default: 0 })
@@ -31,7 +33,11 @@ export class BucketAdminInvitation {
   @Column({ name: 'bucket_admins_crud', type: 'integer', default: 2 })
   bucketAdminsCrud!: number;
 
-  @Column({ type: 'varchar', length: 20, default: 'pending' })
+  @Column({
+    type: 'varchar',
+    length: INVITATION_STATUS_MAX_LENGTH,
+    default: 'pending',
+  })
   status!: BucketAdminInvitationStatus;
 
   @CreateDateColumn({ name: 'created_at' })

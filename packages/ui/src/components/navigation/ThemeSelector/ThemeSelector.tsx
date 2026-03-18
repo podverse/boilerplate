@@ -1,9 +1,10 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { Select } from '../../form/Select';
-import { THEMES, type Theme } from '../../../lib/settingsCookie';
+
 import { useTheme } from '../../../contexts/ThemeContext';
+import { THEMES, type Theme } from '../../../lib/settingsCookie';
+import { Select } from '../../form/Select';
 
 function isTheme(value: string): value is Theme {
   return THEMES.includes(value as Theme);

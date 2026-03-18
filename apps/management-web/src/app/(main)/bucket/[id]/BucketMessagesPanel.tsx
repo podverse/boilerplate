@@ -1,10 +1,12 @@
 'use client';
 
+import type { BucketMessageListItem } from '@boilerplate/ui';
+
 import { useRouter } from 'next/navigation';
+
 import { DEFAULT_PAGE_LIMIT } from '@boilerplate/helpers';
 import { managementWebBucketMessages } from '@boilerplate/helpers-requests';
 import { BucketMessageList, Pagination } from '@boilerplate/ui';
-import type { BucketMessageListItem } from '@boilerplate/ui';
 
 import { getManagementApiBaseUrl } from '../../../../config/env';
 import { bucketMessageEditRoute } from '../../../../lib/routes';

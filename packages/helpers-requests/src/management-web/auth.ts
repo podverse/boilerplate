@@ -1,5 +1,6 @@
-import { request } from '../request.js';
 import type { ApiError } from '../request.js';
+
+import { request } from '../request.js';
 
 export type AuthResponse = Promise<{
   ok: boolean;

@@ -5,7 +5,7 @@
   "scripts": {
     "i18n:compile": "node ../../scripts/i18n/compile.mjs web",
     "prebuild": "npm run i18n:compile",
-    "build": "next build --webpack",
+    "build": "next build",
     "dev": "npm run i18n:compile && NODE_OPTIONS='--no-deprecation' env PORT=${PORT:-4002} next dev --webpack",
     "dev:sidecar": "env PORT=${PORT:-4001} node -r dotenv/config sidecar/dist/server.js",
     "dev:sidecar:watch": "concurrently -n tsc,sidecar \"npm run build:watch -w @boilerplate/web-sidecar\" \"sleep 4 && npx nodemon --delay 2500ms --watch sidecar/dist --watch ../../packages/helpers/dist --exec 'env PORT=${PORT:-4001} node -r dotenv/config sidecar/dist/server.js'\"",
@@ -22,13 +22,14 @@
     "@boilerplate/helpers-requests": "*",
     "@boilerplate/ui": "*",
     "@fortawesome/fontawesome-free": "^6.7.2",
-    "next": "^16.1.6",
+    "next": "^16.1.7",
     "next-intl": "^4.0.0",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
     "server-only": "^0.0.1"
   },
   "devDependencies": {
+    "@next/bundle-analyzer": "^15.1.0",
     "@playwright/test": "^1.49.0",
     "@types/node": "^24.10.12",
     "@types/react": "^19.2.11",

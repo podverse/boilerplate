@@ -1,7 +1,8 @@
 /* eslint-disable no-console */
-import { validatePositiveInteger, validateStartupRequirements } from '@boilerplate/helpers';
 import http from 'node:http';
 import { URL } from 'node:url';
+
+import { validatePositiveInteger, validateStartupRequirements } from '@boilerplate/helpers';
 
 const BRAND_NAME_KEY = 'NEXT_PUBLIC_BRAND_NAME';
 const APP_TITLE_ICON_KEY = 'NEXT_PUBLIC_APP_TITLE_ICON';

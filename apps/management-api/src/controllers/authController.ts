@@ -1,12 +1,14 @@
 import type { Request, Response } from 'express';
+
 import { AUTH_MESSAGE_INVALID_CREDENTIALS, validatePassword } from '@boilerplate/helpers';
 import { getPasswordValidationMessages, resolveLocale } from '@boilerplate/helpers-i18n';
 import { ManagementRefreshTokenService, ManagementUserService } from '@boilerplate/management-orm';
+
 import { config } from '../config/index.js';
 import { setSessionCookies, clearSessionCookies } from '../lib/auth/cookies.js';
 import { comparePassword, hashPassword } from '../lib/auth/hash.js';
-import { generateToken, hashToken } from '../lib/auth/refresh-token.js';
 import { signManagementAccessToken } from '../lib/auth/jwt.js';
+import { generateToken, hashToken } from '../lib/auth/refresh-token.js';
 import { managementUserToJson } from '../lib/managementUserToJson.js';
 
 function getCookieOptions() {

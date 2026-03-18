@@ -1,5 +1,7 @@
 import type { Request, Response, NextFunction } from 'express';
+
 import { ManagementUserService } from '@boilerplate/management-orm';
+
 import { verifyManagementToken } from '../lib/auth/jwt.js';
 
 export interface RequireManagementAuthOptions {

@@ -1,8 +1,9 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
-import { useParams, useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
+import { useParams, useRouter } from 'next/navigation';
+import { useCallback, useEffect, useState } from 'react';
+
 import { AUTH_MESSAGE_LOGIN_FAILED } from '@boilerplate/helpers';
 import {
   Button,

@@ -1,4 +1,5 @@
 import Joi from 'joi';
+
 import { SHORT_TEXT_MAX_LENGTH } from '@boilerplate/helpers';
 
 const name = Joi.string().min(1).max(SHORT_TEXT_MAX_LENGTH);

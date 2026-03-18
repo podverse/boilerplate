@@ -1,5 +1,6 @@
-import { managementDataSource } from '../data-source.js';
 import type { ManagementUser } from '../entities/ManagementUser.js';
+
+import { managementDataSource } from '../data-source.js';
 import { ManagementRefreshToken } from '../entities/ManagementRefreshToken.js';
 import { ManagementUserService } from './ManagementUserService.js';
 

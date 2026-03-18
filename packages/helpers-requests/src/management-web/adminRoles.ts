@@ -1,6 +1,7 @@
-import { request } from '../request.js';
 import type { ApiResponse } from '../request.js';
 import type { EventVisibility } from '../types/management-admin-types.js';
+
+import { request } from '../request.js';
 
 export type PredefinedManagementAdminRoleItem = {
   id: string;

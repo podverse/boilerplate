@@ -7,15 +7,17 @@ import {
   OneToOne,
 } from 'typeorm';
 
-import { UserCredentials } from './UserCredentials.js';
+import { SHORT_ID_LENGTH } from '@boilerplate/helpers';
+
 import { UserBio } from './UserBio.js';
+import { UserCredentials } from './UserCredentials.js';
 
 @Entity('user')
 export class User {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
 
-  @Column({ name: 'short_id', length: 12, unique: true })
+  @Column({ name: 'short_id', length: SHORT_ID_LENGTH, unique: true })
   shortId!: string;
 
   @Column({ name: 'email_verified_at', type: 'timestamp', nullable: true })

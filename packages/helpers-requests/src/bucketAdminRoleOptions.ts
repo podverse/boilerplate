@@ -1,5 +1,6 @@
-import { PREDEFINED_BUCKET_ROLES } from '@boilerplate/helpers';
 import type { BucketRoleItem, PredefinedBucketRoleItem } from './management-web/bucketRoles.js';
+
+import { PREDEFINED_BUCKET_ROLES } from '@boilerplate/helpers';
 
 /**
  * Shape of a bucket admin role option for dropdowns (matches @boilerplate/ui BucketAdminRoleOption).

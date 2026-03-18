@@ -13,4 +13,4 @@ When creating a plan, if it is too large, **do not implement it immediately**. I
 2. Save those files in `.llm/plans/active/`
 3. Wait for the user to prompt you to complete them one-by-one
 
-Plans must be under 300 lines.
+Plans must be under 300 lines. For file layout (00-EXECUTION-ORDER, COPY-PASTA, etc.), use the **plan-files-convention** skill (`.cursor/skills/plan-files-convention/SKILL.md`).

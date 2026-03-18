@@ -1,4 +1,5 @@
 import { getTranslations } from 'next-intl/server';
+
 import { Main } from '@boilerplate/ui';
 
 import { NavBar } from '../../components/NavBar';

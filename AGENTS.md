@@ -33,6 +33,8 @@ Node and npm are provided by the repo's Nix flake, not a global install. When ru
 - `apps/api/` – Standalone Express HTTP API
 - `apps/web/` – Next.js app (fetches runtime config from sidecar when `RUNTIME_CONFIG_URL` is set)
 - `apps/web/sidecar/` – Runtime-config sidecar (serves env-derived config for the Next.js app)
+- `packages/ui/` – Shared UI: design tokens and mixins in `packages/ui/src/styles/` (variables, mixins); component groups (form, layout, modal, navigation, table, feedback, bucket) and hooks (useDeleteModal, useTableFilterState, useAuthValidation) documented in [packages/ui/README.md](packages/ui/README.md). Form controls live under `packages/ui/src/components/form/` (see that directory’s README).
+- **Validation schemas:** Joi validation lives in `apps/api/src/schemas/` and `apps/management-api/src/schemas/`. Controllers and routes import from these directories only; no ad-hoc schema definitions in controllers or routes. Shared request/response types may live in `packages/helpers-requests` or `packages/helpers`. See each app’s `schemas/README.md` for the file layout.
 
 ## Local env (aligned with Podverse)
 
@@ -49,9 +51,9 @@ See [docs/development/LOCAL-ENV-OVERRIDES.md](docs/development/LOCAL-ENV-OVERRID
 
 ## LLM History
 
-See [.llm/LLM.md](.llm/LLM.md) for full guidelines. Use the **llm-history** skill when updating history or starting feature work.
+See [.llm/LLM.md](.llm/LLM.md) for full guidelines. Use the **llm-history** skill when updating history or starting feature work. The **llm-history-tracking** rule (always applied) requires updating `.llm/history/active/[feature]/` on any file-modifying response.
 
-- Follow `.cursor/skills/llm-history/SKILL.md` as the canonical process for history timing and format.
+- Follow `.cursor/skills/llm-history/SKILL.md` for history timing, format, and 10-session limit.
 
 ## Testing
 
@@ -78,15 +80,38 @@ When implementing features or executing plans that touch **api** or **management
 - **User in responses:** For the **authenticated user only** (login, me, signup, refresh, confirm-email-change, update-profile), use `PublicUser` (id, shortId, email, username, displayName) via `userToJson`. Email is PII and must not be returned for _other_ users. For any response that describes another user (e.g. bucket admins list/detail), use `PublicUserSummary` (id, shortId, username, displayName) via `userToPublicSummary` from `apps/api/src/lib/userToJson.ts`.
 - **API messages and locale:** API structural messages (e.g. "Invalid or expired link", "Authentication required") are American English. Password validation text and email content (verification, password reset, email-change) are localized: resolved from `Accept-Language` when the value is supported (en-US, es), else app default from `DEFAULT_LOCALE` env. Do not localize the `message` field for structural errors; user-facing content such as email subject/body and password validation messages is localized.
 
+## Dependencies
+
+- **Upgrade policy:** Apply **patch and minor** updates routinely (e.g. `npm outdated` then bump versions and `npm install`). **Major** upgrades (e.g. @faker-js/faker, dotenv, eslint-plugin-perfectionist, express-rate-limit, lint-staged, nanoid, @types/node) are done separately with migration and testing. After any dependency change, run `npm run build` and `npm run lint`; commit the updated `package-lock.json` so CI and Docker use the same versions.
+- **Linux-canonical lockfile:** CI runs on Linux and needs Linux optional deps (e.g. `@parcel/watcher`, `@next/swc-linux-x64-gnu`, next-intl's `@swc/core`) in the lockfile. Generate or refresh the lockfile under Linux x64 so it stays correct for CI: run `./scripts/development/update-lockfile-linux.sh` (requires Docker). The bump-version script runs this automatically before committing. When you add or update dependencies from a Mac, run that script and commit the updated `package-lock.json`.
+
 ## Code Quality
 
 - Strict equality (`===` / `!==` only)
 - Avoid type assertions (`as`); prefer types and narrowing
 - Semicolons in JS/TS
 
+### Import order
+
+Imports must follow a consistent hierarchy and be alphabetized within groups: (1) Node built-ins, (2) external packages, (3) workspace packages (`@boilerplate/*`), (4) relative imports (parent, sibling, index), (5) style imports (SCSS/CSS) last. Type-only imports use a separate line (`import type { X } from '...'`) and are ordered with their group. Enforced by ESLint rule `perfectionist/sort-imports`; run `npm run lint:fix` to auto-fix.
+
 ## Skills and Rules
 
-- **.cursor/skills/** – Project skills (llm-history, api, web, global, etc.)
-- **.cursor/rules/** – Glob-triggered rules (eqeqeq, avoid-type-assertions, llm-history-tracking, etc.)
+- **.cursor/skills/** – Project skills (one SKILL.md per directory). Use when the task matches the skill’s “when to use” so the agent follows the right patterns.
+- **.cursor/rules/** – Glob-triggered or always-applied rules (e.g. eqeqeq, avoid-type-assertions, llm-history-tracking, path-casing). Rules apply automatically when editing matching files.
 
 All configuration is project-scoped (no home-directory skills or rules).
+
+### When to use which skill
+
+| Task or area             | Skill(s) to use                                                                                                                                                                                                                                                                            |
+| ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **History / plans**      | **llm-history** when updating history or starting feature work. **plan-files-convention** when creating, saving, or completing multi-step plans (e.g. COPY-PASTA execution). Plans live in `.llm/plans/active/`; split if over 300 lines (see **plan-creation** rule).                     |
+| **API**                  | **api** for Express API patterns. **api-testing** when adding or changing API routes, auth, or env-dependent behavior (integration tests). **swagger-openapi** when changing API surface. **api-no-pii-credentials** rule applies to responses.                                            |
+| **Web / management-web** | **web** for Next.js app patterns. **e2e-page-tests** when layout or behavior changes in web/management-web. **response-ending-make-verify** (and **end-with-targeted-make-report-verify** rule) for E2E verification commands. Use **make** E2E targets only (**e2e-run-with-make-only**). |
+| **i18n**                 | **i18n** when adding/editing translation keys, locales, or generating translations.                                                                                                                                                                                                        |
+| **Forms / UI**           | **use-form-component**, **button-loading-async**, **password-strength-on-set-update**. **avoid-type-assertions**, **eqeqeq-strict-equality** rules apply.                                                                                                                                  |
+| **DB / ORM**             | **database-schema-naming**, **typeorm-orderby-property-names**, **generate-data-sync** when schema or entities change. **nested-resource-prefix-naming** for nested resources.                                                                                                             |
+| **Imports / paths**      | **path-casing-imports** when adding or changing relative imports (rule also applies on .ts/.tsx). **type-imports-separate-line** rule for type-only imports.                                                                                                                               |
+
+For **file-modifying work**: update `.llm/history/active/[feature]/` per **llm-history** and the **llm-history-tracking** rule. For **large or multi-step plans**: save under `.llm/plans/active/` and use **plan-files-convention**; execute via COPY-PASTA prompts one plan at a time.

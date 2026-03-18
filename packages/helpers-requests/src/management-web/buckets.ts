@@ -1,5 +1,6 @@
-import { request } from '../request.js';
 import type { ApiResponse, RequestOptions } from '../request.js';
+
+import { request } from '../request.js';
 
 export type ManagementBucket = {
   id: string;

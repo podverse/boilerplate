@@ -1,9 +1,11 @@
 'use client';
 
+import type { BreadcrumbItem, BucketMessageListItem } from '@boilerplate/ui';
+
 import { useRouter } from 'next/navigation';
+
 import { managementWebBucketMessages } from '@boilerplate/helpers-requests';
 import { BucketMessagesPageContent } from '@boilerplate/ui';
-import type { BreadcrumbItem, BucketMessageListItem } from '@boilerplate/ui';
 
 import { getManagementApiBaseUrl } from '../../../../../config/env';
 import { bucketMessageEditRoute } from '../../../../../lib/routes';

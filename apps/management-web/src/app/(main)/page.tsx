@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation';
 
-import { getServerUser } from '../../lib/server-auth';
 import { ROUTES } from '../../lib/routes';
+import { getServerUser } from '../../lib/server-auth';
 
 export default async function HomePage() {
   const user = await getServerUser();

@@ -1,15 +1,15 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
+import { useRouter } from 'next/navigation';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { SEARCH_DEBOUNCE_MS } from '@boilerplate/helpers';
 
 import { Pagination } from '../../navigation/Pagination';
+import { getSortPrefsFromCookie, setSortPrefInCookie } from '../sortPrefsCookie';
 import { Table } from '../Table';
 import { TableFilterBar, type TableFilterBarColumn } from '../TableFilterBar';
-import { getSortPrefsFromCookie, setSortPrefInCookie } from '../sortPrefsCookie';
 
 import styles from './TableWithFilter.module.scss';
 

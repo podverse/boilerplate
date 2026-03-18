@@ -1,8 +1,9 @@
 'use client';
 
+import type { TableFilterBarColumn } from '@boilerplate/ui';
+
 import { webBuckets } from '@boilerplate/helpers-requests';
 import { ResourceTableWithFilter, type FilterableTableRow } from '@boilerplate/ui';
-import type { TableFilterBarColumn } from '@boilerplate/ui';
 
 import { bucketDetailRoute, bucketEditRoute } from '../lib/routes';
 

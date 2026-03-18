@@ -1,8 +1,10 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
+
 import { Dropdown } from '../Dropdown';
 import { Link } from '../Link';
+
 import styles from './NavBar.module.scss';
 
 export type NavBarUser = {

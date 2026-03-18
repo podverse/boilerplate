@@ -1,22 +1,23 @@
+import type { DataSourceOptions } from 'typeorm';
+
 /**
  * TypeORM DataSources: read-only (DB_READ_*) and read-write (DB_READ_WRITE_*).
  * Use the read connection in service methods that only read; use read-write where writes occur.
  * Validate DB_READ_* and DB_READ_WRITE_* at app startup before using.
  */
 import { DataSource } from 'typeorm';
-import type { DataSourceOptions } from 'typeorm';
 
-import { User } from './entities/User.js';
-import { UserCredentials } from './entities/UserCredentials.js';
-import { UserBio } from './entities/UserBio.js';
-import { VerificationToken } from './entities/VerificationToken.js';
-import { RefreshToken } from './entities/RefreshToken.js';
 import { Bucket } from './entities/Bucket.js';
-import { BucketSettings } from './entities/BucketSettings.js';
 import { BucketAdmin } from './entities/BucketAdmin.js';
 import { BucketAdminInvitation } from './entities/BucketAdminInvitation.js';
 import { BucketMessage } from './entities/BucketMessage.js';
 import { BucketRole } from './entities/BucketRole.js';
+import { BucketSettings } from './entities/BucketSettings.js';
+import { RefreshToken } from './entities/RefreshToken.js';
+import { User } from './entities/User.js';
+import { UserBio } from './entities/UserBio.js';
+import { UserCredentials } from './entities/UserCredentials.js';
+import { VerificationToken } from './entities/VerificationToken.js';
 
 const ENTITIES = [
   User,

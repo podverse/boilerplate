@@ -1,5 +1,7 @@
-import { Router } from 'express';
 import type { RequestHandler } from 'express';
+
+import { Router } from 'express';
+
 import * as bucketAdminInvitationsController from '../controllers/bucketAdminInvitationsController.js';
 
 export function createBucketAdminInvitationsRouter(requireAuthMiddleware: RequestHandler): Router {

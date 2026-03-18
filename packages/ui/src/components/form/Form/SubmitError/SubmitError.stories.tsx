@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
+
 import { SubmitError } from './SubmitError';
 
 const meta: Meta<typeof SubmitError> = {

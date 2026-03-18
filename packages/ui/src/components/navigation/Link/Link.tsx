@@ -4,6 +4,7 @@ import NextLink from 'next/link';
 import { usePathname } from 'next/navigation';
 
 import { useNavigationContext } from '../../../contexts/NavigationContext';
+
 import styles from './Link.module.scss';
 
 export type LinkProps = Omit<React.ComponentProps<typeof NextLink>, 'onClick'> & {

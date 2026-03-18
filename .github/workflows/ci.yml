@@ -103,7 +103,7 @@ jobs:
 
       - name: Install dependencies
         id: install
-        run: npm ci
+        run: npm ci --include=optional
 
       - name: Build packages
         id: build-packages

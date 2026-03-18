@@ -5,7 +5,7 @@
       "email": "Correo electrónico",
       "password": "Contraseña",
       "placeholderEmail": "tú@ejemplo.com",
-      "placeholderPassword": "••••••••",
+      "placeholderPassword": "",
       "submit": "Iniciar sesión",
       "signUp": "Registrarse",
       "forgotPassword": "¿Olvidaste tu contraseña?"
@@ -18,7 +18,7 @@
       "placeholderDisplayName": "Tu nombre",
       "password": "Contraseña",
       "confirmPassword": "Confirmar contraseña",
-      "placeholderPassword": "••••••••",
+      "placeholderPassword": "",
       "submit": "Registrarse",
       "logIn": "Iniciar sesión",
       "prefix": "¿Ya tienes cuenta? "
@@ -38,7 +38,7 @@
       "tokenPlaceholder": "Pega el token del correo",
       "newPassword": "Nueva contraseña",
       "confirmPassword": "Confirmar nueva contraseña",
-      "placeholderPassword": "••••••••",
+      "placeholderPassword": "",
       "submit": "Restablecer contraseña",
       "backToLogin": "Volver a iniciar sesión"
     }
@@ -51,9 +51,9 @@
     "messages": "Mensajes",
     "noMessagesYet": "Aún no hay mensajes.",
     "bucketSettings": "Ajustes",
-    "general": "General",
+    "general": "",
     "admins": "Administradores",
-    "roles": "Roles",
+    "roles": "",
     "addAdmin": "Añadir administrador",
     "addAdminDescription": "Crea un enlace de invitación y compártelo. Quien lo use podrá aceptar y ser administrador del bucket con los permisos indicados.",
     "adminPermissionsLabel": "Permisos de administrador",
@@ -122,7 +122,7 @@
     "eventsTable": {
       "timestamp": "Fecha y hora",
       "actorType": "Tipo de actor",
-      "actor": "Actor",
+      "actor": "",
       "action": "Acción",
       "target": "Objetivo",
       "details": "Detalles"
@@ -224,7 +224,7 @@
     "bucketDetail": {
       "isPublic": "Público",
       "publicYes": "Sí",
-      "publicNo": "No",
+      "publicNo": "",
       "owner": "Propietario",
       "messages": "Mensajes",
       "publicPage": "Página pública",
@@ -283,7 +283,7 @@
       "username": "Nombre de usuario",
       "displayName": "Nombre para mostrar",
       "visibilityYes": "Sí",
-      "visibilityNo": "No",
+      "visibilityNo": "",
       "actions": "Acciones",
       "view": "Ver",
       "edit": "Editar",
@@ -360,7 +360,7 @@
     "displayName": "Nombre para mostrar",
     "displayNamePlaceholder": "Tu nombre",
     "email": "Correo electrónico",
-    "placeholderPassword": "••••••••",
+    "placeholderPassword": "",
     "changePassword": "Cambiar contraseña",
     "currentPassword": "Contraseña actual",
     "newPassword": "Nueva contraseña",
@@ -376,7 +376,7 @@
   },
   "settings": {
     "title": "Ajustes",
-    "generalTab": "General",
+    "generalTab": "",
     "profileTab": "Perfil",
     "passwordTab": "Cambiar contraseña",
     "preferences": "Preferencias",
@@ -411,7 +411,7 @@
         "placeholderUsername": "nombre de usuario",
         "password": "Contraseña",
         "placeholderEmail": "tú@ejemplo.com",
-        "placeholderPassword": "••••••••",
+        "placeholderPassword": "",
         "submit": "Iniciar sesión",
         "signUp": "Registrarse",
         "forgotPassword": "¿Olvidaste tu contraseña?"
@@ -424,7 +424,7 @@
         "placeholderDisplayName": "Tu nombre",
         "password": "Contraseña",
         "confirmPassword": "Confirmar contraseña",
-        "placeholderPassword": "••••••••",
+        "placeholderPassword": "",
         "submit": "Registrarse",
         "logIn": "Iniciar sesión",
         "prefix": "¿Ya tienes cuenta? "
@@ -444,7 +444,7 @@
         "tokenPlaceholder": "Pega el token del correo",
         "newPassword": "Nueva contraseña",
         "confirmPassword": "Confirmar nueva contraseña",
-        "placeholderPassword": "••••••••",
+        "placeholderPassword": "",
         "submit": "Restablecer contraseña",
         "backToLogin": "Volver a iniciar sesión"
       }
@@ -459,9 +459,10 @@
       "useThemeAriaLabel": "Usar tema {theme}",
       "light": "Claro",
       "dark": "Oscuro",
-      "dracula": "Dracula"
+      "dracula": ""
     },
     "passwordStrength": {
+      "hint": "Usa al menos {minLength} caracteres e incluye una mezcla de letras, números y símbolos",
       "requireLength": "Al menos {count} caracteres",
       "requireMix": "Mezcla de letras, números y símbolos",
       "tooShort": "Demasiado corta",
@@ -492,7 +493,7 @@
       "navAriaLabel": "Navegación de sección"
     },
     "formLinks": {
-      "separator": " • "
+      "separator": ""
     },
     "validation": {
       "emailRequired": "El correo electrónico es obligatorio",
@@ -520,7 +521,7 @@
         "pagesRange": "Páginas 1 a {totalPages}",
         "pagesRangeSingle": "Páginas 1 a 1",
         "pageBetween": "Introduce una página entre 1 y {totalPages}",
-        "placeholder": "1–{max}"
+        "placeholder": ""
       }
     }
   }

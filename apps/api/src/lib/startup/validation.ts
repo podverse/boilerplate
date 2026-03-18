@@ -4,6 +4,7 @@
  * Requires JWT_SECRET (min length 32, must not be a weak/predictable value).
  */
 import type { ValidationResult } from '@boilerplate/helpers';
+
 import {
   getEffectiveUserAgent,
   validateJwtSecret,

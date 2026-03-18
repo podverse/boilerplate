@@ -1,7 +1,8 @@
 'use client';
 
-import { Breadcrumbs, Link } from '@boilerplate/ui';
 import type { BreadcrumbItem } from '@boilerplate/ui';
+
+import { Breadcrumbs, Link } from '@boilerplate/ui';
 
 export type BucketSettingsBreadcrumbsProps = {
   /** Optional parent buckets in hierarchy order (root first). When set, shown before the current bucket. */

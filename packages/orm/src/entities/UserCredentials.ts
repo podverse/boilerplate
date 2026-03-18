@@ -1,8 +1,8 @@
+import type { User } from './User.js';
+
 import { Entity, Column, PrimaryColumn, OneToOne, JoinColumn } from 'typeorm';
 
 import { EMAIL_MAX_LENGTH, PASSWORD_HASH_LENGTH, USERNAME_MAX_LENGTH } from '@boilerplate/helpers';
-
-import type { User } from './User.js';
 
 @Entity('user_credentials')
 export class UserCredentials {

@@ -1,4 +1,3 @@
-import { request } from '../request.js';
 import type { ApiResponse } from '../request.js';
 import type {
   CreateAdminBody,
@@ -6,6 +5,8 @@ import type {
   PublicManagementUser,
   UpdateAdminBody,
 } from '../types/management-admin-types.js';
+
+import { request } from '../request.js';
 
 /** Token optional; omit for cookie auth (credentials: 'include'). */
 export async function list(

@@ -1,4 +1,5 @@
 import Joi from 'joi';
+
 import { SHORT_TEXT_MAX_LENGTH } from '@boilerplate/helpers';
 
 export const createMessageSchema = Joi.object({

@@ -1,8 +1,10 @@
 'use client';
 
-import { useRouter, useSearchParams } from 'next/navigation';
 import { useLocale, useTranslations } from 'next-intl';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Suspense, useEffect, useState } from 'react';
+
+import { getRateLimitRetrySeconds, webAuth } from '@boilerplate/helpers-requests';
 import {
   Container,
   LoadingSpinner,
@@ -10,7 +12,7 @@ import {
   ResetPasswordForm,
   useAuthValidation,
 } from '@boilerplate/ui';
-import { getRateLimitRetrySeconds, webAuth } from '@boilerplate/helpers-requests';
+
 import { getRuntimeConfig } from '../../../config/runtime-config-store';
 import { getApiBaseUrl } from '../../../lib/api-client';
 import { getWebAuthModeCapabilities } from '../../../lib/authMode';

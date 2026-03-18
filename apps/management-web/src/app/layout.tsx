@@ -1,7 +1,9 @@
 import type { Metadata } from 'next';
-import { cookies } from 'next/headers';
-import { getLocale, getMessages } from 'next-intl/server';
+
 import { NextIntlClientProvider } from 'next-intl';
+import { getLocale, getMessages } from 'next-intl/server';
+import { cookies } from 'next/headers';
+
 import '@fortawesome/fontawesome-free/css/all.min.css';
 import {
   AppView,
@@ -9,6 +11,7 @@ import {
   NavigationProvider,
   ThemeWrapper,
 } from '@boilerplate/ui';
+
 import { AuthWrapper } from '../components/AuthWrapper';
 import { getServerUser } from '../lib/server-auth';
 

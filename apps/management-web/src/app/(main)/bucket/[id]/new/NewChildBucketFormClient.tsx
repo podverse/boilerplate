@@ -1,8 +1,10 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
-import { useTranslations } from 'next-intl';
+
+import { managementWebBuckets } from '@boilerplate/helpers-requests';
 import {
   Button,
   Input,
@@ -16,7 +18,7 @@ import {
   Text,
   Tooltip,
 } from '@boilerplate/ui';
-import { managementWebBuckets } from '@boilerplate/helpers-requests';
+
 import { getManagementApiBaseUrl } from '../../../../../config/env';
 
 type NewChildBucketFormClientProps = {

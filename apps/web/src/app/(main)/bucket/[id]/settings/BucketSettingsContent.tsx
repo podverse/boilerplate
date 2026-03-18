@@ -1,10 +1,13 @@
 'use client';
 
-import { usePathname, useSearchParams } from 'next/navigation';
+import type { BucketSettingsTab } from '../../../../../lib/routes';
+import type { BucketForForm } from '../../../buckets/BucketForm';
+
 import { useTranslations } from 'next-intl';
+import { usePathname, useSearchParams } from 'next/navigation';
+
 import { BucketSettingsTabs } from '@boilerplate/ui';
 
-import type { BucketSettingsTab } from '../../../../../lib/routes';
 import {
   bucketDetailRoute,
   bucketSettingsRoute,
@@ -12,7 +15,6 @@ import {
   bucketSettingsRolesRoute,
 } from '../../../../../lib/routes';
 import { BucketForm } from '../../../buckets/BucketForm';
-import type { BucketForForm } from '../../../buckets/BucketForm';
 import { BucketAdminsClient } from '../BucketAdminsClient';
 import { BucketRolesClient } from '../BucketRolesClient';
 

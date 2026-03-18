@@ -1,5 +1,7 @@
 import type { Request, Response, NextFunction } from 'express';
+
 import { UserService } from '@boilerplate/orm';
+
 import { verifyToken } from '../lib/auth/jwt.js';
 
 export interface RequireAuthOptions {

@@ -4,6 +4,7 @@
  */
 
 import type { PasswordValidationMessages } from '@boilerplate/helpers';
+
 import { t } from './t.js';
 
 /**

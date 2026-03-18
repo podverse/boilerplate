@@ -1,3 +1,7 @@
+import type { Options } from 'express-rate-limit';
+
+import { rateLimit } from 'express-rate-limit';
+
 /**
  * Shared rate-limit middleware factory for Express APIs. Keyed by IP by default.
  * Use createStrictRateLimiter / createModerateRateLimiter for auth endpoints, or
@@ -8,8 +12,6 @@
  * retryAfterSeconds in the JSON body so the client always has the precise value.
  */
 import { FIFTEEN_MINUTES_MS, MS_PER_SECOND } from '@boilerplate/helpers';
-import type { Options } from 'express-rate-limit';
-import { rateLimit } from 'express-rate-limit';
 
 const DEFAULT_MESSAGE = 'Too many requests. Please try again later.';
 

@@ -1,8 +1,9 @@
 'use client';
 
+import type { CrudBit } from '@boilerplate/helpers';
+
 import { useEffect, useRef } from 'react';
 
-import type { CrudBit } from '@boilerplate/helpers';
 import { InfoIcon } from '../../feedback/InfoIcon/InfoIcon';
 import { Tooltip } from '../../feedback/Tooltip/Tooltip';
 

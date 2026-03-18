@@ -1,5 +1,7 @@
-import nodemailer from 'nodemailer';
 import type { Transporter } from 'nodemailer';
+
+import nodemailer from 'nodemailer';
+
 import { DEFAULT_LOCALE } from '@boilerplate/helpers-i18n';
 import {
   getVerificationEmailContent,

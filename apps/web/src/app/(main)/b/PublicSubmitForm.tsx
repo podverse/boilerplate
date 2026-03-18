@@ -1,8 +1,11 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
-import { useTranslations } from 'next-intl';
+
+import { DEFAULT_MESSAGE_BODY_MAX_LENGTH } from '@boilerplate/helpers';
+import { webBuckets } from '@boilerplate/helpers-requests';
 import {
   Button,
   CheckboxField,
@@ -15,9 +18,10 @@ import {
   Textarea,
   Tooltip,
 } from '@boilerplate/ui';
-import { DEFAULT_MESSAGE_BODY_MAX_LENGTH } from '@boilerplate/helpers';
-import { webBuckets } from '@boilerplate/helpers-requests';
+
 import { getApiBaseUrl } from '../../../lib/api-client';
+
+import styles from './PublicSubmitForm.module.scss';
 
 export function PublicSubmitForm({
   bucketId,
@@ -96,7 +100,7 @@ export function PublicSubmitForm({
           showCharCount
           charCountLabelNoMax={(current) => t('charCountNoMax', { current })}
         />
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+        <div className={styles.checkboxRow}>
           <CheckboxField
             label={t('isPublic')}
             checked={isPublic}

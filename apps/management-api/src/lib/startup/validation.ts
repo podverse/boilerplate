@@ -2,6 +2,7 @@
  * Management API startup env validation. Requires MANAGEMENT_* and main DB vars.
  */
 import type { ValidationResult } from '@boilerplate/helpers';
+
 import {
   getEffectiveUserAgent,
   validateJwtSecret,

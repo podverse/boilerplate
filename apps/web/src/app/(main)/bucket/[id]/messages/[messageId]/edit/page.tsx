@@ -1,12 +1,13 @@
-import { redirect, notFound } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
+import { redirect, notFound } from 'next/navigation';
+
 import { request } from '@boilerplate/helpers-requests';
 import { Container, SectionWithHeading } from '@boilerplate/ui';
 
 import { canEditBucketMessages } from '../../../../../../../lib/bucket-authz';
+import { ROUTES, bucketDetailRoute } from '../../../../../../../lib/routes';
 import { getServerUser } from '../../../../../../../lib/server-auth';
 import { getCookieHeader, getServerApiBaseUrl } from '../../../../../../../lib/server-request';
-import { ROUTES, bucketDetailRoute } from '../../../../../../../lib/routes';
 import { EditMessageForm } from '../../../EditMessageForm';
 
 type Bucket = {

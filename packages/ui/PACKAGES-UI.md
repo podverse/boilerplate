@@ -36,6 +36,8 @@ Stories are co-located with components under `src/`:
 - Glob: `src/**/*.stories.@(ts|tsx)`
 - Examples: `Button.stories.tsx`, `Input.stories.tsx`, `Card.stories.tsx`, `auth/LoginForm.stories.tsx`
 
+Primitive and shared components (form, layout, feedback, modal, navigation, table) have stories that document props (via argTypes) and key states (default, loading, disabled, error, etc.). Composed page-level components (e.g. bucket detail, settings layout) may not have dedicated stories.
+
 ### Adding a new story
 
 1. Create a file next to the component: `ComponentName.stories.tsx`.

@@ -1,13 +1,14 @@
+import request from 'supertest';
 /**
  * API integration tests: auth endpoints unaffected by mailer mode.
  * Covers login, logout, me, change-password.
  * For root routes see root-routes.test.ts; for mode-specific flows see auth-no-mailer.test.ts and auth-mailer.test.ts.
  */
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import request from 'supertest';
 
 import { AUTH_MESSAGE_INVALID_CREDENTIALS } from '@boilerplate/helpers';
 import { UserService } from '@boilerplate/orm';
+
 import { config } from '../config/index.js';
 import { hashPassword } from '../lib/auth/hash.js';
 import { createApiLoginAgent } from './helpers/login-agent.js';

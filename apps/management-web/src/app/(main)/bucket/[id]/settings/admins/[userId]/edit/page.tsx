@@ -1,17 +1,19 @@
-import { redirect, notFound } from 'next/navigation';
+import type { ManagementBucket } from '@boilerplate/helpers-requests';
+
 import { getTranslations } from 'next-intl/server';
+import { redirect, notFound } from 'next/navigation';
+
 import { CRUD_BITS } from '@boilerplate/helpers';
 import { formatUserLabel } from '@boilerplate/helpers';
 import { request } from '@boilerplate/helpers-requests';
 import { PageHeader, Text } from '@boilerplate/ui';
 
-import { EditBucketAdminFormClient } from '../../../../EditBucketAdminFormClient';
-import { getServerUser } from '../../../../../../../../lib/server-auth';
 import { getServerManagementApiBaseUrl } from '../../../../../../../../config/env';
 import { hasReadPermission } from '../../../../../../../../lib/main-nav';
 import { ROUTES, bucketSettingsAdminsRoute } from '../../../../../../../../lib/routes';
+import { getServerUser } from '../../../../../../../../lib/server-auth';
 import { getCookieHeader } from '../../../../../../../../lib/server-request';
-import type { ManagementBucket } from '@boilerplate/helpers-requests';
+import { EditBucketAdminFormClient } from '../../../../EditBucketAdminFormClient';
 
 type AdminUser = {
   id: string;

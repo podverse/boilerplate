@@ -1,14 +1,16 @@
-import { notFound } from 'next/navigation';
-import { getTranslations } from 'next-intl/server';
 import type { PublicBucket } from '@boilerplate/helpers-requests';
-import { webBuckets } from '@boilerplate/helpers-requests';
 import type { BreadcrumbItem } from '@boilerplate/ui';
+
+import { getTranslations } from 'next-intl/server';
+import { notFound } from 'next/navigation';
+
+import { webBuckets } from '@boilerplate/helpers-requests';
 import { ContentPageLayout, SectionWithHeading, Stack } from '@boilerplate/ui';
 
+import { publicBucketRoute } from '../../../../../lib/routes';
+import { getServerApiBaseUrl } from '../../../../../lib/server-request';
 import { PublicSubmitForm } from '../../PublicSubmitForm';
 import { PublicBucketBreadcrumbs } from '../PublicBucketBreadcrumbs';
-import { getServerApiBaseUrl } from '../../../../../lib/server-request';
-import { publicBucketRoute } from '../../../../../lib/routes';
 
 async function fetchPublicBucket(id: string): Promise<PublicBucket | null> {
   const baseUrl = getServerApiBaseUrl();

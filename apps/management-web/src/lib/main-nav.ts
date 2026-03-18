@@ -3,10 +3,11 @@
  * Tabs are shown only when the user has read access (or no permission is required).
  */
 
+import type { ManagementUserPermissions } from '../types/management-api';
+
 import { CRUD_BITS, bitmaskToFlags } from '@boilerplate/helpers';
 
 import { ROUTES } from './routes';
-import type { ManagementUserPermissions } from '../types/management-api';
 
 /** Permission keys that hold a CRUD bitmask. Used to gate tab visibility by read access. */
 export type CrudPermissionKey = keyof Pick<

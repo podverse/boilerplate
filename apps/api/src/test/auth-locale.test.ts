@@ -11,6 +11,7 @@ process.env.MAIL_FROM = 'test@test.com';
 process.env.APP_BASE_URL = 'http://localhost:3999';
 
 import type { Express } from 'express';
+
 import { vi } from 'vitest';
 
 const { captured } = vi.hoisted(() => ({
@@ -40,10 +41,11 @@ vi.mock('../lib/mailer/send.js', () => ({
   },
 }));
 
-import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import request from 'supertest';
+import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
 import { UserService } from '@boilerplate/orm';
+
 import { hashPassword } from '../lib/auth/hash.js';
 
 /** Unique per file to avoid collisions when tests run in parallel. */

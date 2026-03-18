@@ -1,7 +1,9 @@
 import type { RequestHandler } from 'express';
+
 import { Router } from 'express';
-import * as adminsController from '../controllers/adminsController.js';
+
 import * as adminRolesController from '../controllers/adminRolesController.js';
+import * as adminsController from '../controllers/adminsController.js';
 import { requireCrud } from '../middleware/requireCrud.js';
 import { validateBody } from '../middleware/validateBody.js';
 import {

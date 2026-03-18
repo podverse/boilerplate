@@ -1,6 +1,8 @@
-import { getRequestConfig } from 'next-intl/server';
 import type { AbstractIntlMessages } from 'use-intl/core';
+
+import { getRequestConfig } from 'next-intl/server';
 import { cookies, headers } from 'next/headers';
+
 import { ALL_AVAILABLE_LOCALES, DEFAULT_LOCALE, type Locale } from '@boilerplate/helpers';
 import { getLocaleFromSettingsCookieValue } from '@boilerplate/ui';
 

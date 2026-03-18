@@ -1,12 +1,12 @@
+import eslint from '@eslint/js';
+import eslintConfigPrettier from 'eslint-config-prettier/flat';
+import perfectionist from 'eslint-plugin-perfectionist';
 // For more info, see https://github.com/storybookjs/eslint-plugin-storybook#configuration-flat-config-format
 import storybook from 'eslint-plugin-storybook';
-
-import eslint from '@eslint/js';
-import tseslint from 'typescript-eslint';
 import globals from 'globals';
-import eslintConfigPrettier from 'eslint-config-prettier/flat';
-import { fileURLToPath } from 'url';
 import { dirname } from 'path';
+import tseslint from 'typescript-eslint';
+import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -25,6 +25,9 @@ export default tseslint.config(
       parserOptions: {
         tsconfigRootDir: __dirname,
       },
+    },
+    plugins: {
+      perfectionist,
     },
     rules: {
       'no-unused-vars': 'off',
@@ -48,6 +51,23 @@ export default tseslint.config(
         },
       ],
       semi: ['error', 'always'],
+      'perfectionist/sort-imports': [
+        'error',
+        {
+          type: 'alphabetical',
+          order: 'asc',
+          groups: [
+            'type',
+            ['builtin', 'external'],
+            'internal',
+            ['parent', 'sibling', 'index'],
+            'style',
+            'unknown',
+          ],
+          internalPattern: ['^@boilerplate/'],
+          newlinesBetween: 'always',
+        },
+      ],
     },
   },
   {

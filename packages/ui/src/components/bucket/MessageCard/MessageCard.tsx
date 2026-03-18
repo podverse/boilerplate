@@ -1,6 +1,7 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
+
 import { Card } from '../../layout/Card/Card';
 
 import styles from './MessageCard.module.scss';

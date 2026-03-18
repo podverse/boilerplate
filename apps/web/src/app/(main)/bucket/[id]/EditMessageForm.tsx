@@ -1,8 +1,10 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
-import { useTranslations } from 'next-intl';
+
+import { DEFAULT_MESSAGE_BODY_MAX_LENGTH } from '@boilerplate/helpers';
 import {
   Button,
   ButtonLink,
@@ -15,8 +17,10 @@ import {
   Textarea,
   Tooltip,
 } from '@boilerplate/ui';
-import { DEFAULT_MESSAGE_BODY_MAX_LENGTH } from '@boilerplate/helpers';
+
 import { getApiBaseUrl } from '../../../../lib/api-client';
+
+import styles from './EditMessageForm.module.scss';
 
 export function EditMessageForm({
   bucketId,
@@ -92,7 +96,7 @@ export function EditMessageForm({
           showCharCount
           charCountLabelNoMax={(current) => t('charCountNoMax', { current })}
         />
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+        <div className={styles.checkboxRow}>
           <CheckboxField
             label={t('isPublic')}
             checked={isPublic}

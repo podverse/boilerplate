@@ -1,11 +1,13 @@
 'use client';
 
+import { useLocale, useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { useLocale, useTranslations } from 'next-intl';
+
 import { USERNAME_MAX_LENGTH } from '@boilerplate/helpers';
-import { RateLimitModal, SignupForm, useAuthValidation } from '@boilerplate/ui';
 import { getRateLimitRetrySeconds, webAuth } from '@boilerplate/helpers-requests';
+import { RateLimitModal, SignupForm, useAuthValidation } from '@boilerplate/ui';
+
 import { getRuntimeConfig } from '../../../config/runtime-config-store';
 import { useAuth } from '../../../context/AuthContext';
 import { getApiBaseUrl } from '../../../lib/api-client';

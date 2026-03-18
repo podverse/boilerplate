@@ -1,5 +1,6 @@
-import { request } from '../request.js';
 import type { ApiResponse } from '../request.js';
+
+import { request } from '../request.js';
 
 /** Main-app user in bucket admin context (id, shortId for URLs, username, displayName; email optional). */
 export type BucketAdminUser = {
