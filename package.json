@@ -35,12 +35,13 @@
     "concurrently": "^9.2.1",
     "eslint": "^10.0.2",
     "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-perfectionist": "^4.6.0",
     "eslint-plugin-storybook": "^10.2.19",
     "globals": "^17.4.0",
     "lint-staged": "^15.5.0",
     "prettier": "^3.4.2",
     "typescript": "^5.9.2",
-    "typescript-eslint": "^8.57.0"
+    "typescript-eslint": "^8.57.1"
   },
   "lint-staged": {
     "*.{ts,tsx,js,mjs,cjs,json,md,yml,yaml,scss,css}": "prettier --write"
@@ -49,6 +50,7 @@
     "prepare": "bash scripts/git-hooks/install-hooks.sh",
     "start-feature": "bash scripts/start-feature.sh",
     "build": "npm run build --workspaces --if-present",
+    "build:analyze:web": "ANALYZE=true npm run build -w @boilerplate/web",
     "build:packages": "npm run build -w @boilerplate/helpers -w @boilerplate/helpers-backend-api -w @boilerplate/helpers-requests -w @boilerplate/orm -w @boilerplate/management-orm -w @boilerplate/helpers-i18n",
     "build:apps": "npm run build -w @boilerplate/api -w @boilerplate/management-api -w @boilerplate/web -w @boilerplate/web-sidecar -w @boilerplate/management-web -w @boilerplate/management-web-sidecar",
     "lint": "npm run type-check && eslint . --max-warnings 0 && prettier --check .",
