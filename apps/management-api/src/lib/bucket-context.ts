@@ -1,7 +1,7 @@
+import type { BucketAndEffective } from './bucket-effective.js';
 import type { Request, Response } from 'express';
 
 import { getBucketAndEffective } from './bucket-effective.js';
-import type { BucketAndEffective } from './bucket-effective.js';
 
 export type GetBucketResolvedOptions = {
   /** Which route param holds the bucket id or shortId. Default 'id'. */

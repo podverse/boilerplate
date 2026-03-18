@@ -1,8 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 
-import { useState } from 'react';
-
 import { NextIntlClientProvider } from 'next-intl';
+import { useState } from 'react';
 
 import { ConfirmDeleteModal } from './ConfirmDeleteModal';
 

@@ -1,10 +1,10 @@
+import type { BucketAndEffective } from './bucket-effective.js';
+import type { Bucket } from '@boilerplate/orm';
 import type { Request, Response } from 'express';
 
-import type { Bucket } from '@boilerplate/orm';
 import { BucketAdminService } from '@boilerplate/orm';
 
 import { getBucketAndEffective } from './bucket-effective.js';
-import type { BucketAndEffective } from './bucket-effective.js';
 
 export type BucketPermissionFn = (
   userId: string,
