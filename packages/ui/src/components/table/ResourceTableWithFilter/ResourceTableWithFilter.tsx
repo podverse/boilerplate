@@ -1,20 +1,20 @@
 'use client';
 
-import { useCallback, useEffect, useMemo } from 'react';
-import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
+import { useRouter } from 'next/navigation';
+import { useCallback, useEffect, useMemo } from 'react';
 
-import { ButtonLink } from '../../form/ButtonLink';
-import { CrudButtons } from '../../form/CrudButtons';
-import { Link } from '../../navigation/Link';
-import { Text } from '../../layout/Text';
-import { Pagination } from '../../navigation/Pagination';
-import { ConfirmDeleteModal } from '../../modal/ConfirmDeleteModal/ConfirmDeleteModal';
-import { Table } from '../Table';
-import { TableFilterBar, type TableFilterBarColumn } from '../TableFilterBar';
-import { getSortPrefsFromCookie, setSortPrefInCookie } from '../sortPrefsCookie';
 import { useDeleteModal } from '../../../hooks/useDeleteModal';
 import { useTableFilterState } from '../../../hooks/useTableFilterState';
+import { ButtonLink } from '../../form/ButtonLink';
+import { CrudButtons } from '../../form/CrudButtons';
+import { Text } from '../../layout/Text';
+import { ConfirmDeleteModal } from '../../modal/ConfirmDeleteModal/ConfirmDeleteModal';
+import { Link } from '../../navigation/Link';
+import { Pagination } from '../../navigation/Pagination';
+import { getSortPrefsFromCookie, setSortPrefInCookie } from '../sortPrefsCookie';
+import { Table } from '../Table';
+import { TableFilterBar, type TableFilterBarColumn } from '../TableFilterBar';
 
 import styles from './ResourceTableWithFilter.module.scss';
 

@@ -1,10 +1,12 @@
-import { redirect, notFound } from 'next/navigation';
-import { getTranslations } from 'next-intl/server';
 import type { BreadcrumbItem } from '@boilerplate/ui';
-import { fetchBucket, fetchBucketAncestry } from '../../../../../lib/buckets';
+
+import { getTranslations } from 'next-intl/server';
+import { redirect, notFound } from 'next/navigation';
+
 import { canViewBucketSettings } from '../../../../../lib/bucket-authz';
-import { getServerUser } from '../../../../../lib/server-auth';
+import { fetchBucket, fetchBucketAncestry } from '../../../../../lib/buckets';
 import { ROUTES, bucketDetailRoute } from '../../../../../lib/routes';
+import { getServerUser } from '../../../../../lib/server-auth';
 import { BucketSettingsLayoutClient } from './BucketSettingsLayoutClient';
 
 export default async function BucketSettingsLayout({

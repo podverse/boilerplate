@@ -1,9 +1,10 @@
 process.env.AUTH_MODE = 'admin_only_email';
 
-import crypto from 'crypto';
 import type { Express } from 'express';
-import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import type request from 'supertest';
+
+import crypto from 'crypto';
+import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
 import { ONE_HOUR_MS, ONE_MINUTE_MS } from '@boilerplate/helpers';
 import { VerificationToken, appDataSourceRead } from '@boilerplate/orm';

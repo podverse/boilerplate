@@ -1,5 +1,7 @@
 import type { RequestHandler } from 'express';
+
 import { Router } from 'express';
+
 import * as usersController from '../controllers/usersController.js';
 import { requireCrud } from '../middleware/requireCrud.js';
 import { validateBody } from '../middleware/validateBody.js';

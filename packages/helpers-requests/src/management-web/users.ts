@@ -1,4 +1,3 @@
-import { request } from '../request.js';
 import type { ApiResponse } from '../request.js';
 import type {
   ChangeUserPasswordBody,
@@ -7,6 +6,8 @@ import type {
   PublicMainAppUser,
   UpdateUserBody,
 } from '../types/management-user-types.js';
+
+import { request } from '../request.js';
 
 /** Token optional; omit for cookie auth (credentials: 'include'). */
 export async function list(

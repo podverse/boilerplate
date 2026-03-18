@@ -1,11 +1,11 @@
-import { redirect } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
+import { redirect } from 'next/navigation';
 
 import { AdminRoleForm } from '../../../../../components/admins/AdminRoleForm';
 import { ResourcePageCard } from '../../../../../components/ResourcePageCard';
-import { getServerUser } from '../../../../../lib/server-auth';
 import { getCrudFlags } from '../../../../../lib/main-nav';
 import { ROUTES } from '../../../../../lib/routes';
+import { getServerUser } from '../../../../../lib/server-auth';
 
 export default async function NewAdminRolePage({
   searchParams,

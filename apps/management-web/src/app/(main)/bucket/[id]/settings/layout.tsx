@@ -1,16 +1,18 @@
-import { redirect, notFound } from 'next/navigation';
-import { getTranslations } from 'next-intl/server';
-import { request } from '@boilerplate/helpers-requests';
 import type { ManagementBucket } from '@boilerplate/helpers-requests';
 import type { BreadcrumbItem } from '@boilerplate/ui';
 
-import { BucketSettingsLayoutClient } from './BucketSettingsLayoutClient';
-import { getServerUser } from '../../../../../lib/server-auth';
+import { getTranslations } from 'next-intl/server';
+import { redirect, notFound } from 'next/navigation';
+
+import { request } from '@boilerplate/helpers-requests';
+
 import { getServerManagementApiBaseUrl } from '../../../../../config/env';
 import { hasReadPermission } from '../../../../../lib/main-nav';
 import { ROUTES } from '../../../../../lib/routes';
-import { getCookieHeader } from '../../../../../lib/server-request';
 import { bucketViewRoute } from '../../../../../lib/routes';
+import { getServerUser } from '../../../../../lib/server-auth';
+import { getCookieHeader } from '../../../../../lib/server-request';
+import { BucketSettingsLayoutClient } from './BucketSettingsLayoutClient';
 
 async function fetchBucket(id: string): Promise<ManagementBucket | null> {
   const cookieHeader = await getCookieHeader();

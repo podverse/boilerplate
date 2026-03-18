@@ -1,9 +1,10 @@
 import 'server-only';
 
+import type { ServerUser } from './server-auth';
+
 import { CRUD_BITS } from '@boilerplate/helpers';
 import { request } from '@boilerplate/helpers-requests';
 
-import type { ServerUser } from './server-auth';
 import { getCookieHeader, getServerApiBaseUrl } from './server-request';
 
 type BucketAdminRow = {
@@ -91,16 +92,42 @@ async function getBucketViewerAccess(
   };
 }
 
+/**
+ * Returns true if the user has the given CRUD bit on the bucket (owner or bucket admin).
+ * Aligns with apps/api bucket-policy canUpdateBucket / canCreateBucket checks.
+ */
+async function checkBucketCrud(
+  bucketId: string,
+  bucketOwnerId: string,
+  user: ServerUser,
+  bit: number
+): Promise<boolean> {
+  const access = await getBucketViewerAccess(bucketId, bucketOwnerId, user);
+  if (access === null) return false;
+  return access.isOwner || hasCrudBit(access.bucketCrud, bit);
+}
+
+/**
+ * Returns true if the user has the given CRUD bit on bucket messages (owner or bucket admin).
+ * Aligns with apps/api bucket-policy canUpdateMessage check.
+ */
+async function checkBucketMessagesCrud(
+  bucketId: string,
+  bucketOwnerId: string,
+  user: ServerUser,
+  bit: number
+): Promise<boolean> {
+  const access = await getBucketViewerAccess(bucketId, bucketOwnerId, user);
+  if (access === null) return false;
+  return access.isOwner || hasCrudBit(access.bucketMessagesCrud, bit);
+}
+
 export async function canViewBucketSettings(
   bucketId: string,
   bucketOwnerId: string,
   user: ServerUser
 ): Promise<boolean> {
-  const access = await getBucketViewerAccess(bucketId, bucketOwnerId, user);
-  if (access === null) {
-    return false;
-  }
-  return access.isOwner || hasCrudBit(access.bucketCrud, CRUD_BITS.update);
+  return checkBucketCrud(bucketId, bucketOwnerId, user, CRUD_BITS.update);
 }
 
 export async function canCreateBucketRoles(
@@ -108,11 +135,7 @@ export async function canCreateBucketRoles(
   bucketOwnerId: string,
   user: ServerUser
 ): Promise<boolean> {
-  const access = await getBucketViewerAccess(bucketId, bucketOwnerId, user);
-  if (access === null) {
-    return false;
-  }
-  return access.isOwner || hasCrudBit(access.bucketCrud, CRUD_BITS.update);
+  return checkBucketCrud(bucketId, bucketOwnerId, user, CRUD_BITS.update);
 }
 
 export async function canCreateChildBuckets(
@@ -120,22 +143,17 @@ export async function canCreateChildBuckets(
   bucketOwnerId: string,
   user: ServerUser
 ): Promise<boolean> {
-  const access = await getBucketViewerAccess(bucketId, bucketOwnerId, user);
-  if (access === null) {
-    return false;
-  }
-  return access.isOwner || hasCrudBit(access.bucketCrud, CRUD_BITS.create);
+  return checkBucketCrud(bucketId, bucketOwnerId, user, CRUD_BITS.create);
 }
 
+/** Only the bucket owner can edit roles (create is gated by bucket update; edit is owner-only). */
 export async function canEditBucketRoles(
   bucketId: string,
   bucketOwnerId: string,
   user: ServerUser
 ): Promise<boolean> {
   const access = await getBucketViewerAccess(bucketId, bucketOwnerId, user);
-  if (access === null) {
-    return false;
-  }
+  if (access === null) return false;
   return access.isOwner;
 }
 
@@ -144,9 +162,5 @@ export async function canEditBucketMessages(
   bucketOwnerId: string,
   user: ServerUser
 ): Promise<boolean> {
-  const access = await getBucketViewerAccess(bucketId, bucketOwnerId, user);
-  if (access === null) {
-    return false;
-  }
-  return access.isOwner || hasCrudBit(access.bucketMessagesCrud, CRUD_BITS.update);
+  return checkBucketMessagesCrud(bucketId, bucketOwnerId, user, CRUD_BITS.update);
 }

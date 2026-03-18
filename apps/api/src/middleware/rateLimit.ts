@@ -1,3 +1,5 @@
+import type { RequestHandler } from 'express';
+
 /**
  * Auth rate limit middleware instances for apps/api. Strict applies to login, signup,
  * and password-reset flows; moderate applies to change-password. GET /me and POST /logout
@@ -7,7 +9,6 @@ import {
   createModerateAuthRateLimiter,
   createStrictAuthRateLimiter,
 } from '@boilerplate/helpers-backend-api';
-import type { RequestHandler } from 'express';
 
 export const strictAuthRateLimiter: RequestHandler = createStrictAuthRateLimiter();
 

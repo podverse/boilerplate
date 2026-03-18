@@ -1,5 +1,6 @@
-import { TEST_JWT_SECRET_MANAGEMENT_API } from '@boilerplate/helpers';
 import { defineConfig, devices } from '@playwright/test';
+
+import { TEST_JWT_SECRET_MANAGEMENT_API } from '@boilerplate/helpers';
 
 /**
  * E2E env for management-api webServer. All vars required by management-api

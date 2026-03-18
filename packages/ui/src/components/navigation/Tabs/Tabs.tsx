@@ -1,7 +1,8 @@
 'use client';
 
-import { usePathname } from 'next/navigation';
 import { useTranslations } from 'next-intl';
+import { usePathname } from 'next/navigation';
+
 import styles from './Tabs.module.scss';
 
 export type TabItem = {

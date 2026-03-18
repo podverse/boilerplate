@@ -1,6 +1,9 @@
-import crypto from 'crypto';
-import type { Request, Response } from 'express';
+import type { CreateUserBody, UpdateUserBody, ChangeUserPasswordBody } from '../schemas/users.js';
 import type { UserWithRelations } from '@boilerplate/orm';
+import type { Request, Response } from 'express';
+
+import crypto from 'crypto';
+
 import { flagsToBitmask, validatePassword } from '@boilerplate/helpers';
 import { getPasswordValidationMessages, resolveLocale } from '@boilerplate/helpers-i18n';
 import { EVENT_ACTIONS, EVENT_TARGET_TYPES } from '@boilerplate/management-orm';
@@ -13,11 +16,11 @@ import {
   User,
   UserBio,
 } from '@boilerplate/orm';
-import type { CreateUserBody, UpdateUserBody, ChangeUserPasswordBody } from '../schemas/users.js';
+
 import { config } from '../config/index.js';
 import { hashPassword } from '../lib/auth/hash.js';
-import { generateToken, getSetPasswordExpiry, hashToken } from '../lib/set-password-token.js';
 import { recordEvent } from '../lib/recordEvent.js';
+import { generateToken, getSetPasswordExpiry, hashToken } from '../lib/set-password-token.js';
 
 /**
  * Single place to serialize a main-app user for responses. Returns only safe, non-sensitive fields.

@@ -1,11 +1,12 @@
+import request from 'supertest';
 /**
  * API integration tests: responses must never contain passwordHash/credentials, and
  * other-user summaries must exclude email while allowing username/displayName.
  */
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import request from 'supertest';
 
 import { BucketAdminService, BucketService, UserService } from '@boilerplate/orm';
+
 import { config } from '../config/index.js';
 import { hashPassword } from '../lib/auth/hash.js';
 import { createApiLoginAgent } from './helpers/login-agent.js';

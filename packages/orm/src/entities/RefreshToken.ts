@@ -1,8 +1,8 @@
+import type { User } from './User.js';
+
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from 'typeorm';
 
 import { TOKEN_HASH_HEX_LENGTH } from '../constants.js';
-
-import type { User } from './User.js';
 
 @Entity('refresh_token')
 export class RefreshToken {

@@ -1,8 +1,9 @@
+import type { AccountSettingsTab } from '../../../lib/routes';
+
 import { redirect } from 'next/navigation';
 
-import { getServerUser } from '../../../lib/server-auth';
 import { ROUTES } from '../../../lib/routes';
-import type { AccountSettingsTab } from '../../../lib/routes';
+import { getServerUser } from '../../../lib/server-auth';
 import { SettingsContent } from './SettingsContent';
 
 export default async function SettingsPage({

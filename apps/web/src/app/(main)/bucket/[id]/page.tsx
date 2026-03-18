@@ -1,6 +1,9 @@
+import type { BreadcrumbItem } from '@boilerplate/ui';
+
+import { getLocale, getTranslations } from 'next-intl/server';
 import { cookies } from 'next/headers';
 import { redirect, notFound } from 'next/navigation';
-import { getLocale, getTranslations } from 'next-intl/server';
+
 import { DEFAULT_PAGE_LIMIT, formatUserLabel } from '@boilerplate/helpers';
 import { formatDateTimeReadable } from '@boilerplate/helpers-i18n';
 import {
@@ -13,7 +16,6 @@ import {
   Link,
   SectionWithHeading,
 } from '@boilerplate/ui';
-import type { BreadcrumbItem } from '@boilerplate/ui';
 
 import {
   fetchAdmins,
@@ -23,7 +25,6 @@ import {
   fetchMessagesPaginated,
 } from '../../../../lib/buckets';
 import { TABLE_SORT_PREFS_COOKIE_NAME } from '../../../../lib/cookies';
-import { getServerUser } from '../../../../lib/server-auth';
 import {
   ROUTES,
   bucketDetailRoute,
@@ -33,6 +34,7 @@ import {
   bucketSettingsRoute,
   publicBucketRoute,
 } from '../../../../lib/routes';
+import { getServerUser } from '../../../../lib/server-auth';
 import { BucketDetailTabsClient } from './BucketDetailTabsClient';
 import { BucketMessagesPanel } from './BucketMessagesPanel';
 import { MessagesSortSelect } from './MessagesSortSelect';

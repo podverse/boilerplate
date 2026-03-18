@@ -1,17 +1,18 @@
-import { redirect } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
+import { redirect } from 'next/navigation';
+
 import { request } from '@boilerplate/helpers-requests';
-import { BucketsTableWithFilter } from '../../../components/BucketsTableWithFilter';
 import { FilterTablePageLayout } from '@boilerplate/ui';
 
+import { BucketsTableWithFilter } from '../../../components/BucketsTableWithFilter';
 import { TABLE_SORT_PREFS_COOKIE_NAME } from '../../../lib/cookies';
+import { ROUTES } from '../../../lib/routes';
 import { getServerUser } from '../../../lib/server-auth';
 import {
   getCookieHeader,
   getServerApiBaseUrl,
   parseFilterColumns,
 } from '../../../lib/server-request';
-import { ROUTES } from '../../../lib/routes';
 
 export const dynamic = 'force-dynamic';
 

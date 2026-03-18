@@ -1,9 +1,10 @@
+import type { EventVisibility } from '../entities/AdminPermissions.js';
+import type { ActorType } from '../entities/ManagementEvent.js';
+
 import { v4 as uuidv4 } from 'uuid';
 
-import type { EventVisibility } from '../entities/AdminPermissions.js';
 import { managementDataSource } from '../data-source.js';
 import { ManagementEvent } from '../entities/ManagementEvent.js';
-import type { ActorType } from '../entities/ManagementEvent.js';
 
 type RecordEventParams = {
   actorId: string;

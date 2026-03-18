@@ -1,5 +1,6 @@
-import { request } from '../request.js';
 import type { ApiResponse } from '../request.js';
+
+import { request } from '../request.js';
 
 /** Predefined role item (id is everything|bucket_full|read_everything|bucket_read). */
 export type PredefinedBucketRoleItem = {

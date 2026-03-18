@@ -1,7 +1,8 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
+import { useRouter } from 'next/navigation';
+
 import { Select } from '@boilerplate/ui';
 
 import { ROUTES } from '../lib/routes';

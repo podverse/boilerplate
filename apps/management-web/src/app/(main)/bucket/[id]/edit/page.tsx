@@ -1,8 +1,8 @@
 import { redirect } from 'next/navigation';
 
-import { getServerUser } from '../../../../../lib/server-auth';
 import { ROUTES } from '../../../../../lib/routes';
 import { bucketSettingsRoute } from '../../../../../lib/routes';
+import { getServerUser } from '../../../../../lib/server-auth';
 
 /**
  * Redirect legacy "Edit bucket" URL to bucket settings.

@@ -1,14 +1,18 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useState } from 'react';
-import { useTranslations } from 'next-intl';
+
 import { AUTH_MESSAGE_LOGIN_FAILED } from '@boilerplate/helpers';
 import { LoginForm, RateLimitModal, Text } from '@boilerplate/ui';
+
 import { getRuntimeConfig } from '../../../config/runtime-config-store';
 import { useAuth } from '../../../context/AuthContext';
 import { getWebAuthModeCapabilities } from '../../../lib/authMode';
 import { ROUTES } from '../../../lib/routes';
+
+import styles from './page.module.scss';
 
 function isSafeReturnUrl(url: string): boolean {
   const trimmed = url.trim();
@@ -63,7 +67,7 @@ export default function LoginPage() {
         retryAfterSeconds={rateLimitRetrySeconds}
       />
       {showCheckEmailMessage && (
-        <Text variant="success" style={{ marginBottom: '1rem' }}>
+        <Text variant="success" className={styles.successMessage}>
           {tAuth('checkEmailVerification')}
         </Text>
       )}

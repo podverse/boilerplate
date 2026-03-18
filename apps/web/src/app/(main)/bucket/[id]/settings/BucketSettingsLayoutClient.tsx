@@ -1,13 +1,15 @@
 'use client';
 
-import { usePathname } from 'next/navigation';
+import type { BreadcrumbItem } from '@boilerplate/ui';
+
 import { useTranslations } from 'next-intl';
+import { usePathname } from 'next/navigation';
+
 import {
   BucketSettingsBreadcrumbs,
   BucketSettingsLayoutClient as UISettingsLayout,
 } from '@boilerplate/ui';
 
-import type { BreadcrumbItem } from '@boilerplate/ui';
 import {
   bucketDetailRoute,
   bucketPathFromAncestry,

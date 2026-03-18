@@ -1,18 +1,21 @@
 import type { Metadata } from 'next';
-import { cookies } from 'next/headers';
-import { getLocale, getMessages } from 'next-intl/server';
+
 import { NextIntlClientProvider } from 'next-intl';
+import { getLocale, getMessages } from 'next-intl/server';
+import { cookies } from 'next/headers';
+
 import '@fortawesome/fontawesome-free/css/all.min.css';
-import { getRuntimeConfig } from '../config/runtime-config-store';
-import RuntimeConfigScript from '../components/Head/RuntimeConfigScript';
-import { AuthWrapper } from '../components/AuthWrapper';
-import { getServerUser } from '../lib/server-auth';
 import {
   AppView,
   getThemeFromSettingsCookieValue,
   NavigationProvider,
   ThemeWrapper,
 } from '@boilerplate/ui';
+
+import { AuthWrapper } from '../components/AuthWrapper';
+import RuntimeConfigScript from '../components/Head/RuntimeConfigScript';
+import { getRuntimeConfig } from '../config/runtime-config-store';
+import { getServerUser } from '../lib/server-auth';
 
 import '../styles/globals.scss';
 

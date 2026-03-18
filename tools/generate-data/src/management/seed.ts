@@ -1,3 +1,5 @@
+import type { ActorType, EventVisibility } from '@boilerplate/management-orm';
+
 /**
  * Seeds the management DB with management_user, credentials, bio, admin_permissions, and management_event.
  * Call only after loading apps/management-api .env so managementDataSource has MANAGEMENT_DB_*.
@@ -20,8 +22,6 @@ import {
   ManagementUserBio,
   ManagementUserCredentials,
 } from '@boilerplate/management-orm';
-
-import type { ActorType, EventVisibility } from '@boilerplate/management-orm';
 
 const TEST_PASSWORD_PLAIN = 'Test!1Aa';
 const SUPER_ADMIN_USERNAME = 'superadmin';

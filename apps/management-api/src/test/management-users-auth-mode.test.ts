@@ -1,8 +1,9 @@
 process.env.AUTH_MODE = 'user_signup_email';
 
 import type { Express } from 'express';
-import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import type request from 'supertest';
+
+import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
 /** Unique per file to avoid collisions when tests run in parallel. */
 const FILE_PREFIX = 'mgmt-users-auth-mode';

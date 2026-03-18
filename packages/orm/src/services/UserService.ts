@@ -1,9 +1,11 @@
-import { generateShortId } from '@boilerplate/helpers';
 import type { UserWithRelations } from '../types/UserWithRelations.js';
+
+import { generateShortId } from '@boilerplate/helpers';
+
 import { appDataSourceRead, appDataSourceReadWrite } from '../data-source.js';
 import { User } from '../entities/User.js';
-import { UserCredentials } from '../entities/UserCredentials.js';
 import { UserBio } from '../entities/UserBio.js';
+import { UserCredentials } from '../entities/UserCredentials.js';
 
 const USER_RELATIONS = ['credentials', 'bio'] as const;
 

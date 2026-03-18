@@ -79,3 +79,28 @@ implement. also consider that boilerplate may need similar fixes since it is a n
 - .github/workflows/publish-alpha.yml
 - .github/workflows/ci.yml
 - .llm/history/active/ci-native-binding/ci-native-binding-part-01.md
+
+### Session 5 - 2026-03-18
+
+#### Prompt (Developer)
+
+Fix Recurring Native Binding CI Failure
+
+Implement the plan as specified, it is attached for your reference. Do NOT edit the plan file itself.
+
+To-do's from the plan have already been created. Do not create them again. Mark them as in_progress as you work, starting with the first one. Don't stop until you have completed all the to-dos.
+
+#### Key Decisions
+
+- Mirror Podverse fix in Boilerplate: add explicit `next-intl @swc/core` runtime preflight because repeated
+  `next.config.mjs` native-binding failures can come from `@swc/core` (not only `@next/swc`).
+- Add Linux fallback install of `@swc/core-linux-x64-gnu` using the exact resolved `@swc/core` version from
+  the `next-intl` dependency tree.
+- Add native error-cause diagnostics and a pre-build native sanity gate before `build:apps` to fail early with
+  actionable logs.
+
+#### Files Modified
+
+- .llm/history/active/ci-native-binding/ci-native-binding-part-01.md
+- .github/workflows/publish-alpha.yml
+- .github/workflows/ci.yml

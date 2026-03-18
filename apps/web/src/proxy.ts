@@ -1,5 +1,6 @@
-import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
+
+import { NextResponse } from 'next/server';
 
 import { getWebAuthModeCapabilities } from './lib/authMode';
 import { isPublicPath, ROUTES } from './lib/routes';

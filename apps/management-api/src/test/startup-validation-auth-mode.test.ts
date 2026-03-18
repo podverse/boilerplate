@@ -1,5 +1,6 @@
-import { TEST_JWT_SECRET_MANAGEMENT_API } from '@boilerplate/helpers';
 import { afterEach, describe, expect, it } from 'vitest';
+
+import { TEST_JWT_SECRET_MANAGEMENT_API } from '@boilerplate/helpers';
 
 import { validateStartupRequirements } from '../lib/startup/validation.js';
 

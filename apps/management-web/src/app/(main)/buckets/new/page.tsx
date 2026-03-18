@@ -1,17 +1,19 @@
-import { redirect } from 'next/navigation';
-import { getTranslations } from 'next-intl/server';
-import { request } from '@boilerplate/helpers-requests';
-import { Breadcrumbs, ContentPageLayout, Link } from '@boilerplate/ui';
+import type { MainAppUser } from '../../../../types/management-api';
 import type { BreadcrumbItem } from '@boilerplate/ui';
 
-import { ResourcePageCard } from '../../../../components/ResourcePageCard';
+import { getTranslations } from 'next-intl/server';
+import { redirect } from 'next/navigation';
+
+import { request } from '@boilerplate/helpers-requests';
+import { Breadcrumbs, ContentPageLayout, Link } from '@boilerplate/ui';
+
 import { BucketForm } from '../../../../components/buckets/BucketForm';
-import { getServerUser } from '../../../../lib/server-auth';
+import { ResourcePageCard } from '../../../../components/ResourcePageCard';
 import { getServerManagementApiBaseUrl } from '../../../../config/env';
 import { getCrudFlags } from '../../../../lib/main-nav';
 import { ROUTES } from '../../../../lib/routes';
+import { getServerUser } from '../../../../lib/server-auth';
 import { getCookieHeader } from '../../../../lib/server-request';
-import type { MainAppUser } from '../../../../types/management-api';
 
 type UsersResponse = { users: MainAppUser[] };
 

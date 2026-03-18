@@ -1,10 +1,12 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { useTranslations } from 'next-intl';
-import { managementWebBucketMessages } from '@boilerplate/helpers-requests';
 import type { ManagementBucketMessage } from '@boilerplate/helpers-requests';
+
+import { useTranslations } from 'next-intl';
+import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
+
+import { managementWebBucketMessages } from '@boilerplate/helpers-requests';
 import {
   Button,
   ButtonLink,
@@ -18,6 +20,8 @@ import {
 
 import { getManagementApiBaseUrl } from '../../config/env';
 import { bucketMessageEditRoute, bucketViewRoute } from '../../lib/routes';
+
+import styles from './BucketMessagesClient.module.scss';
 
 export type BucketMessagesClientProps = {
   bucketId: string;
@@ -172,23 +176,17 @@ export function BucketMessagesClient({
       {messages.length === 0 ? (
         <Text variant="muted">{t('noMessagesYet')}</Text>
       ) : (
-        <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+        <ul className={styles.messageList}>
           {messages.map((m) => (
-            <li
-              key={m.id}
-              style={{
-                padding: '0.75rem 0',
-                borderBottom: '1px solid var(--color-border, #eee)',
-              }}
-            >
-              <div style={{ fontWeight: 600 }}>{m.senderName}</div>
-              <div style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)' }}>
+            <li key={m.id} className={styles.messageItem}>
+              <div className={styles.senderName}>{m.senderName}</div>
+              <div className={styles.meta}>
                 {new Date(m.createdAt).toLocaleString()}
                 {m.isPublic ? ' · Public' : ' · Private'}
               </div>
-              <div style={{ marginTop: '0.25rem' }}>{m.body}</div>
+              <div className={styles.body}>{m.body}</div>
               {(canUpdate || canDelete) && (
-                <div style={{ marginTop: '0.5rem', display: 'flex', gap: '0.5rem' }}>
+                <div className={styles.actions}>
                   {canUpdate && (
                     <ButtonLink href={bucketMessageEditRoute(bucketId, m.id)} variant="secondary">
                       {t('edit')}

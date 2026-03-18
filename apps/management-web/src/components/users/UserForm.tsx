@@ -1,11 +1,13 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import type { CreateUserBody, ManagementBucket } from '@boilerplate/helpers-requests';
+
 import { useTranslations } from 'next-intl';
+import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
+
 import { validatePassword } from '@boilerplate/helpers';
 import { managementWebBuckets, managementWebUsers } from '@boilerplate/helpers-requests';
-import type { CreateUserBody, ManagementBucket } from '@boilerplate/helpers-requests';
 import {
   Button,
   CheckboxField,

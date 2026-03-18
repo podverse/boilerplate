@@ -1,8 +1,15 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import type { AccountSettingsTab } from '../../../lib/routes';
+import type { ServerUser } from '../../../lib/server-auth';
+import type { TabItem } from '@boilerplate/ui';
+
 import { useLocale, useTranslations } from 'next-intl';
 import { usePathname, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
+import { useState, useCallback } from 'react';
+
+import { ALL_AVAILABLE_LOCALES, type Locale } from '@boilerplate/helpers';
 import { webAuth } from '@boilerplate/helpers-requests';
 import {
   ContentPageLayout,
@@ -19,16 +26,11 @@ import {
   ThemeSelector,
   setSettingsCookie,
 } from '@boilerplate/ui';
-import type { TabItem } from '@boilerplate/ui';
-import { ALL_AVAILABLE_LOCALES, type Locale } from '@boilerplate/helpers';
-import { useRouter } from 'next/navigation';
 
-import { useAuth } from '../../../context/AuthContext';
-import { getWebAuthModeCapabilities } from '../../../lib/authMode';
-import { getApiBaseUrl } from '../../../lib/api-client';
 import { getRuntimeConfig } from '../../../config/runtime-config-store';
-import type { ServerUser } from '../../../lib/server-auth';
-import type { AccountSettingsTab } from '../../../lib/routes';
+import { useAuth } from '../../../context/AuthContext';
+import { getApiBaseUrl } from '../../../lib/api-client';
+import { getWebAuthModeCapabilities } from '../../../lib/authMode';
 import { accountSettingsRoute } from '../../../lib/routes';
 
 function parseUserFromResponse(data: unknown): {

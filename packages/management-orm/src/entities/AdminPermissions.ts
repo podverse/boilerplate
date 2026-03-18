@@ -1,6 +1,6 @@
-import { Entity, PrimaryColumn, Column, OneToOne, JoinColumn } from 'typeorm';
-
 import type { ManagementUser } from './ManagementUser.js';
+
+import { Entity, PrimaryColumn, Column, OneToOne, JoinColumn } from 'typeorm';
 
 export type EventVisibility = 'own' | 'all_admins' | 'all';
 

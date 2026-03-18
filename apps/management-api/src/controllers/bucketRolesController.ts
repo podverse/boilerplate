@@ -1,10 +1,12 @@
+import type { CreateBucketRoleBody, UpdateBucketRoleBody } from '../schemas/buckets.js';
+import type { BucketRole } from '@boilerplate/orm';
 import type { Request, Response } from 'express';
+
 import { PREDEFINED_BUCKET_ROLES } from '@boilerplate/helpers';
 import { BucketRoleService } from '@boilerplate/orm';
-import type { BucketRole } from '@boilerplate/orm';
-import { getBucketAndEffective } from '../lib/bucket-effective.js';
+
 import { normalizeBucketMessageCrud } from '../lib/bucket-admin-permissions.js';
-import type { CreateBucketRoleBody, UpdateBucketRoleBody } from '../schemas/buckets.js';
+import { getBucketResolved } from '../lib/bucket-context.js';
 
 function predefinedToJson(role: (typeof PREDEFINED_BUCKET_ROLES)[number]) {
   return {
@@ -31,12 +33,8 @@ function customRoleToJson(role: BucketRole) {
 }
 
 export async function listBucketRoles(req: Request, res: Response): Promise<void> {
-  const bucketId = req.params.id as string;
-  const resolved = await getBucketAndEffective(bucketId);
-  if (resolved === null) {
-    res.status(404).json({ message: 'Bucket not found' });
-    return;
-  }
+  const resolved = await getBucketResolved(req, res);
+  if (resolved === null) return;
   const { effectiveBucket } = resolved;
   const customRoles = await BucketRoleService.findByBucketId(effectiveBucket.id);
   const predefined = PREDEFINED_BUCKET_ROLES.map(predefinedToJson);
@@ -47,19 +45,12 @@ export async function listBucketRoles(req: Request, res: Response): Promise<void
 }
 
 export async function createBucketRole(req: Request, res: Response): Promise<void> {
-  const bucketId = req.params.id as string;
-  const resolved = await getBucketAndEffective(bucketId);
-  if (resolved === null) {
-    res.status(404).json({ message: 'Bucket not found' });
-    return;
-  }
-  const { effectiveBucket, isDescendant } = resolved;
-  if (isDescendant) {
-    res.status(400).json({
-      message: 'Roles are managed on the root bucket only.',
-    });
-    return;
-  }
+  const resolved = await getBucketResolved(req, res, {
+    requireRoot: true,
+    requireRootMessage: 'Roles are managed on the root bucket only.',
+  });
+  if (resolved === null) return;
+  const { effectiveBucket } = resolved;
   const body = req.body as CreateBucketRoleBody;
   const { bucketCrud, bucketMessagesCrud } = normalizeBucketMessageCrud(
     body.bucketCrud,
@@ -76,20 +67,13 @@ export async function createBucketRole(req: Request, res: Response): Promise<voi
 }
 
 export async function updateBucketRole(req: Request, res: Response): Promise<void> {
-  const bucketId = req.params.id as string;
   const roleId = req.params.roleId as string;
-  const resolved = await getBucketAndEffective(bucketId);
-  if (resolved === null) {
-    res.status(404).json({ message: 'Bucket not found' });
-    return;
-  }
-  const { effectiveBucket, isDescendant } = resolved;
-  if (isDescendant) {
-    res.status(400).json({
-      message: 'Roles are managed on the root bucket only.',
-    });
-    return;
-  }
+  const resolved = await getBucketResolved(req, res, {
+    requireRoot: true,
+    requireRootMessage: 'Roles are managed on the root bucket only.',
+  });
+  if (resolved === null) return;
+  const { effectiveBucket } = resolved;
   const role = await BucketRoleService.findByBucketAndId(effectiveBucket.id, roleId);
   if (role === null) {
     res.status(404).json({ message: 'Role not found' });
@@ -124,20 +108,13 @@ export async function updateBucketRole(req: Request, res: Response): Promise<voi
 }
 
 export async function deleteBucketRole(req: Request, res: Response): Promise<void> {
-  const bucketId = req.params.id as string;
   const roleId = req.params.roleId as string;
-  const resolved = await getBucketAndEffective(bucketId);
-  if (resolved === null) {
-    res.status(404).json({ message: 'Bucket not found' });
-    return;
-  }
-  const { effectiveBucket, isDescendant } = resolved;
-  if (isDescendant) {
-    res.status(400).json({
-      message: 'Roles are managed on the root bucket only.',
-    });
-    return;
-  }
+  const resolved = await getBucketResolved(req, res, {
+    requireRoot: true,
+    requireRootMessage: 'Roles are managed on the root bucket only.',
+  });
+  if (resolved === null) return;
+  const { effectiveBucket } = resolved;
   const role = await BucketRoleService.findByBucketAndId(effectiveBucket.id, roleId);
   if (role === null) {
     res.status(404).json({ message: 'Role not found' });

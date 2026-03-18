@@ -1,12 +1,14 @@
-import { redirect, notFound } from 'next/navigation';
-import { getTranslations } from 'next-intl/server';
-import { Breadcrumbs, Container, Link, SectionWithHeading } from '@boilerplate/ui';
 import type { BreadcrumbItem } from '@boilerplate/ui';
+
+import { getTranslations } from 'next-intl/server';
+import { redirect, notFound } from 'next/navigation';
+
+import { Breadcrumbs, Container, Link, SectionWithHeading } from '@boilerplate/ui';
 
 import { canCreateChildBuckets } from '../../../../../lib/bucket-authz';
 import { fetchBucket } from '../../../../../lib/buckets';
-import { getServerUser } from '../../../../../lib/server-auth';
 import { ROUTES, bucketDetailTabRoute } from '../../../../../lib/routes';
+import { getServerUser } from '../../../../../lib/server-auth';
 import { TopicForm } from '../../../buckets/TopicForm';
 
 function BreadcrumbLink({

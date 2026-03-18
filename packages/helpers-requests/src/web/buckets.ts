@@ -1,4 +1,9 @@
-import { request } from '../request.js';
+import type {
+  BucketRoleItem,
+  CustomBucketRoleItem,
+  CreateBucketRoleBody,
+  UpdateBucketRoleBody,
+} from '../management-web/bucketRoles.js';
 import type { ApiResponse } from '../request.js';
 import type {
   Bucket,
@@ -7,12 +12,8 @@ import type {
   PublicBucketMessage,
   PublicSubmitMessageBody,
 } from '../types/bucket-types.js';
-import type {
-  BucketRoleItem,
-  CustomBucketRoleItem,
-  CreateBucketRoleBody,
-  UpdateBucketRoleBody,
-} from '../management-web/bucketRoles.js';
+
+import { request } from '../request.js';
 
 const SERVER_OPTIONS = { cache: 'no-store' as RequestCache } as const;
 

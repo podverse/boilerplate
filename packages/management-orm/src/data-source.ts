@@ -1,3 +1,5 @@
+import type { DataSourceOptions } from 'typeorm';
+
 /**
  * TypeORM DataSource for the management store (Postgres).
  * Set MANAGEMENT_DB_HOST, MANAGEMENT_DB_PORT, MANAGEMENT_DB_NAME, MANAGEMENT_DB_USERNAME,
@@ -5,7 +7,6 @@
  * Run infra/management-database/combined/init_management_database.sql once to create the schema.
  */
 import { DataSource } from 'typeorm';
-import type { DataSourceOptions } from 'typeorm';
 
 import { AdminPermissions } from './entities/AdminPermissions.js';
 import { ManagementAdminRole } from './entities/ManagementAdminRole.js';

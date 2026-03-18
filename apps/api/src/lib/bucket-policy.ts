@@ -1,53 +1,48 @@
-import { CRUD_BITS } from '@boilerplate/helpers';
 import type { Bucket } from '@boilerplate/orm';
 import type { BucketAdmin } from '@boilerplate/orm';
 import type { BucketMessage } from '@boilerplate/orm';
+
+import { CRUD_BITS } from '@boilerplate/helpers';
 
 /**
  * Bucket permission policy: owner has full CRUD; bucket admins have access per
  * bucket_crud and bucket_messages_crud bitmasks (create=1, read=2, update=4, delete=8).
  * Pass null for bucketAdmin when the user is not an admin for the bucket.
  */
-export function canReadBucket(
+
+type CanBucketCrudFn = (userId: string, bucket: Bucket, bucketAdmin: BucketAdmin | null) => boolean;
+
+type CanMessageCrudFn = (
   userId: string,
   bucket: Bucket,
-  bucketAdmin: BucketAdmin | null
-): boolean {
-  if (bucket.ownerId === userId) return true;
-  if (bucketAdmin !== null) return (bucketAdmin.bucketCrud & CRUD_BITS.read) !== 0;
-  return false;
+  bucketAdmin: BucketAdmin | null,
+  _message?: BucketMessage
+) => boolean;
+
+function makeCanBucketCrud(bit: number): CanBucketCrudFn {
+  return (userId, bucket, bucketAdmin) => {
+    if (bucket.ownerId === userId) return true;
+    if (bucketAdmin !== null) return (bucketAdmin.bucketCrud & bit) !== 0;
+    return false;
+  };
 }
+
+function makeCanMessageCrud(bit: number): CanMessageCrudFn {
+  return (userId, bucket, bucketAdmin) => {
+    if (bucket.ownerId === userId) return true;
+    if (bucketAdmin !== null) return (bucketAdmin.bucketMessagesCrud & bit) !== 0;
+    return false;
+  };
+}
+
+export const canReadBucket = makeCanBucketCrud(CRUD_BITS.read);
 
 /** Can create a child bucket under this bucket. Owner can; admin with create can. */
-export function canCreateBucket(
-  userId: string,
-  bucket: Bucket,
-  bucketAdmin: BucketAdmin | null
-): boolean {
-  if (bucket.ownerId === userId) return true;
-  if (bucketAdmin !== null) return (bucketAdmin.bucketCrud & CRUD_BITS.create) !== 0;
-  return false;
-}
+export const canCreateBucket = makeCanBucketCrud(CRUD_BITS.create);
 
-export function canUpdateBucket(
-  userId: string,
-  bucket: Bucket,
-  bucketAdmin: BucketAdmin | null
-): boolean {
-  if (bucket.ownerId === userId) return true;
-  if (bucketAdmin !== null) return (bucketAdmin.bucketCrud & CRUD_BITS.update) !== 0;
-  return false;
-}
+export const canUpdateBucket = makeCanBucketCrud(CRUD_BITS.update);
 
-export function canDeleteBucket(
-  userId: string,
-  bucket: Bucket,
-  bucketAdmin: BucketAdmin | null
-): boolean {
-  if (bucket.ownerId === userId) return true;
-  if (bucketAdmin !== null) return (bucketAdmin.bucketCrud & CRUD_BITS.delete) !== 0;
-  return false;
-}
+export const canDeleteBucket = makeCanBucketCrud(CRUD_BITS.delete);
 
 export function canReadMessage(
   userId: string,
@@ -61,56 +56,14 @@ export function canReadMessage(
   return false;
 }
 
-export function canCreateMessage(
-  userId: string,
-  bucket: Bucket,
-  bucketAdmin: BucketAdmin | null
-): boolean {
-  if (bucket.ownerId === userId) return true;
-  if (bucketAdmin !== null) return (bucketAdmin.bucketMessagesCrud & CRUD_BITS.create) !== 0;
-  return false;
-}
+export const canCreateMessage = makeCanMessageCrud(CRUD_BITS.create);
 
-export function canUpdateMessage(
-  userId: string,
-  bucket: Bucket,
-  bucketAdmin: BucketAdmin | null,
-  _message: BucketMessage
-): boolean {
-  if (bucket.ownerId === userId) return true;
-  if (bucketAdmin !== null) return (bucketAdmin.bucketMessagesCrud & CRUD_BITS.update) !== 0;
-  return false;
-}
+export const canUpdateMessage = makeCanMessageCrud(CRUD_BITS.update);
 
-export function canDeleteMessage(
-  userId: string,
-  bucket: Bucket,
-  bucketAdmin: BucketAdmin | null,
-  _message: BucketMessage
-): boolean {
-  if (bucket.ownerId === userId) return true;
-  if (bucketAdmin !== null) return (bucketAdmin.bucketMessagesCrud & CRUD_BITS.delete) !== 0;
-  return false;
-}
+export const canDeleteMessage = makeCanMessageCrud(CRUD_BITS.delete);
 
 /** Owner can manage admins; bucket admin can if they have update on bucket. */
-export function canManageBucketAdmins(
-  userId: string,
-  bucket: Bucket,
-  bucketAdmin: BucketAdmin | null
-): boolean {
-  if (bucket.ownerId === userId) return true;
-  if (bucketAdmin !== null) return (bucketAdmin.bucketCrud & CRUD_BITS.update) !== 0;
-  return false;
-}
+export const canManageBucketAdmins = makeCanBucketCrud(CRUD_BITS.update);
 
 /** Owner can manage roles; bucket admin can if they have update on bucket. */
-export function canManageBucketRoles(
-  userId: string,
-  bucket: Bucket,
-  bucketAdmin: BucketAdmin | null
-): boolean {
-  if (bucket.ownerId === userId) return true;
-  if (bucketAdmin !== null) return (bucketAdmin.bucketCrud & CRUD_BITS.update) !== 0;
-  return false;
-}
+export const canManageBucketRoles = makeCanBucketCrud(CRUD_BITS.update);

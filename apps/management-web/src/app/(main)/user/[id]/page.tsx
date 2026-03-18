@@ -1,16 +1,17 @@
-import { notFound, redirect } from 'next/navigation';
+import type { MainAppUser } from '../../../../types/management-api';
+
 import { getTranslations } from 'next-intl/server';
+import { notFound, redirect } from 'next/navigation';
+
 import { request } from '@boilerplate/helpers-requests';
 import { ButtonLink, FormActions, Stack, Text } from '@boilerplate/ui';
 
 import { ResourcePageCard } from '../../../../components/ResourcePageCard';
-
-import { getServerUser } from '../../../../lib/server-auth';
 import { getServerManagementApiBaseUrl } from '../../../../config/env';
 import { getCrudFlags, hasReadPermission } from '../../../../lib/main-nav';
 import { ROUTES, userEditRoute } from '../../../../lib/routes';
+import { getServerUser } from '../../../../lib/server-auth';
 import { getCookieHeader } from '../../../../lib/server-request';
-import type { MainAppUser } from '../../../../types/management-api';
 
 type ViewUserPageProps = {
   params: Promise<{ id: string }>;

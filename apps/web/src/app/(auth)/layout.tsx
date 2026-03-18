@@ -1,4 +1,5 @@
 import { AppTypeTitle, CenterInViewport } from '@boilerplate/ui';
+
 import { getRuntimeConfig } from '../../config/runtime-config-store';
 
 export default function AuthLayout({ children }: { children: React.ReactNode }) {

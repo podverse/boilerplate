@@ -1,10 +1,12 @@
 process.env.AUTH_MODE = 'admin_only_username';
 
 import type { Express } from 'express';
-import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+
 import request from 'supertest';
+import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
 import { UserService, VerificationTokenService } from '@boilerplate/orm';
+
 import { hashPassword } from '../lib/auth/hash.js';
 import { generateToken, getSetPasswordExpiry, hashToken } from '../lib/auth/verification-token.js';
 

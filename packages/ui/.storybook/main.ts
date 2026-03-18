@@ -1,6 +1,7 @@
-import { fileURLToPath } from 'node:url';
-import { dirname, join } from 'node:path';
 import type { StorybookConfig } from '@storybook/react-vite';
+
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 

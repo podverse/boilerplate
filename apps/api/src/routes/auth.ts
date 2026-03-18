@@ -1,6 +1,8 @@
-import type { RequestHandler } from 'express';
-import { Router } from 'express';
 import type { AuthModeCapabilities } from '../config/index.js';
+import type { RequestHandler } from 'express';
+
+import { Router } from 'express';
+
 import * as authController from '../controllers/authController.js';
 import { moderateAuthRateLimiter, strictAuthRateLimiter } from '../middleware/rateLimit.js';
 import { validateBody } from '../middleware/validateBody.js';

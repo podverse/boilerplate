@@ -1,4 +1,11 @@
+import type {
+  CreateBucketBody,
+  CreateChildBucketBody,
+  UpdateBucketBody,
+} from '../schemas/buckets.js';
+import type { Bucket } from '@boilerplate/orm';
 import type { Request, Response } from 'express';
+
 import {
   DEFAULT_PAGE_LIMIT,
   formatUserLabel,
@@ -6,15 +13,9 @@ import {
   MAX_TOTAL_CAP,
 } from '@boilerplate/helpers';
 import { BucketMessageService, BucketService, UserService } from '@boilerplate/orm';
-import type { Bucket } from '@boilerplate/orm';
 
-import type {
-  CreateBucketBody,
-  CreateChildBucketBody,
-  UpdateBucketBody,
-} from '../schemas/buckets.js';
+import { getBucketResolved } from '../lib/bucket-context.js';
 import { bucketToJson } from '../lib/bucketToJson.js';
-import { getBucketAndEffective } from '../lib/bucket-effective.js';
 
 export async function listBuckets(req: Request, res: Response): Promise<void> {
   const page = Math.max(1, Number(req.query.page) || 1);
@@ -67,12 +68,8 @@ export async function resolveBucket(idOrShortId: string): Promise<Bucket | null>
 }
 
 export async function getBucket(req: Request, res: Response): Promise<void> {
-  const id = req.params.id as string;
-  const resolved = await getBucketAndEffective(id);
-  if (resolved === null) {
-    res.status(404).json({ message: 'Bucket not found' });
-    return;
-  }
+  const resolved = await getBucketResolved(req, res);
+  if (resolved === null) return;
   const { bucket, effectiveBucket, effectiveSettings } = resolved;
   const owner = await UserService.findById(effectiveBucket.ownerId);
   const ownerDisplayName = owner !== null ? formatOwnerDisplayName(owner) : null;
@@ -106,12 +103,8 @@ export async function createBucket(req: Request, res: Response): Promise<void> {
 }
 
 export async function updateBucket(req: Request, res: Response): Promise<void> {
-  const id = req.params.id as string;
-  const resolved = await getBucketAndEffective(id);
-  if (resolved === null) {
-    res.status(404).json({ message: 'Bucket not found' });
-    return;
-  }
+  const resolved = await getBucketResolved(req, res);
+  if (resolved === null) return;
   const { bucket, effectiveBucket, effectiveSettings, isDescendant } = resolved;
   const body = req.body as UpdateBucketBody;
   if (isDescendant) {
@@ -162,12 +155,8 @@ export async function deleteBucket(req: Request, res: Response): Promise<void> {
 
 /** List child buckets for a bucket. GET /buckets/:id/buckets. Uses effective root for inherited overrides. */
 export async function listChildBuckets(req: Request, res: Response): Promise<void> {
-  const id = req.params.id as string;
-  const resolved = await getBucketAndEffective(id);
-  if (resolved === null) {
-    res.status(404).json({ message: 'Bucket not found' });
-    return;
-  }
+  const resolved = await getBucketResolved(req, res);
+  if (resolved === null) return;
   const { bucket: parent, effectiveBucket, effectiveSettings } = resolved;
   const owner = await UserService.findById(effectiveBucket.ownerId);
   const ownerDisplayName = owner !== null ? formatOwnerDisplayName(owner) : null;
@@ -193,12 +182,8 @@ export async function listChildBuckets(req: Request, res: Response): Promise<voi
 
 /** Create a child bucket under the given parent. POST /buckets/:id/buckets. */
 export async function createChildBucket(req: Request, res: Response): Promise<void> {
-  const bucketId = req.params.id as string;
-  const resolved = await getBucketAndEffective(bucketId);
-  if (resolved === null) {
-    res.status(404).json({ message: 'Bucket not found' });
-    return;
-  }
+  const resolved = await getBucketResolved(req, res);
+  if (resolved === null) return;
   const { bucket: parent, effectiveBucket, effectiveSettings } = resolved;
   const body = req.body as CreateChildBucketBody;
   const childBucket = await BucketService.create({

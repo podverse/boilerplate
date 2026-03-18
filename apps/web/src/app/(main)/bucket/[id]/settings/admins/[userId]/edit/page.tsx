@@ -1,13 +1,14 @@
-import { redirect, notFound } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
+import { redirect, notFound } from 'next/navigation';
+
 import { CRUD_BITS, formatUserLabel } from '@boilerplate/helpers';
 import { request } from '@boilerplate/helpers-requests';
 import { PageHeader, Text } from '@boilerplate/ui';
 
 import { fetchBucket } from '../../../../../../../../lib/buckets';
+import { ROUTES, bucketSettingsAdminsRoute } from '../../../../../../../../lib/routes';
 import { getServerUser } from '../../../../../../../../lib/server-auth';
 import { getCookieHeader, getServerApiBaseUrl } from '../../../../../../../../lib/server-request';
-import { ROUTES, bucketSettingsAdminsRoute } from '../../../../../../../../lib/routes';
 import { EditBucketAdminFormClient } from '../../../../EditBucketAdminFormClient';
 
 type AdminUser = {

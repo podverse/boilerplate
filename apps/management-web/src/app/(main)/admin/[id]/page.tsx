@@ -1,18 +1,19 @@
-import { notFound, redirect } from 'next/navigation';
+import type { ManagementUser } from '../../../../types/management-api';
+import type { CrudBit } from '@boilerplate/helpers';
+
 import { getTranslations } from 'next-intl/server';
+import { notFound, redirect } from 'next/navigation';
+
+import { bitmaskToFlags } from '@boilerplate/helpers';
 import { request } from '@boilerplate/helpers-requests';
 import { ButtonLink, FormActions, Stack, Text } from '@boilerplate/ui';
 
 import { ResourcePageCard } from '../../../../components/ResourcePageCard';
-import { bitmaskToFlags } from '@boilerplate/helpers';
-import type { CrudBit } from '@boilerplate/helpers';
-
-import { getServerUser } from '../../../../lib/server-auth';
 import { getServerManagementApiBaseUrl } from '../../../../config/env';
 import { getCrudFlags, hasReadPermission } from '../../../../lib/main-nav';
 import { ROUTES, adminEditRoute } from '../../../../lib/routes';
+import { getServerUser } from '../../../../lib/server-auth';
 import { getCookieHeader } from '../../../../lib/server-request';
-import type { ManagementUser } from '../../../../types/management-api';
 
 type ViewAdminPageProps = {
   params: Promise<{ id: string }>;

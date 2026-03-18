@@ -1,8 +1,8 @@
+import type { ManagementUser } from './ManagementUser.js';
+
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from 'typeorm';
 
 import { TOKEN_HASH_HEX_LENGTH } from '@boilerplate/helpers';
-
-import type { ManagementUser } from './ManagementUser.js';
 
 @Entity('management_refresh_token')
 export class ManagementRefreshToken {

@@ -6,6 +6,7 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+
 import { DEFAULT_LOCALE } from '@boilerplate/helpers';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));

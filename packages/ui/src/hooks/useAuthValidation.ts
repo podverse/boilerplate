@@ -2,8 +2,9 @@
 
 import { useTranslations } from 'next-intl';
 
-import { validateEmailWithT, validatePasswordWithT } from '../lib/validation';
 import { PASSWORD_MIN_LENGTH } from '@boilerplate/helpers';
+
+import { validateEmailWithT, validatePasswordWithT } from '../lib/validation';
 
 /**
  * Returns validateEmail and validatePassword that use the ui namespace for

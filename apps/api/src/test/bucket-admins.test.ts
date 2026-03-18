@@ -5,6 +5,7 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
 import { BucketService, UserService } from '@boilerplate/orm';
+
 import { config } from '../config/index.js';
 import { hashPassword } from '../lib/auth/hash.js';
 import { createApiLoginAgent } from './helpers/login-agent.js';

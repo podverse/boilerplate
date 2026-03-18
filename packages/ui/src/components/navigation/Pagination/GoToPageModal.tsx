@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useId, useEffect } from 'react';
 import { useTranslations } from 'next-intl';
+import { useState, useId, useEffect } from 'react';
 
 import { Button } from '../../form/Button/Button';
 import { Input } from '../../form/Input/Input';

@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
+
 import { AppView } from './AppView';
 
 const meta: Meta<typeof AppView> = {

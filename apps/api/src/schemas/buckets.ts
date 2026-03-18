@@ -1,5 +1,10 @@
 import Joi from 'joi';
-import { SHORT_TEXT_MAX_LENGTH } from '@boilerplate/helpers';
+
+import {
+  SHORT_ID_INPUT_MIN_LENGTH,
+  SHORT_TEXT_MAX_LENGTH,
+  UUID_LENGTH,
+} from '@boilerplate/helpers';
 
 const name = Joi.string().min(1).max(SHORT_TEXT_MAX_LENGTH);
 const crudMask = Joi.number().integer().min(0).max(15);
@@ -22,7 +27,7 @@ export const createChildBucketSchema = Joi.object({
 
 /** User id: shortId (10–12 chars) or UUID. */
 export const createBucketAdminSchema = Joi.object({
-  userId: Joi.string().min(10).max(36).required(),
+  userId: Joi.string().min(SHORT_ID_INPUT_MIN_LENGTH).max(UUID_LENGTH).required(),
   bucketCrud: crudMask.optional(),
   bucketMessagesCrud: crudMask.optional(),
   bucketAdminsCrud: crudMask.optional(),

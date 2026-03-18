@@ -1,10 +1,12 @@
 'use client';
 
-import { useTranslations } from 'next-intl';
-import { Button } from '../../Button';
-import { Input } from '../../Input';
-import { Form, FormLinks } from '../../Form';
 import type { FormLinkComponent } from '../../Form';
+
+import { useTranslations } from 'next-intl';
+
+import { Button } from '../../Button';
+import { Form, FormLinks } from '../../Form';
+import { Input } from '../../Input';
 
 /** Web: one field for email or username. Management-web: username only. */
 export type LoginIdentifierType = 'emailOrUsername' | 'usernameOnly';

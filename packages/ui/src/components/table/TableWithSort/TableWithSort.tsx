@@ -1,8 +1,9 @@
 'use client';
 
-import { useCallback, useEffect } from 'react';
 import type { ReactNode } from 'react';
+
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { useCallback, useEffect } from 'react';
 
 import { getSortPrefsFromCookie, setSortPrefInCookie } from '../sortPrefsCookie';
 import { Table } from '../Table/Table';

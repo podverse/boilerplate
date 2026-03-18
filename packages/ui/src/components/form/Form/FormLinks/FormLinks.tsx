@@ -1,8 +1,11 @@
 'use client';
 
-import { useTranslations } from 'next-intl';
-import { Link } from '../../../navigation/Link';
 import type { FormLinkComponent } from '../types';
+
+import { useTranslations } from 'next-intl';
+
+import { Link } from '../../../navigation/Link';
+
 import styles from '../Form/Form.module.scss';
 
 export type FormLinkItem = {

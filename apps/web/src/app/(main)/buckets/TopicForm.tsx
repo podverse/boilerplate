@@ -1,8 +1,9 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
-import { useTranslations } from 'next-intl';
+
 import {
   Button,
   Input,
@@ -16,6 +17,7 @@ import {
   Text,
   Tooltip,
 } from '@boilerplate/ui';
+
 import { getApiBaseUrl } from '../../../lib/api-client';
 
 type TopicFormProps = {

@@ -1,11 +1,12 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
+import { useRouter } from 'next/navigation';
+
 import { AppTypeTitle, NavBar as UINavBar } from '@boilerplate/ui';
 
-import { useAuth } from '../context/AuthContext';
 import { getRuntimeConfig } from '../config/runtime-config-store';
+import { useAuth } from '../context/AuthContext';
 import { ROUTES } from '../lib/routes';
 
 export function NavBar({ brandName }: { brandName: string }) {

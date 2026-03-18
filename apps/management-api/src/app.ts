@@ -2,10 +2,11 @@
  * Express app factory for management API. Used by server (index.ts) and integration tests.
  */
 import type { Express } from 'express';
+import type { NextFunction, Request, Response } from 'express';
+
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import express from 'express';
-import type { NextFunction, Request, Response } from 'express';
 import swaggerUi from 'swagger-ui-express';
 
 import { config } from './config/index.js';

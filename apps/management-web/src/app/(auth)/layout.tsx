@@ -1,4 +1,5 @@
 import { getTranslations } from 'next-intl/server';
+
 import { AppTypeTitle, CenterInViewport } from '@boilerplate/ui';
 
 import { getAppTitleIcon } from '../../config/env';

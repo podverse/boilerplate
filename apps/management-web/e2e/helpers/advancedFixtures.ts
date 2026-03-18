@@ -1,5 +1,6 @@
-import { expect } from '@playwright/test';
 import type { APIRequestContext, Page } from '@playwright/test';
+
+import { expect } from '@playwright/test';
 
 const MANAGEMENT_LOGIN_PASSWORD = 'Test!1Aa';
 

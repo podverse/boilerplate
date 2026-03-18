@@ -1,3 +1,5 @@
+import { randomBytes } from 'crypto';
+import path from 'path';
 /**
  * Interactive script to create the super admin user in the management database.
  * Used during infra up (make local_infra_up). Prompts for username, generates a secure
@@ -12,8 +14,6 @@
  * username "superadmin" with that password (insecure; local dev only).
  */
 import { createInterface } from 'readline';
-import { randomBytes } from 'crypto';
-import path from 'path';
 import { fileURLToPath } from 'url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));

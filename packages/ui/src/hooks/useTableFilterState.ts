@@ -1,7 +1,8 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useCallback, useEffect, useRef, useState } from 'react';
+
 import { SEARCH_DEBOUNCE_MS } from '@boilerplate/helpers';
 
 export type UseTableFilterStateOptions = {

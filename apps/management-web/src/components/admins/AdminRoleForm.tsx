@@ -1,11 +1,14 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import type { EventVisibility } from '@boilerplate/helpers-requests';
+import type { CrudFlags } from '@boilerplate/ui';
+
 import { useTranslations } from 'next-intl';
+import { useRouter } from 'next/navigation';
+import { useState } from 'react';
+
 import { bitmaskToFlags, flagsToBitmask } from '@boilerplate/helpers';
 import { managementWebAdminRoles } from '@boilerplate/helpers-requests';
-import type { EventVisibility } from '@boilerplate/helpers-requests';
 import {
   Button,
   CrudCheckboxes,
@@ -16,7 +19,6 @@ import {
   Stack,
   Text,
 } from '@boilerplate/ui';
-import type { CrudFlags } from '@boilerplate/ui';
 
 import { getManagementApiBaseUrl } from '../../config/env';
 

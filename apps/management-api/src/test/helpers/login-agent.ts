@@ -1,4 +1,5 @@
 import type { Express } from 'express';
+
 import request from 'supertest';
 
 import { config } from '../../config/index.js';

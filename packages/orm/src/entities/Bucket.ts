@@ -1,3 +1,6 @@
+import type { BucketSettings } from './BucketSettings.js';
+import type { User } from './User.js';
+
 import {
   Entity,
   PrimaryGeneratedColumn,
@@ -10,10 +13,7 @@ import {
   OneToOne,
 } from 'typeorm';
 
-import { SHORT_TEXT_MAX_LENGTH } from '@boilerplate/helpers';
-
-import type { User } from './User.js';
-import type { BucketSettings } from './BucketSettings.js';
+import { SHORT_ID_LENGTH, SHORT_TEXT_MAX_LENGTH } from '@boilerplate/helpers';
 
 @Entity('bucket')
 export class Bucket {
@@ -32,7 +32,7 @@ export class Bucket {
   @Column({ name: 'parent_bucket_id', type: 'uuid', nullable: true })
   parentBucketId!: string | null;
 
-  @Column({ name: 'short_id', length: 12, unique: true })
+  @Column({ name: 'short_id', length: SHORT_ID_LENGTH, unique: true })
   shortId!: string;
 
   @CreateDateColumn({ name: 'created_at' })

@@ -1,16 +1,17 @@
-import { redirect } from 'next/navigation';
 import { getLocale, getTranslations } from 'next-intl/server';
+import { redirect } from 'next/navigation';
+
 import { DEFAULT_PAGE_LIMIT } from '@boilerplate/helpers';
-import { request } from '@boilerplate/helpers-requests';
 import { formatDateTimeReadable } from '@boilerplate/helpers-i18n';
+import { request } from '@boilerplate/helpers-requests';
 import { Container, SectionWithHeading, Text } from '@boilerplate/ui';
 
 import { EventsSortSelect } from '../../../components/EventsSortSelect';
 import { EventsTableWithFilter } from '../../../components/EventsTableWithFilter';
-import { TABLE_SORT_PREFS_COOKIE_NAME } from '../../../lib/cookies';
-import { getServerUser } from '../../../lib/server-auth';
 import { getServerManagementApiBaseUrl } from '../../../config/env';
+import { TABLE_SORT_PREFS_COOKIE_NAME } from '../../../lib/cookies';
 import { ROUTES } from '../../../lib/routes';
+import { getServerUser } from '../../../lib/server-auth';
 import { getCookieHeader } from '../../../lib/server-request';
 
 type EventItem = {

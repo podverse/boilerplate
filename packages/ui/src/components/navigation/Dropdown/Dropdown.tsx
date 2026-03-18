@@ -10,6 +10,7 @@ import {
 } from 'react';
 
 import { Link } from '../Link';
+
 import styles from './Dropdown.module.scss';
 
 export type DropdownItem =

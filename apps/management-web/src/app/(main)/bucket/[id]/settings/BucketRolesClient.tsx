@@ -1,16 +1,20 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { ButtonLink, CrudButtons, SectionWithHeading, Stack, Text } from '@boilerplate/ui';
+import { useCallback, useEffect, useState } from 'react';
+
+import { bitmaskToFlags } from '@boilerplate/helpers';
 import {
   managementWebBucketRoles,
   type BucketRoleItem,
   type CustomBucketRoleItem,
 } from '@boilerplate/helpers-requests';
+import { ButtonLink, CrudButtons, SectionWithHeading, Stack, Text } from '@boilerplate/ui';
+
 import { getManagementApiBaseUrl } from '../../../../../config/env';
 import { bucketSettingsRoleNewRoute, bucketSettingsRoleEditRoute } from '../../../../../lib/routes';
-import { bitmaskToFlags } from '@boilerplate/helpers';
+
+import styles from './BucketRolesClient.module.scss';
 
 function getRoleDisplayName(role: BucketRoleItem, tRoles: (key: string) => string): string {
   if (role.isPredefined && 'nameKey' in role) {
@@ -95,21 +99,10 @@ export function BucketRolesClient({ bucketId }: { bucketId: string }) {
 
       {predefined.length > 0 ? (
         <SectionWithHeading title={t('predefinedRoles')}>
-          <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+          <ul className={styles.roleList}>
             {predefined.map((role) => (
-              <li
-                key={role.id}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '1rem',
-                  padding: '0.5rem 0',
-                  borderBottom: '1px solid var(--color-border, #eee)',
-                }}
-              >
-                <span style={{ fontWeight: 500, minWidth: '10rem' }}>
-                  {getRoleDisplayName(role, tRoles)}
-                </span>
+              <li key={role.id} className={styles.roleItem}>
+                <span className={styles.roleName}>{getRoleDisplayName(role, tRoles)}</span>
                 <div>
                   <Text size="sm">
                     {adminsLabel}: {formatCrud(role.bucketAdminsCrud, t)}
@@ -133,23 +126,14 @@ export function BucketRolesClient({ bucketId }: { bucketId: string }) {
         ) : (
           <>
             {deleteError !== null ? (
-              <Text variant="error" style={{ marginBottom: '0.5rem' }}>
+              <Text variant="error" className={styles.errorMessage}>
                 {deleteError}
               </Text>
             ) : null}
-            <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+            <ul className={styles.roleList}>
               {(custom as CustomBucketRoleItem[]).map((role) => (
-                <li
-                  key={role.id}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '1rem',
-                    padding: '0.5rem 0',
-                    borderBottom: '1px solid var(--color-border, #eee)',
-                  }}
-                >
-                  <span style={{ fontWeight: 500, minWidth: '10rem' }}>{role.name}</span>
+                <li key={role.id} className={styles.roleItem}>
+                  <span className={styles.roleName}>{role.name}</span>
                   <div>
                     <Text size="sm">
                       {adminsLabel}: {formatCrud(role.bucketAdminsCrud, t)}

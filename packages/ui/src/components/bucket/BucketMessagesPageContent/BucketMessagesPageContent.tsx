@@ -1,10 +1,11 @@
 'use client';
 
-import { BucketMessageList } from '../BucketMessageList';
-import type { BucketMessageListItem } from '../BucketMessageList';
-import { BucketMessagesBreadcrumbs } from '../BucketMessagesBreadcrumbs';
 import type { BreadcrumbItem } from '../../navigation/Breadcrumbs';
+import type { BucketMessageListItem } from '../BucketMessageList';
+
 import { ContentPageLayout } from '../../layout/ContentPageLayout';
+import { BucketMessageList } from '../BucketMessageList';
+import { BucketMessagesBreadcrumbs } from '../BucketMessagesBreadcrumbs';
 
 /**
  * Shared bucket messages page content for web and management-web.

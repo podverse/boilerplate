@@ -1,22 +1,23 @@
 'use client';
 
-import { useCallback, useMemo } from 'react';
+import type { DataDetailItem } from '../../layout/DataDetail/DataDetail';
+import type { TableWithSortColumn } from '../../table/TableWithSort';
 import type { ReactNode } from 'react';
+
 import { useRouter } from 'next/navigation';
+import { useCallback, useMemo } from 'react';
 
 import { ButtonLink } from '../../form/ButtonLink/ButtonLink';
 import { CrudButtons } from '../../form/CrudButtons/CrudButtons';
 import { Container } from '../../layout/Container/Container';
 import { DataDetail } from '../../layout/DataDetail/DataDetail';
-import { Stack } from '../../layout/Stack/Stack';
-import type { DataDetailItem } from '../../layout/DataDetail/DataDetail';
 import { PageHeader } from '../../layout/PageHeader/PageHeader';
-import { Link } from '../../navigation/Link/Link';
 import { Row } from '../../layout/Row/Row';
 import { SectionWithHeading } from '../../layout/SectionWithHeading/SectionWithHeading';
+import { Stack } from '../../layout/Stack/Stack';
+import { Link } from '../../navigation/Link/Link';
 import { Table } from '../../table/Table/Table';
 import { TableWithSort } from '../../table/TableWithSort';
-import type { TableWithSortColumn } from '../../table/TableWithSort';
 
 import styles from './BucketDetailContent.module.scss';
 

@@ -1,6 +1,7 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
+
 import { getPasswordStrength, PASSWORD_MIN_LENGTH } from '@boilerplate/helpers';
 
 import styles from './PasswordStrengthMeter.module.scss';

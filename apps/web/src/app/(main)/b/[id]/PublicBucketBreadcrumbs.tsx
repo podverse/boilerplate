@@ -1,7 +1,8 @@
 'use client';
 
-import { Breadcrumbs, Link } from '@boilerplate/ui';
 import type { BreadcrumbItem, BreadcrumbsLinkComponentProps } from '@boilerplate/ui';
+
+import { Breadcrumbs, Link } from '@boilerplate/ui';
 
 function LinkAdapter({ href, children, className }: BreadcrumbsLinkComponentProps) {
   return (

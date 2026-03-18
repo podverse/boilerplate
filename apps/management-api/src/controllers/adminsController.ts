@@ -1,4 +1,6 @@
+import type { ChangePasswordBody, CreateAdminBody, UpdateAdminBody } from '../schemas/admins.js';
 import type { Request, Response } from 'express';
+
 import { DEFAULT_PAGE_LIMIT, MAX_PAGE_SIZE, MAX_TOTAL_CAP } from '@boilerplate/helpers';
 import {
   EVENT_ACTIONS,
@@ -6,7 +8,7 @@ import {
   ManagementEventService,
   ManagementUserService,
 } from '@boilerplate/management-orm';
-import type { ChangePasswordBody, CreateAdminBody, UpdateAdminBody } from '../schemas/admins.js';
+
 import { hashPassword } from '../lib/auth/hash.js';
 import { managementUserToJson } from '../lib/managementUserToJson.js';
 import { recordEvent } from '../lib/recordEvent.js';

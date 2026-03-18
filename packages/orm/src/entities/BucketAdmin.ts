@@ -1,3 +1,6 @@
+import type { Bucket } from './Bucket.js';
+import type { User } from './User.js';
+
 import {
   Entity,
   PrimaryGeneratedColumn,
@@ -6,9 +9,6 @@ import {
   JoinColumn,
   CreateDateColumn,
 } from 'typeorm';
-
-import type { Bucket } from './Bucket.js';
-import type { User } from './User.js';
 
 @Entity('bucket_admin')
 export class BucketAdmin {

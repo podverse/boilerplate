@@ -1,7 +1,8 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
+import { useRouter } from 'next/navigation';
+
 import { AppTypeTitle, NavBar as UINavBar } from '@boilerplate/ui';
 
 import { useAuth } from '../context/AuthContext';

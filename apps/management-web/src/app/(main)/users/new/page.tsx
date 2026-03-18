@@ -1,13 +1,15 @@
-import { redirect } from 'next/navigation';
-import { getTranslations } from 'next-intl/server';
-import { Breadcrumbs, ContentPageLayout, Link } from '@boilerplate/ui';
 import type { BreadcrumbItem } from '@boilerplate/ui';
+
+import { getTranslations } from 'next-intl/server';
+import { redirect } from 'next/navigation';
+
+import { Breadcrumbs, ContentPageLayout, Link } from '@boilerplate/ui';
 
 import { ResourcePageCard } from '../../../../components/ResourcePageCard';
 import { UserForm } from '../../../../components/users/UserForm';
-import { getServerUser } from '../../../../lib/server-auth';
 import { getCrudFlags } from '../../../../lib/main-nav';
 import { ROUTES } from '../../../../lib/routes';
+import { getServerUser } from '../../../../lib/server-auth';
 
 function BreadcrumbLink({
   href,

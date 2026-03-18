@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
+
 import { LoadingSpinner } from './LoadingSpinner';
 
 import styles from './LoadingSpinner.stories.module.scss';

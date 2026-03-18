@@ -1,9 +1,10 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState, type KeyboardEvent } from 'react';
 import { useTranslations } from 'next-intl';
+import { useCallback, useEffect, useRef, useState, type KeyboardEvent } from 'react';
 
 import { Input } from '../../form/Input';
+
 import styles from './TableFilterBar.module.scss';
 
 export type TableFilterBarColumn = {

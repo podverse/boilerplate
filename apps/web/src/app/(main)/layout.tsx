@@ -1,7 +1,7 @@
 import { Main } from '@boilerplate/ui';
 
-import { getRuntimeConfig } from '../../config/runtime-config-store';
 import { NavBar } from '../../components/NavBar';
+import { getRuntimeConfig } from '../../config/runtime-config-store';
 
 export default async function MainLayout({ children }: { children: React.ReactNode }) {
   const runtimeConfig = getRuntimeConfig();

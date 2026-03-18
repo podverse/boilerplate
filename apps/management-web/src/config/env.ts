@@ -4,6 +4,7 @@
  */
 
 import type { ManagementWebRuntimeConfigEnvKey } from './runtime-config';
+
 import { getRuntimeConfig } from './runtime-config-store';
 
 function env(key: ManagementWebRuntimeConfigEnvKey): string | undefined {

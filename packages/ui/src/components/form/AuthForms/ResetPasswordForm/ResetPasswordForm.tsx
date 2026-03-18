@@ -1,13 +1,15 @@
 'use client';
 
+import type { FormLinkComponent } from '../../Form';
+
 import { useTranslations } from 'next-intl';
+
 import { isPasswordValid } from '@boilerplate/helpers';
 
 import { Button } from '../../Button';
+import { Form, FormLinks } from '../../Form';
 import { Input } from '../../Input';
 import { PasswordStrengthMeter } from '../../PasswordStrengthMeter';
-import { Form, FormLinks } from '../../Form';
-import type { FormLinkComponent } from '../../Form';
 
 export type ResetPasswordFormProps = {
   token: string;

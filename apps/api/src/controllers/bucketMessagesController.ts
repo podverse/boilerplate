@@ -6,8 +6,9 @@ import type {
 import type { Request, Response } from 'express';
 
 import { DEFAULT_PAGE_LIMIT, MAX_PAGE_SIZE } from '@boilerplate/helpers';
-import { BucketAdminService, BucketMessageService, BucketService } from '@boilerplate/orm';
+import { BucketMessageService, BucketService } from '@boilerplate/orm';
 
+import { getBucketContext } from '../lib/bucket-context.js';
 import { getBucketAndEffective } from '../lib/bucket-effective.js';
 import {
   canReadBucket,
@@ -19,23 +20,9 @@ import {
 import { toPublicBucketResponse } from '../lib/bucket-response.js';
 
 export async function listMessages(req: Request, res: Response): Promise<void> {
-  const user = req.user;
-  if (user === undefined) {
-    res.status(401).json({ message: 'Authentication required' });
-    return;
-  }
-  const bucketId = req.params.bucketId as string;
-  const resolved = await getBucketAndEffective(bucketId);
-  if (resolved === null) {
-    res.status(404).json({ message: 'Bucket not found' });
-    return;
-  }
-  const { bucket, effectiveBucket } = resolved;
-  const bucketAdmin = await BucketAdminService.findByBucketAndUser(effectiveBucket.id, user.id);
-  if (!canReadBucket(user.id, effectiveBucket, bucketAdmin)) {
-    res.status(403).json({ message: 'Forbidden' });
-    return;
-  }
+  const ctx = await getBucketContext(req, res, { paramKey: 'bucketId', can: canReadBucket });
+  if (ctx === null) return;
+  const { bucket } = ctx.resolved;
   const page = Math.max(1, Number(req.query.page) || 1);
   const limit = Math.min(MAX_PAGE_SIZE, Math.max(1, Number(req.query.limit) || DEFAULT_PAGE_LIMIT));
   const offset = (page - 1) * limit;
@@ -59,30 +46,16 @@ export async function listMessages(req: Request, res: Response): Promise<void> {
 }
 
 export async function getMessage(req: Request, res: Response): Promise<void> {
-  const user = req.user;
-  if (user === undefined) {
-    res.status(401).json({ message: 'Authentication required' });
-    return;
-  }
-  const bucketId = req.params.bucketId as string;
+  const ctx = await getBucketContext(req, res, { paramKey: 'bucketId', can: canReadBucket });
+  if (ctx === null) return;
   const messageId = req.params.id as string;
-  const resolved = await getBucketAndEffective(bucketId);
-  if (resolved === null) {
-    res.status(404).json({ message: 'Bucket not found' });
-    return;
-  }
-  const { bucket, effectiveBucket } = resolved;
-  const bucketAdmin = await BucketAdminService.findByBucketAndUser(effectiveBucket.id, user.id);
-  if (!canReadBucket(user.id, effectiveBucket, bucketAdmin)) {
-    res.status(403).json({ message: 'Forbidden' });
-    return;
-  }
+  const { bucket, effectiveBucket } = ctx.resolved;
   const message = await BucketMessageService.findById(messageId);
   if (message === null || message.bucketId !== bucket.id) {
     res.status(404).json({ message: 'Message not found' });
     return;
   }
-  if (!canReadMessage(user.id, effectiveBucket, bucketAdmin, message)) {
+  if (!canReadMessage(ctx.user.id, effectiveBucket, ctx.bucketAdmin, message)) {
     res.status(403).json({ message: 'Forbidden' });
     return;
   }
@@ -90,23 +63,9 @@ export async function getMessage(req: Request, res: Response): Promise<void> {
 }
 
 export async function createMessage(req: Request, res: Response): Promise<void> {
-  const user = req.user;
-  if (user === undefined) {
-    res.status(401).json({ message: 'Authentication required' });
-    return;
-  }
-  const bucketId = req.params.bucketId as string;
-  const resolved = await getBucketAndEffective(bucketId);
-  if (resolved === null) {
-    res.status(404).json({ message: 'Bucket not found' });
-    return;
-  }
-  const { bucket, effectiveBucket, effectiveSettings } = resolved;
-  const bucketAdmin = await BucketAdminService.findByBucketAndUser(effectiveBucket.id, user.id);
-  if (!canCreateMessage(user.id, effectiveBucket, bucketAdmin)) {
-    res.status(403).json({ message: 'Forbidden' });
-    return;
-  }
+  const ctx = await getBucketContext(req, res, { paramKey: 'bucketId', can: canCreateMessage });
+  if (ctx === null) return;
+  const { bucket, effectiveSettings } = ctx.resolved;
   const body = req.body as CreateMessageBody;
   const maxLen = effectiveSettings?.messageBodyMaxLength ?? null;
   if (maxLen !== null && maxLen !== undefined && body.body.length > maxLen) {
@@ -125,26 +84,16 @@ export async function createMessage(req: Request, res: Response): Promise<void> 
 }
 
 export async function updateMessage(req: Request, res: Response): Promise<void> {
-  const user = req.user;
-  if (user === undefined) {
-    res.status(401).json({ message: 'Authentication required' });
-    return;
-  }
-  const bucketId = req.params.bucketId as string;
+  const ctx = await getBucketContext(req, res, { paramKey: 'bucketId', can: canUpdateMessage });
+  if (ctx === null) return;
   const messageId = req.params.id as string;
-  const resolved = await getBucketAndEffective(bucketId);
-  if (resolved === null) {
-    res.status(404).json({ message: 'Bucket not found' });
-    return;
-  }
-  const { bucket, effectiveBucket, effectiveSettings } = resolved;
-  const bucketAdmin = await BucketAdminService.findByBucketAndUser(effectiveBucket.id, user.id);
+  const { bucket, effectiveBucket, effectiveSettings } = ctx.resolved;
   const message = await BucketMessageService.findById(messageId);
   if (message === null || message.bucketId !== bucket.id) {
     res.status(404).json({ message: 'Message not found' });
     return;
   }
-  if (!canUpdateMessage(user.id, effectiveBucket, bucketAdmin, message)) {
+  if (!canUpdateMessage(ctx.user.id, effectiveBucket, ctx.bucketAdmin, message)) {
     res.status(403).json({ message: 'Forbidden' });
     return;
   }
@@ -167,26 +116,16 @@ export async function updateMessage(req: Request, res: Response): Promise<void> 
 }
 
 export async function deleteMessage(req: Request, res: Response): Promise<void> {
-  const user = req.user;
-  if (user === undefined) {
-    res.status(401).json({ message: 'Authentication required' });
-    return;
-  }
-  const bucketId = req.params.bucketId as string;
+  const ctx = await getBucketContext(req, res, { paramKey: 'bucketId', can: canDeleteMessage });
+  if (ctx === null) return;
   const messageId = req.params.id as string;
-  const resolved = await getBucketAndEffective(bucketId);
-  if (resolved === null) {
-    res.status(404).json({ message: 'Bucket not found' });
-    return;
-  }
-  const { bucket, effectiveBucket } = resolved;
-  const bucketAdmin = await BucketAdminService.findByBucketAndUser(effectiveBucket.id, user.id);
+  const { bucket, effectiveBucket } = ctx.resolved;
   const message = await BucketMessageService.findById(messageId);
   if (message === null || message.bucketId !== bucket.id) {
     res.status(404).json({ message: 'Message not found' });
     return;
   }
-  if (!canDeleteMessage(user.id, effectiveBucket, bucketAdmin, message)) {
+  if (!canDeleteMessage(ctx.user.id, effectiveBucket, ctx.bucketAdmin, message)) {
     res.status(403).json({ message: 'Forbidden' });
     return;
   }

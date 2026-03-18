@@ -1,5 +1,12 @@
-import { Router } from 'express';
 import type { RequestHandler } from 'express';
+
+import { Router } from 'express';
+
+import * as bucketAdminInvitationsController from '../controllers/bucketAdminInvitationsController.js';
+import * as bucketAdminsController from '../controllers/bucketAdminsController.js';
+import * as bucketMessagesController from '../controllers/bucketMessagesController.js';
+import * as bucketRolesController from '../controllers/bucketRolesController.js';
+import * as bucketsController from '../controllers/bucketsController.js';
 import { validateBody } from '../middleware/validateBody.js';
 import {
   createBucketSchema,
@@ -14,11 +21,6 @@ import {
   updateMessageSchema,
   publicSubmitMessageSchema,
 } from '../schemas/buckets.js';
-import * as bucketsController from '../controllers/bucketsController.js';
-import * as bucketAdminsController from '../controllers/bucketAdminsController.js';
-import * as bucketAdminInvitationsController from '../controllers/bucketAdminInvitationsController.js';
-import * as bucketRolesController from '../controllers/bucketRolesController.js';
-import * as bucketMessagesController from '../controllers/bucketMessagesController.js';
 
 export function createBucketsRouter(requireAuthMiddleware: RequestHandler): Router {
   const router = Router();

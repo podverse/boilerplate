@@ -1,6 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { FormLinks } from './FormLinks';
+
 import { Link } from '../../../navigation/Link';
+import { FormLinks } from './FormLinks';
 
 const meta: Meta<typeof FormLinks> = {
   component: FormLinks,

@@ -1,6 +1,7 @@
-import { request } from '../request.js';
 import type { ApiError } from '../request.js';
 import type { ListEventsData } from '../types/management-event-types.js';
+
+import { request } from '../request.js';
 
 /** Token optional; omit for cookie auth (credentials: 'include'). */
 export async function list(

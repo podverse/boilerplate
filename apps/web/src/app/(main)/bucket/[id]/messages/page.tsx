@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation';
 
-import { getServerUser } from '../../../../../lib/server-auth';
 import { ROUTES, bucketDetailRoute } from '../../../../../lib/routes';
+import { getServerUser } from '../../../../../lib/server-auth';
 
 /**
  * Standalone messages route redirects to bucket detail (Messages tab).

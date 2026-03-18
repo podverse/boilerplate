@@ -1,3 +1,5 @@
+import type { EventVisibility } from '../entities/AdminPermissions.js';
+
 import { v4 as uuidv4 } from 'uuid';
 
 import { managementDataSource } from '../data-source.js';
@@ -5,7 +7,6 @@ import { AdminPermissions } from '../entities/AdminPermissions.js';
 import { ManagementUser } from '../entities/ManagementUser.js';
 import { ManagementUserBio } from '../entities/ManagementUserBio.js';
 import { ManagementUserCredentials } from '../entities/ManagementUserCredentials.js';
-import type { EventVisibility } from '../entities/AdminPermissions.js';
 
 export type CreateAdminData = {
   username: string;

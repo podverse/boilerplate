@@ -6,12 +6,14 @@ import { CRUD_BITS } from '@boilerplate/helpers';
 import { BucketAdminService, UserService } from '@boilerplate/orm';
 
 import { normalizeBucketMessageCrud } from '../lib/bucket-admin-permissions.js';
-import { getBucketAndEffective } from '../lib/bucket-effective.js';
+import { getBucketContext } from '../lib/bucket-context.js';
 import { canManageBucketAdmins } from '../lib/bucket-policy.js';
 import { userToPublicSummary } from '../lib/userToJson.js';
 
 /** Admin CRUD always includes read; enforce when serializing or persisting. */
 const ADMIN_CRUD_READ = CRUD_BITS.read;
+
+const ADMINS_ROOT_MESSAGE = 'Admins are managed on the root bucket only.';
 
 /** Resolve user by shortId or UUID. Prefers shortId for URL/body params. */
 async function resolveUser(idOrShortId: string): Promise<UserWithRelations | null> {
@@ -46,23 +48,12 @@ function bucketAdminToJson(
 }
 
 export async function listBucketAdmins(req: Request, res: Response): Promise<void> {
-  const user = req.user;
-  if (user === undefined) {
-    res.status(401).json({ message: 'Authentication required' });
-    return;
-  }
-  const bucketId = req.params.bucketId as string;
-  const resolved = await getBucketAndEffective(bucketId);
-  if (resolved === null) {
-    res.status(404).json({ message: 'Bucket not found' });
-    return;
-  }
-  const { effectiveBucket } = resolved;
-  const bucketAdmin = await BucketAdminService.findByBucketAndUser(effectiveBucket.id, user.id);
-  if (!canManageBucketAdmins(user.id, effectiveBucket, bucketAdmin)) {
-    res.status(403).json({ message: 'Forbidden' });
-    return;
-  }
+  const ctx = await getBucketContext(req, res, {
+    paramKey: 'bucketId',
+    can: canManageBucketAdmins,
+  });
+  if (ctx === null) return;
+  const { effectiveBucket } = ctx.resolved;
   const bucketAdmins = await BucketAdminService.findByBucketId(effectiveBucket.id);
   const withUser = bucketAdmins.map((bucketAdmin) => {
     const u =
@@ -78,24 +69,13 @@ export async function listBucketAdmins(req: Request, res: Response): Promise<voi
 
 /** GET /buckets/:bucketId/admins/:userId – get one admin (userId may be shortId or UUID). */
 export async function getBucketAdmin(req: Request, res: Response): Promise<void> {
-  const user = req.user;
-  if (user === undefined) {
-    res.status(401).json({ message: 'Authentication required' });
-    return;
-  }
-  const bucketId = req.params.bucketId as string;
+  const ctx = await getBucketContext(req, res, {
+    paramKey: 'bucketId',
+    can: canManageBucketAdmins,
+  });
+  if (ctx === null) return;
   const userIdParam = req.params.userId as string;
-  const resolved = await getBucketAndEffective(bucketId);
-  if (resolved === null) {
-    res.status(404).json({ message: 'Bucket not found' });
-    return;
-  }
-  const { effectiveBucket } = resolved;
-  const bucketAdmin = await BucketAdminService.findByBucketAndUser(effectiveBucket.id, user.id);
-  if (!canManageBucketAdmins(user.id, effectiveBucket, bucketAdmin)) {
-    res.status(403).json({ message: 'Forbidden' });
-    return;
-  }
+  const { effectiveBucket } = ctx.resolved;
   const targetUser = await resolveUser(userIdParam);
   if (targetUser === null) {
     res.status(404).json({ message: 'User not found' });
@@ -124,29 +104,14 @@ export async function getBucketAdmin(req: Request, res: Response): Promise<void>
 }
 
 export async function createBucketAdmin(req: Request, res: Response): Promise<void> {
-  const user = req.user;
-  if (user === undefined) {
-    res.status(401).json({ message: 'Authentication required' });
-    return;
-  }
-  const bucketId = req.params.bucketId as string;
-  const resolved = await getBucketAndEffective(bucketId);
-  if (resolved === null) {
-    res.status(404).json({ message: 'Bucket not found' });
-    return;
-  }
-  const { effectiveBucket, isDescendant } = resolved;
-  if (isDescendant) {
-    res.status(400).json({
-      message: 'Admins are managed on the root bucket only.',
-    });
-    return;
-  }
-  const bucketAdmin = await BucketAdminService.findByBucketAndUser(effectiveBucket.id, user.id);
-  if (!canManageBucketAdmins(user.id, effectiveBucket, bucketAdmin)) {
-    res.status(403).json({ message: 'Forbidden' });
-    return;
-  }
+  const ctx = await getBucketContext(req, res, {
+    paramKey: 'bucketId',
+    can: canManageBucketAdmins,
+    requireRoot: true,
+    requireRootMessage: ADMINS_ROOT_MESSAGE,
+  });
+  if (ctx === null) return;
+  const { effectiveBucket } = ctx.resolved;
   const body = req.body as CreateBucketAdminBody;
   const targetUser = await resolveUser(body.userId);
   if (targetUser === null) {
@@ -174,33 +139,18 @@ export async function createBucketAdmin(req: Request, res: Response): Promise<vo
 }
 
 export async function updateBucketAdmin(req: Request, res: Response): Promise<void> {
-  const user = req.user;
-  if (user === undefined) {
-    res.status(401).json({ message: 'Authentication required' });
-    return;
-  }
-  const bucketId = req.params.bucketId as string;
+  const ctx = await getBucketContext(req, res, {
+    paramKey: 'bucketId',
+    can: canManageBucketAdmins,
+    requireRoot: true,
+    requireRootMessage: ADMINS_ROOT_MESSAGE,
+  });
+  if (ctx === null) return;
   const userIdParam = req.params.userId as string;
-  const resolved = await getBucketAndEffective(bucketId);
-  if (resolved === null) {
-    res.status(404).json({ message: 'Bucket not found' });
-    return;
-  }
-  const { effectiveBucket, isDescendant } = resolved;
-  if (isDescendant) {
-    res.status(400).json({
-      message: 'Admins are managed on the root bucket only.',
-    });
-    return;
-  }
+  const { effectiveBucket } = ctx.resolved;
   const targetUser = await resolveUser(userIdParam);
   if (targetUser === null) {
     res.status(404).json({ message: 'User not found' });
-    return;
-  }
-  const bucketAdmin = await BucketAdminService.findByBucketAndUser(effectiveBucket.id, user.id);
-  if (!canManageBucketAdmins(user.id, effectiveBucket, bucketAdmin)) {
-    res.status(403).json({ message: 'Forbidden' });
     return;
   }
   if (targetUser.id === effectiveBucket.ownerId) {
@@ -237,33 +187,18 @@ export async function updateBucketAdmin(req: Request, res: Response): Promise<vo
 }
 
 export async function deleteBucketAdmin(req: Request, res: Response): Promise<void> {
-  const user = req.user;
-  if (user === undefined) {
-    res.status(401).json({ message: 'Authentication required' });
-    return;
-  }
-  const bucketId = req.params.bucketId as string;
+  const ctx = await getBucketContext(req, res, {
+    paramKey: 'bucketId',
+    can: canManageBucketAdmins,
+    requireRoot: true,
+    requireRootMessage: ADMINS_ROOT_MESSAGE,
+  });
+  if (ctx === null) return;
   const userIdParam = req.params.userId as string;
-  const resolved = await getBucketAndEffective(bucketId);
-  if (resolved === null) {
-    res.status(404).json({ message: 'Bucket not found' });
-    return;
-  }
-  const { effectiveBucket, isDescendant } = resolved;
-  if (isDescendant) {
-    res.status(400).json({
-      message: 'Admins are managed on the root bucket only.',
-    });
-    return;
-  }
+  const { effectiveBucket } = ctx.resolved;
   const targetUser = await resolveUser(userIdParam);
   if (targetUser === null) {
     res.status(404).json({ message: 'User not found' });
-    return;
-  }
-  const bucketAdmin = await BucketAdminService.findByBucketAndUser(effectiveBucket.id, user.id);
-  if (!canManageBucketAdmins(user.id, effectiveBucket, bucketAdmin)) {
-    res.status(403).json({ message: 'Forbidden' });
     return;
   }
   const existing = await BucketAdminService.findByBucketAndUser(effectiveBucket.id, targetUser.id);

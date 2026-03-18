@@ -1,12 +1,14 @@
 'use client';
 
-import { usePathname } from 'next/navigation';
-import { useTranslations } from 'next-intl';
-import { Link, Tabs } from '@boilerplate/ui';
+import type { UserFormInitialValues } from '../../../../../components/users/UserForm';
 import type { TabItem } from '@boilerplate/ui';
 
+import { useTranslations } from 'next-intl';
+import { usePathname } from 'next/navigation';
+
+import { Link, Tabs } from '@boilerplate/ui';
+
 import { UserForm } from '../../../../../components/users/UserForm';
-import type { UserFormInitialValues } from '../../../../../components/users/UserForm';
 import { userEditRoute } from '../../../../../lib/routes';
 
 export type EditUserPageContentProps = {

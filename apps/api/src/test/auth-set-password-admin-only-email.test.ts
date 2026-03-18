@@ -5,10 +5,12 @@ process.env.MAIL_FROM = 'test@test.com';
 process.env.APP_BASE_URL = 'http://localhost:3999';
 
 import type { Express } from 'express';
-import { afterAll, beforeAll, describe, it } from 'vitest';
+
 import request from 'supertest';
+import { afterAll, beforeAll, describe, it } from 'vitest';
 
 import { UserService, VerificationTokenService } from '@boilerplate/orm';
+
 import { hashPassword } from '../lib/auth/hash.js';
 import { generateToken, getSetPasswordExpiry, hashToken } from '../lib/auth/verification-token.js';
 

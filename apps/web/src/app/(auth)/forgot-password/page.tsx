@@ -1,11 +1,13 @@
 'use client';
 
-import { useState } from 'react';
-import { useEffect } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
-import { ForgotPasswordForm, RateLimitModal, useAuthValidation } from '@boilerplate/ui';
+import { useState } from 'react';
+import { useEffect } from 'react';
+
 import { getRateLimitRetrySeconds, webAuth } from '@boilerplate/helpers-requests';
+import { ForgotPasswordForm, RateLimitModal, useAuthValidation } from '@boilerplate/ui';
+
 import { getRuntimeConfig } from '../../../config/runtime-config-store';
 import { getApiBaseUrl } from '../../../lib/api-client';
 import { getWebAuthModeCapabilities } from '../../../lib/authMode';

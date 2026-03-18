@@ -1,16 +1,18 @@
-import { redirect } from 'next/navigation';
+import type { ListBucketsData } from '@boilerplate/helpers-requests';
+
 import { getTranslations } from 'next-intl/server';
+import { redirect } from 'next/navigation';
+
 import { request } from '@boilerplate/helpers-requests';
 import { FilterTablePageLayout, Stack } from '@boilerplate/ui';
 
 import { BucketsTableWithFilter } from '../../../components/BucketsTableWithFilter';
-import { TABLE_SORT_PREFS_COOKIE_NAME } from '../../../lib/cookies';
-import { getServerUser } from '../../../lib/server-auth';
 import { getManagementApiBaseUrl, getServerManagementApiBaseUrl } from '../../../config/env';
+import { TABLE_SORT_PREFS_COOKIE_NAME } from '../../../lib/cookies';
 import { getCrudFlags, hasReadPermission } from '../../../lib/main-nav';
 import { ROUTES } from '../../../lib/routes';
+import { getServerUser } from '../../../lib/server-auth';
 import { getCookieHeader } from '../../../lib/server-request';
-import type { ListBucketsData } from '@boilerplate/helpers-requests';
 
 async function fetchBuckets(
   page: number,

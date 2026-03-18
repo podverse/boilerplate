@@ -1,10 +1,12 @@
+import type request from 'supertest';
+
 /**
  * Management API – users CRUD permission-based integration tests.
  * Tests that admins with limited permissions are properly gated by requireCrud.
  * Also covers POST /users/:id/change-password permission checks.
  */
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import type request from 'supertest';
+
 import { UserService } from '@boilerplate/orm';
 
 import { config } from '../config/index.js';

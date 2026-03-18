@@ -1,5 +1,7 @@
-import { DEFAULT_MESSAGE_BODY_MAX_LENGTH, generateShortId } from '@boilerplate/helpers';
 import { Brackets } from 'typeorm';
+
+import { DEFAULT_MESSAGE_BODY_MAX_LENGTH, generateShortId } from '@boilerplate/helpers';
+
 import { appDataSourceRead, appDataSourceReadWrite } from '../data-source.js';
 import { Bucket } from '../entities/Bucket.js';
 import { BucketSettings } from '../entities/BucketSettings.js';

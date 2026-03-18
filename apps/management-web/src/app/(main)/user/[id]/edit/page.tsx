@@ -1,18 +1,20 @@
-import { notFound, redirect } from 'next/navigation';
-import { getTranslations } from 'next-intl/server';
-import { request } from '@boilerplate/helpers-requests';
-import { Breadcrumbs, ContentPageLayout, Link } from '@boilerplate/ui';
+import type { UserFormInitialValues } from '../../../../../components/users/UserForm';
+import type { MainAppUser } from '../../../../../types/management-api';
 import type { BreadcrumbItem } from '@boilerplate/ui';
 
-import { EditUserPageContent } from './EditUserPageContent';
+import { getTranslations } from 'next-intl/server';
+import { notFound, redirect } from 'next/navigation';
+
+import { request } from '@boilerplate/helpers-requests';
+import { Breadcrumbs, ContentPageLayout, Link } from '@boilerplate/ui';
+
 import { ResourcePageCard } from '../../../../../components/ResourcePageCard';
-import type { UserFormInitialValues } from '../../../../../components/users/UserForm';
-import { getServerUser } from '../../../../../lib/server-auth';
 import { getServerManagementApiBaseUrl } from '../../../../../config/env';
 import { getCrudFlags } from '../../../../../lib/main-nav';
 import { ROUTES, userViewRoute } from '../../../../../lib/routes';
+import { getServerUser } from '../../../../../lib/server-auth';
 import { getCookieHeader } from '../../../../../lib/server-request';
-import type { MainAppUser } from '../../../../../types/management-api';
+import { EditUserPageContent } from './EditUserPageContent';
 
 type EditUserPageProps = {
   params: Promise<{ id: string }>;

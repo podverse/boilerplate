@@ -1,6 +1,8 @@
+import type { BucketSettingsTab } from '../../../../../lib/routes';
+import type { BucketForForm } from '../../../buckets/BucketForm';
+
 import { notFound, redirect } from 'next/navigation';
 
-import type { BucketSettingsTab } from '../../../../../lib/routes';
 import {
   fetchBucket,
   fetchAdmins,
@@ -10,7 +12,6 @@ import {
 } from '../../../../../lib/buckets';
 import { bucketSettingsRoute } from '../../../../../lib/routes';
 import { BucketSettingsContent } from './BucketSettingsContent';
-import type { BucketForForm } from '../../../buckets/BucketForm';
 
 export default async function BucketSettingsPage({
   params,

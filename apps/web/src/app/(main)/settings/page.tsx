@@ -1,9 +1,10 @@
+import type { AccountSettingsTab } from '../../../lib/routes';
+
 import { redirect } from 'next/navigation';
 
 import { getWebAuthModeCapabilities } from '../../../lib/authMode';
-import { getServerUser } from '../../../lib/server-auth';
 import { ROUTES } from '../../../lib/routes';
-import type { AccountSettingsTab } from '../../../lib/routes';
+import { getServerUser } from '../../../lib/server-auth';
 import { SettingsPageContent } from './SettingsPageContent';
 
 export default async function SettingsPage({

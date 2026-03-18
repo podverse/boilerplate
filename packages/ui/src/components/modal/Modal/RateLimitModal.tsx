@@ -1,11 +1,11 @@
 'use client';
 
-import { useMemo } from 'react';
 import { useTranslations } from 'next-intl';
+import { useMemo } from 'react';
 
-import { Modal } from './Modal';
 import { Stack } from '../../layout/Stack/Stack';
 import { Text } from '../../layout/Text/Text';
+import { Modal } from './Modal';
 
 import styles from './RateLimitModal.module.scss';
 

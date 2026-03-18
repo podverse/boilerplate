@@ -1,8 +1,8 @@
+import type { ManagementUser } from './ManagementUser.js';
+
 import { Entity, PrimaryColumn, Column, OneToOne, JoinColumn } from 'typeorm';
 
 import { PASSWORD_HASH_LENGTH, SHORT_TEXT_MAX_LENGTH } from '@boilerplate/helpers';
-
-import type { ManagementUser } from './ManagementUser.js';
 
 @Entity('management_user_credentials')
 export class ManagementUserCredentials {

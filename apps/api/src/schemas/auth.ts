@@ -1,11 +1,13 @@
+import type { AuthModeCapabilities } from '../config/index.js';
+
 import Joi from 'joi';
+
 import {
   EMAIL_MAX_LENGTH,
   PASSWORD_MAX_LENGTH,
   SHORT_TEXT_MAX_LENGTH,
   USERNAME_MAX_LENGTH,
 } from '@boilerplate/helpers';
-import type { AuthModeCapabilities } from '../config/index.js';
 
 export type {
   ChangePasswordBody,

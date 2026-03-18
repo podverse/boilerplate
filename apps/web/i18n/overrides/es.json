@@ -307,6 +307,7 @@
       "dracula": ""
     },
     "passwordStrength": {
+      "hint": "",
       "requireLength": "",
       "requireMix": "",
       "tooShort": "",

@@ -1,5 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
+
 import { useState } from 'react';
+
 import { TableFilterBar } from './TableFilterBar';
 
 import styles from './TableFilterBar.stories.module.scss';

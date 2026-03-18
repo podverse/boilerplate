@@ -1,10 +1,11 @@
+import type { CreateMessageBody, UpdateMessageBody } from '../schemas/messages.js';
 import type { Request, Response } from 'express';
+
 import { DEFAULT_PAGE_LIMIT, MAX_PAGE_SIZE } from '@boilerplate/helpers';
 import { BucketMessageService } from '@boilerplate/orm';
 
-import { resolveBucket } from './bucketsController.js';
-import type { CreateMessageBody, UpdateMessageBody } from '../schemas/messages.js';
 import { messageToJson } from '../lib/messageToJson.js';
+import { resolveBucket } from './bucketsController.js';
 
 export async function listMessages(req: Request, res: Response): Promise<void> {
   const bucketIdParam = req.params.bucketId as string;

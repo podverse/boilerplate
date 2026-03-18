@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useMemo } from 'react';
 import { useTranslations } from 'next-intl';
+import { useState, useMemo } from 'react';
 
 import { Button } from '../../form/Button/Button';
 import { GoToPageModal, type GoToPageModalProps } from './GoToPageModal';

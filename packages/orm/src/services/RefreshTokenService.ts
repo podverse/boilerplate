@@ -1,5 +1,6 @@
-import { appDataSourceReadWrite } from '../data-source.js';
 import type { User } from '../entities/User.js';
+
+import { appDataSourceReadWrite } from '../data-source.js';
 import { RefreshToken } from '../entities/RefreshToken.js';
 
 export class RefreshTokenService {

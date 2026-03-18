@@ -1,8 +1,9 @@
+import type { ManagementUserCredentials } from './ManagementUserCredentials.js';
+
 import { Entity, PrimaryColumn, Column, OneToOne } from 'typeorm';
 
 import { AdminPermissions } from './AdminPermissions.js';
 import { ManagementUserBio } from './ManagementUserBio.js';
-import type { ManagementUserCredentials } from './ManagementUserCredentials.js';
 
 @Entity('management_user')
 export class ManagementUser {
