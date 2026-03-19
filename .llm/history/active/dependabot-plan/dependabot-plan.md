@@ -60,3 +60,74 @@ implement the dependabot prs one after another
 - `packages/management-orm/package.json` (uuid)
 - `tools/generate-data/package.json` (uuid)
 - `package.json` (root: eslint, @eslint/js)
+
+---
+
+### Session 3 - 2026-03-18
+
+#### Prompt (Developer)
+
+https://github.com/podverse/boilerplate/pull/40 implement the changes needed for PR and be aware
+of migration issues. do not commit the changes, i want to run them locally when you are finished
+
+#### Key Decisions
+
+- Bumped `@fortawesome/fontawesome-free` from ^6.7.2 to ^7.2.0 in packages/ui, apps/web,
+  apps/management-web. No code changes required: v7 keeps `css/all.min.css` and existing icon
+  class names (fa-solid fa-*) work; icons used (circle-info, angles-left, chevron-*, filter,
+  user, spinner) are unchanged/aliased in v7.
+- Migration notes: v7 uses fixed-width icons by default (fa-fw equivalent); sr-only removed (we
+  use aria-hidden). No SCSS/Less/jQuery usage of Font Awesome in this repo.
+
+#### Files Created/Modified
+
+- `packages/ui/package.json` (@fortawesome/fontawesome-free ^7.2.0)
+- `apps/web/package.json` (@fortawesome/fontawesome-free ^7.2.0)
+- `apps/management-web/package.json` (@fortawesome/fontawesome-free ^7.2.0)
+- `package-lock.json` (updated by npm install)
+
+---
+
+### Session 4 - 2026-03-18
+
+#### Prompt (Developer)
+
+https://github.com/podverse/boilerplate/pull/39 implement the changes needed for PR and be aware of
+migration issues. do not commit the changes, i want to run them locally when you are finished
+
+#### Key Decisions
+
+- Bumped `nanoid` from ^3.3.11 to ^5.1.7 in packages/helpers (only direct dependency). No code
+  changes: `customAlphabet(alphabet, defaultSize)` API is unchanged in nanoid 5; repo uses ESM and
+  Node 24, and does not use async nanoid.
+- Migration notes: v4 is ESM-only (we use "type": "module"); v5 removed async API and uses Web
+  Crypto; Node 14/16 dropped (we use 24).
+
+#### Files Created/Modified
+
+- `packages/helpers/package.json` (nanoid ^5.1.7)
+- `package-lock.json` (updated by npm install)
+
+---
+
+### Session 5 - 2026-03-18
+
+#### Prompt (Developer)
+
+https://github.com/podverse/boilerplate/pull/38 implement the changes needed for PR and be aware
+of migration issues. do not commit the changes, i want to run them locally when you are finished
+
+#### Key Decisions
+
+- Bumped `express-rate-limit` from ^7.2.0 to ^8.3.1 in packages/helpers-backend-api. Updated
+  rateLimit.ts: import and use `ipKeyGenerator` from express-rate-limit in `ipAndPathKeyGenerator`
+  so custom keyGenerators satisfy v8 `keyGeneratorIpFallback` validation and IPv6 addresses get
+  default /56 subnet masking; pass `req.ip ?? ''` to ipKeyGenerator to satisfy string type.
+- v8 breaking: IPv6 now masked with /56 by default; custom keyGenerators that use req.ip should
+  use ipKeyGenerator (docs). No change to limit/windowMs/handler/requestPropertyName API.
+
+#### Files Created/Modified
+
+- `packages/helpers-backend-api/package.json` (express-rate-limit ^8.3.1)
+- `packages/helpers-backend-api/src/rateLimit.ts` (ipKeyGenerator import and usage)
+- `package-lock.json` (updated by npm install)

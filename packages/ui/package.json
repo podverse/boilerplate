@@ -34,7 +34,7 @@
   "devDependencies": {
     "next": "^16.1.7",
     "next-intl": "^4.0.0",
-    "@fortawesome/fontawesome-free": "^6.7.2",
+    "@fortawesome/fontawesome-free": "^7.2.0",
     "@storybook/react": "^10.2.14",
     "@storybook/react-vite": "^10.2.14",
     "@types/react": "^19.2.11",

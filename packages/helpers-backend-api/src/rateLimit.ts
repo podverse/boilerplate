@@ -1,6 +1,6 @@
 import type { Options } from 'express-rate-limit';
 
-import { rateLimit } from 'express-rate-limit';
+import { ipKeyGenerator, rateLimit } from 'express-rate-limit';
 
 /**
  * Shared rate-limit middleware factory for Express APIs. Keyed by IP by default.
@@ -52,7 +52,7 @@ const DEFAULT_RESPONSE_OPTIONS: Pick<Options, 'statusCode' | 'standardHeaders' |
 };
 
 export interface RateLimiterOptions {
-  /** Max requests per window (express-rate-limit v7 uses `limit`). */
+  /** Max requests per window (express-rate-limit v7+ uses `limit`). */
   limit: number;
   /** Window duration in ms. */
   windowMs: number;
@@ -116,15 +116,17 @@ export function createModerateRateLimiter(
 }
 
 /**
- * Key generator that combines the client IP with the full request path so each
- * endpoint has its own rate-limit bucket (e.g. login and signup count separately).
+ * Key generator that combines the client IP (with v8 IPv6 subnet masking) with the
+ * full request path so each endpoint has its own rate-limit bucket (e.g. login and
+ * signup count separately). Uses ipKeyGenerator so custom keyGenerators satisfy v8
+ * keyGeneratorIpFallback validation and IPv6 addresses are normalized.
  */
 export function ipAndPathKeyGenerator(req: {
   ip?: string;
   baseUrl?: string;
   path?: string;
 }): string {
-  const ip = req.ip ?? '';
+  const ip = ipKeyGenerator(req.ip ?? '');
   const path = [req.baseUrl, req.path].filter(Boolean).join('');
   return `${ip}:${path}`;
 }
