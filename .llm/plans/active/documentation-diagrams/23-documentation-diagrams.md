@@ -25,7 +25,7 @@ land.
      testing are at /api-docs (see plan 24).
 
 3. **Infra**
-   - `docs/INFRASTRUCTURE.md`: postgres and valkey (what they’re for, how to start with
+   - `docs/INFRASTRUCTURE.md`: postgres and valkey (what they're for, how to start with
      docker, env vars); docker layout (api, web, sidecar, postgres, valkey); no k8s.
    - Point to infra/config and infra/database.
 

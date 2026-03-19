@@ -9,7 +9,7 @@ Run **after all other phases** (depends on 29). Deliver a **local Jenkins** inst
 - **Local Jenkins:** Run in a container (e.g. Docker Compose service or `infra/docker/local/jenkins` Compose file / Make target). `make jenkins-up` or equivalent brings up Jenkins (e.g. port 8080).
 - **Programmatic setup:** Pre-populated user (e.g. `admin` with documented default password/token), folder named **`local`**, and jobs imported from repo. Use JCasC and/or Groovy init scripts, or clear doc to run import script once after first start.
 - **Folder `local`:** Contains all pipeline jobs for deployments (Jenkinsfiles + setup/import process). No publish jobs.
-- **Git/workspace:** Sparse checkout into an **isolated workspace** so Jenkins never operates on the developer’s host checkout; no collision when jobs run "git pull".
+- **Git/workspace:** Sparse checkout into an **isolated workspace** so Jenkins never operates on the developer's host checkout; no collision when jobs run "git pull".
 
 ## Steps
 
@@ -31,9 +31,9 @@ Run **after all other phases** (depends on 29). Deliver a **local Jenkins** inst
    - **scm-job.xml** – Job template with SCM (Git) and **sparse checkout** paths (e.g. `infra/pipelines/jenkins/`, `infra/docker/`, `infra/config/`, `scripts/`, `Makefile`; add root `package.json` if needed). Placeholder `REPLACE_SCRIPT_PATH` for import script.
 
 4. **Git / workspace strategy**
-   - Jenkins runs in Docker; jobs use a **dedicated workspace path** (e.g. job workspace or fixed path). No full monorepo in that environment; only what’s needed for pipelines (same as Podverse).
-   - All jobs that need repo content use **Pipeline from SCM** with **sparse checkout**. The Jenkins workspace is a **separate clone**; "git pull" in a job updates only that workspace. The developer’s host checkout is **never** used by Jenkins.
-   - Document in plan and in `docs/pipelines/JENKINS-LOCAL.md`: "git pull" in a job updates only the Jenkins workspace, not the developer’s directory.
+   - Jenkins runs in Docker; jobs use a **dedicated workspace path** (e.g. job workspace or fixed path). No full monorepo in that environment; only what's needed for pipelines (same as Podverse).
+   - All jobs that need repo content use **Pipeline from SCM** with **sparse checkout**. The Jenkins workspace is a **separate clone**; "git pull" in a job updates only that workspace. The developer's host checkout is **never** used by Jenkins.
+   - Document in plan and in `docs/pipelines/JENKINS-LOCAL.md`: "git pull" in a job updates only the Jenkins workspace, not the developer's directory.
 
 5. **Documentation**
    - Add `docs/pipelines/JENKINS-LOCAL.md`: how to start local Jenkins, how to run setup/import, that the folder is named `local` and contains deployment jobs only (no publish), and that git operations use sparse checkout in an isolated workspace.
