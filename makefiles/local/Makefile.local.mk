@@ -16,6 +16,9 @@
 #   local_env_setup            - Generate infra + app env from templates and overrides (see docs/development/LOCAL-ENV-OVERRIDES.md)
 #   local_env_clean            - Remove generated env files; keep dev/env-overrides/local/*.env (symlinks)
 #   local_setup                - local_env_setup + local_infra_up
+#   local_k3d_up, local_k3d_down - Local k3d cluster and ArgoCD deployment lifecycle
+#   local_argocd_port_forward  - Expose ArgoCD UI on https://localhost:8080
+#   local_k3d_status           - Show local k3d workload status
 #   env_setup                  - Alias for local_env_setup (backward compatible)
 #   local_env_remove           - Run local_clean, then remove .env files (prompts for Y); prefer prepare/link/setup flow
 #   local_reset_env_infra      - Run local_env_remove, env_setup, then local_infra_up. Use testSuperAdmin=1 for superadmin / Test!1Aa
@@ -36,5 +39,6 @@ include makefiles/local/Makefile.local.validate.mk
 include makefiles/local/Makefile.local.audit.mk
 include makefiles/local/Makefile.local.env.mk
 include makefiles/local/Makefile.local.docker.mk
+include makefiles/local/Makefile.local.k3d.mk
 include makefiles/local/Makefile.local.test.mk
 include makefiles/local/Makefile.local.e2e.mk

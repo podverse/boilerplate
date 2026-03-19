@@ -1,0 +1,268 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres
+  namespace: boilerplate-local
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres
+  template:
+    metadata:
+      labels:
+        app: postgres
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:18.1
+          ports:
+            - containerPort: 5432
+          envFrom:
+            - secretRef:
+                name: boilerplate-db-env
+          env:
+            - name: MANAGEMENT_DB_NAME
+              value: boilerplate_management
+          volumeMounts:
+            - name: postgres-data
+              mountPath: /var/lib/postgresql/data
+            - name: postgres-init
+              mountPath: /docker-entrypoint-initdb.d
+          readinessProbe:
+            exec:
+              command:
+                - /bin/sh
+                - -c
+                - pg_isready -U "${POSTGRES_USER:-postgres}"
+            initialDelaySeconds: 10
+            periodSeconds: 5
+          livenessProbe:
+            exec:
+              command:
+                - /bin/sh
+                - -c
+                - pg_isready -U "${POSTGRES_USER:-postgres}"
+            initialDelaySeconds: 20
+            periodSeconds: 10
+      volumes:
+        - name: postgres-data
+          persistentVolumeClaim:
+            claimName: boilerplate-postgres-data
+        - name: postgres-init
+          configMap:
+            name: boilerplate-postgres-init
+            defaultMode: 0755
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: valkey
+  namespace: boilerplate-local
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: valkey
+  template:
+    metadata:
+      labels:
+        app: valkey
+    spec:
+      containers:
+        - name: valkey
+          image: valkey/valkey:7-alpine
+          command:
+            - /bin/sh
+            - -c
+            - exec valkey-server --requirepass "$VALKEY_PASSWORD"
+          envFrom:
+            - secretRef:
+                name: boilerplate-valkey-env
+          ports:
+            - containerPort: 6379
+          volumeMounts:
+            - name: valkey-data
+              mountPath: /data
+      volumes:
+        - name: valkey-data
+          persistentVolumeClaim:
+            claimName: boilerplate-valkey-data
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api
+  namespace: boilerplate-local
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: api
+  template:
+    metadata:
+      labels:
+        app: api
+    spec:
+      containers:
+        - name: api
+          image: boilerplate-local-api:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 4000
+          envFrom:
+            - secretRef:
+                name: boilerplate-api-env
+          env:
+            - name: DB_HOST
+              value: postgres
+            - name: DB_PORT
+              value: "5432"
+            - name: VALKEY_HOST
+              value: valkey
+            - name: VALKEY_PORT
+              value: "6379"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: management-api
+  namespace: boilerplate-local
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: management-api
+  template:
+    metadata:
+      labels:
+        app: management-api
+    spec:
+      containers:
+        - name: management-api
+          image: boilerplate-local-management-api:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 4100
+          envFrom:
+            - secretRef:
+                name: boilerplate-management-api-env
+          env:
+            - name: DB_HOST
+              value: postgres
+            - name: DB_PORT
+              value: "5432"
+            - name: MANAGEMENT_DB_HOST
+              value: postgres
+            - name: MANAGEMENT_DB_PORT
+              value: "5432"
+            - name: VALKEY_HOST
+              value: valkey
+            - name: VALKEY_PORT
+              value: "6379"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web-sidecar
+  namespace: boilerplate-local
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: web-sidecar
+  template:
+    metadata:
+      labels:
+        app: web-sidecar
+    spec:
+      containers:
+        - name: web-sidecar
+          image: boilerplate-local-web-sidecar:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 4001
+          envFrom:
+            - secretRef:
+                name: boilerplate-web-sidecar-env
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web
+  namespace: boilerplate-local
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: web
+  template:
+    metadata:
+      labels:
+        app: web
+    spec:
+      containers:
+        - name: web
+          image: boilerplate-local-web:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 4002
+          envFrom:
+            - secretRef:
+                name: boilerplate-web-env
+          env:
+            - name: RUNTIME_CONFIG_URL
+              value: http://web-sidecar:4001
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: management-web-sidecar
+  namespace: boilerplate-local
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: management-web-sidecar
+  template:
+    metadata:
+      labels:
+        app: management-web-sidecar
+    spec:
+      containers:
+        - name: management-web-sidecar
+          image: boilerplate-local-management-web-sidecar:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 4101
+          envFrom:
+            - secretRef:
+                name: boilerplate-management-web-sidecar-env
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: management-web
+  namespace: boilerplate-local
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: management-web
+  template:
+    metadata:
+      labels:
+        app: management-web
+    spec:
+      containers:
+        - name: management-web
+          image: boilerplate-local-management-web:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 4102
+          envFrom:
+            - secretRef:
+                name: boilerplate-management-web-env
+          env:
+            - name: RUNTIME_CONFIG_URL
+              value: http://management-web-sidecar:4101

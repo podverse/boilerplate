@@ -36,7 +36,7 @@ for these plans you generated, i do not want you to implement them, but i want y
 - .llm/history/active/deployment-k3s-plans/deployment-k3s-plans-part-01.md
 - .gitignore
 - infra/INFRA.md
-- infra/k8s/README.md
+- infra/k8s/INFRA-K8S.md
 - infra/k8s/argocd-project.yaml
 - infra/k8s/local-application.yaml
 - infra/k8s/alpha-application.yaml

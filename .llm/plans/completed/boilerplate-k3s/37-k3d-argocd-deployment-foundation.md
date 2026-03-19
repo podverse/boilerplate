@@ -44,7 +44,7 @@ This plan adds deployment scaffolding, automation, and docs. It does not perform
 
 ## Key Files
 
-- `infra/k8s/README.md`
+- `infra/k8s/INFRA-K8S.md`
 - `infra/k8s/local-application.yaml`
 - `infra/k8s/alpha-application.yaml`
 - `infra/k8s/base/**`
