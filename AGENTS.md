@@ -70,6 +70,12 @@ When implementing features or executing plans that touch **api** or **management
   events). Default test ports are **5532** (Postgres) and **6479** (Valkey). Each test run starts with a **clean slate**:
   globalSetup truncates main and management tables once before any test file runs (api: `apps/api/src/test/global-setup.mjs`;
   management-api: `apps/management-api/src/test/global-setup.mjs`).
+- **Database naming (dev/Docker/K8s):** Two databases in one Postgres instance, aligned with Podverse: app DB
+  `boilerplate_app`, management DB `boilerplate_management`. Env: `POSTGRES_DB` / `POSTGRES_MANAGEMENT_DB` in
+  `infra/config/env-templates/db.env.example`; apps use `DB_NAME` and `MANAGEMENT_DB_NAME`. DB user names align
+  with Podverse: app roles `boilerplate_app_read` / `boilerplate_app_read_write`, management roles
+  `boilerplate_management_read` / `boilerplate_management_read_write`; env vars `POSTGRES_READ_USER`,
+  `POSTGRES_READ_WRITE_USER`, `POSTGRES_MANAGEMENT_READ_USER`, `POSTGRES_MANAGEMENT_READ_WRITE_USER`.
 - **Mailer:** No local mailer service is required. Tests that cover verification flows use a Vitest mock of the
   mailer module to capture tokens and call verification endpoints; see `apps/api/src/test/*.test.ts`.
 

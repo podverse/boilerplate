@@ -46,14 +46,14 @@ jobs:
       DB_HOST: localhost
       DB_PORT: 5532
       DB_NAME: boilerplate_test
-      DB_READ_USERNAME: read
+      DB_READ_USERNAME: boilerplate_app_read
       DB_READ_PASSWORD: test
-      DB_READ_WRITE_USERNAME: read_write
+      DB_READ_WRITE_USERNAME: boilerplate_app_read_write
       DB_READ_WRITE_PASSWORD: test
       MANAGEMENT_DB_HOST: localhost
       MANAGEMENT_DB_PORT: 5532
       MANAGEMENT_DB_NAME: boilerplate_management_test
-      MANAGEMENT_DB_USERNAME: read_write
+      MANAGEMENT_DB_USERNAME: boilerplate_management_read_write
       MANAGEMENT_DB_PASSWORD: test
       VALKEY_HOST: localhost
       VALKEY_PORT: 6479
@@ -142,40 +142,46 @@ jobs:
           psql -d postgres -c "
           DO \$\$
           BEGIN
-            IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = 'read') THEN
-              CREATE USER read WITH PASSWORD 'test';
+            IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = 'boilerplate_app_read') THEN
+              CREATE USER boilerplate_app_read WITH PASSWORD 'test';
             END IF;
-            IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = 'read_write') THEN
-              CREATE USER read_write WITH PASSWORD 'test';
+            IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = 'boilerplate_app_read_write') THEN
+              CREATE USER boilerplate_app_read_write WITH PASSWORD 'test';
+            END IF;
+            IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = 'boilerplate_management_read') THEN
+              CREATE USER boilerplate_management_read WITH PASSWORD 'test';
+            END IF;
+            IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = 'boilerplate_management_read_write') THEN
+              CREATE USER boilerplate_management_read_write WITH PASSWORD 'test';
             END IF;
           END \$\$;
           "
           psql -d boilerplate_test -c "
-          GRANT CONNECT ON DATABASE boilerplate_test TO read, read_write;
-          GRANT USAGE ON SCHEMA public TO read, read_write;
-          GRANT SELECT ON ALL TABLES IN SCHEMA public TO read;
-          GRANT SELECT ON ALL SEQUENCES IN SCHEMA public TO read;
-          GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO read_write;
-          GRANT SELECT, USAGE, UPDATE ON ALL SEQUENCES IN SCHEMA public TO read_write;
-          ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT ON TABLES TO read;
-          ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT ON SEQUENCES TO read;
-          ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO read_write;
-          ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT, USAGE, UPDATE ON SEQUENCES TO read_write;
+          GRANT CONNECT ON DATABASE boilerplate_test TO boilerplate_app_read, boilerplate_app_read_write;
+          GRANT USAGE ON SCHEMA public TO boilerplate_app_read, boilerplate_app_read_write;
+          GRANT SELECT ON ALL TABLES IN SCHEMA public TO boilerplate_app_read;
+          GRANT SELECT ON ALL SEQUENCES IN SCHEMA public TO boilerplate_app_read;
+          GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO boilerplate_app_read_write;
+          GRANT SELECT, USAGE, UPDATE ON ALL SEQUENCES IN SCHEMA public TO boilerplate_app_read_write;
+          ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT ON TABLES TO boilerplate_app_read;
+          ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT ON SEQUENCES TO boilerplate_app_read;
+          ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO boilerplate_app_read_write;
+          ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT, USAGE, UPDATE ON SEQUENCES TO boilerplate_app_read_write;
           "
           psql -c "DROP DATABASE IF EXISTS boilerplate_management_test;"
           psql -c "CREATE DATABASE boilerplate_management_test;"
           psql -d boilerplate_management_test -f infra/management-database/combined/init_management_database.sql
           psql -d boilerplate_management_test -c "
-          GRANT CONNECT ON DATABASE boilerplate_management_test TO read, read_write;
-          GRANT USAGE ON SCHEMA public TO read, read_write;
-          GRANT SELECT ON ALL TABLES IN SCHEMA public TO read;
-          GRANT SELECT ON ALL SEQUENCES IN SCHEMA public TO read;
-          GRANT SELECT, INSERT, UPDATE, DELETE, TRUNCATE ON ALL TABLES IN SCHEMA public TO read_write;
-          GRANT SELECT, USAGE, UPDATE ON ALL SEQUENCES IN SCHEMA public TO read_write;
-          ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT ON TABLES TO read;
-          ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT ON SEQUENCES TO read;
-          ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT, INSERT, UPDATE, DELETE, TRUNCATE ON TABLES TO read_write;
-          ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT, USAGE, UPDATE ON SEQUENCES TO read_write;
+          GRANT CONNECT ON DATABASE boilerplate_management_test TO boilerplate_management_read, boilerplate_management_read_write;
+          GRANT USAGE ON SCHEMA public TO boilerplate_management_read, boilerplate_management_read_write;
+          GRANT SELECT ON ALL TABLES IN SCHEMA public TO boilerplate_management_read;
+          GRANT SELECT ON ALL SEQUENCES IN SCHEMA public TO boilerplate_management_read;
+          GRANT SELECT, INSERT, UPDATE, DELETE, TRUNCATE ON ALL TABLES IN SCHEMA public TO boilerplate_management_read_write;
+          GRANT SELECT, USAGE, UPDATE ON ALL SEQUENCES IN SCHEMA public TO boilerplate_management_read_write;
+          ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT ON TABLES TO boilerplate_management_read;
+          ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT ON SEQUENCES TO boilerplate_management_read;
+          ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT, INSERT, UPDATE, DELETE, TRUNCATE ON TABLES TO boilerplate_management_read_write;
+          ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT, USAGE, UPDATE ON SEQUENCES TO boilerplate_management_read_write;
           "
 
       - name: Test (skipped in CI; run locally)

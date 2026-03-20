@@ -17,6 +17,7 @@
 #   local_env_clean            - Remove generated env files; keep dev/env-overrides/local/*.env (symlinks); requires no Docker Compose and no k3d cluster
 #   local_setup                - local_env_setup + local_infra_up
 #   local_k3d_up, local_k3d_down - Local k3d cluster and ArgoCD deployment lifecycle
+#   local_k3d_postgres_reset   - Delete Postgres PVC and pod so init re-runs with current secrets (fix auth failure after env/secrets change)
 #   local_argocd_port_forward  - Expose ArgoCD UI on https://localhost:8080
 #   local_k3d_status           - Show local k3d workload status
 #   env_setup                  - Alias for local_env_setup (backward compatible)
