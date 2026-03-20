@@ -120,7 +120,7 @@ This removes the k3d cluster and all resources in it. For a full local teardown 
 
 - Local flow uses `scripts/local-env/setup.sh` and `infra/config/local/*.env`; it does not use Ansible.
 - **Same env files for Docker and k3d:** The same `infra/config/local/*.env` set is used for both the Docker Compose path (`make local_infra_up` / `docker compose -f infra/docker/local/docker-compose.yml ...`) and the k3d path (`make local_k3d_up`). The templates use in-network service names (`DB_HOST=postgres`, `VALKEY_HOST=valkey`, `DB_PORT=5432`, `VALKEY_PORT=6379`), which work in both Docker’s network and in the k3d cluster (where the K8s services are also named `postgres` and `valkey`). You do not need separate env files for each.
-- `infra/k8s/local-application.yaml` points at the Boilerplate repo (e.g. `https://github.com/podverse/boilerplate.git`). Align branch/revision with your workflow if you rely on ArgoCD sync.
+- `infra/k8s/local-application.yaml` and `infra/k8s/local/apps/stack.yaml` set `targetRevision` (the branch Argo CD tracks). Currently set to `feature/k3s` for local; change to match your workflow (e.g. `main` or `develop`) if you rely on ArgoCD sync.
 - For more on infra layout and k8s, see [infra/k8s/INFRA-K8S.md](../../infra/k8s/INFRA-K8S.md) and [infra/INFRA.md](../../infra/INFRA.md).
 
 ## SOPS + age (optional; for non-local envs)
