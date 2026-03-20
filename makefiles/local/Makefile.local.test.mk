@@ -19,6 +19,7 @@ validate_ci:
 	@echo "  CI validate (local)"
 	@echo "============================================"
 	@bash scripts/database/verify-migrations-combined.sh
+	@$(MAKE) check_k8s_postgres_init_sync
 	@npm run build:packages
 	@npm run lint
 	@npm run build:apps

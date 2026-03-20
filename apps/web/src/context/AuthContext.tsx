@@ -10,14 +10,12 @@ import {
   webAuth,
 } from '@boilerplate/helpers-requests';
 
+import { getSessionRefreshIntervalMs } from '../config/env';
 import { getApiBaseUrl } from '../lib/api-client';
 import { isPublicPath, ROUTES } from '../lib/routes';
 
 function getRequiredSessionRefreshIntervalMs(): number {
-  const raw =
-    typeof process !== 'undefined'
-      ? process.env.NEXT_PUBLIC_SESSION_REFRESH_INTERVAL_MS
-      : undefined;
+  const raw = getSessionRefreshIntervalMs();
   if (raw === undefined || raw === '') {
     throw new Error(
       'NEXT_PUBLIC_SESSION_REFRESH_INTERVAL_MS is required. Set it to a positive number (ms) less than JWT_ACCESS_EXPIRY_SECONDS * 1000 (e.g. 600000 for 10 minutes).'

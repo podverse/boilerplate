@@ -10,14 +10,12 @@ import {
   managementWebAuth,
 } from '@boilerplate/helpers-requests';
 
+import { getSessionRefreshIntervalMs } from '../config/env';
 import { getApiBaseUrl } from '../lib/api-client';
 import { isPublicPath, ROUTES } from '../lib/routes';
 
 function getRequiredSessionRefreshIntervalMs(): number {
-  const raw =
-    typeof process !== 'undefined'
-      ? process.env.NEXT_PUBLIC_MANAGEMENT_SESSION_REFRESH_INTERVAL_MS
-      : undefined;
+  const raw = getSessionRefreshIntervalMs();
   if (raw === undefined || raw === '') {
     throw new Error(
       'NEXT_PUBLIC_MANAGEMENT_SESSION_REFRESH_INTERVAL_MS is required. Set it to a positive number (ms) less than MANAGEMENT_JWT_ACCESS_EXPIRY_SECONDS * 1000 (e.g. 1800000 for 30 minutes).'

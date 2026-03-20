@@ -1,5 +1,7 @@
 #!/bin/bash
 # Combine numbered migrations into combined init SQL for both main and management DBs.
+# Also copies the combined files into infra/k8s/base/stack/postgres-init/ so the k8s
+# ConfigMap stays in sync (Kustomize requires files under the kustomization root).
 # Edit migration files in infra/database/migrations/ and infra/management-database/migrations/;
 # do not edit the generated combined files by hand.
 #
@@ -47,3 +49,9 @@ for migration in $(ls "$MIGRATIONS_MGMT"/*.sql 2>/dev/null | sort); do
 done
 
 echo "✓ Combined: $COMBINED_MGMT"
+
+# Sync to k8s base stack so postgres-init ConfigMap stays in sync (same as make sync_k8s_postgres_init).
+K8S_POSTGRES_INIT="$REPO_ROOT/infra/k8s/base/stack/postgres-init"
+cp "$COMBINED_DB" "$K8S_POSTGRES_INIT/init_database.sql"
+cp "$COMBINED_MGMT" "$K8S_POSTGRES_INIT/init_management_database.sql"
+echo "✓ Synced to $K8S_POSTGRES_INIT"

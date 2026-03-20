@@ -7,6 +7,8 @@
 LOCAL_PG_CONTAINER ?= boilerplate_local_postgres
 LOCAL_PG_USER ?= postgres
 LOCAL_MANAGEMENT_DB_NAME ?= boilerplate_management
+# Cluster name for local k3d (must match scripts/infra/k3d/*.sh)
+K3D_CLUSTER_NAME ?= boilerplate-local
 
 local_env_prepare:
 	bash scripts/local-env/prepare-overrides.sh
@@ -27,20 +29,17 @@ local_env_clean:
 		docker ps --filter "name=boilerplate_local_" --format "  {{.Names}}"; \
 		exit 1; \
 	fi
+	@if k3d cluster list "$(K3D_CLUSTER_NAME)" >/dev/null 2>&1; then \
+		echo "ERROR: local_env_clean cannot run while the k3d cluster is running."; \
+		echo "Stop it first with: make local_k3d_down"; \
+		exit 1; \
+	fi
 	@echo "Removing local env files (keeping dev/env-overrides/local/*.env)..."
-	@rm -f \
-		infra/config/local/db.env \
-		infra/config/local/valkey.env \
-		infra/config/local/api.env \
-		infra/config/local/web.env \
-		infra/config/local/web-sidecar.env \
-		infra/config/local/management-api.env \
-		infra/config/local/management-web.env \
-		infra/config/local/management-web-sidecar.env \
-		apps/api/.env \
-		apps/web/.env.local \
-		apps/management-api/.env \
-		apps/management-web/.env.local
+	@rm -f $(ROOT)infra/config/local/*.env \
+		$(ROOT)apps/api/.env \
+		$(ROOT)apps/web/.env.local \
+		$(ROOT)apps/management-api/.env \
+		$(ROOT)apps/management-web/.env.local
 	@echo "Local env files removed. Run make local_env_setup to regenerate."
 
 # One-shot: env setup then start Postgres, Valkey, management DB, and create super admin.

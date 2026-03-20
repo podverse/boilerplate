@@ -89,6 +89,8 @@ make local_argocd_port_forward
 
 Then open **https://localhost:8080** in a browser (accept the TLS warning for local). The local app-of-apps points at the Boilerplate repo; you can inspect sync and apps here.
 
+**Login (local dev default):** Use username **`localdev`** and password **`Test!1Aa`**. The built-in **`admin`** account is set to the same password so you can use either. These defaults are configured automatically by `scripts/infra/argocd/local-dev-user.sh` when you run `make local_k3d_up`; do not use in production.
+
 ### Step 6: Tear down
 
 When you are done:
@@ -97,20 +99,27 @@ When you are done:
 make local_k3d_down
 ```
 
-This removes the k3d cluster and all resources in it.
+This removes the k3d cluster and all resources in it. For a full local teardown (Docker Compose, test containers, and k3d), use `make local_clean`.
 
 ---
 
 ## Troubleshooting
 
 - **Cluster already exists:** `make local_k3d_up` is idempotent for cluster create (skips if `boilerplate-local` exists). It will still run env setup, build images, import them, recreate secrets, re-apply ArgoCD and the local stack.
+- **k3d cluster creation fails with "proxyconnect tcp ... i/o timeout":** Docker is using an HTTP proxy to pull images and the proxy connection is timing out. Fix in Docker Desktop: open **Settings → Resources → Proxies**. For **Docker Desktop proxy**, select **No proxy**. For **Containers proxy**, select **No proxy**. Click **Apply**, then run `make local_k3d_up` again. (If you must use a proxy, choose Manual configuration and set a working HTTP/HTTPS proxy that can reach `ghcr.io` and `docker.io`; otherwise use No proxy for local k3d.)
 - **Ports in use:** Ensure 4000, 4002, 4100, 4102, 5433, 6380, and (for ArgoCD) 8080 are free. Change k3d port mapping in `scripts/infra/k3d/local-up.sh` if you need different host ports.
 - **Pods not ready:** Run `make local_k3d_status` and `kubectl -n boilerplate-local describe pod <name>` for events. Check that DB and Valkey pods are up first; API and web depend on them.
+- **API/web/management pods show `ImagePullBackOff` for `boilerplate-local-*` images:** This means the app images were not present on one or more k3d nodes. `local_k3d_up` now validates imported images and exits early with an explicit error if any are missing. Re-run `make local_k3d_down` and then `make local_k3d_up`. To inspect node images directly: `docker exec k3d-boilerplate-local-server-0 crictl images` and `docker exec k3d-boilerplate-local-agent-0 crictl images`.
+- **Node events show `NodeHasDiskPressure` / `FreeDiskSpaceFailed`:** k3d nodes are running out of image disk and kubelet image garbage collection is evicting app images during startup/import. This can produce `ImagePullBackOff` and localhost connection resets even though `local_k3d_up` built images successfully. Fix by freeing Docker disk and increasing Docker Desktop disk image size (and memory if needed), then rerun: `make local_k3d_down && make local_k3d_up`.
 - **ArgoCD sync:** Local stack is applied directly with `kubectl apply -k infra/k8s/local/stack`, so the apps run without waiting for ArgoCD. ArgoCD may show the app as out of sync; that is expected if you are on a branch or commit that differs from the configured repo revision.
+- **ArgoCD login (cluster created before local-dev-user was added):** To get the default `localdev` / `Test!1Aa` login on an existing cluster, run once from repo root: `bash scripts/infra/argocd/local-dev-user.sh`. Otherwise, use username **admin** and retrieve the password with: `kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d && echo`.
+- **"metadata.annotations: Too long: must have at most 262144 bytes" when installing Argo CD:** The install script uses server-side apply to avoid this. If you see it, ensure you are on the latest `install.sh`. If you had a partial install, tear down with `make local_k3d_down` and run `make local_k3d_up` again.
+- **"timed out waiting for the condition on deployments/argocd-server":** The ArgoCD server deployment did not become ready within the wait window (600s). First run can be slow due to image pulls. Check status: `kubectl -n argocd get pods`, `kubectl -n argocd describe deployment argocd-server`, and `kubectl -n argocd logs deployment/argocd-server --tail=50`. If pods are **Pending** (e.g. "0/N nodes available: insufficient memory"), give Docker more resources (Docker Desktop: **Settings → Resources**: at least 4 GB memory, 2 CPUs). Then run `make local_k3d_down` and `make local_k3d_up` again. If pods are **ImagePullBackOff** or **ErrImagePull**, check network/proxy and retry.
 
 ## Notes
 
 - Local flow uses `scripts/local-env/setup.sh` and `infra/config/local/*.env`; it does not use Ansible.
+- **Same env files for Docker and k3d:** The same `infra/config/local/*.env` set is used for both the Docker Compose path (`make local_infra_up` / `docker compose -f infra/docker/local/docker-compose.yml ...`) and the k3d path (`make local_k3d_up`). The templates use in-network service names (`DB_HOST=postgres`, `VALKEY_HOST=valkey`, `DB_PORT=5432`, `VALKEY_PORT=6379`), which work in both Docker’s network and in the k3d cluster (where the K8s services are also named `postgres` and `valkey`). You do not need separate env files for each.
 - `infra/k8s/local-application.yaml` points at the Boilerplate repo (e.g. `https://github.com/podverse/boilerplate.git`). Align branch/revision with your workflow if you rely on ArgoCD sync.
 - For more on infra layout and k8s, see [infra/k8s/INFRA-K8S.md](../../infra/k8s/INFRA-K8S.md) and [infra/INFRA.md](../../infra/INFRA.md).
 

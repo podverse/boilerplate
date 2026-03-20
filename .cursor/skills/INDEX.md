@@ -8,6 +8,7 @@ Skills are invoked when the task matches their "when to use" scope. **For task â
 | --------------------------- | ---------------------------------------------------------------- |
 | api                         | Express API patterns                                             |
 | api-testing                 | Adding/changing API routes, auth, or integration tests           |
+| argocd-gitops-push          | Changing infra/k8s/ or k8s sync targets; add push reminder       |
 | llm-history                 | Updating history or starting feature work                        |
 | plan-files-convention       | Creating, saving, or completing multi-step plans (COPY-PASTA)    |
 | single-readme               | Adding index/overview docs â€“ repo has only one README.md at root |

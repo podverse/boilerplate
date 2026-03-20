@@ -95,6 +95,9 @@ jobs:
         id: db-verify
         run: bash scripts/database/verify-migrations-combined.sh
 
+      - name: Check k8s postgres-init in sync with canonical SQL
+        run: make check_k8s_postgres_init_sync
+
       - name: Setup Node.js
         uses: actions/setup-node@v6
         with:

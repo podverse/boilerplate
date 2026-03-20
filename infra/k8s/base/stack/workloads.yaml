@@ -26,7 +26,7 @@ spec:
               value: boilerplate_management
           volumeMounts:
             - name: postgres-data
-              mountPath: /var/lib/postgresql/data
+              mountPath: /var/lib/postgresql
             - name: postgres-init
               mountPath: /docker-entrypoint-initdb.d
           readinessProbe:
@@ -104,6 +104,19 @@ spec:
       labels:
         app: api
     spec:
+      initContainers:
+        - name: wait-postgres
+          image: busybox:1.36
+          command:
+            - sh
+            - -c
+            - until nc -z postgres 5432; do echo waiting for postgres; sleep 2; done; echo postgres ready
+        - name: wait-valkey
+          image: busybox:1.36
+          command:
+            - sh
+            - -c
+            - until nc -z valkey 6379; do echo waiting for valkey; sleep 2; done; echo valkey ready
       containers:
         - name: api
           image: boilerplate-local-api:latest
@@ -122,6 +135,18 @@ spec:
               value: valkey
             - name: VALKEY_PORT
               value: "6379"
+          readinessProbe:
+            httpGet:
+              path: /v1/health
+              port: 4000
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /v1/health
+              port: 4000
+            initialDelaySeconds: 10
+            periodSeconds: 10
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -138,6 +163,19 @@ spec:
       labels:
         app: management-api
     spec:
+      initContainers:
+        - name: wait-postgres
+          image: busybox:1.36
+          command:
+            - sh
+            - -c
+            - until nc -z postgres 5432; do echo waiting for postgres; sleep 2; done; echo postgres ready
+        - name: wait-valkey
+          image: busybox:1.36
+          command:
+            - sh
+            - -c
+            - until nc -z valkey 6379; do echo waiting for valkey; sleep 2; done; echo valkey ready
       containers:
         - name: management-api
           image: boilerplate-local-management-api:latest
@@ -160,6 +198,18 @@ spec:
               value: valkey
             - name: VALKEY_PORT
               value: "6379"
+          readinessProbe:
+            httpGet:
+              path: /v1/health
+              port: 4100
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /v1/health
+              port: 4100
+            initialDelaySeconds: 10
+            periodSeconds: 10
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -185,6 +235,9 @@ spec:
           envFrom:
             - secretRef:
                 name: boilerplate-web-sidecar-env
+          env:
+            - name: API_BACKEND_URL
+              value: http://api:4000
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -201,6 +254,13 @@ spec:
       labels:
         app: web
     spec:
+      initContainers:
+        - name: wait-web-sidecar
+          image: alpine:3.19
+          command:
+            - sh
+            - -c
+            - until wget -q -O /dev/null http://web-sidecar:4001/; do echo waiting for web-sidecar; sleep 2; done; echo web-sidecar ready
       containers:
         - name: web
           image: boilerplate-local-web:latest
@@ -213,6 +273,18 @@ spec:
           env:
             - name: RUNTIME_CONFIG_URL
               value: http://web-sidecar:4001
+            - name: API_BACKEND_URL
+              value: http://api:4000
+          readinessProbe:
+            tcpSocket:
+              port: 4002
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          livenessProbe:
+            tcpSocket:
+              port: 4002
+            initialDelaySeconds: 15
+            periodSeconds: 10
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -254,6 +326,13 @@ spec:
       labels:
         app: management-web
     spec:
+      initContainers:
+        - name: wait-management-web-sidecar
+          image: alpine:3.19
+          command:
+            - sh
+            - -c
+            - until wget -q -O /dev/null http://management-web-sidecar:4101/; do echo waiting for management-web-sidecar; sleep 2; done; echo management-web-sidecar ready
       containers:
         - name: management-web
           image: boilerplate-local-management-web:latest
@@ -266,3 +345,15 @@ spec:
           env:
             - name: RUNTIME_CONFIG_URL
               value: http://management-web-sidecar:4101
+            - name: MANAGEMENT_API_BACKEND_URL
+              value: http://management-api:4100
+          readinessProbe:
+            tcpSocket:
+              port: 4102
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          livenessProbe:
+            tcpSocket:
+              port: 4102
+            initialDelaySeconds: 15
+            periodSeconds: 10

@@ -34,3 +34,21 @@ Boilerplate: Env vars audit and move customizable to .config (local-env-override
 - AGENTS.md (Local env section)
 - .cursor/skills/env-templates/SKILL.md (override list)
 - dev/env-overrides/local/.gitkeep (override list)
+
+### Session 2 - 2026-03-19
+
+#### Prompt (Developer)
+
+it seems like in boilerplate, when i run local_env_clean it is NOT deleting all the local env files. i still see all of them in boilerplate/infra/config/local/
+
+#### Key Decisions
+
+- `local_env_clean` used paths relative to current directory; when `make` was run from a subdirectory (e.g. `apps/web`), the `rm` ran in the wrong place and left `infra/config/local/*.env` untouched.
+- Root Makefile now sets `ROOT := $(dir $(abspath $(firstword $(MAKEFILE_LIST))))` so env clean always targets repo root.
+- Clean recipe uses `$(ROOT)infra/config/local/*.env` and explicit app paths so it works from any directory; `infra/config/local` uses a wildcard so any new .env there is removed without updating the Makefile.
+
+#### Files Created/Modified
+
+- Makefile (ROOT variable)
+- makefiles/local/Makefile.local.env.mk (local_env_clean uses ROOT; wildcard for infra/config/local)
+- docs/development/LOCAL-ENV-OVERRIDES.md (doc that clean uses repo root and works from any dir)

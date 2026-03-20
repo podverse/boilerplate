@@ -3,7 +3,7 @@ import { cookies, headers } from 'next/headers';
 
 import { request } from '@boilerplate/helpers-requests';
 
-import { getRuntimeConfig } from '../config/runtime-config-store';
+import { getServerApiBaseUrl } from '../config/env';
 
 export type ServerUser = {
   id: string;
@@ -14,17 +14,6 @@ export type ServerUser = {
 };
 
 const AUTH_USER_HEADER = 'x-auth-user';
-
-function getApiVersionPath(): string {
-  const ver = getRuntimeConfig().env.NEXT_PUBLIC_API_VERSION_PATH?.trim();
-  return ver && ver.startsWith('/') ? ver : '/v1';
-}
-
-function getServerApiBaseUrl(): string {
-  const base = getRuntimeConfig().env.NEXT_PUBLIC_API_URL ?? '';
-  const trimmed = base.replace(/\/$/, '');
-  return trimmed + getApiVersionPath();
-}
 
 function parseAuthUserHeader(value: string | null): ServerUser | null {
   if (value === null || value === '') return null;

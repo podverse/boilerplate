@@ -1,6 +1,8 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
+namespace: boilerplate-local
+
 resources:
   - namespace.yaml
   - pvc.yaml
@@ -15,5 +17,5 @@ configMapGenerator:
     files:
       - postgres-init/01_create_users.sh
       - postgres-init/02_init_management_db.sh
-      - ../../../database/combined/init_database.sql
-      - ../../../management-database/combined/init_management_database.sql
+      - postgres-init/init_database.sql
+      - postgres-init/init_management_database.sql

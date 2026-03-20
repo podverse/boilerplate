@@ -2,23 +2,13 @@ import type { NextRequest } from 'next/server';
 
 import { NextResponse } from 'next/server';
 
+import { getApiVersionPath, getAuthMode, getServerApiBaseUrl } from './config/env';
 import { getWebAuthModeCapabilities } from './lib/authMode';
 import { isPublicPath, ROUTES } from './lib/routes';
 
 const SESSION_COOKIE_NAME = 'session';
 const REFRESH_COOKIE_NAME = 'refresh';
 const AUTH_USER_HEADER = 'x-auth-user';
-
-function getApiVersionPath(): string {
-  const ver = process.env.NEXT_PUBLIC_API_VERSION_PATH?.trim();
-  return ver && ver.startsWith('/') ? ver : '/v1';
-}
-
-function getApiBaseUrl(): string {
-  const base = process.env.NEXT_PUBLIC_API_URL ?? '';
-  const trimmed = base.replace(/\/$/, '');
-  return trimmed + getApiVersionPath();
-}
 
 /** Clear session/refresh cookies (Path=/; Max-Age=0) so the client drops them. */
 function appendClearSessionCookies(res: NextResponse): void {
@@ -39,7 +29,7 @@ async function trySessionRestore(request: NextRequest): Promise<{
   }
 
   const cookieHeader = request.headers.get('cookie') ?? '';
-  const baseUrl = getApiBaseUrl();
+  const baseUrl = getServerApiBaseUrl();
   const versionPath = getApiVersionPath();
   if (baseUrl === versionPath || baseUrl === '') {
     return { response: NextResponse.next(), hasRestoredSession: false, sessionInvalidated: false };
@@ -128,7 +118,7 @@ export async function proxy(request: NextRequest) {
   const hasSession =
     (request.cookies.has(SESSION_COOKIE_NAME) || hasRestoredSession) && !sessionInvalidated;
   const isPublic = isPublicPath(pathname);
-  const authModeCapabilities = getWebAuthModeCapabilities(process.env.NEXT_PUBLIC_AUTH_MODE);
+  const authModeCapabilities = getWebAuthModeCapabilities(getAuthMode());
 
   // Mode-disabled auth routes should not be accessible.
   if (pathname === ROUTES.SIGNUP && !authModeCapabilities.canPublicSignup) {

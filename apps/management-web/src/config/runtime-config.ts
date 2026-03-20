@@ -9,8 +9,8 @@ export type ManagementWebRuntimeConfigEnvKey =
   | 'NEXT_PUBLIC_BRAND_NAME'
   | 'NEXT_PUBLIC_APP_TITLE_ICON'
   | 'NEXT_PUBLIC_WEB_APP_URL'
-  | 'DEFAULT_LOCALE'
-  | 'SUPPORTED_LOCALES'
+  | 'NEXT_PUBLIC_DEFAULT_LOCALE'
+  | 'NEXT_PUBLIC_SUPPORTED_LOCALES'
   | 'MANAGEMENT_API_BACKEND_URL';
 
 export interface ManagementWebRuntimeConfig {

@@ -9,9 +9,10 @@ COPY apps/ ./apps/
 COPY scripts/ ./scripts/
 
 RUN npm ci --ignore-scripts && \
+  npm run i18n:compile -w @boilerplate/helpers-i18n && \
   npm run build -w @boilerplate/helpers && \
+  npm run build -w @boilerplate/helpers-i18n && \
   npm run build -w @boilerplate/helpers-requests && \
-  npm run build -w @boilerplate/ui && \
   npm run build -w @boilerplate/management-web
 
 EXPOSE 4102

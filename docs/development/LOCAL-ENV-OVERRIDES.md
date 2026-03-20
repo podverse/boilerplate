@@ -59,5 +59,7 @@ Override files live in:
 ## See also
 
 - [QUICK-START.md](../QUICK-START.md) – Full local setup.
-- `make local_env_clean` – Removes generated env files but keeps `dev/env-overrides/local/` (and
-  symlinks if present) intact.
+- `make local_env_clean` – Removes generated env files under `infra/config/local/` and app
+  `.env`/`.env.local` files, but keeps `dev/env-overrides/local/` (and symlinks if present) intact.
+  Uses repo root so it works no matter which directory you run `make` from. Aborts if local Docker
+  Compose or k3d cluster is running; run `make local_down` and/or `make local_k3d_down` first.

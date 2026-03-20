@@ -10,11 +10,11 @@
 #   local_apps_up, local_apps_down  - Start or stop only app containers (API, management-api, web-sidecar, management-web-sidecar, web, management-web); infra unchanged
 #   local_down                 - Stop all local Docker services (keeps volumes)
 #   local_down_volumes         - Stop services and remove volumes (clean DB/Valkey data)
-#   local_clean               - Run local_down, local_down_volumes, and test_clean (full teardown: dev + test/E2E)
+#   local_clean               - Run local_down, local_down_volumes, local_k3d_down, and test_clean (full teardown: Docker + k3d + test/E2E)
 #   local_env_prepare          - Create override files in ~/.config/boilerplate/local-env-overrides/ from dev/env-overrides/local/*.env.example
 #   local_env_link             - Symlink dev/env-overrides/local/*.env to home directory (share overrides across work trees)
 #   local_env_setup            - Generate infra + app env from templates and overrides (see docs/development/LOCAL-ENV-OVERRIDES.md)
-#   local_env_clean            - Remove generated env files; keep dev/env-overrides/local/*.env (symlinks)
+#   local_env_clean            - Remove generated env files; keep dev/env-overrides/local/*.env (symlinks); requires no Docker Compose and no k3d cluster
 #   local_setup                - local_env_setup + local_infra_up
 #   local_k3d_up, local_k3d_down - Local k3d cluster and ArgoCD deployment lifecycle
 #   local_argocd_port_forward  - Expose ArgoCD UI on https://localhost:8080

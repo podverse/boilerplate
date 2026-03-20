@@ -25,15 +25,64 @@ fi
 
 kubectl config use-context "k3d-$CLUSTER_NAME" >/dev/null
 
-k3d image import -c "$CLUSTER_NAME" boilerplate-local-api:latest
-k3d image import -c "$CLUSTER_NAME" boilerplate-local-management-api:latest
-k3d image import -c "$CLUSTER_NAME" boilerplate-local-web-sidecar:latest
-k3d image import -c "$CLUSTER_NAME" boilerplate-local-web:latest
-k3d image import -c "$CLUSTER_NAME" boilerplate-local-management-web-sidecar:latest
-k3d image import -c "$CLUSTER_NAME" boilerplate-local-management-web:latest
+LOCAL_IMAGES=(
+  boilerplate-local-api:latest
+  boilerplate-local-management-api:latest
+  boilerplate-local-web-sidecar:latest
+  boilerplate-local-web:latest
+  boilerplate-local-management-web-sidecar:latest
+  boilerplate-local-management-web:latest
+)
+
+is_image_present_on_all_nodes() {
+  local image="$1"
+  local image_repo="docker.io/library/${image%%:*}"
+
+  for node in "k3d-${CLUSTER_NAME}-server-0" "k3d-${CLUSTER_NAME}-agent-0"; do
+    if ! docker exec "$node" crictl images | grep -Fq "$image_repo"; then
+      return 1
+    fi
+  done
+  return 0
+}
+
+import_and_verify_image() {
+  local image="$1"
+  local attempt
+  for attempt in 1 2 3; do
+    k3d image import -c "$CLUSTER_NAME" "$image"
+    if is_image_present_on_all_nodes "$image"; then
+      echo "Verified image on all k3d nodes: $image"
+      return 0
+    fi
+    echo "WARN: Image '$image' missing on one or more nodes after import attempt ${attempt}/3."
+    sleep 2
+  done
+  echo "ERROR: Failed to verify image '$image' on all k3d nodes after 3 attempts."
+  echo "       Run 'make local_k3d_down' then 'make local_k3d_up' to retry."
+  return 1
+}
+
+# Import and verify each image individually to avoid partial image availability.
+for image in "${LOCAL_IMAGES[@]}"; do
+  import_and_verify_image "$image"
+done
+
+# Re-check the full set once all imports are complete. On constrained nodes, kubelet image
+# garbage collection can evict a previously imported image while later images are imported.
+for image in "${LOCAL_IMAGES[@]}"; do
+  if ! is_image_present_on_all_nodes "$image"; then
+    echo "ERROR: Image '$image' is missing after full import pass."
+    echo "       This commonly indicates k3d node image garbage collection (disk pressure)."
+    echo "       Free Docker disk space / increase Docker Desktop disk size, then retry:"
+    echo "       make local_k3d_down && make local_k3d_up"
+    exit 1
+  fi
+done
 
 bash scripts/infra/k3d/create-local-secrets.sh
 bash scripts/infra/argocd/install.sh
+bash scripts/infra/argocd/local-dev-user.sh
 bash scripts/infra/argocd/bootstrap.sh
 
 # Local fallback so the stack is runnable immediately even before remote repo sync is configured.
