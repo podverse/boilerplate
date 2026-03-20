@@ -8,6 +8,8 @@ spec:
   sourceRepos:
     - https://github.com/podverse/boilerplate.git
   destinations:
+    - namespace: argocd
+      server: https://kubernetes.default.svc
     - namespace: boilerplate-local
       server: https://kubernetes.default.svc
     - namespace: boilerplate-alpha
