@@ -55,8 +55,15 @@ jobs:
       - name: Calculate unified version
         id: version
         env:
-          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GHCR_TOKEN_PRIMARY: ${{ secrets.GHCR_REGISTRY_TOKEN }}
+          GHCR_TOKEN_FALLBACK: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          GHCR_TOKEN="$GHCR_TOKEN_PRIMARY"
+          if [ -z "$GHCR_TOKEN" ]; then
+            GHCR_TOKEN="$GHCR_TOKEN_FALLBACK"
+            echo "GHCR_REGISTRY_TOKEN not set; falling back to GITHUB_TOKEN for tag discovery."
+          fi
+
           if [ -n "${{ inputs.version_override }}" ]; then
             echo "Using version override: ${{ inputs.version_override }}"
             echo "VERSION=${{ inputs.version_override }}" >> $GITHUB_OUTPUT
@@ -68,8 +75,18 @@ jobs:
           echo "Base version: $BASE_VERSION"
           echo "Reference image path: $IMAGE_PATH"
 
-          TAGS_JSON=$(curl -s -H "Authorization: Bearer $GHCR_TOKEN" \
-            "https://ghcr.io/v2/${IMAGE_PATH}/tags/list" || echo '{"tags":[]}')
+          TAGS_RESPONSE=$(curl -s -w "\n%{http_code}" \
+            -H "Authorization: Bearer $GHCR_TOKEN" \
+            "https://ghcr.io/v2/${IMAGE_PATH}/tags/list")
+          TAGS_JSON=$(echo "$TAGS_RESPONSE" | sed '$d')
+          TAGS_STATUS=$(echo "$TAGS_RESPONSE" | tail -n1)
+
+          if [ "$TAGS_STATUS" != "200" ]; then
+            echo "Failed to list GHCR tags for ${IMAGE_PATH} (HTTP ${TAGS_STATUS})."
+            echo "Set GHCR_REGISTRY_TOKEN with packages:read or re-run with version_override."
+            exit 1
+          fi
+
           TAGS=$(echo "$TAGS_JSON" | jq -r '.tags[]?' 2>/dev/null | grep "^${BASE_VERSION}-alpha\." || true)
 
           if [ -z "$TAGS" ]; then
@@ -100,10 +117,16 @@ jobs:
         include:
           - app: api
             dockerfile: infra/docker/local/api/Dockerfile
+          - app: management-api
+            dockerfile: infra/docker/local/management-api/Dockerfile
           - app: web
             dockerfile: infra/docker/local/web/Dockerfile
           - app: web-sidecar
             dockerfile: infra/docker/local/web-sidecar/Dockerfile
+          - app: management-web
+            dockerfile: infra/docker/local/management-web/Dockerfile
+          - app: management-web-sidecar
+            dockerfile: infra/docker/local/management-web-sidecar/Dockerfile
     steps:
       - uses: actions/checkout@v6
 
@@ -128,3 +151,49 @@ jobs:
             ghcr.io/${{ github.repository }}/${{ matrix.app }}:alpha
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+  verify-published-tags:
+    needs: [validate, publish-docker]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: read
+    steps:
+      - name: Verify expected tags in GHCR
+        env:
+          VERSION: ${{ needs.validate.outputs.version }}
+          GHCR_TOKEN_PRIMARY: ${{ secrets.GHCR_REGISTRY_TOKEN }}
+          GHCR_TOKEN_FALLBACK: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          GHCR_TOKEN="$GHCR_TOKEN_PRIMARY"
+          if [ -z "$GHCR_TOKEN" ]; then
+            GHCR_TOKEN="$GHCR_TOKEN_FALLBACK"
+            echo "GHCR_REGISTRY_TOKEN not set; falling back to GITHUB_TOKEN for verification."
+          fi
+
+          APPS="api management-api web web-sidecar management-web management-web-sidecar"
+          for APP in $APPS; do
+            IMAGE_PATH="${{ github.repository }}/${APP}"
+            echo "Checking tags for ${IMAGE_PATH}"
+
+            TAGS_RESPONSE=$(curl -s -w "\n%{http_code}" \
+              -H "Authorization: Bearer $GHCR_TOKEN" \
+              "https://ghcr.io/v2/${IMAGE_PATH}/tags/list")
+            TAGS_JSON=$(echo "$TAGS_RESPONSE" | sed '$d')
+            TAGS_STATUS=$(echo "$TAGS_RESPONSE" | tail -n1)
+
+            if [ "$TAGS_STATUS" != "200" ]; then
+              echo "Tag verification failed for ${IMAGE_PATH} (HTTP ${TAGS_STATUS})."
+              exit 1
+            fi
+
+            if ! echo "$TAGS_JSON" | jq -e --arg VERSION "$VERSION" '.tags | index($VERSION)' >/dev/null; then
+              echo "Missing version tag ${VERSION} for ${IMAGE_PATH}."
+              exit 1
+            fi
+
+            if ! echo "$TAGS_JSON" | jq -e '.tags | index("alpha")' >/dev/null; then
+              echo "Missing alpha tag for ${IMAGE_PATH}."
+              exit 1
+            fi
+          done

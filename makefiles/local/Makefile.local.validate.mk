@@ -32,8 +32,9 @@ validate:
 	@echo "  All checks passed!"
 	@echo "============================================"
 
-# Optional: after validate, build Docker images for boilerplate-api, boilerplate-web, boilerplate-web-sidecar.
-# Uses infra/docker/local/* Dockerfiles. No workers or management apps.
+# Optional: after validate, build Docker images for alpha publish parity.
+# Uses infra/docker/local/* Dockerfiles for api, management-api, web, web-sidecar,
+# management-web, and management-web-sidecar.
 validate_docker: validate
 	@echo ""
 	@echo "============================================"
@@ -43,11 +44,20 @@ validate_docker: validate
 	@echo "Building boilerplate-api..."
 	docker build -f infra/docker/local/api/Dockerfile -t boilerplate-api:test .
 	@echo ""
+	@echo "Building boilerplate-management-api..."
+	docker build -f infra/docker/local/management-api/Dockerfile -t boilerplate-management-api:test .
+	@echo ""
 	@echo "Building boilerplate-web..."
 	docker build -f infra/docker/local/web/Dockerfile -t boilerplate-web:test .
 	@echo ""
 	@echo "Building boilerplate-web-sidecar..."
 	docker build -f infra/docker/local/web-sidecar/Dockerfile -t boilerplate-web-sidecar:test .
+	@echo ""
+	@echo "Building boilerplate-management-web..."
+	docker build -f infra/docker/local/management-web/Dockerfile -t boilerplate-management-web:test .
+	@echo ""
+	@echo "Building boilerplate-management-web-sidecar..."
+	docker build -f infra/docker/local/management-web-sidecar/Dockerfile -t boilerplate-management-web-sidecar:test .
 	@echo ""
 	@echo "============================================"
 	@echo "  All Docker images built successfully!"
