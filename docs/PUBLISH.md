@@ -15,8 +15,17 @@ must be handled by an external runtime or GitOps repo.
 
 ## How to publish
 
-1. **Merge to alpha** – Open a PR from `develop` into `alpha` (or push to `alpha`). The workflow [.github/workflows/publish-alpha.yml](../.github/workflows/publish-alpha.yml) runs on push to `alpha`.
-2. **Manual run** – In GitHub: Actions → "Publish Alpha" → "Run workflow". Choose the `alpha` branch and run. You can optionally set **Version override** to a specific version string (e.g. `0.1.2-alpha.99`); when set, that value is used and the usual auto-increment from GHCR is skipped. Useful for re-publishing a specific version or testing.
+1. **Sync develop to alpha** – Keep `alpha` as a mirror of `develop`:
+
+   ```bash
+   ./scripts/publish/sync-develop-to-alpha.sh
+   ```
+
+   If your branch protection does not allow direct push to `alpha`, open a PR from `develop` to
+   `alpha` instead.
+
+2. **Merge to alpha** – Open a PR from `develop` into `alpha` (or push to `alpha`). The workflow [.github/workflows/publish-alpha.yml](../.github/workflows/publish-alpha.yml) runs on push to `alpha`.
+3. **Manual run** – In GitHub: Actions → "Publish Alpha" → "Run workflow". Choose the `alpha` branch and run. You can optionally set **Version override** to a specific version string (e.g. `0.1.2-alpha.99`); when set, that value is used and the usual auto-increment from GHCR is skipped. Useful for re-publishing a specific version or testing.
 
 When bumping version via `scripts/publish/bump-version.sh`, the script regenerates the lockfile
 under Linux (Docker) before committing so CI gets the correct optional deps. If you add or change

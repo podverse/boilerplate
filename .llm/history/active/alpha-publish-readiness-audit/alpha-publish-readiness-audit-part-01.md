@@ -29,3 +29,25 @@ To-do's from the plan have already been created. Do not create them again. Mark 
 - docs/PUBLISH.md
 - makefiles/local/Makefile.local.validate.mk
 - .llm/history/active/alpha-publish-readiness-audit/alpha-publish-readiness-audit-part-01.md
+
+### Session 2 - 2026-03-22
+
+#### Prompt (Developer)
+
+create one
+
+#### Key Decisions
+
+- Added a Boilerplate `sync-develop-to-alpha.sh` helper in `scripts/publish/` that mirrors the
+  Podverse flow: clean-worktree checks, origin sync, fast-forward-only merge, guarded push, and
+  post-push branch parity verification.
+- Kept script behavior aligned with existing Boilerplate publish conventions by using
+  `git push --no-verify` (same bypass style used in `bump-version.sh`).
+- Updated `docs/PUBLISH.md` to include the new helper as the recommended first step in alpha
+  publish flow and documented PR fallback when branch protection blocks direct pushes.
+
+#### Files Modified
+
+- scripts/publish/sync-develop-to-alpha.sh
+- docs/PUBLISH.md
+- .llm/history/active/alpha-publish-readiness-audit/alpha-publish-readiness-audit-part-01.md
