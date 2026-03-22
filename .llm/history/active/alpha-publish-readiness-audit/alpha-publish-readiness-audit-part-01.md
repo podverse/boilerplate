@@ -51,3 +51,33 @@ create one
 - scripts/publish/sync-develop-to-alpha.sh
 - docs/PUBLISH.md
 - .llm/history/active/alpha-publish-readiness-audit/alpha-publish-readiness-audit-part-01.md
+
+### Session 3 - 2026-03-22
+
+#### Prompt (Developer)
+
+Durable Fix: Alpha Publish Without Manual Bootstrap
+
+Implement the plan as specified, it is attached for your reference. Do NOT edit the plan file itself.
+
+To-do's from the plan have already been created. Do not create them again. Mark them as in_progress as you work, starting with the first one. Don't stop until you have completed all the to-dos.
+
+#### Key Decisions
+
+- Updated alpha version discovery to auto-bootstrap when GHCR returns `404` for missing package
+  tags, so first publish no longer requires manual `version_override`.
+- Added resilient token behavior in version discovery: retry with `GITHUB_TOKEN` if
+  `GHCR_REGISTRY_TOKEN` is missing or returns `401`/`403`, while still failing on unresolved
+  auth/permission issues.
+- Kept post-publish verification strict (no relaxation) so missing pushed tags still fail the
+  workflow.
+- Updated publish documentation to describe bootstrap `404` behavior, HTTP status handling, and
+  troubleshooting for auth and visibility issues.
+- Validation was performed by static logic-path inspection of workflow status branches and docs,
+  plus linter diagnostics for edited files.
+
+#### Files Modified
+
+- .github/workflows/publish-alpha.yml
+- docs/PUBLISH.md
+- .llm/history/active/alpha-publish-readiness-audit/alpha-publish-readiness-audit-part-01.md

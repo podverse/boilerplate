@@ -49,6 +49,10 @@ that is unique per run. The version is derived from the root `package.json` base
 You can pin a specific alpha build by using the version tag; use `:alpha` when you always want
 the latest.
 
+On a first-ever publish where GHCR does not yet have the package path, the workflow treats
+`404` from tag discovery as an expected bootstrap state and automatically starts at
+`X.Y.Z-alpha.0`.
+
 ## How to consume the images
 
 Replace `OWNER` and `REPO` with your GitHub org/user and repo name (e.g. `myorg/boilerplate`).
@@ -93,6 +97,13 @@ Pushing images still uses `GITHUB_TOKEN` with `packages:write` permissions in th
 For repository setup details, see
 [repo-management/GITHUB-SETUP.md](repo-management/GITHUB-SETUP.md).
 
+The workflow behavior for GHCR tag discovery is:
+
+- `200`: normal tag discovery and increment behavior
+- `404`: expected first-run bootstrap state, auto-starts at `X.Y.Z-alpha.0`
+- `401`/`403`: auth or package permission issue (fails with guidance)
+- Other status codes: treated as unexpected and fail fast
+
 ## Deployment contract
 
 - This repo's alpha pipeline is **publish-only**.
@@ -100,3 +111,13 @@ For repository setup details, see
 - `infra/k8s/alpha/` is scaffold-only and not a wired deployment target today.
 - Consumers should reference immutable version tags (for example `0.1.2-alpha.3`) in their
   deployment repo and use `:alpha` only when "latest alpha" behavior is intended.
+
+## Troubleshooting
+
+- **Tag discovery returns `404`**: This is expected on first publish. The workflow now bootstraps
+  automatically at `X.Y.Z-alpha.0`.
+- **Tag discovery returns `401` or `403`**: Check `GHCR_REGISTRY_TOKEN` scope
+  (`packages:read`), org secret visibility for this repo, and whether org policy restricts
+  package read access from workflow tokens.
+- **Need a specific tag for an emergency republish**: Use manual dispatch with
+  `version_override`.
