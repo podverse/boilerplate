@@ -21,14 +21,14 @@ const testEnv: Record<string, string> = {
   MANAGEMENT_DB_HOST: 'localhost',
   MANAGEMENT_DB_PORT: '5532',
   MANAGEMENT_DB_NAME: 'boilerplate_management_test',
-  MANAGEMENT_DB_USERNAME: 'read_write',
+  MANAGEMENT_DB_USERNAME: 'boilerplate_management_read_write',
   MANAGEMENT_DB_PASSWORD: 'test',
   DB_HOST: 'localhost',
   DB_PORT: '5532',
   DB_NAME: 'boilerplate_test',
-  DB_READ_USERNAME: 'read',
+  DB_READ_USERNAME: 'boilerplate_app_read',
   DB_READ_PASSWORD: 'test',
-  DB_READ_WRITE_USERNAME: 'read_write',
+  DB_READ_WRITE_USERNAME: 'boilerplate_app_read_write',
   DB_READ_WRITE_PASSWORD: 'test',
 };
 

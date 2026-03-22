@@ -19,6 +19,7 @@ validate_ci:
 	@echo "  CI validate (local)"
 	@echo "============================================"
 	@bash scripts/database/verify-migrations-combined.sh
+	@$(MAKE) check_k8s_postgres_init_sync
 	@npm run build:packages
 	@npm run lint
 	@npm run build:apps
@@ -97,7 +98,7 @@ test_valkey_up:
 		echo "Test Valkey ready on port $(TEST_VALKEY_PORT)."; \
 	fi
 
-# Create boilerplate_test database, apply schema, create read/read_write users and grants. Requires test Postgres running.
+# Create boilerplate_test database, apply schema, create app DB users (boilerplate_app_read, boilerplate_app_read_write) and grants.
 # Drops and recreates the test DB each time so the schema always matches infra/database/combined/init_database.sql.
 # Uses docker exec so host does not need psql installed.
 test_db_init: test_postgres_up
@@ -106,39 +107,41 @@ test_db_init: test_postgres_up
 	@docker exec $(TEST_PG_CONTAINER) psql -U $(TEST_PG_USER) -d postgres -c "DROP DATABASE IF EXISTS $(TEST_DB_NAME);"
 	@docker exec $(TEST_PG_CONTAINER) psql -U $(TEST_PG_USER) -d postgres -c "CREATE DATABASE $(TEST_DB_NAME);"
 	@cat infra/database/combined/init_database.sql | docker exec -i $(TEST_PG_CONTAINER) psql -U $(TEST_PG_USER) -d $(TEST_DB_NAME)
-	@docker exec $(TEST_PG_CONTAINER) psql -U $(TEST_PG_USER) -d postgres -c "DO \$$$$ BEGIN IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = 'read') THEN CREATE USER read WITH PASSWORD 'test'; END IF; IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = 'read_write') THEN CREATE USER read_write WITH PASSWORD 'test'; END IF; END \$$$$;"
+	@docker exec $(TEST_PG_CONTAINER) psql -U $(TEST_PG_USER) -d postgres -c "DO \$$$$ BEGIN IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = 'boilerplate_app_read') THEN CREATE USER boilerplate_app_read WITH PASSWORD 'test'; END IF; IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = 'boilerplate_app_read_write') THEN CREATE USER boilerplate_app_read_write WITH PASSWORD 'test'; END IF; END \$$$$;"
 	@docker exec $(TEST_PG_CONTAINER) psql -U $(TEST_PG_USER) -d $(TEST_DB_NAME) -c " \
-		GRANT CONNECT ON DATABASE $(TEST_DB_NAME) TO read, read_write; \
-		GRANT USAGE ON SCHEMA public TO read, read_write; \
-		GRANT SELECT ON ALL TABLES IN SCHEMA public TO read; \
-		GRANT SELECT ON ALL SEQUENCES IN SCHEMA public TO read; \
-		GRANT SELECT, INSERT, UPDATE, DELETE, TRUNCATE ON ALL TABLES IN SCHEMA public TO read_write; \
-		GRANT SELECT, USAGE, UPDATE ON ALL SEQUENCES IN SCHEMA public TO read_write; \
-		ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT ON TABLES TO read; \
-		ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT ON SEQUENCES TO read; \
-		ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT, INSERT, UPDATE, DELETE, TRUNCATE ON TABLES TO read_write; \
-		ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT, USAGE, UPDATE ON SEQUENCES TO read_write;"
+		GRANT CONNECT ON DATABASE $(TEST_DB_NAME) TO boilerplate_app_read, boilerplate_app_read_write; \
+		GRANT USAGE ON SCHEMA public TO boilerplate_app_read, boilerplate_app_read_write; \
+		GRANT SELECT ON ALL TABLES IN SCHEMA public TO boilerplate_app_read; \
+		GRANT SELECT ON ALL SEQUENCES IN SCHEMA public TO boilerplate_app_read; \
+		GRANT SELECT, INSERT, UPDATE, DELETE, TRUNCATE ON ALL TABLES IN SCHEMA public TO boilerplate_app_read_write; \
+		GRANT SELECT, USAGE, UPDATE ON ALL SEQUENCES IN SCHEMA public TO boilerplate_app_read_write; \
+		ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT ON TABLES TO boilerplate_app_read; \
+		ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT ON SEQUENCES TO boilerplate_app_read; \
+		ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT, INSERT, UPDATE, DELETE, TRUNCATE ON TABLES TO boilerplate_app_read_write; \
+		ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT, USAGE, UPDATE ON SEQUENCES TO boilerplate_app_read_write;"
 	@echo "Test database $(TEST_DB_NAME) and users ready."
 
-# Create boilerplate_management_test database and apply management schema. Requires test_postgres_up and test_db_init (read/read_write users).
+# Create boilerplate_management_test database and apply management schema. Requires test_db_init (app users).
+# Creates management DB users (boilerplate_management_read, boilerplate_management_read_write) and grants.
 # Used by apps/management-api integration tests. Same Postgres instance as main test DB; separate database for isolation.
 test_db_init_management: test_db_init
 	@echo "Creating management test database..."
 	@docker exec $(TEST_PG_CONTAINER) psql -U $(TEST_PG_USER) -d postgres -c "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = '$(TEST_MANAGEMENT_DB_NAME)' AND pid <> pg_backend_pid();" 2>/dev/null || true
 	@docker exec $(TEST_PG_CONTAINER) psql -U $(TEST_PG_USER) -d postgres -c "DROP DATABASE IF EXISTS $(TEST_MANAGEMENT_DB_NAME);"
 	@docker exec $(TEST_PG_CONTAINER) psql -U $(TEST_PG_USER) -d postgres -c "CREATE DATABASE $(TEST_MANAGEMENT_DB_NAME);"
+	@docker exec $(TEST_PG_CONTAINER) psql -U $(TEST_PG_USER) -d postgres -c "DO \$$$$ BEGIN IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = 'boilerplate_management_read') THEN CREATE USER boilerplate_management_read WITH PASSWORD 'test'; END IF; IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = 'boilerplate_management_read_write') THEN CREATE USER boilerplate_management_read_write WITH PASSWORD 'test'; END IF; END \$$$$;"
 	@cat infra/management-database/combined/init_management_database.sql | docker exec -i $(TEST_PG_CONTAINER) psql -U $(TEST_PG_USER) -d $(TEST_MANAGEMENT_DB_NAME)
 	@docker exec $(TEST_PG_CONTAINER) psql -U $(TEST_PG_USER) -d $(TEST_MANAGEMENT_DB_NAME) -c " \
-		GRANT CONNECT ON DATABASE $(TEST_MANAGEMENT_DB_NAME) TO read, read_write; \
-		GRANT USAGE ON SCHEMA public TO read, read_write; \
-		GRANT SELECT ON ALL TABLES IN SCHEMA public TO read; \
-		GRANT SELECT ON ALL SEQUENCES IN SCHEMA public TO read; \
-		GRANT SELECT, INSERT, UPDATE, DELETE, TRUNCATE ON ALL TABLES IN SCHEMA public TO read_write; \
-		GRANT SELECT, USAGE, UPDATE ON ALL SEQUENCES IN SCHEMA public TO read_write; \
-		ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT ON TABLES TO read; \
-		ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT ON SEQUENCES TO read; \
-		ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT, INSERT, UPDATE, DELETE, TRUNCATE ON TABLES TO read_write; \
-		ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT, USAGE, UPDATE ON SEQUENCES TO read_write;"
+		GRANT CONNECT ON DATABASE $(TEST_MANAGEMENT_DB_NAME) TO boilerplate_management_read, boilerplate_management_read_write; \
+		GRANT USAGE ON SCHEMA public TO boilerplate_management_read, boilerplate_management_read_write; \
+		GRANT SELECT ON ALL TABLES IN SCHEMA public TO boilerplate_management_read; \
+		GRANT SELECT ON ALL SEQUENCES IN SCHEMA public TO boilerplate_management_read; \
+		GRANT SELECT, INSERT, UPDATE, DELETE, TRUNCATE ON ALL TABLES IN SCHEMA public TO boilerplate_management_read_write; \
+		GRANT SELECT, USAGE, UPDATE ON ALL SEQUENCES IN SCHEMA public TO boilerplate_management_read_write; \
+		ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT ON TABLES TO boilerplate_management_read; \
+		ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT ON SEQUENCES TO boilerplate_management_read; \
+		ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT, INSERT, UPDATE, DELETE, TRUNCATE ON TABLES TO boilerplate_management_read_write; \
+		ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT, USAGE, UPDATE ON SEQUENCES TO boilerplate_management_read_write;"
 	@echo "Management test database $(TEST_MANAGEMENT_DB_NAME) ready."
 
 # Stop and remove test Postgres, Valkey, and E2E Mailpit containers. Idempotent.
@@ -151,7 +154,7 @@ test_clean:
 
 # Print instructions for meeting test requirements.
 help_test:
-	@echo "Test requirements: Postgres on port $(TEST_DB_PORT) and Valkey on port $(TEST_VALKEY_PORT), with databases $(TEST_DB_NAME) and $(TEST_MANAGEMENT_DB_NAME), and read/read_write users."
+	@echo "Test requirements: Postgres on port $(TEST_DB_PORT) and Valkey on port $(TEST_VALKEY_PORT), with databases $(TEST_DB_NAME) and $(TEST_MANAGEMENT_DB_NAME), and DB users boilerplate_app_read, boilerplate_app_read_write, boilerplate_management_read, boilerplate_management_read_write."
 	@echo ""
 	@echo "Both databases live in the SAME Postgres container ($(TEST_PG_CONTAINER)). You will not see a separate 'management database' container in docker ps."
 	@echo "To verify both DBs exist after make test_deps, run:  make test_db_list"
@@ -162,7 +165,7 @@ help_test:
 	@echo "This will:"
 	@echo "  1. Start Postgres in a container on port $(TEST_DB_PORT) (if not already running)."
 	@echo "  2. Start Valkey in a container on port $(TEST_VALKEY_PORT) (if not already running)."
-	@echo "  3. Drop and recreate $(TEST_DB_NAME), apply infra/database/combined/init_database.sql, and create read/read_write users."
+	@echo "  3. Drop and recreate $(TEST_DB_NAME), apply infra/database/combined/init_database.sql, and create boilerplate_app_read/boilerplate_app_read_write users."
 	@echo "  4. Drop and recreate $(TEST_MANAGEMENT_DB_NAME), apply infra/management-database/combined/init_management_database.sql (for management-api tests)."
 	@echo "     (Recreating ensures test DB schemas stay in sync with migrations.)"
 	@echo "  5. Start Mailpit (SMTP 1025, web UI 8025) for E2E signup-enabled runs (idempotent)."

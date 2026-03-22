@@ -5,17 +5,14 @@ import { useRouter } from 'next/navigation';
 
 import { AppTypeTitle, NavBar as UINavBar } from '@boilerplate/ui';
 
+import { getAppTitleIcon } from '../config/env';
 import { useAuth } from '../context/AuthContext';
 import { ROUTES } from '../lib/routes';
 
 export type NavBarMainNavItem = { href: string; label: string };
 
 function getTitleIconFallback(): string | undefined {
-  const icon =
-    typeof process.env.NEXT_PUBLIC_APP_TITLE_ICON === 'string'
-      ? process.env.NEXT_PUBLIC_APP_TITLE_ICON.trim()
-      : '';
-  return icon !== '' ? icon : undefined;
+  return getAppTitleIcon();
 }
 
 export function NavBar({

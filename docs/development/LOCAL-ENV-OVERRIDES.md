@@ -59,5 +59,8 @@ Override files live in:
 ## See also
 
 - [QUICK-START.md](../QUICK-START.md) – Full local setup.
-- `make local_env_clean` – Removes generated env files but keeps `dev/env-overrides/local/` (and
-  symlinks if present) intact.
+- [K3D-ARGOCD-LOCAL.md](K3D-ARGOCD-LOCAL.md) – k3d + ArgoCD local stack; includes troubleshooting for "password authentication failed for user boilerplate_app_read" (e.g. after changing DB passwords or recreating env) and `make local_k3d_postgres_reset`.
+- `make local_env_clean` – Removes generated env files under `infra/config/local/` and app
+  `.env`/`.env.local` files, but keeps `dev/env-overrides/local/` (and symlinks if present) intact.
+  Uses repo root so it works no matter which directory you run `make` from. Aborts if local Docker
+  Compose or k3d cluster is running; run `make local_down` and/or `make local_k3d_down` first.

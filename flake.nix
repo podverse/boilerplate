@@ -13,12 +13,16 @@
         buildInputs = with pkgs; [
           nodejs_24
           git
+          k3d
+          kubectl
+          age
         ];
         shellHook = ''
           echo "Boilerplate (Node $(node -v))"
           echo "  npm install        # install deps"
           echo "  npm run dev:api    # API"
           echo "  npm run dev:web    # Next.js app"
+          echo "  make local_k3d_up  # k3s + ArgoCD (requires host Docker)"
         '';
       in
       {

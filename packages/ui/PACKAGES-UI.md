@@ -1,66 +1,38 @@
-# packages/ui
+# @boilerplate/ui
 
-Shared UI components and styles for the boilerplate apps (web, management-web). Built with React 19, TypeScript, and SCSS modules.
+Shared UI components, styles, and hooks for the Boilerplate apps (web, management-web).
 
-## Storybook (viewing and documentation)
+## Styles: design tokens and mixins
 
-Storybook lets you browse and document components in isolation with theme and variant controls.
+**Single source of truth:** `src/styles/`
 
-### Running Storybook
+- **Design tokens** (`_variables.scss`): Colors, spacing, typography, breakpoints, focus/opacity, z-index, shadows. Use in app or component SCSS via `@use '@boilerplate/ui/styles/variables' as *;`
+- **Mixins** (`_mixins.scss`): Use via `@use '@boilerplate/ui/styles/mixins' as *;` (mixins depend on variables). Defined mixins:
+  - `focus-ring` – keyboard focus outline (a11y); used by Button, Select, Input, NavBar, Dropdown, TableFilterBar
+  - `disabled-state` – opacity + cursor; used by Button, Input, Textarea, Select
+  - `at-least-sm`, `at-least-md`, `at-least-lg` – min-width media queries (mobile-first); `at-least-sm` used by ResourceTableWithFilter, NavBar
+  - `clearfix`, `truncate` – available for use (float clear, text ellipsis)
 
-- **From repo root** (recommended; uses Nix wrapper if present):
-  ```bash
-  ./scripts/nix/with-env npm run storybook
-  ```
-  Or without Nix: `npm run storybook`
-- **From this package**:
-  ```bash
-  cd packages/ui && npm run storybook
-  ```
-  Storybook runs at **http://localhost:6006** by default.
+Apps typically import `@boilerplate/ui/styles` (or `globals.scss` that uses it); component `.module.scss` files import variables/mixins as needed.
 
-### Building the static Storybook
+## Component structure (`src/components/`)
 
-From repo root:
+| Directory       | Purpose                                                                                                                                                                                                                                                               |
+| --------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **form/**       | Form controls (Input, Select, CheckboxField, Textarea, PasswordStrengthMeter), form layout (FormContainer, FormSection, FormActions), buttons (Button, ButtonLink), CRUD UI (CrudButtons, CrudCheckboxes), auth forms. See `form/PACKAGES-UI-SRC-COMPONENTS-FORM.md`. |
+| **layout/**     | Page structure and content: AppView, Main, Container, Stack, Row, Card, SectionWithHeading, PageHeader, ContentPageLayout, FilterTablePageLayout, BucketDetailPageLayout, CenterInViewport, CopyLinkBox, DataDetail, Divider, List, UnorderedList, Text.              |
+| **modal/**      | Overlays: Modal, ConfirmDeleteModal, RateLimitModal, NavigationLoadingOverlay.                                                                                                                                                                                        |
+| **navigation/** | NavBar, Breadcrumbs, Tabs, Link, BackToButton, Dropdown, Pagination, GoToPageModal, ThemeSelector, AppTypeTitle.                                                                                                                                                      |
+| **table/**      | Data tables: Table, TableWithSort, TableFilterBar, TableWithFilter, ResourceTableWithFilter; sort prefs (sortPrefsCookie).                                                                                                                                            |
+| **feedback/**   | LoadingSpinner, Tooltip, InfoIcon.                                                                                                                                                                                                                                    |
+| **bucket/**     | Bucket-feature components: BucketDetailContent, BucketMessageList, MessageCard, BucketAdminsView, BucketSettingsTabs, BucketSettingsBreadcrumbs, BucketMessagesBreadcrumbs, BucketMessagesPageContent, BucketSettingsLayoutClient, EditBucketAdminForm.               |
 
-```bash
-./scripts/nix/with-env npm run build-storybook -w @boilerplate/ui
-```
+New primitives (buttons, inputs, text) belong in **form/** or **layout/** as appropriate. New overlays in **modal/**; new nav in **navigation/**.
 
-Output is in `packages/ui/storybook-static/`.
+## Hooks (`src/hooks/`)
 
-### Where stories live
+- **useDeleteModal** – Open/close state and handlers for a delete confirmation modal; used by ResourceTableWithFilter and any list that needs row delete + confirm. Export: `@boilerplate/ui`.
+- **useTableFilterState** – Filter state for table filter bars (column values, apply/reset). Export: `@boilerplate/ui`.
+- **useAuthValidation** – Auth-related validation (e.g. email/password with `validateEmailWithT`, `validatePasswordWithT`). Export: `@boilerplate/ui`.
 
-Stories are co-located with components under `src/`:
-
-- Glob: `src/**/*.stories.@(ts|tsx)`
-- Examples: `Button.stories.tsx`, `Input.stories.tsx`, `Card.stories.tsx`, `auth/LoginForm.stories.tsx`
-
-Primitive and shared components (form, layout, feedback, modal, navigation, table) have stories that document props (via argTypes) and key states (default, loading, disabled, error, etc.). Composed page-level components (e.g. bucket detail, settings layout) may not have dedicated stories.
-
-### Adding a new story
-
-1. Create a file next to the component: `ComponentName.stories.tsx`.
-2. Use the Component Story Format (CSF): default export `meta` (e.g. `Meta<typeof Component>`), named exports for each story (e.g. `StoryObj<typeof Component>`).
-3. Use `tags: ['autodocs']` in meta if you want docs generated from the component.
-4. Use `argTypes` to expose props as controls.
-
-Example:
-
-```tsx
-import type { Meta, StoryObj } from '@storybook/react';
-import { MyComponent } from './MyComponent';
-
-const meta: Meta<typeof MyComponent> = {
-  component: MyComponent,
-  tags: ['autodocs'],
-};
-export default meta;
-
-type Story = StoryObj<typeof MyComponent>;
-export const Default: Story = { args: { label: 'Hello' } };
-```
-
-### Agent guidance
-
-When adding or changing UI components in this package, add or update Storybook stories so the component catalog stays in sync. See the **storybook-component-docs** skill (`.cursor/skills/storybook-component-docs/SKILL.md`) for when and how to add or update stories.
+Use these when a component needs the same state + handler pattern; avoid one-off local state that duplicates the pattern. For app-specific submit/loading/error patterns, keep logic in the app or add a shared hook only if reuse is clear (e.g. 3+ call sites).

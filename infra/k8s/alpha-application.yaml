@@ -1,0 +1,21 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: boilerplate-alpha
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: boilerplate
+  source:
+    repoURL: https://github.com/podverse/boilerplate.git
+    targetRevision: alpha
+    path: infra/k8s/alpha/apps
+    directory:
+      recurse: true
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: boilerplate-alpha
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true

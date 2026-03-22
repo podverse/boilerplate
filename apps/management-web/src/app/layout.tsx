@@ -13,6 +13,8 @@ import {
 } from '@boilerplate/ui';
 
 import { AuthWrapper } from '../components/AuthWrapper';
+import RuntimeConfigScript from '../components/Head/RuntimeConfigScript';
+import { getRuntimeConfig } from '../config/runtime-config-store';
 import { getServerUser } from '../lib/server-auth';
 
 import '../styles/globals.scss';
@@ -28,6 +30,7 @@ export const metadata: Metadata = {
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const locale = await getLocale();
   const messages = await getMessages();
+  const runtimeConfig = getRuntimeConfig();
   const cookieStore = await cookies();
   const initialTheme = getThemeFromSettingsCookieValue(
     cookieStore.get(SETTINGS_COOKIE_NAME)?.value
@@ -36,6 +39,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 
   return (
     <html lang={locale}>
+      <head>
+        <RuntimeConfigScript runtimeConfig={runtimeConfig} />
+      </head>
       <body>
         <NextIntlClientProvider locale={locale} messages={messages}>
           <ThemeWrapper initialTheme={initialTheme} settingsCookieName={SETTINGS_COOKIE_NAME}>

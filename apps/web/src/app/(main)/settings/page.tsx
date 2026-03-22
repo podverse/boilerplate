@@ -2,6 +2,7 @@ import type { AccountSettingsTab } from '../../../lib/routes';
 
 import { redirect } from 'next/navigation';
 
+import { getAuthMode } from '../../../config/env';
 import { getWebAuthModeCapabilities } from '../../../lib/authMode';
 import { ROUTES } from '../../../lib/routes';
 import { getServerUser } from '../../../lib/server-auth';
@@ -21,7 +22,7 @@ export default async function SettingsPage({
   const resolvedSearch = searchParams !== undefined ? await searchParams : {};
   const tabParam = resolvedSearch.tab ?? 'general';
 
-  const authCapabilities = getWebAuthModeCapabilities(process.env.NEXT_PUBLIC_AUTH_MODE);
+  const authCapabilities = getWebAuthModeCapabilities(getAuthMode());
   if (tabParam === 'email' && !authCapabilities.canUseEmailVerificationFlows) {
     redirect(ROUTES.SETTINGS);
   }

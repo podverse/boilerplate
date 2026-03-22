@@ -104,5 +104,5 @@ local_down:
 local_down_volumes:
 	docker compose -f $(COMPOSE_LOCAL) --project-directory . down -v --rmi local
 
-# Also stop and remove test/E2E containers (boilerplate_test_postgres, boilerplate_test_valkey, boilerplate_e2e_mailpit).
-local_clean: local_down local_down_volumes test_clean
+# Also stop k3d cluster (if present) and test/E2E containers (boilerplate_test_postgres, boilerplate_test_valkey, boilerplate_e2e_mailpit).
+local_clean: local_down local_down_volumes local_k3d_down test_clean

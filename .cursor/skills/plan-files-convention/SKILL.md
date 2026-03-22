@@ -67,4 +67,7 @@ Plans stay under ~300 lines each; split into part files (e.g. `22-part-1-dashboa
 ## Reference
 
 - Podverse: `.llm/plans/active/` and `.llm/plans/completed/`; see e.g. `podverse/.llm/plans/completed/web-runtime-config-endpoint/` for layout.
-- Boilerplate plan set: `.llm/plans/active/boilerplate/`.
+- Boilerplate: active plan sets live in topic-specific directories under `.llm/plans/active/`
+  (e.g. `web-dashboard/`, `documentation-diagrams/`, `git-hooks/`, `jenkins-local/`,
+  `deployment-installer-roadmap/`). Index: `.llm/plans/active/boilerplate/00-overview.md`.
+  Completed: `.llm/plans/completed/boilerplate/`, `.llm/plans/completed/boilerplate-k3s/`.

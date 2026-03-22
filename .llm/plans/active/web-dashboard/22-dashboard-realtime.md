@@ -21,7 +21,7 @@ main web app.)
      optional recipient id for DMs; for boilerplate, "message to self" or "broadcast" is
      enough). Store in Valkey (e.g. list or stream per user, or key pattern
      `messages:{userId}`). Associate with userId from auth.
-   - Get messages: GET /api/messages (authenticated). If user’s "viewable by anyone" is off:
+   - Get messages: GET /api/messages (authenticated). If user's "viewable by anyone" is off:
      return only messages where userId matches current user. If on: return also messages
      from other users who have "viewable by anyone" on (or all public messages). Decide
      simple rule (e.g. "my messages" vs "all public") and document.
@@ -54,7 +54,7 @@ main web app.)
      real-time is polling, run effect with interval; if WebSocket, update on message
      event.
    - Privacy toggle: switch "viewable by anyone"; call API to update user preference
-     (PATCH /api/me or similar) and optionally refetch messages to show others’ public
+     (PATCH /api/me or similar) and optionally refetch messages to show others' public
      messages.
 
 6. **Valkey client in API**
@@ -75,5 +75,5 @@ main web app.)
 
 - Logged-in user can post a message; it appears in the list (and is stored in Valkey).
 - With "viewable by anyone" off, user sees only their messages; with on, they see their own
-  and others’ public messages (per rule). Toggle persists and affects GET /api/messages.
+  and others' public messages (per rule). Toggle persists and affects GET /api/messages.
 - Real-time: list updates (polling or WebSocket) when new messages arrive.

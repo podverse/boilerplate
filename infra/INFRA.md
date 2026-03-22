@@ -1,7 +1,7 @@
 # Infra
 
 Directory layout for local and containerized run of the Boilerplate stack (aligned with podverse
-monorepo conventions). No k8s in this repo.
+monorepo conventions). Includes Docker local infra and a k3d/k3s + ArgoCD deployment scaffold.
 
 ## Layout
 
@@ -21,6 +21,13 @@ monorepo conventions). No k8s in this repo.
 --project-directory . up --build`. Shared network `boilerplate_local_network` is created on first
   up. Run `make local_env_setup` to generate `infra/config/local/*.env` (including db.env and
   valkey.env) for Docker.
+- **k8s/** – Kubernetes manifests and ArgoCD app-of-apps scaffold:
+  - `base/` reusable manifests
+  - `local/` k3d local overlay and child apps
+  - `alpha/` future environment scaffold
+  - root manifests: `argocd-project.yaml`, `local-application.yaml`, `alpha-application.yaml`
+  - see [k8s/INFRA-K8S.md](k8s/INFRA-K8S.md) and
+    [docs/development/K3D-ARGOCD-LOCAL.md](../docs/development/K3D-ARGOCD-LOCAL.md)
 
 ## Management database
 

@@ -69,12 +69,12 @@ export function getSessionRefreshIntervalMs(): string | undefined {
   return env('NEXT_PUBLIC_MANAGEMENT_SESSION_REFRESH_INTERVAL_MS')?.trim();
 }
 
-/** DEFAULT_LOCALE (for i18n). */
+/** NEXT_PUBLIC_DEFAULT_LOCALE (for i18n). */
 export function getDefaultLocaleEnv(): string | undefined {
-  return env('DEFAULT_LOCALE')?.trim();
+  return env('NEXT_PUBLIC_DEFAULT_LOCALE')?.trim();
 }
 
-/** SUPPORTED_LOCALES (for i18n). */
+/** NEXT_PUBLIC_SUPPORTED_LOCALES (for i18n). */
 export function getSupportedLocalesEnv(): string | undefined {
-  return env('SUPPORTED_LOCALES')?.trim();
+  return env('NEXT_PUBLIC_SUPPORTED_LOCALES')?.trim();
 }
