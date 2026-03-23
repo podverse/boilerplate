@@ -31,8 +31,12 @@ npm run dev:all
 ```
 
 - **API:** http://localhost:4000
-- **Web:** http://localhost:4100
-- **Sidecar:** http://localhost:4101 (runtime config for web)
+- **Web:** http://localhost:4002
+- **Web runtime-config sidecar:** http://localhost:4001
+
+`make local_env_setup` copies `infra/config/local/web-sidecar.env` to `apps/web/sidecar/.env` (and the
+management-web equivalents) so `npm run dev:all` / `dev:all:watch` sidecars load the same config as
+Docker. See [LOCAL-ENV-OVERRIDES.md](development/LOCAL-ENV-OVERRIDES.md).
 
 To run with auto-rebuild on file changes:
 

@@ -1,37 +1,157 @@
 /* eslint-disable no-console */
+import type { ValidationResult, ValidationSummary } from '@boilerplate/helpers';
+
 import http from 'node:http';
 import { URL } from 'node:url';
 
-import { validatePositiveInteger, validateStartupRequirements } from '@boilerplate/helpers';
+import {
+  buildSummary,
+  displayValidationResults,
+  validateApiVersionPath,
+  validateHttpOrHttpsUrl,
+  validateLocale,
+  validateOptional,
+  validatePositiveNumber,
+  validateRequired,
+  validateSupportedLocalesList,
+} from '@boilerplate/helpers';
 
-const PORT_KEY = 'PORT';
-const MGMT_API_URL_KEY = 'NEXT_PUBLIC_MANAGEMENT_API_URL';
-const MGMT_API_VERSION_PATH_KEY = 'NEXT_PUBLIC_MANAGEMENT_API_VERSION_PATH';
-const SESSION_REFRESH_KEY = 'NEXT_PUBLIC_MANAGEMENT_SESSION_REFRESH_INTERVAL_MS';
-const BRAND_NAME_KEY = 'NEXT_PUBLIC_BRAND_NAME';
-const APP_TITLE_ICON_KEY = 'NEXT_PUBLIC_APP_TITLE_ICON';
-const WEB_APP_URL_KEY = 'NEXT_PUBLIC_WEB_APP_URL';
-const DEFAULT_LOCALE_KEY = 'NEXT_PUBLIC_DEFAULT_LOCALE';
-const SUPPORTED_LOCALES_KEY = 'NEXT_PUBLIC_SUPPORTED_LOCALES';
-const MANAGEMENT_API_BACKEND_URL_KEY = 'MANAGEMENT_API_BACKEND_URL';
+// Keep key lists in sync with apps/management-web/src/config/runtime-config.ts (ManagementWebRuntimeConfigEnvKey).
+const requiredKeys = [
+  'NEXT_PUBLIC_MANAGEMENT_API_URL',
+  'NEXT_PUBLIC_MANAGEMENT_API_VERSION_PATH',
+  'NEXT_PUBLIC_MANAGEMENT_SESSION_REFRESH_INTERVAL_MS',
+  'NEXT_PUBLIC_BRAND_NAME',
+  'NEXT_PUBLIC_WEB_APP_URL',
+  'NEXT_PUBLIC_DEFAULT_LOCALE',
+  'NEXT_PUBLIC_SUPPORTED_LOCALES',
+  'MANAGEMENT_API_BACKEND_URL',
+] as const;
 
-validateStartupRequirements([validatePositiveInteger(PORT_KEY, 'Management-web sidecar')]);
-const port = Number.parseInt(process.env[PORT_KEY] ?? '', 10);
+const optionalKeys = ['NEXT_PUBLIC_APP_TITLE_ICON'] as const;
+
+const allKeys = [...requiredKeys, ...optionalKeys];
+
+function validatePort(): ValidationResult {
+  const value = process.env.PORT;
+  const isSet =
+    value !== undefined && value !== null && typeof value === 'string' && value.trim() !== '';
+  if (!isSet) {
+    return {
+      name: 'PORT',
+      isSet: false,
+      isValid: false,
+      isRequired: true,
+      message: 'Missing',
+      category: 'Server',
+    };
+  }
+  const port = Number.parseInt(value, 10);
+  if (!Number.isFinite(port) || port <= 0) {
+    return {
+      name: 'PORT',
+      isSet: true,
+      isValid: false,
+      isRequired: true,
+      message: `Invalid value: "${value}" - must be a positive integer`,
+      category: 'Server',
+    };
+  }
+  return {
+    name: 'PORT',
+    isSet: true,
+    isValid: true,
+    isRequired: true,
+    message: `Set to ${value}`,
+    category: 'Server',
+  };
+}
+
+function getCategory(key: string): string {
+  const map: Record<string, string> = {
+    PORT: 'Server',
+    NEXT_PUBLIC_MANAGEMENT_API_URL: 'API',
+    NEXT_PUBLIC_MANAGEMENT_API_VERSION_PATH: 'API',
+    NEXT_PUBLIC_MANAGEMENT_SESSION_REFRESH_INTERVAL_MS: 'Session',
+    NEXT_PUBLIC_BRAND_NAME: 'Brand',
+    NEXT_PUBLIC_APP_TITLE_ICON: 'Brand',
+    NEXT_PUBLIC_WEB_APP_URL: 'Web',
+    NEXT_PUBLIC_DEFAULT_LOCALE: 'i18n',
+    NEXT_PUBLIC_SUPPORTED_LOCALES: 'i18n',
+    MANAGEMENT_API_BACKEND_URL: 'API',
+  };
+  return map[key] ?? 'Config';
+}
+
+function validateOne(key: string, isRequired: boolean): ValidationResult {
+  const category = getCategory(key);
+  if (
+    key === 'NEXT_PUBLIC_MANAGEMENT_API_URL' ||
+    key === 'NEXT_PUBLIC_WEB_APP_URL' ||
+    key === 'MANAGEMENT_API_BACKEND_URL'
+  ) {
+    return validateHttpOrHttpsUrl(key, category);
+  }
+  if (key === 'NEXT_PUBLIC_MANAGEMENT_API_VERSION_PATH') {
+    return validateApiVersionPath(key, category);
+  }
+  if (key === 'NEXT_PUBLIC_MANAGEMENT_SESSION_REFRESH_INTERVAL_MS') {
+    return validatePositiveNumber(key, category, true);
+  }
+  if (key === 'NEXT_PUBLIC_DEFAULT_LOCALE') {
+    return validateLocale(key, category, true);
+  }
+  if (key === 'NEXT_PUBLIC_SUPPORTED_LOCALES') {
+    return validateSupportedLocalesList(key, category);
+  }
+  if (key === 'NEXT_PUBLIC_APP_TITLE_ICON') {
+    return validateOptional(key, category, 'Skipped');
+  }
+  if (isRequired) {
+    return validateRequired(key, category);
+  }
+  return validateOptional(key, category, 'Skipped');
+}
+
+function buildValidationResults(): ValidationResult[] {
+  const results: ValidationResult[] = [];
+  results.push(validatePort());
+  for (const key of requiredKeys) {
+    results.push(validateOne(key, true));
+  }
+  for (const key of optionalKeys) {
+    results.push(validateOne(key, false));
+  }
+  return results;
+}
+
+const normalizeEnvValue = (value: string | undefined): string | undefined =>
+  value === '' ? undefined : value;
 
 function buildRuntimeConfig(): { env: Record<string, string | undefined> } {
-  return {
-    env: {
-      [MGMT_API_URL_KEY]: process.env[MGMT_API_URL_KEY] ?? undefined,
-      [MGMT_API_VERSION_PATH_KEY]: process.env[MGMT_API_VERSION_PATH_KEY] ?? undefined,
-      [SESSION_REFRESH_KEY]: process.env[SESSION_REFRESH_KEY] ?? undefined,
-      [BRAND_NAME_KEY]: process.env[BRAND_NAME_KEY] ?? undefined,
-      [APP_TITLE_ICON_KEY]: process.env[APP_TITLE_ICON_KEY] ?? undefined,
-      [WEB_APP_URL_KEY]: process.env[WEB_APP_URL_KEY] ?? undefined,
-      [DEFAULT_LOCALE_KEY]: process.env[DEFAULT_LOCALE_KEY] ?? undefined,
-      [SUPPORTED_LOCALES_KEY]: process.env[SUPPORTED_LOCALES_KEY] ?? undefined,
-      [MANAGEMENT_API_BACKEND_URL_KEY]: process.env[MANAGEMENT_API_BACKEND_URL_KEY] ?? undefined,
-    },
-  };
+  const env: Record<string, string | undefined> = {};
+  for (const key of allKeys) {
+    env[key] = normalizeEnvValue(process.env[key]);
+  }
+  return { env };
+}
+
+function findMissingRequiredKeys(runtimeConfig: {
+  env: Record<string, string | undefined>;
+}): string[] {
+  return requiredKeys.filter((key) => runtimeConfig.env[key] === undefined);
+}
+
+function getPort(): number {
+  const portValue = process.env.PORT;
+  if (!portValue) {
+    throw new Error('Missing PORT for runtime config sidecar.');
+  }
+  const port = Number.parseInt(portValue, 10);
+  if (!Number.isFinite(port) || port <= 0) {
+    throw new Error('Invalid PORT for runtime config sidecar.');
+  }
+  return port;
 }
 
 function sendJson(res: http.ServerResponse, status: number, payload: unknown): void {
@@ -41,6 +161,18 @@ function sendJson(res: http.ServerResponse, status: number, payload: unknown): v
   });
   res.end(JSON.stringify(payload));
 }
+
+console.log('Running startup validation...');
+const validationResults = buildValidationResults();
+const summary: ValidationSummary = buildSummary(validationResults);
+displayValidationResults(summary);
+if (summary.requiredMissing > 0) {
+  console.error(
+    `FATAL: ${summary.requiredMissing} required environment variable(s) are missing or invalid. Please check the validation output above for details.`
+  );
+  process.exit(1);
+}
+console.log('Startup validation completed successfully');
 
 const server = http.createServer((req: http.IncomingMessage, res: http.ServerResponse) => {
   const requestUrl = new URL(req.url ?? '/', `http://${req.headers.host ?? 'localhost'}`);
@@ -65,9 +197,19 @@ const server = http.createServer((req: http.IncomingMessage, res: http.ServerRes
   }
 
   const runtimeConfig = buildRuntimeConfig();
+  const missingKeys = findMissingRequiredKeys(runtimeConfig);
+  if (missingKeys.length > 0) {
+    sendJson(res, 500, {
+      error: 'Missing required runtime config values.',
+      missingKeys,
+    });
+    return;
+  }
+
   sendJson(res, 200, runtimeConfig);
 });
 
+const port = getPort();
 server.listen(port, '0.0.0.0', () => {
   console.log(`Boilerplate management-web runtime-config sidecar listening on port ${port}.`);
 });

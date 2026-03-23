@@ -5,48 +5,15 @@ import type { ValidationResult } from '@boilerplate/helpers';
 
 import {
   getEffectiveUserAgent,
+  validateAuthMode as validateAuthModeEnv,
   validateJwtSecret,
   validatePositiveInteger,
   validateRequired,
   validateStartupRequirements as validateRequirements,
 } from '@boilerplate/helpers';
 
-const AUTH_MODE_ADMIN_ONLY_USERNAME = 'admin_only_username';
-const AUTH_MODE_ADMIN_ONLY_EMAIL = 'admin_only_email';
-const AUTH_MODE_USER_SIGNUP_EMAIL = 'user_signup_email';
-const AUTH_MODE_ALLOWED = [
-  AUTH_MODE_ADMIN_ONLY_USERNAME,
-  AUTH_MODE_ADMIN_ONLY_EMAIL,
-  AUTH_MODE_USER_SIGNUP_EMAIL,
-] as const;
-
 function validateAuthMode(): ValidationResult {
-  const value = process.env.AUTH_MODE;
-  const isSet =
-    value !== undefined && value !== null && typeof value === 'string' && value.trim() !== '';
-  if (!isSet) {
-    return {
-      name: 'AUTH_MODE',
-      isSet: false,
-      isValid: false,
-      isRequired: true,
-      message:
-        'Missing - must be set to admin_only_username, admin_only_email, or user_signup_email',
-      category: 'Auth',
-    };
-  }
-  const normalized = value.trim().toLowerCase();
-  const allowed = AUTH_MODE_ALLOWED.some((mode) => mode === normalized);
-  return {
-    name: 'AUTH_MODE',
-    isSet: true,
-    isValid: allowed,
-    isRequired: true,
-    message: allowed
-      ? `Set to ${value}`
-      : `Invalid: "${value}" - AUTH_MODE must be set to admin_only_username, admin_only_email, or user_signup_email`,
-    category: 'Auth',
-  };
+  return validateAuthModeEnv('AUTH_MODE', 'Auth');
 }
 
 const USER_AGENT_PATTERN = /^[^/]+\/[^/]+\/[^/]+$/;

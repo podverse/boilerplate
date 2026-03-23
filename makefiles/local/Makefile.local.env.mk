@@ -6,6 +6,12 @@
 # Local Postgres container (from docker-compose) and management DB name for dev
 LOCAL_PG_CONTAINER ?= boilerplate_local_postgres
 LOCAL_PG_USER ?= postgres
+# Must match POSTGRES_READ_USER / POSTGRES_READ_WRITE_USER in infra/config/local/db.env (roles created by 01_create_users.sh).
+LOCAL_POSTGRES_READ_USER ?= boilerplate_app_read
+LOCAL_POSTGRES_READ_WRITE_USER ?= boilerplate_app_read_write
+# Must match POSTGRES_MANAGEMENT_*_USER in infra/config/local/db.env (see scripts/local-env/local-management-db.sh).
+LOCAL_POSTGRES_MANAGEMENT_READ_USER ?= boilerplate_management_read
+LOCAL_POSTGRES_MANAGEMENT_READ_WRITE_USER ?= boilerplate_management_read_write
 LOCAL_MANAGEMENT_DB_NAME ?= boilerplate_management
 # Cluster name for local k3d (must match scripts/infra/k3d/*.sh)
 K3D_CLUSTER_NAME ?= boilerplate-local
@@ -38,8 +44,10 @@ local_env_clean:
 	@rm -f $(ROOT)infra/config/local/*.env \
 		$(ROOT)apps/api/.env \
 		$(ROOT)apps/web/.env.local \
+		$(ROOT)apps/web/sidecar/.env \
 		$(ROOT)apps/management-api/.env \
-		$(ROOT)apps/management-web/.env.local
+		$(ROOT)apps/management-web/.env.local \
+		$(ROOT)apps/management-web/sidecar/.env
 	@echo "Local env files removed. Run make local_env_setup to regenerate."
 
 # One-shot: env setup then start Postgres, Valkey, management DB, and create super admin.
@@ -63,23 +71,14 @@ local_reset_env_infra:
 	$(MAKE) local_infra_up testSuperAdmin=$(testSuperAdmin)
 
 # Create management database in local Postgres (boilerplate_local_postgres). Run after local_infra_up.
-# Idempotent: drops and recreates boilerplate_management, applies schema, grants read/read_write.
+# Drops and recreates $(LOCAL_MANAGEMENT_DB_NAME), creates management roles if missing, applies schema, grants to management read/read_write users (see infra/k8s/.../02_init_management_db.sh).
 local_db_init_management:
 	@docker ps -q -f name=^/$(LOCAL_PG_CONTAINER)$$ | grep -q . || (echo "Error: Start local Postgres first: make local_infra_up"; exit 1)
 	@echo "Creating management database $(LOCAL_MANAGEMENT_DB_NAME)..."
 	@docker exec $(LOCAL_PG_CONTAINER) psql -U $(LOCAL_PG_USER) -d postgres -c "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = '$(LOCAL_MANAGEMENT_DB_NAME)' AND pid <> pg_backend_pid();" 2>/dev/null || true
 	@docker exec $(LOCAL_PG_CONTAINER) psql -U $(LOCAL_PG_USER) -d postgres -c "DROP DATABASE IF EXISTS $(LOCAL_MANAGEMENT_DB_NAME);"
 	@docker exec $(LOCAL_PG_CONTAINER) psql -U $(LOCAL_PG_USER) -d postgres -c "CREATE DATABASE $(LOCAL_MANAGEMENT_DB_NAME);"
+	@bash $(ROOT)scripts/local-env/local-management-db.sh $(LOCAL_PG_CONTAINER) create-roles
 	@cat infra/management-database/combined/init_management_database.sql | docker exec -i $(LOCAL_PG_CONTAINER) psql -U $(LOCAL_PG_USER) -d $(LOCAL_MANAGEMENT_DB_NAME)
-	@docker exec $(LOCAL_PG_CONTAINER) psql -U $(LOCAL_PG_USER) -d $(LOCAL_MANAGEMENT_DB_NAME) -c " \
-		GRANT CONNECT ON DATABASE $(LOCAL_MANAGEMENT_DB_NAME) TO read, read_write; \
-		GRANT USAGE ON SCHEMA public TO read, read_write; \
-		GRANT SELECT ON ALL TABLES IN SCHEMA public TO read; \
-		GRANT SELECT ON ALL SEQUENCES IN SCHEMA public TO read; \
-		GRANT SELECT, INSERT, UPDATE, DELETE, TRUNCATE ON ALL TABLES IN SCHEMA public TO read_write; \
-		GRANT SELECT, USAGE, UPDATE ON ALL SEQUENCES IN SCHEMA public TO read_write; \
-		ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT ON TABLES TO read; \
-		ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT ON SEQUENCES TO read; \
-		ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT, INSERT, UPDATE, DELETE, TRUNCATE ON TABLES TO read_write; \
-		ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT, USAGE, UPDATE ON SEQUENCES TO read_write;"
+	@bash $(ROOT)scripts/local-env/local-management-db.sh $(LOCAL_PG_CONTAINER) grants $(LOCAL_MANAGEMENT_DB_NAME)
 	@echo "Management database $(LOCAL_MANAGEMENT_DB_NAME) ready. Management API can connect (apps/management-api/.env)."

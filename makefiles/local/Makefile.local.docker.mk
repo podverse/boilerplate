@@ -10,14 +10,15 @@
 local_network_create:
 	docker network create $(LOCAL_NETWORK) 2>/dev/null || true
 
-# Wait for Postgres to accept connections and init users (read/read_write) so management DB init can run.
+# Wait for Postgres to accept connections and app DB roles (read + read_write from 01_create_users.sh) so management DB init can run.
 local_postgres_wait:
-	@echo "Waiting for Postgres (and init users) to be ready..."
+	@echo "Waiting for Postgres (and app read/read_write users) to be ready..."
 	@for i in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30; do \
-	  docker exec $(LOCAL_PG_CONTAINER) psql -U $(LOCAL_PG_USER) -d postgres -tAc "SELECT 1 FROM pg_roles WHERE rolname='read'" 2>/dev/null | grep -q 1 && exit 0; \
+	  c=$$(docker exec $(LOCAL_PG_CONTAINER) psql -U $(LOCAL_PG_USER) -d postgres -tAc "SELECT COUNT(*) FROM pg_roles WHERE rolname IN ('$(LOCAL_POSTGRES_READ_USER)','$(LOCAL_POSTGRES_READ_WRITE_USER)')" 2>/dev/null || echo 0); \
+	  [ "$$c" = "2" ] && exit 0; \
 	  sleep 1; \
 	done; \
-	echo "Error: Timeout waiting for Postgres (and read user). Is Postgres running? Run: make local_infra_up"; exit 1
+	echo "Error: Timeout waiting for Postgres (and app read/read_write users). Is Postgres running? Run: make local_infra_up"; exit 1
 
 # Postgres + Valkey + pgAdmin + management DB (so API and Management API on host both have DBs).
 # Then prompts for super admin username and creates the super admin user (password generated and printed once).

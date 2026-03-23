@@ -229,3 +229,10 @@ apply_override "NEXT_PUBLIC_DEFAULT_LOCALE" "$WEB_APP_ENV" "$WEB_INFRA_ENV" "$WE
 apply_override "NEXT_PUBLIC_SUPPORTED_LOCALES" "$WEB_APP_ENV" "$WEB_INFRA_ENV" "$WEB_SIDECAR_INFRA_ENV" "$MANAGEMENT_WEB_APP_ENV" "$MANAGEMENT_WEB_INFRA_ENV" "$MANAGEMENT_WEB_SIDECAR_INFRA_ENV"
 
 echo "Applied local env values from generated defaults and overrides."
+
+# Host dev: web/management-web sidecars use dotenv with DOTENV_CONFIG_PATH=sidecar/.env (see app package.json).
+# Docker Compose mounts infra/config/local/*-sidecar.env directly; keep app sidecar copies in sync.
+mkdir -p apps/web/sidecar apps/management-web/sidecar
+cp "$WEB_SIDECAR_INFRA_ENV" "apps/web/sidecar/.env"
+cp "$MANAGEMENT_WEB_SIDECAR_INFRA_ENV" "apps/management-web/sidecar/.env"
+echo "Synced infra/config/local/*-sidecar.env to apps/*/sidecar/.env for host-sidecar dev."

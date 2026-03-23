@@ -12,7 +12,16 @@ prepare/link/setup flow and home-directory layout align with Podverse. **APP_BAS
 WEB_APP_URL, MANAGEMENT_CORS_ORIGINS** stay as local dev defaults (not in overrides). Web and
 management-web app `.env.example` files contain only `RUNTIME_CONFIG_URL`; the full list is in the
 sidecar env templates (`apps/web/sidecar/.env.example`,
-`apps/management-web/sidecar/.env.example`).
+`apps/management-web/sidecar/.env.example`). **Authoritative generated files** for local dev are
+`infra/config/local/web-sidecar.env` and `infra/config/local/management-web-sidecar.env` (Docker Compose
+mounts these). After each `make local_env_setup`, `scripts/local-env/setup.sh` **copies** those files to
+`apps/web/sidecar/.env` and `apps/management-web/sidecar/.env` so host-sidecar processes load the same
+values via `DOTENV_CONFIG_PATH=sidecar/.env` (see `dev:sidecar` in each app’s `package.json`). `make
+local_env_clean` removes the copied `sidecar/.env` files along with other generated env files.
+
+Sidecars validate env at startup (Podverse-style): missing
+or invalid required vars exit non-zero; `GET /runtime-config` returns 500 with `missingKeys` if
+required values are absent.
 
 ## Recommended flow (one consistent process)
 

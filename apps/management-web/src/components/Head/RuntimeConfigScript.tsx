@@ -1,5 +1,7 @@
 import type { ManagementWebRuntimeConfig } from '../../config/runtime-config';
 
+import Script from 'next/script';
+
 const serialize = (config: ManagementWebRuntimeConfig): string =>
   JSON.stringify(config).replace(/</g, '\\u003c');
 
@@ -12,5 +14,9 @@ export default function RuntimeConfigScript({
   runtimeConfig: ManagementWebRuntimeConfig;
 }) {
   const script = buildScript(runtimeConfig);
-  return <script dangerouslySetInnerHTML={{ __html: script }} />;
+  return (
+    <Script id="boilerplate-management-runtime-config" strategy="beforeInteractive">
+      {script}
+    </Script>
+  );
 }

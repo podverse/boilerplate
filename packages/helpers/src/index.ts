@@ -2,6 +2,15 @@ export {
   AUTH_MESSAGE_INVALID_CREDENTIALS,
   AUTH_MESSAGE_LOGIN_FAILED,
 } from './auth/auth-messages.js';
+export {
+  AUTH_MODE_ADMIN_ONLY_EMAIL,
+  AUTH_MODE_ADMIN_ONLY_USERNAME,
+  AUTH_MODE_USER_SIGNUP_EMAIL,
+  AUTH_MODE_VALUES,
+  isAuthModeValue,
+  normalizedAuthMode,
+} from './auth/auth-mode-constants.js';
+export type { AuthModeValue } from './auth/auth-mode-constants.js';
 export { bitmaskToFlags, CRUD_BITS, flagsToBitmask } from './crud/crud-bitmask.js';
 export type { CrudBit } from './crud/crud-bitmask.js';
 export {
@@ -74,10 +83,18 @@ export { normalizeVersionPath } from './startup/version-path.js';
 export {
   buildSummary,
   displayValidationResults,
+  validateApiVersionPath,
+  validateAuthMode,
+  validateHttpOrHttpsUrl,
   validateJwtSecret,
+  validateLocale,
+  validateNextPublicAuthMode,
+  validateOptional,
   validatePositiveInteger,
+  validatePositiveNumber,
   validateRequired,
   validateStartupRequirements,
+  validateSupportedLocalesList,
 } from './startup/validation.js';
 export type { ValidationResult, ValidationSummary } from './startup/validation.js';
 export { TEST_JWT_SECRET_API, TEST_JWT_SECRET_MANAGEMENT_API } from './startup/test-jwt-secrets.js';

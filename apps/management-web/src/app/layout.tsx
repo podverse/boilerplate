@@ -14,7 +14,8 @@ import {
 
 import { AuthWrapper } from '../components/AuthWrapper';
 import RuntimeConfigScript from '../components/Head/RuntimeConfigScript';
-import { getRuntimeConfig } from '../config/runtime-config-store';
+import { setRuntimeConfig } from '../config/runtime-config-store';
+import { fetchManagementWebRuntimeConfigFromSidecar } from '../config/runtime-config.server';
 import { getServerUser } from '../lib/server-auth';
 
 import '../styles/globals.scss';
@@ -30,7 +31,8 @@ export const metadata: Metadata = {
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const locale = await getLocale();
   const messages = await getMessages();
-  const runtimeConfig = getRuntimeConfig();
+  const runtimeConfig = await fetchManagementWebRuntimeConfigFromSidecar();
+  setRuntimeConfig(runtimeConfig);
   const cookieStore = await cookies();
   const initialTheme = getThemeFromSettingsCookieValue(
     cookieStore.get(SETTINGS_COOKIE_NAME)?.value
