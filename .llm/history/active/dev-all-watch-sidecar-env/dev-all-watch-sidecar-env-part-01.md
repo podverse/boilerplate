@@ -92,3 +92,93 @@ To-do's from the plan have already been created. Do not create them again. Mark 
 - `package.json`
 - `scripts/development/kill-boilerplate-port-blockers.sh`
 - `.llm/history/active/dev-all-watch-sidecar-env/dev-all-watch-sidecar-env-part-01.md`
+
+### Session 5 - 2026-03-23
+
+#### Prompt (Developer)
+
+is there a "nuke_rebuild" command in the boilerplate make file somewhere? if not, then add one
+
+#### Key Decisions
+
+- Added `local_nuke_rebuild_run` target to `makefiles/local/Makefile.local.env.mk` (near `local_reset_env_infra`), aligned with Podverse naming. Sequence: kill port blockers → `local_clean` → `local_env_clean` → `local_env_setup` → `local_infra_up`. Fully non-interactive (unlike `local_reset_env_infra` which runs `scripts/remove-local-env.sh` with a Y/N prompt). Accepts `testSuperAdmin=1` to pass through to `local_infra_up`.
+- Documented in `Makefile.local.mk` comment block.
+
+#### Files Created/Modified
+
+- `makefiles/local/Makefile.local.env.mk`
+- `makefiles/local/Makefile.local.mk`
+- `.llm/history/active/dev-all-watch-sidecar-env/dev-all-watch-sidecar-env-part-01.md`
+
+### Session 6 - 2026-03-23
+
+#### Prompt (Developer)
+
+you didn't align it it should be local_nuke_rebuild_run
+
+#### Key Decisions
+
+- Renamed target from `local_nuke_rebuild` to `local_nuke_rebuild_run` to match Podverse (`makefiles/local/Makefile.local.env.mk`, `Makefile.local.mk` header comment).
+
+#### Files Created/Modified
+
+- `makefiles/local/Makefile.local.env.mk`
+- `makefiles/local/Makefile.local.mk`
+- `.llm/history/active/dev-all-watch-sidecar-env/dev-all-watch-sidecar-env-part-01.md`
+
+### Session 7 - 2026-03-23
+
+#### Prompt (Developer)
+
+@/Users/mitcheldowney/.cursor/projects/Users-mitcheldowney-repos-pv-pv-code-workspace/terminals/35.txt:7-32 nuke should NOT run the process kill job. that process kill script should never happen through make files. it is a dev script they can run as needed. also, can we avoid the process kill script from killing docker in the process? the goal is to only kill processes that may be running outside of docker containers, like 4000 4001 4002 4100 4101 4102 all of which may be run with npm run dev instead of within a docker container
+
+#### Key Decisions
+
+- Removed `kill-boilerplate-port-blockers.sh` from `local_nuke_rebuild_run` in `makefiles/local/Makefile.local.env.mk`; Make comments point devs to run the script manually when needed.
+- Kill script defaults to host app ports only (`4000 4001 4002 4100 4101 4102`); dropped Postgres/Valkey/pgAdmin/Storybook defaults that overlapped Docker-published ports.
+- Added `should_skip_pid_for_kill`: skip PID ≤1, Linux cgroup docker/containerd/k8s, and comm/args matching docker-proxy, com.docker, vpnkit, colima, lima, podman, rootlesskit, slirp, gvproxy, etc. Phase 2 supervisors and Phase 4 verification respect the same filter.
+
+#### Files Created/Modified
+
+- `makefiles/local/Makefile.local.env.mk`
+- `makefiles/local/Makefile.local.mk`
+- `scripts/development/kill-boilerplate-port-blockers.sh`
+- `.llm/history/active/dev-all-watch-sidecar-env/dev-all-watch-sidecar-env-part-01.md`
+
+### Session 8 - 2026-03-23
+
+#### Prompt (Developer)
+
+Align `local_nuke_rebuild_run` with Podverse
+
+Implement the plan as specified, it is attached for your reference. Do NOT edit the plan file itself.
+
+To-do's from the plan have already been created. Do not create them again. Mark them as in_progress as you work, starting with the first one. Don't stop until you have completed all the to-dos.
+
+#### Key Decisions
+
+- Added `local_prune_boilerplate_images` and `LOCAL_COMPOSE_APP_SERVICES` in `Makefile.local.docker.mk`; `local_apps_up` now uses the variable list; added `local_apps_up_build` (`up -d --build`) and `local_start_all_apps` (alias to `local_apps_up`, Podverse naming).
+- `local_nuke_rebuild_run` now runs prune after clean/env_clean, then env_setup, `local_infra_up`, `local_apps_up_build`, and a success banner with URLs. Corrected Path B web port in `QUICK-START.md` (4002; added management URLs).
+
+#### Files Created/Modified
+
+- `makefiles/local/Makefile.local.docker.mk`
+- `makefiles/local/Makefile.local.env.mk`
+- `makefiles/local/Makefile.local.mk`
+- `docs/QUICK-START.md`
+- `.llm/history/active/dev-all-watch-sidecar-env/dev-all-watch-sidecar-env-part-01.md`
+
+### Session 9 - 2026-03-23
+
+#### Prompt (Developer)
+
+debug
+
+#### Key Decisions
+
+- Root cause of `make: *** unterminated call to function 'shell'` on `Makefile.local.e2e.mk:16`: GNU Make treats `#` as a comment start even inside `$(shell sed '/^#/d' ...)` — the `^#` after the opening `'` truncates the line. Fixed by escaping the hash for Make: `sed '/^\#/d;/^$$/d'` (seven occurrences) so the shell still receives `^#` / comment-line deletion semantics.
+
+#### Files Created/Modified
+
+- `makefiles/local/Makefile.local.e2e.mk`
+- `.llm/history/active/dev-all-watch-sidecar-env/dev-all-watch-sidecar-env-part-01.md`

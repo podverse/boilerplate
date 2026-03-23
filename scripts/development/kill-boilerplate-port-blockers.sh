@@ -1,7 +1,7 @@
-#!/bin/bash
-# Kill processes listening on common Boilerplate local-dev ports,
-# plus any supervisor processes (nodemon, next dev, storybook, concurrently)
-# that would immediately respawn new listeners on those ports.
+#!/usr/bin/env bash
+# Kill host-side processes listening on Boilerplate npm dev ports (API, sidecars, web, Storybook).
+# Skips Docker Desktop / container runtime listeners (e.g. docker-proxy, workloads in cgroups) so
+# published container ports are not torn down. Not invoked from Make — run manually when needed.
 # Run from anywhere; script resolves repo root automatically.
 
 set -euo pipefail
@@ -10,7 +10,8 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 cd "$REPO_ROOT"
 
-DEFAULT_PORTS=(4000 4001 4002 4100 4101 4102 5433 6380 4050 6006)
+# Host dev servers only (npm run dev / dev:all:watch). Omit Postgres, Valkey, pgAdmin, E2E mailpit, etc.
+DEFAULT_PORTS=(4000 4001 4002 4100 4101 4102)
 DRY_RUN=0
 
 print_usage() {
@@ -20,8 +21,10 @@ Usage:
 
 Options:
   --dry-run          Print matching listeners without killing.
-  --ports "<list>"   Space-delimited port list; overrides defaults.
+  --ports "<list>"   Space-delimited port list; overrides defaults (defaults are host app ports only).
   -h, --help         Show this help text.
+
+Listeners owned by Docker/VM/container runtimes are never killed (even if listed in --ports).
 EOF
 }
 
@@ -59,10 +62,38 @@ if ! command -v lsof >/dev/null 2>&1; then
   exit 1
 fi
 
+# Return 0 if this PID must not be killed (Docker proxy, container workload, VM networking, etc.).
+should_skip_pid_for_kill() {
+  local pid="$1"
+  if [ -z "$pid" ] || [ "$pid" -le 1 ] 2>/dev/null; then
+    return 0
+  fi
+
+  # Linux: processes inside containers
+  if [ -r "/proc/${pid}/cgroup" ]; then
+    if grep -qiE 'docker|containerd|kubepods|cri-o|crio|podman' "/proc/${pid}/cgroup" 2>/dev/null; then
+      return 0
+    fi
+  fi
+
+  local line lower
+  line=$(ps -p "$pid" -o comm= -o args= 2>/dev/null || true)
+  if [ -z "$line" ]; then
+    return 0
+  fi
+  lower=$(printf '%s' "$line" | tr '[:upper:]' '[:lower:]')
+  case "$lower" in
+  *docker-proxy* | *com.docker* | *vpnkit* | *containerd* | *colima* | *lima-* | *limactl* | *podman* | *nerdctl* | *rancher-desktop* | *rootlesskit* | *slirp* | *gvproxy*)
+    return 0
+    ;;
+  esac
+  return 1
+}
+
 # ---------------------------------------------------------------------------
-# Phase 1: find listener PIDs on target ports
+# Phase 1: find listener PIDs on target ports (host dev only)
 # ---------------------------------------------------------------------------
-echo "Checking Boilerplate ports: ${PORTS[*]}"
+echo "Checking Boilerplate host dev ports: ${PORTS[*]}"
 
 PIDS_TO_KILL=()
 for port in "${PORTS[@]}"; do
@@ -80,6 +111,10 @@ for port in "${PORTS[@]}"; do
     if [ -z "$pid" ]; then
       continue
     fi
+    if should_skip_pid_for_kill "$pid"; then
+      echo "Port $port -> PID $pid (skipped: Docker/container/VM listener — not killed)"
+      continue
+    fi
     echo "Port $port -> PID $pid (listener)"
     PIDS_TO_KILL+=("$pid")
   done <<EOF
@@ -88,9 +123,7 @@ EOF
 done
 
 # ---------------------------------------------------------------------------
-# Phase 2: find supervisor PIDs that would respawn listeners
-# Targets: nodemon, next dev, storybook dev, and concurrently instances
-# that reference Boilerplate repo paths.
+# Phase 2: supervisor processes that respawn listeners (host repo paths only)
 # ---------------------------------------------------------------------------
 SUPERVISOR_PATTERNS=(
   "nodemon"
@@ -110,8 +143,11 @@ if command -v pgrep >/dev/null 2>&1; then
       if [ -z "$pid" ]; then
         continue
       fi
-      # Skip our own PID and parent shell
       if [ "$pid" -eq "$$" ] 2>/dev/null || [ "$pid" -eq "$PPID" ] 2>/dev/null; then
+        continue
+      fi
+      if should_skip_pid_for_kill "$pid"; then
+        echo "Supervisor -> PID $pid (skipped: Docker/container — not killed)"
         continue
       fi
       echo "Supervisor -> PID $pid (pattern: $pattern)"
@@ -179,9 +215,22 @@ while [ "$ELAPSED" -lt "$MAX_WAIT" ]; do
     if ! [[ "$port" =~ ^[0-9]+$ ]]; then
       continue
     fi
-    if lsof -nP -iTCP:"$port" -sTCP:LISTEN -t >/dev/null 2>&1; then
-      STILL_BLOCKED+=("$port")
+    blocked_pids="$(lsof -nP -iTCP:"$port" -sTCP:LISTEN -t 2>/dev/null || true)"
+    if [ -z "$blocked_pids" ]; then
+      continue
     fi
+    while IFS= read -r bpid; do
+      if [ -z "$bpid" ]; then
+        continue
+      fi
+      if should_skip_pid_for_kill "$bpid"; then
+        continue
+      fi
+      STILL_BLOCKED+=("$port")
+      break
+    done <<EOF
+$blocked_pids
+EOF
   done
 
   if [ "${#STILL_BLOCKED[@]}" -eq 0 ]; then
@@ -194,9 +243,9 @@ while [ "$ELAPSED" -lt "$MAX_WAIT" ]; do
 done
 
 if [ "$ALL_FREE" -eq 1 ]; then
-  echo "All target ports are free. Safe to run dev:all:watch."
+  echo "All target ports are free of host dev listeners. Safe to run dev:all:watch."
 else
-  echo "Warning: these ports still have listeners after ${MAX_WAIT}s: ${STILL_BLOCKED[*]}"
+  echo "Warning: these ports still have non-Docker listeners after ${MAX_WAIT}s: ${STILL_BLOCKED[*]}"
   echo "Run with --dry-run to inspect them."
   exit 1
 fi

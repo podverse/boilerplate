@@ -7,7 +7,8 @@
 #   local_network_create       - Create boilerplate_local_network (idempotent)
 #   local_postgres_up, local_valkey_up  - Start Postgres and Valkey
 #   local_sidecar_up, local_api_up, local_web_up, local_management_api_up, local_management_web_sidecar_up, local_management_web_up  - Start sidecars, API, web, management-api, management-web
-#   local_apps_up, local_apps_down  - Start or stop only app containers (API, management-api, web-sidecar, management-web-sidecar, web, management-web); infra unchanged
+#   local_apps_up, local_apps_up_build, local_start_all_apps, local_apps_down  - App containers only; local_apps_up_build rebuilds images; infra unchanged
+#   local_prune_boilerplate_images - Remove locally built boilerplate-* images + build cache (base images kept)
 #   local_down                 - Stop all local Docker services (keeps volumes)
 #   local_down_volumes         - Stop services and remove volumes (clean DB/Valkey data)
 #   local_clean               - Run local_down, local_down_volumes, local_k3d_down, and test_clean (full teardown: Docker + k3d + test/E2E)
@@ -23,6 +24,7 @@
 #   env_setup                  - Alias for local_env_setup (backward compatible)
 #   local_env_remove           - Run local_clean, then remove .env files (prompts for Y); prefer prepare/link/setup flow
 #   local_reset_env_infra      - Run local_env_remove, env_setup, then local_infra_up. Use testSuperAdmin=1 for superadmin / Test!1Aa
+#   local_nuke_rebuild_run     - Full Docker nuke (Podverse-aligned): clean, prune app images, env, infra+DB+super admin, build+start all app containers (testSuperAdmin=1 for preset admin)
 #   local_db_init_management  - Create boilerplate_management DB in local Postgres (also run by local_infra_up)
 #   local_create_super_admin - Interactive: prompt for super admin username, create user, print password once (run by local_infra_up)
 #   local_infra_up            - Start Postgres, Valkey, and management DB, then create super admin (for API + Management API on host)

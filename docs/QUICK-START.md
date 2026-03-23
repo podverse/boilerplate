@@ -56,11 +56,29 @@ make local_all_up
 ```
 
 - **API:** http://localhost:4000
-- **Web:** http://localhost:4100
-- Postgres (5433) and Valkey (6380) are on the host for tools if needed; sidecar is
+- **Web:** http://localhost:4002
+- **Management API:** http://localhost:4100
+- **Management Web:** http://localhost:4102
+- Postgres (5433) and Valkey (6380) are on the host for tools if needed; sidecars are
   internal-only.
 
 Teardown is the same as Path A: `make local_down`.
+
+### Full nuke rebuild (all apps in Docker, Podverse-aligned)
+
+For a **from-scratch** local stack—tear down volumes, regenerate env, rebuild images, and start
+Postgres, Valkey, pgAdmin, and **all** app containers (API, web, sidecars, management API, management
+web)—use:
+
+```bash
+make local_nuke_rebuild_run testSuperAdmin=1
+```
+
+(`testSuperAdmin=1` skips the interactive super-admin prompt; password is `Test!1Aa` for local use only.)
+
+This differs from **`make local_setup`** (or `make local_env_setup` + `make local_infra_up`), which only
+brings up **infra** for **host** dev (`npm run dev:all`). Use `local_nuke_rebuild_run` when you want the
+same style of “everything in Docker” as Podverse’s `local_nuke_rebuild_run`.
 
 ## Teardown
 
@@ -90,6 +108,7 @@ To tear down and start again:
 
 - **Path A:** `make local_down` then `make local_infra_up` and `npm run dev:all`
 - **Path B:** `make local_down` then `make local_all_up`
+- **Path B full nuke:** `make local_nuke_rebuild_run testSuperAdmin=1` (see Path B section above)
 
 For a **clean** restart (no existing DB or Valkey data), run `make local_clean` (or `make local_down_volumes`) before starting again.
 

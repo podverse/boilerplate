@@ -13,15 +13,15 @@ E2E_API_GATE_REQUIRED_PATHS_REGEX := ^(apps/api/|apps/management-api/|infra/data
 SIGNUP_ENABLED_WEB_SPECS := e2e/login-unauthenticated-signup-enabled.spec.ts,e2e/signup-unauthenticated-signup-enabled.spec.ts,e2e/forgot-password-unauthenticated-signup-enabled.spec.ts,e2e/reset-password-unauthenticated-signup-enabled.spec.ts,e2e/set-password-unauthenticated-signup-enabled.spec.ts
 SIGNUP_ENABLED_WEB_SPEC_ARGS := $(shell printf "%s" "$(SIGNUP_ENABLED_WEB_SPECS)" | tr ',' ' ')
 SIGNUP_ENABLED_WEB_SPEC_ORDER_SEMICOLON := $(shell printf "%s" "$(SIGNUP_ENABLED_WEB_SPECS)" | tr ',' ';')
-ADMIN_ONLY_EMAIL_WEB_SPEC_ORDERED := $(shell sed '/^#/d;/^$$/d' makefiles/local/e2e-spec-order-web-admin-only-email.txt | tr '\n' ' ')
-ADMIN_ONLY_EMAIL_WEB_SPEC_ORDER_SEMICOLON := $(shell sed '/^#/d;/^$$/d' makefiles/local/e2e-spec-order-web-admin-only-email.txt | tr '\n' ';')
-ADMIN_ONLY_EMAIL_WEB_SPECS := $(shell sed '/^#/d;/^$$/d' makefiles/local/e2e-spec-order-web-admin-only-email.txt | tr '\n' ',' | sed 's/,$$//')
+ADMIN_ONLY_EMAIL_WEB_SPEC_ORDERED := $(shell sed '/^\#/d;/^$$/d' makefiles/local/e2e-spec-order-web-admin-only-email.txt | tr '\n' ' ')
+ADMIN_ONLY_EMAIL_WEB_SPEC_ORDER_SEMICOLON := $(shell sed '/^\#/d;/^$$/d' makefiles/local/e2e-spec-order-web-admin-only-email.txt | tr '\n' ';')
+ADMIN_ONLY_EMAIL_WEB_SPECS := $(shell sed '/^\#/d;/^$$/d' makefiles/local/e2e-spec-order-web-admin-only-email.txt | tr '\n' ',' | sed 's/,$$//')
 # Conceptual order for full report (make e2e_test_report). Do not sort; order is from these files.
-WEB_SPEC_ORDERED := $(shell sed '/^#/d;/^$$/d' makefiles/local/e2e-spec-order-web.txt | tr '\n' ' ')
-MGMT_SPEC_ORDERED := $(shell sed '/^#/d;/^$$/d' makefiles/local/e2e-spec-order-management-web.txt | tr '\n' ' ')
+WEB_SPEC_ORDERED := $(shell sed '/^\#/d;/^$$/d' makefiles/local/e2e-spec-order-web.txt | tr '\n' ' ')
+MGMT_SPEC_ORDERED := $(shell sed '/^\#/d;/^$$/d' makefiles/local/e2e-spec-order-management-web.txt | tr '\n' ' ')
 # Semicolon-separated for E2E_SPEC_ORDER so the HTML reporter can reorder runs for display.
-WEB_SPEC_ORDER_SEMICOLON := $(shell sed '/^#/d;/^$$/d' makefiles/local/e2e-spec-order-web.txt | tr '\n' ';')
-MGMT_SPEC_ORDER_SEMICOLON := $(shell sed '/^#/d;/^$$/d' makefiles/local/e2e-spec-order-management-web.txt | tr '\n' ';')
+WEB_SPEC_ORDER_SEMICOLON := $(shell sed '/^\#/d;/^$$/d' makefiles/local/e2e-spec-order-web.txt | tr '\n' ';')
+MGMT_SPEC_ORDER_SEMICOLON := $(shell sed '/^\#/d;/^$$/d' makefiles/local/e2e-spec-order-management-web.txt | tr '\n' ';')
 
 define e2e_run_api_gate
 MODE="$(E2E_API_GATE_MODE)"; \

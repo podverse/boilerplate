@@ -5,7 +5,11 @@
 .PHONY: local_management_api_up local_management_web_sidecar_up local_management_web_up
 .PHONY: local_postgres_down local_valkey_down local_sidecar_down local_api_down local_web_down
 .PHONY: local_management_api_down local_management_web_sidecar_down local_management_web_down
-.PHONY: local_apps_up local_apps_down local_down local_down_volumes local_clean
+.PHONY: local_apps_up local_apps_up_build local_start_all_apps local_apps_down local_down local_down_volumes local_clean
+.PHONY: local_prune_boilerplate_images
+
+# Built app services (compose names). Infra: postgres, valkey, boilerplate_local_pgadmin.
+LOCAL_COMPOSE_APP_SERVICES := boilerplate_local_api boilerplate_local_management_api boilerplate_local_web_sidecar boilerplate_local_management_web_sidecar boilerplate_local_web boilerplate_local_management_web
 
 local_network_create:
 	docker network create $(LOCAL_NETWORK) 2>/dev/null || true
@@ -90,9 +94,27 @@ local_management_web_sidecar_down:
 local_management_web_down:
 	docker compose -f $(COMPOSE_LOCAL) --project-directory . stop boilerplate_local_management_web 2>/dev/null || true
 
+# Remove locally built Boilerplate app images (aligned with Podverse local_prune_*). Portable; no GNU xargs -r.
+# Base images (postgres, valkey, pgadmin) are not removed.
+local_prune_boilerplate_images:
+	@echo "Removing Boilerplate app images..."
+	@for img in boilerplate-api:latest boilerplate-web-sidecar:latest boilerplate-management-web-sidecar:latest boilerplate-web:latest boilerplate-management-api:latest boilerplate-management-web:latest; do \
+	  docker rmi -f "$$img" 2>/dev/null || true; \
+	done
+	@echo "Clearing Docker build cache..."
+	@docker builder prune -f 2>/dev/null || true
+	@echo "Done. Base images (postgres, valkey, pgadmin) preserved."
+
 # Start only app containers (API, management-api, web-sidecar, management-web-sidecar, web, management-web). Postgres and Valkey must already be running (e.g. local_infra_up).
 local_apps_up: local_network_create
-	docker compose -f $(COMPOSE_LOCAL) --project-directory . up -d boilerplate_local_api boilerplate_local_management_api boilerplate_local_web_sidecar boilerplate_local_management_web_sidecar boilerplate_local_web boilerplate_local_management_web
+	docker compose -f $(COMPOSE_LOCAL) --project-directory . up -d $(LOCAL_COMPOSE_APP_SERVICES)
+
+# Same as local_apps_up but rebuild images first (use after local_infra_up or for local_nuke_rebuild_run).
+local_apps_up_build: local_network_create
+	docker compose -f $(COMPOSE_LOCAL) --project-directory . up -d --build $(LOCAL_COMPOSE_APP_SERVICES)
+
+# Podverse-aligned name: start all app containers without rebuild (depends on infra).
+local_start_all_apps: local_apps_up
 
 # Stop only app containers (API, management-api, web-sidecar, management-web-sidecar, web, management-web). Postgres and Valkey are left running.
 local_apps_down: local_api_down local_management_api_down local_sidecar_down local_management_web_sidecar_down local_web_down local_management_web_down

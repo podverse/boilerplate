@@ -1,7 +1,7 @@
 # --- Local env setup (aligned with Podverse: prepare, link, setup, clean). ---
 
 .PHONY: local_env_prepare local_env_link local_env_setup local_env_clean local_setup
-.PHONY: env_setup local_env_remove local_db_init_management local_reset_env_infra
+.PHONY: env_setup local_env_remove local_db_init_management local_reset_env_infra local_nuke_rebuild_run
 
 # Local Postgres container (from docker-compose) and management DB name for dev
 LOCAL_PG_CONTAINER ?= boilerplate_local_postgres
@@ -69,6 +69,29 @@ local_reset_env_infra:
 	$(MAKE) local_env_remove
 	$(MAKE) env_setup
 	$(MAKE) local_infra_up testSuperAdmin=$(testSuperAdmin)
+
+# Nuclear rebuild (Podverse-aligned): tear down, prune app images, env setup, infra + management DB +
+# super admin, then build and start all app containers in Docker. For stuck host dev ports, run
+# scripts/development/kill-boilerplate-port-blockers.sh manually (not invoked from Make).
+# Pass testSuperAdmin=1 to use a preset super admin (username superadmin, password Test!1Aa).
+local_nuke_rebuild_run:
+	$(MAKE) local_clean
+	$(MAKE) local_env_clean
+	$(MAKE) local_prune_boilerplate_images
+	$(MAKE) local_env_setup
+	$(MAKE) local_infra_up testSuperAdmin=$(testSuperAdmin)
+	$(MAKE) local_apps_up_build
+	@echo ""
+	@echo "============================================"
+	@echo "Local environment fully rebuilt and running!"
+	@echo "============================================"
+	@echo "  API:              http://127.0.0.1:4000"
+	@echo "  Web:              http://127.0.0.1:4002"
+	@echo "  Management API:   http://127.0.0.1:4100"
+	@echo "  Management Web:   http://127.0.0.1:4102"
+	@echo "  pgAdmin:          http://127.0.0.1:4050"
+	@echo "Stop app containers: make local_apps_down | Stop everything: make local_down"
+	@echo ""
 
 # Create management database in local Postgres (boilerplate_local_postgres). Run after local_infra_up.
 # Drops and recreates $(LOCAL_MANAGEMENT_DB_NAME), creates management roles if missing, applies schema, grants to management read/read_write users (see infra/k8s/.../02_init_management_db.sh).
