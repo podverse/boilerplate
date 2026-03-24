@@ -15,7 +15,7 @@ description: Env-templates for app envs must only point to the app .env.example;
 ## Local env (Boilerplate)
 
 Secrets (JWT, DB, Valkey, etc.) are **auto-generated** by `make local_env_setup` via
-`scripts/env-setup-secrets.sh`. Override files (from `dev/env-overrides/local/*.env.example`) are
+`scripts/env-setup-secrets.sh`. Override files (from `dev/env-overrides/examples/*.env.example`, copied to `~/.config/...` and linked as `dev/env-overrides/local/*.env`) are
 applied when present: **management-superuser.env** → db.env; **brand.env** → API, web, management-api,
 management-web (BRAND_NAME, NEXT_PUBLIC_BRAND_NAME, NEXT_PUBLIC_APP_TITLE_ICON); **mailer.env** → API
 (no defaults; devs bring their own); **auth.env** → API, management-api; **locale.env** → all four apps

@@ -1,0 +1,166 @@
+# Maps Boilerplate .env.example keys to Kubernetes ConfigMap vs Secret per workload.
+# Keys listed under literals are set in Deployment env: and must not appear in CM/Secret.
+# no_env_from: workload has only literals (no configMapRef/secretRef).
+#
+version: 1
+
+namespace_label:
+  key: environment
+  # Value set by render script from ENV (alpha|beta|prod).
+
+workloads:
+  api:
+    source_files:
+      - apps/api/.env.example
+    literals:
+      - DB_HOST
+      - DB_PORT
+      - VALKEY_HOST
+      - VALKEY_PORT
+    keys:
+      API_PORT: config
+      BRAND_NAME: config
+      USER_AGENT: config
+      API_VERSION_PATH: config
+      APP_BASE_URL: config
+      DEFAULT_LOCALE: config
+      SUPPORTED_LOCALES: config
+      JWT_SECRET: secret
+      SESSION_COOKIE_NAME: config
+      REFRESH_COOKIE_NAME: config
+      JWT_ACCESS_EXPIRY_SECONDS: config
+      JWT_REFRESH_EXPIRY_SECONDS: config
+      COOKIE_SAME_SITE: config
+      CORS_ORIGINS: config
+      AUTH_MODE: config
+      SMTP_HOST: config
+      SMTP_PORT: config
+      MAIL_FROM: config
+      DB_NAME: config
+      DB_READ_USERNAME: secret
+      DB_READ_PASSWORD: secret
+      DB_READ_WRITE_USERNAME: secret
+      DB_READ_WRITE_PASSWORD: secret
+      VALKEY_PASSWORD: secret
+
+  management-api:
+    source_files:
+      - apps/management-api/.env.example
+    literals:
+      - DB_HOST
+      - DB_PORT
+      - MANAGEMENT_DB_HOST
+      - MANAGEMENT_DB_PORT
+      - VALKEY_HOST
+      - VALKEY_PORT
+    keys:
+      MANAGEMENT_API_PORT: config
+      BRAND_NAME: config
+      USER_AGENT: config
+      MANAGEMENT_API_VERSION_PATH: config
+      AUTH_MODE: config
+      MANAGEMENT_JWT_SECRET: secret
+      MANAGEMENT_SESSION_COOKIE_NAME: config
+      MANAGEMENT_REFRESH_COOKIE_NAME: config
+      MANAGEMENT_JWT_ACCESS_EXPIRY_SECONDS: config
+      MANAGEMENT_JWT_REFRESH_EXPIRY_SECONDS: config
+      USER_INVITATION_TTL_HOURS: config
+      MANAGEMENT_COOKIE_SAME_SITE: config
+      MANAGEMENT_CORS_ORIGINS: config
+      MANAGEMENT_DB_NAME: config
+      MANAGEMENT_DB_USERNAME: secret
+      MANAGEMENT_DB_PASSWORD: secret
+      WEB_APP_URL: config
+      DB_NAME: config
+      DB_READ_USERNAME: secret
+      DB_READ_PASSWORD: secret
+      DB_READ_WRITE_USERNAME: secret
+      DB_READ_WRITE_PASSWORD: secret
+
+  web:
+    source_files:
+      - apps/web/.env.example
+    no_env_from: true
+    literals:
+      - RUNTIME_CONFIG_URL
+    keys: {}
+
+  web-sidecar:
+    source_files:
+      - apps/web/sidecar/.env.example
+    literals:
+      - API_BACKEND_URL
+    keys:
+      PORT: config
+      NEXT_PUBLIC_BRAND_NAME: config
+      NEXT_PUBLIC_WEB_APP_URL: config
+      NEXT_PUBLIC_APP_TITLE_ICON: config
+      NEXT_PUBLIC_API_URL: config
+      NEXT_PUBLIC_API_VERSION_PATH: config
+      NEXT_PUBLIC_AUTH_MODE: config
+      NEXT_PUBLIC_SESSION_REFRESH_INTERVAL_MS: config
+      NEXT_PUBLIC_DEFAULT_LOCALE: config
+      NEXT_PUBLIC_SUPPORTED_LOCALES: config
+
+  management-web:
+    source_files:
+      - apps/management-web/.env.example
+    no_env_from: true
+    literals:
+      - RUNTIME_CONFIG_URL
+      - MANAGEMENT_API_BACKEND_URL
+    keys: {}
+
+  management-web-sidecar:
+    source_files:
+      - apps/management-web/sidecar/.env.example
+    keys:
+      PORT: config
+      NEXT_PUBLIC_MANAGEMENT_API_URL: config
+      MANAGEMENT_API_BACKEND_URL: config
+      NEXT_PUBLIC_MANAGEMENT_API_VERSION_PATH: config
+      NEXT_PUBLIC_MANAGEMENT_SESSION_REFRESH_INTERVAL_MS: config
+      NEXT_PUBLIC_BRAND_NAME: config
+      NEXT_PUBLIC_APP_TITLE_ICON: config
+      NEXT_PUBLIC_WEB_APP_URL: config
+      NEXT_PUBLIC_DEFAULT_LOCALE: config
+      NEXT_PUBLIC_SUPPORTED_LOCALES: config
+
+  postgres:
+    source_files:
+      - infra/config/env-templates/db.env.example
+    literals:
+      - MANAGEMENT_DB_NAME
+    literals_only_in_source:
+      # Present in db.env for apps; not injected into the Postgres container.
+      - DB_HOST
+      - DB_PORT
+      - DB_NAME
+      - MANAGEMENT_DB_NAME
+      - MANAGEMENT_DB_USERNAME
+      - DB_READ_USERNAME
+      - DB_READ_PASSWORD
+      - DB_READ_WRITE_USERNAME
+      - DB_READ_WRITE_PASSWORD
+    keys:
+      POSTGRES_USER: secret
+      POSTGRES_PASSWORD: secret
+      POSTGRES_DB: config
+      POSTGRES_MANAGEMENT_DB: config
+      POSTGRES_READ_USER: secret
+      POSTGRES_READ_PASSWORD: secret
+      POSTGRES_READ_WRITE_USER: secret
+      POSTGRES_READ_WRITE_PASSWORD: secret
+      POSTGRES_MANAGEMENT_READ_USER: secret
+      POSTGRES_MANAGEMENT_READ_PASSWORD: secret
+      POSTGRES_MANAGEMENT_READ_WRITE_USER: secret
+      POSTGRES_MANAGEMENT_READ_WRITE_PASSWORD: secret
+
+  valkey:
+    source_files:
+      - infra/config/env-templates/valkey.env.example
+    literals_only_in_source:
+      - VALKEY_HOST
+      - VALKEY_PORT
+    keys:
+      VALKEY_PASSWORD: secret

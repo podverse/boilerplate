@@ -17,10 +17,10 @@ LOCAL_MANAGEMENT_DB_NAME ?= boilerplate_management
 K3D_CLUSTER_NAME ?= boilerplate-local
 
 local_env_prepare:
-	bash scripts/local-env/prepare-overrides.sh
+	bash scripts/local-env/prepare-local-env-overrides.sh
 
 local_env_link:
-	bash scripts/local-env/link-overrides.sh
+	bash scripts/local-env/link-local-env-overrides.sh
 
 # Non-destructive local env setup: create missing env files, generate secrets, apply overrides from dev/env-overrides/local/*.env
 local_env_setup:

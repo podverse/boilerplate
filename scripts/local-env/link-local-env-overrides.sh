@@ -6,7 +6,8 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 cd "$REPO_ROOT"
 
-OVERRIDES_DIR="dev/env-overrides/local"
+EXAMPLES_DIR="dev/env-overrides/examples"
+REPO_ENV_DIR="dev/env-overrides/local"
 
 # Default: XDG-style path; override with BOILERPLATE_HOME_OVERRIDES_DIR
 if [ -n "${BOILERPLATE_HOME_OVERRIDES_DIR:-}" ]; then
@@ -21,21 +22,21 @@ HOME_OVERRIDES_EXPANDED="${HOME_OVERRIDES_RAW/#\~/$HOME}"
 mkdir -p "$HOME_OVERRIDES_EXPANDED"
 HOME_OVERRIDES_DIR="$(cd "$HOME_OVERRIDES_EXPANDED" && pwd)"
 
-if ! ls "$OVERRIDES_DIR"/*.env.example >/dev/null 2>&1; then
-  echo "No override example files in $OVERRIDES_DIR. Secrets are auto-generated; prepare/link are optional."
+if ! ls "$EXAMPLES_DIR"/*.env.example >/dev/null 2>&1; then
+  echo "No override example files in $EXAMPLES_DIR. Secrets are auto-generated; prepare/link are optional."
   echo "Run make local_env_setup to generate env files."
   exit 0
 fi
 
-mkdir -p "$OVERRIDES_DIR"
+mkdir -p "$REPO_ENV_DIR"
 mkdir -p "$HOME_OVERRIDES_DIR"
 
-for example_file in "$OVERRIDES_DIR"/*.env.example; do
+for example_file in "$EXAMPLES_DIR"/*.env.example; do
   [ -f "$example_file" ] || continue
   base_name="${example_file##*/}"
   target_name="${base_name%.example}"
   home_file="$HOME_OVERRIDES_DIR/$target_name"
-  repo_file="$OVERRIDES_DIR/$target_name"
+  repo_file="$REPO_ENV_DIR/$target_name"
 
   # Bootstrap home file from example if missing; use repo's real override if present so secrets carry over
   if [ ! -f "$home_file" ]; then

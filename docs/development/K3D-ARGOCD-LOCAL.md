@@ -131,4 +131,4 @@ For **local-only** use you do not need SOPS or age. Secrets are plain env files 
 When you later add **non-local** environments (e.g. alpha), you can:
 
 1. Generate an age key: `bash scripts/infra/sops/generate-age-key.sh` (writes `.secrets/age.key`).
-2. Replace placeholders in `infra/k8s/secrets/local/` and `infra/k8s/secrets/alpha/` with SOPS-encrypted values as needed.
+2. Manage encrypted manifests in your **GitOps deployment repo** (not in this tree): follow [K8S-ENV-RENDER.md](K8S-ENV-RENDER.md) to render ConfigMaps and cleartext Secrets into `BOILERPLATE_K8S_OUTPUT_REPO`, then encrypt with SOPS and commit there.

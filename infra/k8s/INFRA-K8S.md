@@ -31,4 +31,4 @@ The base stack (`base/stack/`) builds a ConfigMap for Postgres init from scripts
 - `local-application.yaml` - root local app-of-apps.
 - `alpha-application.yaml` - future alpha root app-of-apps scaffold.
 - `local/apps/stack.yaml` - local child application.
-- `secrets/local/*.enc.yaml` and `secrets/alpha/*.enc.yaml` - SOPS placeholders.
+- Non-local SOPS-encrypted Secret manifests are **not** stored under this repo; they live in the GitOps output repository. Render cleartext with [`docs/development/K8S-ENV-RENDER.md`](../../docs/development/K8S-ENV-RENDER.md) (`make alpha_env_render` with `BOILERPLATE_K8S_OUTPUT_REPO`), then encrypt with SOPS and commit in that repo under `secrets/boilerplate-<env>/`.

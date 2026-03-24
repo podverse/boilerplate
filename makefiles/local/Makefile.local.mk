@@ -12,7 +12,7 @@
 #   local_down                 - Stop all local Docker services (keeps volumes)
 #   local_down_volumes         - Stop services and remove volumes (clean DB/Valkey data)
 #   local_clean               - Run local_down, local_down_volumes, local_k3d_down, and test_clean (full teardown: Docker + k3d + test/E2E)
-#   local_env_prepare          - Create override files in ~/.config/boilerplate/local-env-overrides/ from dev/env-overrides/local/*.env.example
+#   local_env_prepare          - Create override files in ~/.config/boilerplate/local-env-overrides/ from dev/env-overrides/examples/*.env.example
 #   local_env_link             - Symlink dev/env-overrides/local/*.env to home directory (share overrides across work trees)
 #   local_env_setup            - Generate infra + app env from templates and overrides (see docs/development/LOCAL-ENV-OVERRIDES.md)
 #   local_env_clean            - Remove generated env files; keep dev/env-overrides/local/*.env (symlinks); requires no Docker Compose and no k3d cluster
@@ -31,6 +31,7 @@
 #   local_all_up              - Start full stack in Docker (API, web, sidecar, Postgres, Valkey)
 #   test_deps, test_postgres_up, test_valkey_up, test_db_init, test_db_init_management, test_db_list, help_test, test_clean, validate_ci - Test requirements (ports 5532, 6479); validate_ci runs same steps as CI validate job
 #   e2e_deps, e2e_seed, e2e_seed_web, e2e_seed_management_web, e2e_test_api, e2e_test, e2e_test_web, e2e_test_management_web, e2e_teardown - E2E page testing (see docs/testing/E2E-PAGE-TESTING.md)
+#   alpha_env_prepare, alpha_env_link, alpha_env_prepare_link, alpha_env_render, alpha_env_render_dry_run, alpha_env_validate - GitOps K8s env (see docs/development/K8S-ENV-RENDER.md; makefiles/gitops/Makefile.gitops-env.mk); BOILERPLATE_K8S_OUTPUT_REPO required for render/validate; k8s_env_* + K8S_ENV for beta/prod
 #
 SHELL := /bin/bash
 
@@ -41,6 +42,7 @@ ENV_TEMPLATES := infra/config/env-templates
 include makefiles/local/Makefile.local.validate.mk
 include makefiles/local/Makefile.local.audit.mk
 include makefiles/local/Makefile.local.env.mk
+include makefiles/gitops/Makefile.gitops-env.mk
 include makefiles/local/Makefile.local.docker.mk
 include makefiles/local/Makefile.local.k3d.mk
 include makefiles/local/Makefile.local.test.mk

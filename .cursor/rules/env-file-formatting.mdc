@@ -6,7 +6,8 @@ globs:
   - "**/.env.example"
   - "infra/config/local/*.env"
   - "dev/env-overrides/local/*.env"
-  - "dev/env-overrides/local/*.env.example"
+  - "dev/env-overrides/alpha/*.env"
+  - "dev/env-overrides/examples/*.env.example"
 alwaysApply: false
 ---
 

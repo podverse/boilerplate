@@ -120,3 +120,21 @@ i have created a boilerplate-ansible repo which will host a combination of clear
 #### Files Modified
 
 - .llm/history/active/deployment-k3s-plans/deployment-k3s-plans-part-01.md
+
+### Session 5 - 2026-03-24
+
+#### Prompt (Developer)
+
+remove it from boilerplate
+
+#### Key Decisions
+
+- Removed `infra/k8s/secrets/` placeholder SOPS YAML files; deployment secrets belong in the GitOps output repo only.
+- Updated `INFRA-K8S.md` and `K3D-ARGOCD-LOCAL.md` to point at `K8S-ENV-RENDER.md` and GitOps paths instead.
+
+#### Files Created/Modified
+
+- `infra/k8s/secrets/` (removed)
+- `infra/k8s/INFRA-K8S.md`
+- `docs/development/K3D-ARGOCD-LOCAL.md`
+- `.llm/history/active/deployment-k3s-plans/deployment-k3s-plans-part-01.md`
