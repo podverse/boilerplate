@@ -31,10 +31,15 @@ export function getApiBaseUrl(): string {
 
 /**
  * Server-only: full base URL for pod-internal API calls.
- * Prefers API_SERVER_BASE_URL (k8s-internal DNS) over NEXT_PUBLIC_API_PUBLIC_BASE_URL (browser-facing).
- * Falls back to getApiBaseUrl() when API_SERVER_BASE_URL is not set.
+ * Prefer `process.env.API_SERVER_BASE_URL` when set (e.g. k8s) so in-cluster DNS wins over
+ * the runtime-config sidecar snapshot (Compose hostnames). Otherwise use `env()`, then
+ * fall back to the browser-facing public API URL.
  */
 export function getServerApiBaseUrl(): string {
+  const fromProcess = process.env.API_SERVER_BASE_URL?.trim();
+  if (fromProcess !== undefined && fromProcess !== '') {
+    return fromProcess.replace(/\/$/, '') + getApiVersionPath();
+  }
   const backend = env('API_SERVER_BASE_URL')?.trim();
   if (backend !== undefined && backend !== '') {
     return backend.replace(/\/$/, '') + getApiVersionPath();

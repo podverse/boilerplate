@@ -25,7 +25,7 @@ validate:
 	npm run type-check
 	@echo ""
 	@echo "Step 6/7: Setting up env for web (Next.js .env.local)..."
-	@test -f apps/web/.env.local || ruby scripts/env-classification/boilerplate-env.rb merge-env --profile dev --workload web --output apps/web/.env.local
+	@test -f apps/web/.env.local || ruby scripts/env-classification/boilerplate-env.rb merge-env --profile dev --group web --output apps/web/.env.local
 	@echo "  (apps/web/.env.local from classification if missing)"
 	@echo ""
 	@echo "Step 7/7: Building apps..."

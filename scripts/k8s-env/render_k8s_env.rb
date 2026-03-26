@@ -5,7 +5,7 @@
 
 require_relative '../env-classification/lib/boilerplate_env_merge'
 
-# Strategic-merge patch target: workload name => [Deployment metadata.name, container name]
+# Strategic-merge patch target: classification env group name => [Deployment metadata.name, container name]
 DEPLOYMENT_PATCH_TARGETS = {
   'api' => %w[api api],
   'db' => %w[postgres postgres],
@@ -18,7 +18,7 @@ DEPLOYMENT_PATCH_TARGETS = {
 def usage(msg = nil)
   warn("Error: #{msg}") if msg
   warn <<~USAGE
-    Usage: render_k8s_env.rb --workload NAME --merged-env PATH --namespace NS --environment ENV \\
+    Usage: render_k8s_env.rb --group NAME --merged-env PATH --namespace NS --environment ENV \\
       --resource-suffix SUFFIX [--emit MODE]
 
     --emit: both | configmap | secret | secret-env-patch (default: both)
@@ -111,7 +111,7 @@ def unquote(s)
 end
 
 args = ARGV.dup
-workload = nil
+group = nil
 merged_env = nil
 namespace = 'boilerplate-alpha'
 environment = 'alpha'
@@ -120,8 +120,8 @@ emit = 'both' # both | configmap | secret | secret-env-patch
 
 until args.empty?
   case args.shift
-  when '--workload'
-    workload = args.shift
+  when '--group'
+    group = args.shift
   when '--merged-env'
     merged_env = args.shift
   when '--namespace'
@@ -139,33 +139,33 @@ until args.empty?
   end
 end
 
-usage('missing --workload') if workload.nil? || workload.empty?
+usage('missing --group') if group.nil? || group.empty?
 usage('missing --merged-env') if merged_env.nil?
 usage('missing --resource-suffix') if resource_suffix.nil? || resource_suffix.empty?
 
 profile = ENV['BOILERPLATE_ENV_PROFILE'] || 'remote_k8s'
 classification = BoilerplateEnvMerge.merged_classification(profile)
-wl = classification['workloads'][workload]
-usage("unknown workload: #{workload}") unless wl
+wl = classification.dig(BoilerplateEnvMerge::CLASSIFICATION_ENV_GROUPS_KEY, group)
+usage("unknown env group: #{group}") unless wl
 
 if wl['no_env_from']
-  warn("SKIP no_env_from workload=#{workload}")
+  warn("SKIP no_env_from group=#{group}")
   exit 3
 end
 
 if wl.key?('keys')
-  warn("Error: workload #{workload} uses legacy 'keys:'; migrate to infra/env/classification/base.yaml vars")
+  warn("Error: env group #{group} uses legacy 'keys:'; migrate to infra/env/classification/base.yaml vars")
   exit 1
 end
 
-effective_specs = BoilerplateEnvMerge.effective_workload_var_specs(classification, workload)
+effective_specs = BoilerplateEnvMerge.effective_env_group_var_specs(classification, group)
 if effective_specs.empty?
-  warn("Error: workload #{workload} has no effective vars in classification (empty vars and inherits)")
+  warn("Error: env group #{group} has no effective vars in classification (empty vars and inherits)")
   exit 1
 end
 
 literals, literals_only, config_keys, secret_keys =
-  BoilerplateEnvMerge.derive_render_buckets(workload, classification)
+  BoilerplateEnvMerge.derive_render_buckets(group, classification)
 
 env_map = parse_env_file(merged_env)
 
@@ -196,7 +196,7 @@ sec_name = "boilerplate-#{resource_suffix}-secrets"
 case emit
 when 'both'
   if config_data.empty? && secret_data.empty?
-    warn("No config or secret keys for workload #{workload} (after filters).")
+    warn("No config or secret keys for env group #{group} (after filters).")
     exit 1
   end
   parts = []
@@ -205,24 +205,24 @@ when 'both'
   print parts.join("---\n")
 when 'configmap'
   if config_data.empty?
-    warn("SKIP no config keys workload=#{workload}")
+    warn("SKIP no config keys group=#{group}")
     exit 4
   end
   print config_map_yaml(cm_name, namespace, labels, config_data)
 when 'secret'
   if secret_data.empty?
-    warn("SKIP no secret keys workload=#{workload}")
+    warn("SKIP no secret keys group=#{group}")
     exit 4
   end
   print secret_yaml(sec_name, namespace, labels, secret_data)
 when 'secret-env-patch'
   if secret_data.empty?
-    warn("SKIP no secret keys workload=#{workload}")
+    warn("SKIP no secret keys group=#{group}")
     exit 4
   end
-  targets = DEPLOYMENT_PATCH_TARGETS[workload]
+  targets = DEPLOYMENT_PATCH_TARGETS[group]
   if targets.nil?
-    warn("Error: workload #{workload} has no Deployment patch target (add to DEPLOYMENT_PATCH_TARGETS)")
+    warn("Error: env group #{group} has no Deployment patch target (add to DEPLOYMENT_PATCH_TARGETS)")
     exit 1
   end
   deployment_name, container_name = targets

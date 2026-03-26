@@ -6,19 +6,21 @@ require 'yaml'
 module BoilerplateEnvMerge
   module_function
 
+  CLASSIFICATION_ENV_GROUPS_KEY = 'env_groups'
+
   # http / valkey classification nests env vars under split bucket keys (hyphenated);
   # each bucket is { vars: { VAR => spec, ... } }. Implies former per-var file_split.
-  SPLIT_WORKLOAD_BUCKETS = {
+  SPLIT_ENV_GROUP_BUCKETS = {
     'http' => %w[api web-sidecar web management-api management-web-sidecar management-web].freeze,
     'valkey' => %w[valkey-source-only valkey].freeze
   }.freeze
 
-  def split_catalogued_workload?(workload_name)
-    SPLIT_WORKLOAD_BUCKETS.key?(workload_name.to_s)
+  def split_catalogued_env_group?(group_name)
+    SPLIT_ENV_GROUP_BUCKETS.key?(group_name.to_s)
   end
 
-  def split_bucket_order(workload_name)
-    SPLIT_WORKLOAD_BUCKETS[workload_name.to_s] || [].freeze
+  def split_bucket_order(group_name)
+    SPLIT_ENV_GROUP_BUCKETS[group_name.to_s] || [].freeze
   end
 
   def repo_root
@@ -77,21 +79,21 @@ module BoilerplateEnvMerge
     out
   end
 
-  def workload_vars(classification, workload_name)
-    wl = classification.dig('workloads', workload_name)
+  def env_group_vars(classification, group_name)
+    wl = classification.dig(CLASSIFICATION_ENV_GROUPS_KEY, group_name)
     return {} unless wl.is_a?(Hash)
 
-    if split_catalogued_workload?(workload_name)
-      flatten_split_workload_vars(wl, workload_name)
+    if split_catalogued_env_group?(group_name)
+      flatten_split_env_group_vars(wl, group_name)
     else
       wl['vars'] || {}
     end
   end
 
   # Flatten split-bucket vars in canonical bucket order (insertion order for merge / emit).
-  def flatten_split_workload_vars(wl, workload_name)
+  def flatten_split_env_group_vars(wl, group_name)
     out = {}
-    split_bucket_order(workload_name).each do |split|
+    split_bucket_order(group_name).each do |split|
       node = wl[split]
       next unless node.is_a?(Hash)
 
@@ -127,19 +129,19 @@ module BoilerplateEnvMerge
     splits_filter.map(&:to_s).to_set
   end
 
-  # Raw var specs from a source workload for one inherit entry (respects file_splits for split-catalogued sources).
+  # Raw var specs from a source env group for one inherit entry (respects file_splits for split-catalogued sources).
   def inherit_entry_source_raw(classification, entry)
     return {} unless entry.is_a?(Hash)
 
     from = entry['from'].to_s
     return {} if from.empty?
 
-    src_wl = classification.dig('workloads', from)
+    src_wl = classification.dig(CLASSIFICATION_ENV_GROUPS_KEY, from)
     return {} unless src_wl.is_a?(Hash)
 
     allowed = inherit_file_splits_allowed(entry)
 
-    if split_catalogued_workload?(from)
+    if split_catalogued_env_group?(from)
       out = {}
       split_bucket_order(from).each do |split|
         next if allowed && !allowed.include?(split)
@@ -195,7 +197,7 @@ module BoilerplateEnvMerge
     end
   end
 
-  # Vars from a single inherits[] entry (shallow: source workload's own vars only, not transitive).
+  # Vars from a single inherits[] entry (shallow: source group's own vars only, not transitive).
   def specs_from_inherit_entry(classification, entry)
     return {} unless entry.is_a?(Hash)
 
@@ -207,14 +209,14 @@ module BoilerplateEnvMerge
   end
 
   # Effective var specs for merge-env / K8s render: inherits (later entries override earlier on same key),
-  # then workload.vars (merge_var_specs deep-merges own on top of inherited).
-  def effective_workload_var_specs(classification, workload_name)
-    wl = classification.dig('workloads', workload_name)
+  # then group.vars (merge_var_specs deep-merges own on top of inherited).
+  def effective_env_group_var_specs(classification, group_name)
+    wl = classification.dig(CLASSIFICATION_ENV_GROUPS_KEY, group_name)
     return {} unless wl.is_a?(Hash)
 
     own =
-      if split_catalogued_workload?(workload_name)
-        flatten_split_workload_vars(wl, workload_name)
+      if split_catalogued_env_group?(group_name)
+        flatten_split_env_group_vars(wl, group_name)
       else
         wl['vars'] || {}
       end
@@ -234,13 +236,13 @@ module BoilerplateEnvMerge
 
   # Key order for env output: inherit order (per-source vars order, later inherit repositions duplicates),
   # then each own var in YAML order (moved to end, so overrides follow inherited block).
-  def effective_var_emit_order(classification, workload_name)
-    wl = classification.dig('workloads', workload_name)
+  def effective_var_emit_order(classification, group_name)
+    wl = classification.dig(CLASSIFICATION_ENV_GROUPS_KEY, group_name)
     return [] unless wl.is_a?(Hash)
 
     own =
-      if split_catalogued_workload?(workload_name)
-        flatten_split_workload_vars(wl, workload_name)
+      if split_catalogued_env_group?(group_name)
+        flatten_split_env_group_vars(wl, group_name)
       else
         wl['vars'] || {}
       end
@@ -275,8 +277,8 @@ module BoilerplateEnvMerge
     final
   end
 
-  def flatten_workload_env(classification, workload_name)
-    specs = effective_workload_var_specs(classification, workload_name)
+  def flatten_env_group_env(classification, group_name)
+    specs = effective_env_group_var_specs(classification, group_name)
     out = {}
     specs.each do |key, spec|
       next unless spec.is_a?(Hash)
@@ -330,13 +332,13 @@ module BoilerplateEnvMerge
   # Web sidecars expose NEXT_PUBLIC_*; home locale.env uses DEFAULT_LOCALE / SUPPORTED_LOCALES (canonical).
   # After overlays: when canonical keys are present, copy into NEXT_PUBLIC_* so locale.env overrides win over classification defaults.
   # Also covers inherits+map sidecars that only list NEXT_PUBLIC_* in specs until an overlay adds canonical keys.
-  LOCALE_NEXT_PUBLIC_SYNC_WORKLOADS = %w[web-sidecar management-web-sidecar].freeze
+  LOCALE_NEXT_PUBLIC_SYNC_GROUPS = %w[web-sidecar management-web-sidecar].freeze
 
   # When extra-env overlays include canonical AUTH_MODE, mirror into NEXT_PUBLIC_AUTH_MODE for the web sidecar.
-  AUTH_MODE_NEXT_PUBLIC_SYNC_WORKLOADS = %w[web-sidecar].freeze
+  AUTH_MODE_NEXT_PUBLIC_SYNC_GROUPS = %w[web-sidecar].freeze
 
-  def apply_locale_next_public_sync(env, workload_name)
-    return env unless LOCALE_NEXT_PUBLIC_SYNC_WORKLOADS.include?(workload_name.to_s)
+  def apply_locale_next_public_sync(env, group_name)
+    return env unless LOCALE_NEXT_PUBLIC_SYNC_GROUPS.include?(group_name.to_s)
 
     out = env.dup
     d = out['DEFAULT_LOCALE']
@@ -350,8 +352,8 @@ module BoilerplateEnvMerge
     out
   end
 
-  def apply_auth_mode_next_public_sync(env, workload_name)
-    return env unless AUTH_MODE_NEXT_PUBLIC_SYNC_WORKLOADS.include?(workload_name.to_s)
+  def apply_auth_mode_next_public_sync(env, group_name)
+    return env unless AUTH_MODE_NEXT_PUBLIC_SYNC_GROUPS.include?(group_name.to_s)
 
     out = env.dup
     mode = out['AUTH_MODE']
@@ -362,26 +364,26 @@ module BoilerplateEnvMerge
   end
 
   # Sidecars remap brand anchors (info) and WEB_BASE_URL (http.web bucket) to NEXT_PUBLIC_* (e.g. NEXT_PUBLIC_WEB_BASE_URL); extra-env may set canonical keys only.
-  INFO_WEB_NEXT_PUBLIC_SYNC_WORKLOADS = %w[web-sidecar].freeze
-  INFO_MANAGEMENT_WEB_NEXT_PUBLIC_SYNC_WORKLOADS = %w[management-web-sidecar].freeze
+  INFO_WEB_NEXT_PUBLIC_SYNC_GROUPS = %w[web-sidecar].freeze
+  INFO_MANAGEMENT_WEB_NEXT_PUBLIC_SYNC_GROUPS = %w[management-web-sidecar].freeze
 
-  def apply_info_next_public_sync(env, workload_name)
-    w = workload_name.to_s
+  def apply_info_next_public_sync(env, group_name)
+    g = group_name.to_s
     out = env.dup
-    if INFO_WEB_NEXT_PUBLIC_SYNC_WORKLOADS.include?(w)
+    if INFO_WEB_NEXT_PUBLIC_SYNC_GROUPS.include?(g)
       b = out['WEB_BRAND_NAME']
       if b && !b.to_s.empty?
         out['NEXT_PUBLIC_WEB_BRAND_NAME'] = b
       end
     end
-    if INFO_WEB_NEXT_PUBLIC_SYNC_WORKLOADS.include?(w) ||
-       INFO_MANAGEMENT_WEB_NEXT_PUBLIC_SYNC_WORKLOADS.include?(w)
+    if INFO_WEB_NEXT_PUBLIC_SYNC_GROUPS.include?(g) ||
+       INFO_MANAGEMENT_WEB_NEXT_PUBLIC_SYNC_GROUPS.include?(g)
       u = out['WEB_BASE_URL']
       if u && !u.to_s.empty?
         out['NEXT_PUBLIC_WEB_BASE_URL'] = u
       end
     end
-    if INFO_MANAGEMENT_WEB_NEXT_PUBLIC_SYNC_WORKLOADS.include?(w)
+    if INFO_MANAGEMENT_WEB_NEXT_PUBLIC_SYNC_GROUPS.include?(g)
       m = out['MANAGEMENT_WEB_BRAND_NAME']
       if m && !m.to_s.empty?
         out['NEXT_PUBLIC_MANAGEMENT_WEB_BRAND_NAME'] = m
@@ -401,10 +403,10 @@ module BoilerplateEnvMerge
 
   # Order keys: inherited emit order (see effective_var_emit_order), then append any
   # extra keys (e.g. from --extra-env) in their existing env_map iteration order.
-  def reorder_env_map_to_workload_vars(env_map, classification, workload_name)
+  def reorder_env_map_to_group_vars(env_map, classification, group_name)
     return env_map if env_map.nil? || env_map.empty?
 
-    order = effective_var_emit_order(classification, workload_name)
+    order = effective_var_emit_order(classification, group_name)
     ordered = {}
     order.each do |key|
       ordered[key] = env_map[key] if env_map.key?(key)
@@ -435,12 +437,12 @@ module BoilerplateEnvMerge
   # Returns { 'info' => { 'WEB_BRAND_NAME' => '...', ... }, ... } from merged classification.
   def anchor_overrides_by_logical_file(classification)
     by_logical = Hash.new { |h, k| h[k] = {} }
-    (classification['workloads'] || {}).each do |wl_name, wl|
+    (classification[CLASSIFICATION_ENV_GROUPS_KEY] || {}).each do |group_name, wl|
       next unless wl.is_a?(Hash)
 
       var_maps =
-        if split_catalogued_workload?(wl_name)
-          split_bucket_order(wl_name).map { |s| (wl[s].is_a?(Hash) ? wl[s]['vars'] : nil) || {} }
+        if split_catalogued_env_group?(group_name)
+          split_bucket_order(group_name).map { |s| (wl[s].is_a?(Hash) ? wl[s]['vars'] : nil) || {} }
         else
           [wl['vars'] || {}]
         end
@@ -467,8 +469,8 @@ module BoilerplateEnvMerge
     by_logical
   end
 
-  def derive_render_buckets(workload_name, classification)
-    wl = classification.dig('workloads', workload_name)
+  def derive_render_buckets(group_name, classification)
+    wl = classification.dig(CLASSIFICATION_ENV_GROUPS_KEY, group_name)
     return [{}, {}, {}, {}] unless wl.is_a?(Hash)
 
     literals = {}
@@ -476,7 +478,7 @@ module BoilerplateEnvMerge
     config = {}
     secrets = {}
 
-    effective_workload_var_specs(classification, workload_name).each do |key, spec|
+    effective_env_group_var_specs(classification, group_name).each do |key, spec|
       next unless spec.is_a?(Hash)
 
       case spec['kind']
@@ -494,11 +496,11 @@ module BoilerplateEnvMerge
     [literals, literals_only, config, secrets]
   end
 
-  VALKEY_SPLIT_ORDER = SPLIT_WORKLOAD_BUCKETS['valkey']
+  VALKEY_SPLIT_ORDER = SPLIT_ENV_GROUP_BUCKETS['valkey']
 
   def split_valkey_env(env_map, classification)
-    wl = classification.dig('workloads', 'valkey')
-    raise ArgumentError, 'missing workloads.valkey' unless wl.is_a?(Hash)
+    wl = classification.dig(CLASSIFICATION_ENV_GROUPS_KEY, 'valkey')
+    raise ArgumentError, 'missing env_groups.valkey' unless wl.is_a?(Hash)
 
     buckets = {}
     VALKEY_SPLIT_ORDER.each { |b| buckets[b] = {} }

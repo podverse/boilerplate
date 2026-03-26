@@ -13,6 +13,7 @@ spec:
       labels:
         app: postgres
     spec:
+      enableServiceLinks: false
       containers:
         - name: postgres
           image: postgres:18.1
@@ -149,6 +150,7 @@ spec:
       labels:
         app: valkey
     spec:
+      enableServiceLinks: false
       containers:
         - name: valkey
           image: valkey/valkey:7-alpine
@@ -187,6 +189,7 @@ spec:
       labels:
         app: api
     spec:
+      enableServiceLinks: false
       initContainers:
         - name: wait-postgres
           image: busybox:1.36
@@ -275,6 +278,10 @@ spec:
               value: valkey
             - name: VALKEY_PORT
               value: "6379"
+            # Override Kubernetes service-link env: Service named "api" injects API_PORT=tcp://... which
+            # breaks apps/api numeric port validation.
+            - name: API_PORT
+              value: "4000"
           readinessProbe:
             httpGet:
               path: /v1/health
@@ -303,6 +310,7 @@ spec:
       labels:
         app: management-api
     spec:
+      enableServiceLinks: false
       initContainers:
         - name: wait-postgres
           image: busybox:1.36
@@ -391,6 +399,10 @@ spec:
               value: valkey
             - name: VALKEY_PORT
               value: "6379"
+            # Override Kubernetes service-link env: Service "management-api" injects
+            # MANAGEMENT_API_PORT=tcp://... which breaks numeric port validation.
+            - name: MANAGEMENT_API_PORT
+              value: "4100"
           readinessProbe:
             httpGet:
               path: /v1/health
@@ -419,6 +431,7 @@ spec:
       labels:
         app: web-sidecar
     spec:
+      enableServiceLinks: false
       containers:
         - name: web-sidecar
           image: boilerplate-local-web-sidecar:latest
@@ -447,6 +460,7 @@ spec:
       labels:
         app: web
     spec:
+      enableServiceLinks: false
       initContainers:
         - name: wait-web-sidecar
           image: alpine:3.19
@@ -494,6 +508,7 @@ spec:
       labels:
         app: management-web-sidecar
     spec:
+      enableServiceLinks: false
       containers:
         - name: management-web-sidecar
           image: boilerplate-local-management-web-sidecar:latest
@@ -519,6 +534,7 @@ spec:
       labels:
         app: management-web
     spec:
+      enableServiceLinks: false
       initContainers:
         - name: wait-management-web-sidecar
           image: alpine:3.19

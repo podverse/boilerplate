@@ -80,7 +80,7 @@ else
 fi
 
 render_one() {
-  local workload=$1
+  local group=$1
   local merged
   merged=$(mktemp)
   shopt -s nullglob
@@ -95,42 +95,42 @@ render_one() {
 
   ruby "$REPO_ROOT/scripts/env-classification/boilerplate-env.rb" merge-env \
     --profile remote_k8s \
-    --workload "$workload" \
+    --group "$group" \
     "${extra_args[@]}" >"$merged"
 
   export BOILERPLATE_ENV_PROFILE=remote_k8s
 
   local suffix odir
-  suffix=$(workload_resource_suffix "$workload")
-  odir=$(overlay_dir_for_workload "$workload")
+  suffix=$(workload_resource_suffix "$group")
+  odir=$(overlay_dir_for_workload "$group")
   if [[ -z "$odir" ]]; then
     rm -f "$merged"
     return 0
   fi
 
   local dest_base cm_file
-  cm_file=$(configmap_filename_for_workload "$workload")
+  cm_file=$(configmap_filename_for_workload "$group")
 
   if [[ "$DRY_RUN" -eq 1 ]]; then
-    echo "=== ConfigMap ${workload}"
+    echo "=== ConfigMap ${group}"
     ruby "$SCRIPT_DIR/render_k8s_env.rb" \
-      --workload "$workload" \
+      --group "$group" \
       --merged-env "$merged" \
       --namespace "$NAMESPACE" \
       --environment "$ENV_NAME" \
       --resource-suffix "$suffix" \
       --emit configmap || true
-    echo "=== Secret ${workload}"
+    echo "=== Secret ${group}"
     ruby "$SCRIPT_DIR/render_k8s_env.rb" \
-      --workload "$workload" \
+      --group "$group" \
       --merged-env "$merged" \
       --namespace "$NAMESPACE" \
       --environment "$ENV_NAME" \
       --resource-suffix "$suffix" \
       --emit secret || true
-    echo "=== Secret env patch ${workload}"
+    echo "=== Secret env patch ${group}"
     ruby "$SCRIPT_DIR/render_k8s_env.rb" \
-      --workload "$workload" \
+      --group "$group" \
       --merged-env "$merged" \
       --namespace "$NAMESPACE" \
       --environment "$ENV_NAME" \
@@ -146,7 +146,7 @@ render_one() {
 
   set +e
   ruby "$SCRIPT_DIR/render_k8s_env.rb" \
-    --workload "$workload" \
+    --group "$group" \
     --merged-env "$merged" \
     --namespace "$NAMESPACE" \
     --environment "$ENV_NAME" \
@@ -156,9 +156,9 @@ render_one() {
   set -e
   case $cm_rc in
     0) echo "Wrote ${dest_base}/${cm_file}" ;;
-    3) echo "Skip workload ${workload} (no_env_from)" ;;
-    4) echo "Skip ConfigMap for ${workload} (no config keys)" ;;
-    *) echo "Error: configmap render failed for ${workload} (exit $cm_rc)" >&2; rm -f "$merged"; exit 1 ;;
+    3) echo "Skip env group ${group} (no_env_from)" ;;
+    4) echo "Skip ConfigMap for ${group} (no config keys)" ;;
+    *) echo "Error: configmap render failed for ${group} (exit $cm_rc)" >&2; rm -f "$merged"; exit 1 ;;
   esac
   if [[ $cm_rc -ne 0 ]]; then
     rm -f "${dest_base}/${cm_file}"
@@ -166,7 +166,7 @@ render_one() {
 
   set +e
   ruby "$SCRIPT_DIR/render_k8s_env.rb" \
-    --workload "$workload" \
+    --group "$group" \
     --merged-env "$merged" \
     --namespace "$NAMESPACE" \
     --environment "$ENV_NAME" \
@@ -177,8 +177,8 @@ render_one() {
   case $sec_rc in
     0) echo "Wrote ${PLAIN_SECRETS_DIR}/boilerplate-${suffix}-secrets.yaml (encrypt with sops before commit)" ;;
     3) : ;;
-    4) echo "Skip Secret for ${workload} (no secret keys)" ;;
-    *) echo "Error: secret render failed for ${workload} (exit $sec_rc)" >&2; rm -f "$merged"; exit 1 ;;
+    4) echo "Skip Secret for ${group} (no secret keys)" ;;
+    *) echo "Error: secret render failed for ${group} (exit $sec_rc)" >&2; rm -f "$merged"; exit 1 ;;
   esac
   if [[ $sec_rc -ne 0 ]]; then
     rm -f "${PLAIN_SECRETS_DIR}/boilerplate-${suffix}-secrets.yaml"
@@ -186,7 +186,7 @@ render_one() {
 
   set +e
   ruby "$SCRIPT_DIR/render_k8s_env.rb" \
-    --workload "$workload" \
+    --group "$group" \
     --merged-env "$merged" \
     --namespace "$NAMESPACE" \
     --environment "$ENV_NAME" \
@@ -197,9 +197,9 @@ render_one() {
   case $patch_rc in
     0) echo "Wrote ${dest_base}/deployment-secret-env.yaml" ;;
     3) : ;;
-    4) echo "Skip secret-env patch for ${workload} (no secret keys)" ;;
+    4) echo "Skip secret-env patch for ${group} (no secret keys)" ;;
     *)
-      echo "Error: secret-env-patch render failed for ${workload} (exit $patch_rc)" >&2
+      echo "Error: secret-env-patch render failed for ${group} (exit $patch_rc)" >&2
       rm -f "$merged"
       exit 1
       ;;

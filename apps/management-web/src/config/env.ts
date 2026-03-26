@@ -31,10 +31,16 @@ export function getManagementApiBaseUrl(): string {
 
 /**
  * Server-only: base URL for backend API (used by proxy and getServerUser).
- * When set (e.g. in dev with proxied client), server calls backend directly so cookies from the app origin are forwarded and validated.
- * When not set, falls back to getManagementApiBaseUrl() (e.g. production same-host).
+ * Prefer `process.env.MANAGEMENT_API_SERVER_BASE_URL` when set (e.g. k8s Deployment env)
+ * so in-cluster DNS wins over the runtime-config sidecar snapshot, which may still list
+ * Docker Compose service hostnames after `setRuntimeConfig()` runs.
+ * Otherwise use sidecar / buildFromProcessEnv via `env()`, then fall back to public API URL.
  */
 export function getServerManagementApiBaseUrl(): string {
+  const fromProcess = process.env.MANAGEMENT_API_SERVER_BASE_URL?.trim();
+  if (fromProcess !== undefined && fromProcess !== '') {
+    return fromProcess.replace(/\/$/, '') + getManagementApiVersionPath();
+  }
   const backend = env('MANAGEMENT_API_SERVER_BASE_URL')?.trim();
   if (backend !== undefined && backend !== '') {
     return backend.replace(/\/$/, '') + getManagementApiVersionPath();

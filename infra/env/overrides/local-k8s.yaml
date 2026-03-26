@@ -1,5 +1,5 @@
 version: 2
-workloads:
+env_groups:
   web-sidecar:
     vars:
       API_SERVER_BASE_URL:

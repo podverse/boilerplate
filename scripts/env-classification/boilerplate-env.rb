@@ -7,7 +7,7 @@ def usage(msg = nil)
   warn("Error: #{msg}") if msg
   warn <<~USAGE
     Usage:
-      boilerplate-env.rb merge-env --profile PROFILE --workload NAME [--extra-env PATH]... [--output PATH]
+      boilerplate-env.rb merge-env --profile PROFILE --group NAME [--extra-env PATH]... [--output PATH]
       boilerplate-env.rb write-valkey-split --profile PROFILE --valkey-source-only-out P --valkey-out P
     merge-env: prints KEY=value lines (classification var order) to stdout unless --output is set.
   USAGE
@@ -21,7 +21,7 @@ usage('missing command') if cmd.nil? || cmd.empty?
 case cmd
 when 'merge-env', 'print-env'
   profile = nil
-  workload = nil
+  group = nil
   extra = []
   output_path = nil
 
@@ -29,8 +29,8 @@ when 'merge-env', 'print-env'
     case args.shift
     when '--profile'
       profile = args.shift
-    when '--workload'
-      workload = args.shift
+    when '--group'
+      group = args.shift
     when '--extra-env'
       extra << args.shift
     when '--output'
@@ -43,15 +43,15 @@ when 'merge-env', 'print-env'
   end
 
   usage('missing --profile') if profile.nil? || profile.empty?
-  usage('missing --workload') if workload.nil? || workload.empty?
+  usage('missing --group') if group.nil? || group.empty?
 
   classification = BoilerplateEnvMerge.merged_classification(profile)
-  flat = BoilerplateEnvMerge.flatten_workload_env(classification, workload)
+  flat = BoilerplateEnvMerge.flatten_env_group_env(classification, group)
   merged = BoilerplateEnvMerge.apply_env_file_overlays(flat, extra)
-  merged = BoilerplateEnvMerge.apply_locale_next_public_sync(merged, workload)
-  merged = BoilerplateEnvMerge.apply_auth_mode_next_public_sync(merged, workload)
-  merged = BoilerplateEnvMerge.apply_info_next_public_sync(merged, workload)
-  merged = BoilerplateEnvMerge.reorder_env_map_to_workload_vars(merged, classification, workload)
+  merged = BoilerplateEnvMerge.apply_locale_next_public_sync(merged, group)
+  merged = BoilerplateEnvMerge.apply_auth_mode_next_public_sync(merged, group)
+  merged = BoilerplateEnvMerge.apply_info_next_public_sync(merged, group)
+  merged = BoilerplateEnvMerge.reorder_env_map_to_group_vars(merged, classification, group)
 
   if output_path
     BoilerplateEnvMerge.write_env_file(output_path, merged)
@@ -85,7 +85,7 @@ when 'write-valkey-split'
   usage('missing --valkey-out') if valkey_out.nil? || valkey_out.empty?
 
   classification = BoilerplateEnvMerge.merged_classification(profile)
-  flat = BoilerplateEnvMerge.flatten_workload_env(classification, 'valkey')
+  flat = BoilerplateEnvMerge.flatten_env_group_env(classification, 'valkey')
   vk_so_map, vk_map = BoilerplateEnvMerge.split_valkey_env(flat, classification)
   BoilerplateEnvMerge.write_env_file(valkey_source_only_out, vk_so_map)
   BoilerplateEnvMerge.write_env_file(valkey_out, vk_map)

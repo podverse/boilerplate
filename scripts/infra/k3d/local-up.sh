@@ -85,7 +85,8 @@ bash scripts/infra/argocd/install.sh
 bash scripts/infra/argocd/local-dev-user.sh
 bash scripts/infra/argocd/bootstrap.sh
 
-# Local fallback so the stack is runnable immediately even before remote repo sync is configured.
+# Workloads from the working tree (stack Application has manual sync; see
+# infra/k8s/argocd/boilerplate-local-stack-application.yaml).
 kubectl apply -k infra/k8s/local/stack
 
 echo ""

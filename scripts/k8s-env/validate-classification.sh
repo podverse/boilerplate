@@ -24,7 +24,7 @@ classification = YAML.safe_load(
   permitted_classes: [Symbol, Time],
   aliases: true
 )
-workloads = classification['workloads'] || {}
+env_groups = classification['env_groups'] || {}
 errors = []
 
 ALLOWED_KINDS = %w[literal config secret source_only].freeze
@@ -40,7 +40,7 @@ SPLIT_BUCKETS = {
 HTTP_FILE_SPLIT_VALUES = SPLIT_BUCKETS['http']
 VALKEY_FILE_SPLIT_VALUES = SPLIT_BUCKETS['valkey']
 LOCAL_GENERATORS = %w[hex_32].freeze
-PERMITTED_WORKLOAD_KEYS = %w[vars inherits no_env_from keys].freeze
+PERMITTED_ENV_GROUP_KEYS = %w[vars inherits no_env_from keys].freeze
 INHERIT_ENTRY_KEYS = %w[from file_splits map].freeze
 
 def array_to_set(arr)
@@ -51,9 +51,9 @@ def intersection(a, b)
   a.keys & b.keys
 end
 
-def inherits_cycle?(workloads)
+def inherits_cycle?(env_groups)
   graph = {}
-  workloads.each do |name, wl|
+  env_groups.each do |name, wl|
     next unless wl.is_a?(Hash)
 
     edges = []
@@ -85,8 +85,8 @@ def inherits_cycle?(workloads)
 end
 
 # Vars visible for an inherit entry after file_splits filtering (matches merge-env inherit_entry_source_raw).
-def flatten_inherit_filtered_source_vars(workloads, from, entry)
-  wl = workloads[from]
+def flatten_inherit_filtered_source_vars(env_groups, from, entry)
+  wl = env_groups[from]
   return {} unless wl.is_a?(Hash)
 
   if entry.key?('file_splits')
@@ -120,7 +120,7 @@ def validate_var_spec_leaf(errors, label, key, spec, literals, literals_only, co
     return
   end
 
-  # Kind/default come from inherited map; workload.vars may supply only override_file (anchor).
+  # Kind/default come from inherited map; env group vars may supply only override_file (anchor).
   if spec.keys.map(&:to_s) == ['override_file']
     ofile = spec['override_file']
     if ofile.nil? || ofile.to_s.strip.empty?
@@ -156,7 +156,7 @@ def validate_var_spec_leaf(errors, label, key, spec, literals, literals_only, co
   end
 
   if spec.key?('file_split') && !spec['file_split'].to_s.empty?
-    errors << "#{label}: var #{key} must not use file_split (http and valkey split workloads use split bucket keys; other workloads omit it)"
+    errors << "#{label}: var #{key} must not use file_split (http and valkey split env groups use split bucket keys; other env groups omit it)"
   end
 
   orole = spec['override_role']
@@ -218,44 +218,44 @@ def validate_var_spec_leaf(errors, label, key, spec, literals, literals_only, co
   end
 end
 
-validate_inherits_for_workload = lambda do |wl_name, inherits|
+validate_inherits_for_env_group = lambda do |wl_name, inherits|
   return if inherits.nil?
 
   unless inherits.is_a?(Array)
-    errors << "Workload #{wl_name}: inherits must be an array of mappings"
+    errors << "Env group #{wl_name}: inherits must be an array of mappings"
     return
   end
 
   inherits.each_with_index do |entry, idx|
     unless entry.is_a?(Hash)
-      errors << "Workload #{wl_name}: inherits[#{idx}] must be a mapping with from:"
+      errors << "Env group #{wl_name}: inherits[#{idx}] must be a mapping with from:"
       next
     end
 
     entry.each_key do |ek|
       next if INHERIT_ENTRY_KEYS.include?(ek)
 
-      errors << "Workload #{wl_name}: inherits[#{idx}] has unknown key #{ek.inspect} (permitted: #{INHERIT_ENTRY_KEYS.join(', ')})"
+      errors << "Env group #{wl_name}: inherits[#{idx}] has unknown key #{ek.inspect} (permitted: #{INHERIT_ENTRY_KEYS.join(', ')})"
     end
 
     from = entry['from']
     if from.nil? || from.to_s.strip.empty?
-      errors << "Workload #{wl_name}: inherits[#{idx}] requires non-empty from:"
+      errors << "Env group #{wl_name}: inherits[#{idx}] requires non-empty from:"
       next
     end
 
     from = from.to_s
-    unless workloads.key?(from)
-      errors << "Workload #{wl_name}: inherits[#{idx}] from=#{from.inspect} is not a defined workload"
+    unless env_groups.key?(from)
+      errors << "Env group #{wl_name}: inherits[#{idx}] from=#{from.inspect} is not a defined env group"
     end
 
     if entry.key?('file_splits')
       unless %w[valkey http].include?(from)
-        errors << "Workload #{wl_name}: inherits[#{idx}] file_splits is only allowed when from is valkey or http"
+        errors << "Env group #{wl_name}: inherits[#{idx}] file_splits is only allowed when from is valkey or http"
       end
       fs = entry['file_splits']
       unless fs.is_a?(Array)
-        errors << "Workload #{wl_name}: inherits[#{idx}] file_splits must be an array"
+        errors << "Env group #{wl_name}: inherits[#{idx}] file_splits must be an array"
       else
         allowed_splits =
           case from
@@ -267,53 +267,53 @@ validate_inherits_for_workload = lambda do |wl_name, inherits|
         fs.each do |s|
           s = s.to_s
           unless allowed_splits.include?(s)
-            errors << "Workload #{wl_name}: inherits[#{idx}] file_splits has invalid value #{s.inspect} (for #{from}: #{allowed_splits.join(', ')})"
+            errors << "Env group #{wl_name}: inherits[#{idx}] file_splits has invalid value #{s.inspect} (for #{from}: #{allowed_splits.join(', ')})"
           end
         end
       end
     end
 
-    next unless from && workloads.key?(from)
+    next unless from && env_groups.key?(from)
 
     if entry.key?('remap')
-      errors << "Workload #{wl_name}: inherits[#{idx}] uses removed key remap (use map: SourceName: TargetName)"
+      errors << "Env group #{wl_name}: inherits[#{idx}] uses removed key remap (use map: SourceName: TargetName)"
     end
     if entry.key?('aliases')
-      errors << "Workload #{wl_name}: inherits[#{idx}] uses removed key aliases (list every import under map)"
+      errors << "Env group #{wl_name}: inherits[#{idx}] uses removed key aliases (list every import under map)"
     end
 
     unless entry.key?('map')
-      errors << "Workload #{wl_name}: inherits[#{idx}] requires map (non-empty source var name => target var name)"
+      errors << "Env group #{wl_name}: inherits[#{idx}] requires map (non-empty source var name => target var name)"
       next
     end
 
     mmap = entry['map']
     unless mmap.is_a?(Hash) && !mmap.empty?
-      errors << "Workload #{wl_name}: inherits[#{idx}] map must be a non-empty mapping"
+      errors << "Env group #{wl_name}: inherits[#{idx}] map must be a non-empty mapping"
       next
     end
 
-    src_vars = flatten_inherit_filtered_source_vars(workloads, from, entry)
+    src_vars = flatten_inherit_filtered_source_vars(env_groups, from, entry)
     map_sources = []
     map_targets = []
     mmap.each do |src_key, tgt_key|
       sk = src_key.to_s
       tk = tgt_key.to_s
       if sk.strip.empty? || tk.strip.empty?
-        errors << "Workload #{wl_name}: inherits[#{idx}] map entries must use non-empty source and target strings"
+        errors << "Env group #{wl_name}: inherits[#{idx}] map entries must use non-empty source and target strings"
         next
       end
       map_sources << sk
       map_targets << tk
       unless src_vars.key?(sk)
-        errors << "Workload #{wl_name}: inherits[#{idx}] map source #{sk.inspect} is not in filtered vars from workload #{from.inspect} (check file_splits)"
+        errors << "Env group #{wl_name}: inherits[#{idx}] map source #{sk.inspect} is not in filtered vars from env group #{from.inspect} (check file_splits)"
       end
     end
     if map_sources.uniq.length != map_sources.length
-      errors << "Workload #{wl_name}: inherits[#{idx}] map has duplicate source var names"
+      errors << "Env group #{wl_name}: inherits[#{idx}] map has duplicate source var names"
     end
     if map_targets.uniq.length != map_targets.length
-      errors << "Workload #{wl_name}: inherits[#{idx}] map has duplicate target var names"
+      errors << "Env group #{wl_name}: inherits[#{idx}] map has duplicate target var names"
     end
   end
 end
@@ -322,11 +322,11 @@ unless classification['version']
   errors << 'Missing top-level version'
 end
 
-if inherits_cycle?(workloads)
-  errors << 'inherits: cycle detected in workload inheritance graph'
+if inherits_cycle?(env_groups)
+  errors << 'inherits: cycle detected in env group inheritance graph'
 end
 
-workloads.each do |name, wl|
+env_groups.each do |name, wl|
   next unless wl.is_a?(Hash)
 
   if SPLIT_BUCKETS.key?(name.to_s)
@@ -334,18 +334,18 @@ workloads.each do |name, wl|
 
     wl.each_key do |wk|
       unless allowed_split_top.include?(wk.to_s)
-        errors << "Workload #{name}: unknown top-level key #{wk.inspect} (expected: #{allowed_split_top.join(', ')})"
+        errors << "Env group #{name}: unknown top-level key #{wk.inspect} (expected: #{allowed_split_top.join(', ')})"
       end
     end
 
     inh = wl['inherits']
     if inh.is_a?(Array) && !inh.empty?
-      errors << "Workload #{name}: split-catalogued workload must not use inherits"
+      errors << "Env group #{name}: split-catalogued env group must not use inherits"
     elsif !inh.nil? && !inh.is_a?(Array)
-      errors << "Workload #{name}: split-catalogued workload must not use inherits (omit or use [])"
+      errors << "Env group #{name}: split-catalogued env group must not use inherits (omit or use [])"
     end
-    errors << "Workload #{name}: split-catalogued workload must not set no_env_from" if wl['no_env_from']
-    errors << "Workload #{name}: split-catalogued workload must not set keys" if wl.key?('keys')
+    errors << "Env group #{name}: split-catalogued env group must not set no_env_from" if wl['no_env_from']
+    errors << "Env group #{name}: split-catalogued env group must not set keys" if wl.key?('keys')
 
     literals = {}
     literals_only = {}
@@ -355,32 +355,32 @@ workloads.each do |name, wl|
 
     SPLIT_BUCKETS[name.to_s].each do |split|
       unless wl.key?(split)
-        errors << "Workload #{name}: missing split bucket #{split.inspect}"
+        errors << "Env group #{name}: missing split bucket #{split.inspect}"
         next
       end
       node = wl[split]
       unless node.is_a?(Hash)
-        errors << "Workload #{name}: split #{split} must be a mapping"
+        errors << "Env group #{name}: split #{split} must be a mapping"
         next
       end
       node.each_key do |nk|
         unless nk.to_s == 'vars'
-          errors << "Workload #{name}: split #{split} unknown key #{nk.inspect} (only vars permitted)"
+          errors << "Env group #{name}: split #{split} unknown key #{nk.inspect} (only vars permitted)"
         end
       end
       vars = node['vars']
       unless vars.is_a?(Hash) && !vars.empty?
-        errors << "Workload #{name} split #{split}: vars must be a non-empty mapping"
+        errors << "Env group #{name} split #{split}: vars must be a non-empty mapping"
         next
       end
       vars.each do |var_key, spec|
         vk = var_key.to_s
         if seen.key?(vk)
-          errors << "Workload #{name}: var #{vk.inspect} appears in multiple splits (#{seen[vk]} and #{split})"
+          errors << "Env group #{name}: var #{vk.inspect} appears in multiple splits (#{seen[vk]} and #{split})"
         else
           seen[vk] = split
         end
-        validate_var_spec_leaf(errors, "Workload #{name} split #{split}", vk, spec, literals, literals_only, config, secrets)
+        validate_var_spec_leaf(errors, "Env group #{name} split #{split}", vk, spec, literals, literals_only, config, secrets)
       end
     end
 
@@ -389,41 +389,41 @@ workloads.each do |name, wl|
     cfg_set = config
     sec_set = secrets
     intersection(lit_set, cfg_set).each do |k|
-      errors << "Workload #{name}: key #{k} appears as both literal and config"
+      errors << "Env group #{name}: key #{k} appears as both literal and config"
     end
     intersection(lit_set, sec_set).each do |k|
-      errors << "Workload #{name}: key #{k} appears as both literal and secret"
+      errors << "Env group #{name}: key #{k} appears as both literal and secret"
     end
     intersection(cfg_set, sec_set).each do |k|
-      errors << "Workload #{name}: key #{k} appears as both config and secret"
+      errors << "Env group #{name}: key #{k} appears as both config and secret"
     end
     intersection(lo_set, cfg_set).each do |k|
-      errors << "Workload #{name}: key #{k} appears as both source_only and config"
+      errors << "Env group #{name}: key #{k} appears as both source_only and config"
     end
     intersection(lo_set, sec_set).each do |k|
-      errors << "Workload #{name}: key #{k} appears as both source_only and secret"
+      errors << "Env group #{name}: key #{k} appears as both source_only and secret"
     end
     intersection(lo_set, lit_set).each do |k|
-      errors << "Workload #{name}: key #{k} appears as both source_only and literal"
+      errors << "Env group #{name}: key #{k} appears as both source_only and literal"
     end
 
     next
   end
 
   wl.each_key do |wk|
-    next if PERMITTED_WORKLOAD_KEYS.include?(wk)
+    next if PERMITTED_ENV_GROUP_KEYS.include?(wk)
 
-    errors << "Workload #{name}: unknown top-level key #{wk.inspect} (permitted: #{PERMITTED_WORKLOAD_KEYS.join(', ')})"
+    errors << "Env group #{name}: unknown top-level key #{wk.inspect} (permitted: #{PERMITTED_ENV_GROUP_KEYS.join(', ')})"
   end
 
   inherits = wl['inherits']
-  validate_inherits_for_workload.call(name, inherits)
+  validate_inherits_for_env_group.call(name, inherits)
 
   vars = wl['vars'] || {}
 
   inherits_nonempty = inherits.is_a?(Array) && !inherits.empty?
   if vars.empty? && !wl['no_env_from'] && !inherits_nonempty
-    errors << "Workload #{name}: missing vars (or set no_env_from, or add non-empty inherits)"
+    errors << "Env group #{name}: missing vars (or set no_env_from, or add non-empty inherits)"
     next
   end
 
@@ -433,7 +433,7 @@ workloads.each do |name, wl|
   secrets = {}
 
   vars.each do |key, spec|
-    validate_var_spec_leaf(errors, "Workload #{name}", key.to_s, spec, literals, literals_only, config, secrets)
+    validate_var_spec_leaf(errors, "Env group #{name}", key.to_s, spec, literals, literals_only, config, secrets)
   end
 
   lit_set = literals
@@ -442,27 +442,27 @@ workloads.each do |name, wl|
   sec_set = secrets
 
   intersection(lit_set, cfg_set).each do |k|
-    errors << "Workload #{name}: key #{k} appears as both literal and config"
+    errors << "Env group #{name}: key #{k} appears as both literal and config"
   end
   intersection(lit_set, sec_set).each do |k|
-    errors << "Workload #{name}: key #{k} appears as both literal and secret"
+    errors << "Env group #{name}: key #{k} appears as both literal and secret"
   end
   intersection(cfg_set, sec_set).each do |k|
-    errors << "Workload #{name}: key #{k} appears as both config and secret"
+    errors << "Env group #{name}: key #{k} appears as both config and secret"
   end
   intersection(lo_set, cfg_set).each do |k|
-    errors << "Workload #{name}: key #{k} appears as both source_only and config"
+    errors << "Env group #{name}: key #{k} appears as both source_only and config"
   end
   intersection(lo_set, sec_set).each do |k|
-    errors << "Workload #{name}: key #{k} appears as both source_only and secret"
+    errors << "Env group #{name}: key #{k} appears as both source_only and secret"
   end
   intersection(lo_set, lit_set).each do |k|
-    errors << "Workload #{name}: key #{k} appears as both source_only and literal"
+    errors << "Env group #{name}: key #{k} appears as both source_only and literal"
   end
 
   if wl['no_env_from']
     unless config.empty? && secrets.empty?
-      errors << "Workload #{name}: no_env_from workloads must only use literal or source_only kinds"
+      errors << "Env group #{name}: no_env_from env groups must only use literal or source_only kinds"
     end
   end
 end

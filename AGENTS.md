@@ -74,11 +74,11 @@ When implementing features or executing plans that touch **api** or **management
   management-api: `apps/management-api/src/test/global-setup.mjs`).
 - **Database naming (dev/Docker/K8s):** Two databases in one Postgres instance, aligned with Podverse: app DB
   `boilerplate_app`, management DB `boilerplate_management`. Classification defines `DB_APP_NAME` and `DB_MANAGEMENT_NAME`
-  (via `db` workload keys); cluster superuser is `DB_USER` (default `user`) and `DB_PASSWORD` in `db.env` (with
+  (via `db` env group keys); cluster superuser is `DB_USER` (default `user`) and `DB_PASSWORD` in `db.env` (with
   `DB_HOST` / `DB_PORT` for clients). The official Postgres Docker image still reads `POSTGRES_USER`, `POSTGRES_PASSWORD`,
   `POSTGRES_DB`; local Compose maps them from `DB_USER`, `DB_PASSWORD`, and `DB_APP_NAME`. Apps use `DB_APP_NAME` (synced
   by `local_env_setup`). Management-api uses the same **`DB_HOST`** / **`DB_PORT`** plus **`DB_MANAGEMENT_NAME`** and
-  **`DB_MANAGEMENT_READ_WRITE_*`** (inherited from classification workload **`db`**; no separate `MANAGEMENT_DB_*` vars).
+  **`DB_MANAGEMENT_READ_WRITE_*`** (inherited from classification env group **`db`**; no separate `MANAGEMENT_DB_*` vars).
   Role names: `boilerplate_app_read` / `boilerplate_app_read_write`, `boilerplate_management_read` /
   `boilerplate_management_read_write`; keys `DB_APP_READ_*` and `DB_MANAGEMENT_READ_*`.
 - **Mailer:** No local mailer service is required. Tests that cover verification flows use a Vitest mock of the

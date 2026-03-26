@@ -2148,3 +2148,29 @@ To-do's from the plan have already been created. Do not create them again. Mark 
 - `infra/docker/local/INFRA-DOCKER-LOCAL.md`
 - `.cursor/skills/local-docker-k3d-alignment/SKILL.md`
 - `.llm/history/active/classification-env/classification-env-part-01.md`
+
+### Session 94 - 2026-03-25
+
+#### Prompt (Developer)
+
+Rename classification `workloads` to `env_groups`
+
+Implement the plan as specified, it is attached for your reference. Do NOT edit the plan file itself.
+
+To-do's from the plan have already been created. Do not create them again. Mark them as in_progress as you work, starting with the first one. Don't stop until you have completed all the to-dos.
+
+#### Key Decisions
+
+- Completed K8s render path: **`render_k8s_env.rb`** uses **`--group`**, **`CLASSIFICATION_ENV_GROUPS_KEY`**, **`effective_env_group_var_specs`**, **`derive_render_buckets(group, classification)`**; **`render-k8s-env.sh`** passes **`--group`** to merge and render.
+- **`validate-classification.sh`**: load **`env_groups`**, rename validator helpers/constants (**`PERMITTED_ENV_GROUP_KEYS`**, **`validate_inherits_for_env_group`**), user-facing **Env group** strings; **`validate-parity.sh`**: **`env_groups`** array and **`--group`**.
+- Docs/skills: **`ENV-REFERENCE`**, **`LOCAL-ENV-OVERRIDES`**, **`K8S-ENV-RENDER`**, **`classification-env` SKILL**, **`AGENTS.md`** — terminology **`env_groups`**, **`merge-env --group`**, Ruby API names; left cluster-English “workloads” in **`K3D-ARGOCD-LOCAL.md`** untouched.
+- Verified **`validate-classification.sh`**, **`merge-env --profile local_docker --group db`**, **`validate-parity.sh`**.
+
+#### Files Created/Modified
+
+- `scripts/k8s-env/render_k8s_env.rb`, `scripts/k8s-env/render-k8s-env.sh`, `scripts/k8s-env/validate-classification.sh`
+- `scripts/env-classification/validate-parity.sh`
+- `docs/development/ENV-REFERENCE.md`, `docs/development/LOCAL-ENV-OVERRIDES.md`, `docs/development/K8S-ENV-RENDER.md`
+- `.cursor/skills/classification-env/SKILL.md`, `AGENTS.md`
+- `makefiles/local/Makefile.local.validate.mk`, `.github/workflows/publish-alpha.yml`
+- `.llm/history/active/classification-env/classification-env-part-01.md`

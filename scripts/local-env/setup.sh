@@ -31,26 +31,26 @@ boilerplate_env() {
 
 # Ensure all required env files exist (generate from infra/env/classification when missing)
 mkdir -p infra/config/local
-[ -f "$DB_ENV" ] || boilerplate_env merge-env --profile local_docker --workload db --output "$DB_ENV"
+[ -f "$DB_ENV" ] || boilerplate_env merge-env --profile local_docker --group db --output "$DB_ENV"
 if [ ! -f "$VALKEY_SOURCE_ONLY_ENV" ] || [ ! -f "$VALKEY_ENV" ]; then
   boilerplate_env write-valkey-split \
     --profile local_docker \
     --valkey-source-only-out "$VALKEY_SOURCE_ONLY_ENV" \
     --valkey-out "$VALKEY_ENV"
 fi
-[ -f "$API_INFRA_ENV" ] || boilerplate_env merge-env --profile local_docker --workload api --output "$API_INFRA_ENV"
-[ -f "$WEB_SIDECAR_INFRA_ENV" ] || boilerplate_env merge-env --profile local_docker --workload web-sidecar --output "$WEB_SIDECAR_INFRA_ENV"
-[ -f "$WEB_INFRA_ENV" ] || boilerplate_env merge-env --profile local_docker --workload web --output "$WEB_INFRA_ENV"
-[ -f "$MANAGEMENT_API_INFRA_ENV" ] || boilerplate_env merge-env --profile local_docker --workload management-api --output "$MANAGEMENT_API_INFRA_ENV"
-[ -f "$MANAGEMENT_WEB_SIDECAR_INFRA_ENV" ] || boilerplate_env merge-env --profile local_docker --workload management-web-sidecar --output "$MANAGEMENT_WEB_SIDECAR_INFRA_ENV"
-[ -f "$MANAGEMENT_WEB_INFRA_ENV" ] || boilerplate_env merge-env --profile local_docker --workload management-web --output "$MANAGEMENT_WEB_INFRA_ENV"
-[ -f "$API_APP_ENV" ] || boilerplate_env merge-env --profile dev --workload api --output "$API_APP_ENV"
-[ -f "$WEB_APP_ENV" ] || boilerplate_env merge-env --profile dev --workload web --output "$WEB_APP_ENV"
-[ -f "$MANAGEMENT_API_APP_ENV" ] || boilerplate_env merge-env --profile dev --workload management-api --output "$MANAGEMENT_API_APP_ENV"
-[ -f "$MANAGEMENT_WEB_APP_ENV" ] || boilerplate_env merge-env --profile dev --workload management-web --output "$MANAGEMENT_WEB_APP_ENV"
+[ -f "$API_INFRA_ENV" ] || boilerplate_env merge-env --profile local_docker --group api --output "$API_INFRA_ENV"
+[ -f "$WEB_SIDECAR_INFRA_ENV" ] || boilerplate_env merge-env --profile local_docker --group web-sidecar --output "$WEB_SIDECAR_INFRA_ENV"
+[ -f "$WEB_INFRA_ENV" ] || boilerplate_env merge-env --profile local_docker --group web --output "$WEB_INFRA_ENV"
+[ -f "$MANAGEMENT_API_INFRA_ENV" ] || boilerplate_env merge-env --profile local_docker --group management-api --output "$MANAGEMENT_API_INFRA_ENV"
+[ -f "$MANAGEMENT_WEB_SIDECAR_INFRA_ENV" ] || boilerplate_env merge-env --profile local_docker --group management-web-sidecar --output "$MANAGEMENT_WEB_SIDECAR_INFRA_ENV"
+[ -f "$MANAGEMENT_WEB_INFRA_ENV" ] || boilerplate_env merge-env --profile local_docker --group management-web --output "$MANAGEMENT_WEB_INFRA_ENV"
+[ -f "$API_APP_ENV" ] || boilerplate_env merge-env --profile dev --group api --output "$API_APP_ENV"
+[ -f "$WEB_APP_ENV" ] || boilerplate_env merge-env --profile dev --group web --output "$WEB_APP_ENV"
+[ -f "$MANAGEMENT_API_APP_ENV" ] || boilerplate_env merge-env --profile dev --group management-api --output "$MANAGEMENT_API_APP_ENV"
+[ -f "$MANAGEMENT_WEB_APP_ENV" ] || boilerplate_env merge-env --profile dev --group management-web --output "$MANAGEMENT_WEB_APP_ENV"
 mkdir -p apps/web/sidecar apps/management-web/sidecar
-[ -f "$WEB_SIDECAR_APP_ENV" ] || boilerplate_env merge-env --profile dev --workload web-sidecar --output "$WEB_SIDECAR_APP_ENV"
-[ -f "$MANAGEMENT_WEB_SIDECAR_APP_ENV" ] || boilerplate_env merge-env --profile dev --workload management-web-sidecar --output "$MANAGEMENT_WEB_SIDECAR_APP_ENV"
+[ -f "$WEB_SIDECAR_APP_ENV" ] || boilerplate_env merge-env --profile dev --group web-sidecar --output "$WEB_SIDECAR_APP_ENV"
+[ -f "$MANAGEMENT_WEB_SIDECAR_APP_ENV" ] || boilerplate_env merge-env --profile dev --group management-web-sidecar --output "$MANAGEMENT_WEB_SIDECAR_APP_ENV"
 
 # Helpers for applying override values (Podverse-style)
 escape_sed_replacement() {
@@ -278,7 +278,7 @@ fi
 
 echo "Applied local env values from generated defaults and overrides."
 
-# Sidecar env: two independent outputs (same workloads, different profiles).
+# Sidecar env: two independent outputs (same env groups, different profiles).
 # - infra/config/local/*-sidecar.env: merge-env --profile local_docker (Compose env_file; Docker DNS for APIs).
 # - apps/*/sidecar/.env: merge-env --profile dev above (host npm dev; matches apps/web/.env.local profile).
 echo "Host runtime-config sidecars use apps/*/sidecar/.env (dev merge); infra *-sidecar.env is Compose-only."
