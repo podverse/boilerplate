@@ -1,9 +1,11 @@
 #!/usr/bin/env bash
 # Render ConfigMap + Secret YAML for Boilerplate K8s workloads.
-# Usage: render-k8s-env.sh --env alpha|beta|prod [--output-repo PATH] [--dry-run]
+# Usage: render-k8s-env.sh --env alpha|beta|prod [--output-repo PATH] [--dry-run] [--no-prune]
 #
 # When not using --dry-run, OUTPUT_REPO is required: pass --output-repo PATH or set BOILERPLATE_K8S_OUTPUT_REPO
 # to the GitOps repo root (no implicit sibling or out/ default).
+# Prune: by default, removes generator-owned ConfigMaps, plain Secrets, and deployment-secret-env.yaml patches.
+# Use --no-prune to skip deletion. --dry-run never prunes or writes.
 
 set -euo pipefail
 
@@ -11,12 +13,13 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 cd "$REPO_ROOT"
 
-# shellcheck source=lib/env-merge.sh
-source "$SCRIPT_DIR/lib/env-merge.sh"
+# shellcheck source=k8s-env-render-manifest.inc.sh
+source "$SCRIPT_DIR/k8s-env-render-manifest.inc.sh"
 
 ENV_NAME=""
 OUTPUT_REPO=""
 DRY_RUN=0
+PRUNE=1
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -32,8 +35,12 @@ while [[ $# -gt 0 ]]; do
       DRY_RUN=1
       shift
       ;;
+    --no-prune)
+      PRUNE=0
+      shift
+      ;;
     -h | --help)
-      sed -n '1,12p' "$0"
+      sed -n '1,15p' "$0"
       exit 0
       ;;
     *)
@@ -72,43 +79,26 @@ else
   PLAIN_SECRETS_DIR=""
 fi
 
-workload_resource_suffix() {
-  case "$1" in
-    postgres) echo db ;;
-    *) echo "$1" ;;
-  esac
-}
-
-overlay_dir_for_workload() {
-  case "$1" in
-    api) echo api ;;
-    management-api) echo management-api ;;
-    web-sidecar) echo web ;;
-    management-web-sidecar) echo management-web ;;
-    postgres) echo db ;;
-    valkey) echo keyvaldb ;;
-    *) echo "" ;;
-  esac
-}
-
-configmap_filename_for_workload() {
-  case "$1" in
-    web-sidecar) echo configmap-web-sidecar.yaml ;;
-    management-web-sidecar) echo configmap-management-web-sidecar.yaml ;;
-    *) echo configmap.yaml ;;
-  esac
-}
-
 render_one() {
   local workload=$1
-  shift
-  local sources=("$@")
   local merged
   merged=$(mktemp)
   shopt -s nullglob
   local overrides=(dev/env-overrides/"${ENV_NAME}"/*.env)
   shopt -u nullglob
-  merge_env_files "${sources[@]}" "${overrides[@]}" >"$merged"
+
+  local extra_args=()
+  local f
+  for f in "${overrides[@]}"; do
+    extra_args+=(--extra-env "$f")
+  done
+
+  ruby "$REPO_ROOT/scripts/env-classification/boilerplate-env.rb" merge-env \
+    --profile remote_k8s \
+    --workload "$workload" \
+    "${extra_args[@]}" >"$merged"
+
+  export BOILERPLATE_ENV_PROFILE=remote_k8s
 
   local suffix odir
   suffix=$(workload_resource_suffix "$workload")
@@ -138,6 +128,14 @@ render_one() {
       --environment "$ENV_NAME" \
       --resource-suffix "$suffix" \
       --emit secret || true
+    echo "=== Secret env patch ${workload}"
+    ruby "$SCRIPT_DIR/render_k8s_env.rb" \
+      --workload "$workload" \
+      --merged-env "$merged" \
+      --namespace "$NAMESPACE" \
+      --environment "$ENV_NAME" \
+      --resource-suffix "$suffix" \
+      --emit secret-env-patch || true
     rm -f "$merged"
     return 0
   fi
@@ -186,16 +184,47 @@ render_one() {
     rm -f "${PLAIN_SECRETS_DIR}/boilerplate-${suffix}-secrets.yaml"
   fi
 
+  set +e
+  ruby "$SCRIPT_DIR/render_k8s_env.rb" \
+    --workload "$workload" \
+    --merged-env "$merged" \
+    --namespace "$NAMESPACE" \
+    --environment "$ENV_NAME" \
+    --resource-suffix "$suffix" \
+    --emit secret-env-patch >"${dest_base}/deployment-secret-env.yaml"
+  patch_rc=$?
+  set -e
+  case $patch_rc in
+    0) echo "Wrote ${dest_base}/deployment-secret-env.yaml" ;;
+    3) : ;;
+    4) echo "Skip secret-env patch for ${workload} (no secret keys)" ;;
+    *)
+      echo "Error: secret-env-patch render failed for ${workload} (exit $patch_rc)" >&2
+      rm -f "$merged"
+      exit 1
+      ;;
+  esac
+  if [[ $patch_rc -ne 0 ]]; then
+    rm -f "${dest_base}/deployment-secret-env.yaml"
+  fi
+
   rm -f "$merged"
 }
 
 echo "ENV=${ENV_NAME} OUTPUT_REPO=${OUTPUT_REPO} NAMESPACE=${NAMESPACE}"
 
-render_one api apps/api/.env.example
-render_one management-api apps/management-api/.env.example
-render_one web-sidecar apps/web/sidecar/.env.example
-render_one management-web-sidecar apps/management-web/sidecar/.env.example
-render_one postgres infra/config/env-templates/db.env.example
-render_one valkey infra/config/env-templates/valkey.env.example
+if [[ "$DRY_RUN" -eq 0 && "$PRUNE" -eq 1 ]]; then
+  echo "Pruning generator-owned paths under ${OUTPUT_REPO}"
+  while IFS= read -r rel; do
+    rm -f "${OUTPUT_REPO}/${rel}"
+  done < <(k8s_env_render_owned_paths_relative_to_output_repo "$ENV_NAME")
+fi
+
+render_one db
+render_one valkey
+render_one api
+render_one web-sidecar
+render_one management-api
+render_one management-web-sidecar
 
 echo "Render complete."

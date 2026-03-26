@@ -1,6 +1,5 @@
 /**
- * Renders the app-type title: brand name plus an optional icon (e.g. Font Awesome).
- * Icon class is typically provided via NEXT_PUBLIC_APP_TITLE_ICON.
+ * Renders the app-type title: brand name plus an optional icon class (e.g. Font Awesome).
  * A space is rendered between the name and icon only when an icon is present.
  */
 export function AppTypeTitle({

@@ -31,15 +31,26 @@ create_secret() {
   rm -f "$stripped"
 }
 
+# Merge env files (later keys win) then create one secret (same idea as scripts/k8s-env/lib/env-merge.sh).
+create_secret_from_files() {
+  local name="$1"
+  shift
+  local merged
+  merged=$(mktemp)
+  cat "$@" >"$merged"
+  create_secret "$name" "$merged"
+  rm -f "$merged"
+}
+
 kubectl create namespace "$NAMESPACE" --dry-run=client -o yaml | kubectl apply -f -
 
-create_secret boilerplate-db-env           infra/config/local/db.env
-create_secret boilerplate-valkey-env       infra/config/local/valkey.env
-create_secret boilerplate-api-env          infra/config/local/api.env
-create_secret boilerplate-management-api-env infra/config/local/management-api.env
-create_secret boilerplate-web-env          infra/config/local/web.env
-create_secret boilerplate-web-sidecar-env  infra/config/local/web-sidecar.env
-create_secret boilerplate-management-web-env infra/config/local/management-web.env
-create_secret boilerplate-management-web-sidecar-env infra/config/local/management-web-sidecar.env
+create_secret_from_files boilerplate-db-secrets infra/config/local/db.env
+create_secret boilerplate-valkey-secrets infra/config/local/valkey.env
+create_secret boilerplate-api-secrets infra/config/local/api.env
+create_secret boilerplate-management-api-secrets infra/config/local/management-api.env
+create_secret boilerplate-web-secrets infra/config/local/web.env
+create_secret boilerplate-web-sidecar-secrets infra/config/local/web-sidecar.env
+create_secret boilerplate-management-web-secrets infra/config/local/management-web.env
+create_secret boilerplate-management-web-sidecar-secrets infra/config/local/management-web-sidecar.env
 
 echo "Applied local Kubernetes secrets from infra/config/local/*.env"

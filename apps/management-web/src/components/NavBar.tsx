@@ -5,27 +5,21 @@ import { useRouter } from 'next/navigation';
 
 import { AppTypeTitle, NavBar as UINavBar } from '@boilerplate/ui';
 
-import { getAppTitleIcon } from '../config/env';
 import { useAuth } from '../context/AuthContext';
 import { ROUTES } from '../lib/routes';
 
 export type NavBarMainNavItem = { href: string; label: string };
 
-function getTitleIconFallback(): string | undefined {
-  return getAppTitleIcon();
-}
-
 export function NavBar({
+  brandName,
   mainNavItems,
-  titleIcon: titleIconProp,
 }: {
+  brandName: string;
   mainNavItems: NavBarMainNavItem[];
-  titleIcon?: string | undefined;
 }) {
   const t = useTranslations('common');
   const { user, logout } = useAuth();
   const router = useRouter();
-  const titleIcon = titleIconProp ?? getTitleIconFallback();
 
   const handleLogout = () => {
     logout();
@@ -36,7 +30,7 @@ export function NavBar({
 
   return (
     <UINavBar
-      title={<AppTypeTitle brandName={t('appTitle')} titleIcon={titleIcon} />}
+      title={<AppTypeTitle brandName={brandName} />}
       homeHref={ROUTES.HOME}
       user={user}
       onLogout={handleLogout}

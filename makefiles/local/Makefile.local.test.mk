@@ -7,7 +7,7 @@ TEST_DB_PORT ?= 5532
 TEST_VALKEY_PORT ?= 6479
 TEST_PG_USER ?= postgres
 TEST_PG_PASSWORD ?= postgres
-TEST_DB_NAME ?= boilerplate_test
+TEST_DB_NAME ?= boilerplate_app_test
 TEST_MANAGEMENT_DB_NAME ?= boilerplate_management_test
 
 TEST_PG_CONTAINER := boilerplate_test_postgres
@@ -19,6 +19,7 @@ validate_ci:
 	@echo "  CI validate (local)"
 	@echo "============================================"
 	@bash scripts/database/verify-migrations-combined.sh
+	@bash scripts/env-classification/validate-parity.sh
 	@$(MAKE) check_k8s_postgres_init_sync
 	@npm run build:packages
 	@npm run lint
@@ -98,7 +99,7 @@ test_valkey_up:
 		echo "Test Valkey ready on port $(TEST_VALKEY_PORT)."; \
 	fi
 
-# Create boilerplate_test database, apply schema, create app DB users (boilerplate_app_read, boilerplate_app_read_write) and grants.
+# Create boilerplate_app_test database, apply schema, create app DB users (boilerplate_app_read, boilerplate_app_read_write) and grants.
 # Drops and recreates the test DB each time so the schema always matches infra/database/combined/init_database.sql.
 # Uses docker exec so host does not need psql installed.
 test_db_init: test_postgres_up

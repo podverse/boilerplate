@@ -1,9 +1,4 @@
-import {
-  getEffectiveUserAgent,
-  normalizeVersionPath,
-  parseCookieSameSite,
-  parseCorsOrigins,
-} from '@boilerplate/helpers';
+import { normalizeVersionPath, parseCorsOrigins } from '@boilerplate/helpers';
 
 const getEnv = (key: string): string => {
   const value = process.env[key];
@@ -15,6 +10,15 @@ const getEnv = (key: string): string => {
 
 const getEnvOptional = (key: string): string | undefined =>
   process.env[key] === undefined || process.env[key] === '' ? undefined : process.env[key];
+
+const getEnvOptionalTrimmed = (key: string): string | undefined => {
+  const v = getEnvOptional(key);
+  if (v === undefined) {
+    return undefined;
+  }
+  const t = v.trim();
+  return t === '' ? undefined : t;
+};
 
 const AUTH_MODE_ADMIN_ONLY_USERNAME = 'admin_only_username';
 const AUTH_MODE_ADMIN_ONLY_EMAIL = 'admin_only_email';
@@ -81,35 +85,29 @@ export const isSignupEnabled = (): boolean => {
 const authMode = parseAuthMode(getEnv('AUTH_MODE'));
 const authModeCapabilities = getAuthModeCapabilities(authMode);
 
-/** User-Agent suffix when USER_AGENT is blank. Boilerplate uses version 1 (Podverse uses 5). */
-const USER_AGENT_SUFFIX = ' Bot Local/API/1';
-
 export const config = {
   /** Auth mode (required at startup): admin_only_username, admin_only_email, user_signup_email. */
   authMode,
   authModeCapabilities,
   port: Number.parseInt(getEnv('API_PORT'), 10),
-  brandName: getEnv('BRAND_NAME'),
-  /** Effective User-Agent for outbound requests. When USER_AGENT is blank, built from BRAND_NAME + suffix. */
-  userAgent: getEffectiveUserAgent({
-    userAgentRaw: getEnvOptional('USER_AGENT'),
-    brandName: getEnv('BRAND_NAME'),
-    suffix: USER_AGENT_SUFFIX,
-  }),
-  jwtSecret: getEnv('JWT_SECRET'),
+  /** Outbound HTTP User-Agent (required; set in classification / env). */
+  userAgent: getEnv('API_USER_AGENT'),
+  jwtSecret: getEnv('API_JWT_SECRET'),
   /** API version path prefix (e.g. /v1). Optional; set API_VERSION_PATH in env. */
   apiVersionPath: normalizeVersionPath(getEnvOptional('API_VERSION_PATH') ?? 'v1'),
   /** Access token expiry in seconds (JWT and cookie max-age). Required; e.g. 900 = 15m. */
-  accessTokenMaxAgeSeconds: Number.parseInt(getEnv('JWT_ACCESS_EXPIRY_SECONDS'), 10),
+  accessTokenMaxAgeSeconds: Number.parseInt(getEnv('API_JWT_ACCESS_EXPIRY_SECONDS'), 10),
   /** Refresh token cookie max-age in seconds (e.g. 604800 = 7d). Required. */
-  refreshTokenMaxAgeSeconds: Number.parseInt(getEnv('JWT_REFRESH_EXPIRY_SECONDS'), 10),
+  refreshTokenMaxAgeSeconds: Number.parseInt(getEnv('API_JWT_REFRESH_EXPIRY_SECONDS'), 10),
   /** Cookie names for session (access) and refresh. Required. */
-  sessionCookieName: getEnv('SESSION_COOKIE_NAME'),
-  refreshCookieName: getEnv('REFRESH_COOKIE_NAME'),
+  sessionCookieName: getEnv('API_SESSION_COOKIE_NAME'),
+  refreshCookieName: getEnv('API_REFRESH_COOKIE_NAME'),
   /** CORS allowed origins. Optional; empty/missing = allow all (dev). */
-  corsOrigins: parseCorsOrigins(getEnvOptional('CORS_ORIGINS')),
+  corsOrigins: parseCorsOrigins(getEnvOptional('API_CORS_ORIGINS')),
   /** Secure cookies in production. */
   cookieSecure: process.env.NODE_ENV === 'production',
-  /** SameSite: lax, strict, or none. Required. */
-  cookieSameSite: parseCookieSameSite(getEnv('COOKIE_SAME_SITE'), 'COOKIE_SAME_SITE'),
+  /** SameSite is fixed to `lax` (not configurable via env). */
+  cookieSameSite: 'lax' as const,
+  /** Optional Set-Cookie Domain (e.g. `.example.com`) for sharing session cookies across subdomains. */
+  cookieDomain: getEnvOptionalTrimmed('API_COOKIE_DOMAIN'),
 };

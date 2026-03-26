@@ -74,7 +74,7 @@ web)—use:
 make local_nuke_rebuild_run testSuperAdmin=1
 ```
 
-(`testSuperAdmin=1` skips the interactive super-admin prompt; password is `Test!1Aa` for local use only.)
+(`testSuperAdmin=1` skips the interactive super-admin prompt; password is `Test!1Aa` for local use only. Alternatively, set **`DB_MANAGEMENT_SUPERUSER_USERNAME`** and **`DB_MANAGEMENT_SUPERUSER_PASSWORD`** in **`db-management-superuser.env`**, run **`make local_env_setup`**, then **`make local_infra_up`** without **`testSuperAdmin`** — **`create-super-admin.mjs`** uses those credentials non-interactively.)
 
 This differs from **`make local_setup`** (or `make local_env_setup` + `make local_infra_up`), which only
 brings up **infra** for **host** dev (`npm run dev:all`). Use `local_nuke_rebuild_run` when you want the

@@ -25,6 +25,9 @@
   "include": [
     "src/**/*.ts",
     "src/**/*.tsx",
+    "playwright.config.ts",
+    "playwright.*.config.ts",
+    "playwright.e2e-server-env.ts",
     "next-env.d.ts",
     ".next/types/**/*.ts",
     ".next/dev/types/**/*.ts"

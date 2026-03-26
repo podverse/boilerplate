@@ -3,13 +3,25 @@
 
 # Renders Kubernetes ConfigMap and/or Secret YAML from classification + merged env file.
 
-require 'yaml'
+require_relative '../env-classification/lib/boilerplate_env_merge'
+
+# Strategic-merge patch target: workload name => [Deployment metadata.name, container name]
+DEPLOYMENT_PATCH_TARGETS = {
+  'api' => %w[api api],
+  'db' => %w[postgres postgres],
+  'management-api' => %w[management-api management-api],
+  'management-web-sidecar' => %w[management-web-sidecar management-web-sidecar],
+  'valkey' => %w[valkey valkey],
+  'web-sidecar' => %w[web-sidecar web-sidecar]
+}.freeze
 
 def usage(msg = nil)
   warn("Error: #{msg}") if msg
   warn <<~USAGE
     Usage: render_k8s_env.rb --workload NAME --merged-env PATH --namespace NS --environment ENV \\
-      --resource-suffix SUFFIX [--dry-run]
+      --resource-suffix SUFFIX [--emit MODE]
+
+    --emit: both | configmap | secret | secret-env-patch (default: both)
   USAGE
   exit 1
 end
@@ -51,6 +63,29 @@ def secret_yaml(name, namespace, labels, string_data)
   lines.join("\n") + "\n"
 end
 
+# Kubernetes strategic-merge patch: merge env entries by name into the named container.
+def secret_env_strategic_merge_patch_yaml(deployment_name, container_name, secret_name, env_keys_sorted)
+  lines = []
+  lines << 'apiVersion: apps/v1'
+  lines << 'kind: Deployment'
+  lines << 'metadata:'
+  lines << "  name: #{deployment_name}"
+  lines << 'spec:'
+  lines << '  template:'
+  lines << '    spec:'
+  lines << '      containers:'
+  lines << "        - name: #{container_name}"
+  lines << '          env:'
+  env_keys_sorted.each do |key|
+    lines << "            - name: #{key}"
+    lines << '              valueFrom:'
+    lines << '                secretKeyRef:'
+    lines << "                  name: #{secret_name}"
+    lines << "                  key: #{key}"
+  end
+  lines.join("\n") + "\n"
+end
+
 def parse_env_file(path)
   return {} unless File.file?(path)
 
@@ -81,7 +116,7 @@ merged_env = nil
 namespace = 'boilerplate-alpha'
 environment = 'alpha'
 resource_suffix = nil
-emit = 'both' # both | configmap | secret
+emit = 'both' # both | configmap | secret | secret-env-patch
 
 until args.empty?
   case args.shift
@@ -108,9 +143,8 @@ usage('missing --workload') if workload.nil? || workload.empty?
 usage('missing --merged-env') if merged_env.nil?
 usage('missing --resource-suffix') if resource_suffix.nil? || resource_suffix.empty?
 
-root = File.expand_path('../..', __dir__)
-class_path = File.join(root, 'infra/k8s/env/classification.yaml')
-classification = YAML.safe_load(File.read(class_path), permitted_classes: [Symbol, Time])
+profile = ENV['BOILERPLATE_ENV_PROFILE'] || 'remote_k8s'
+classification = BoilerplateEnvMerge.merged_classification(profile)
 wl = classification['workloads'][workload]
 usage("unknown workload: #{workload}") unless wl
 
@@ -119,27 +153,34 @@ if wl['no_env_from']
   exit 3
 end
 
-literals = (wl['literals'] || []).to_h { |k| [k, true] }
-literals_only = (wl['literals_only_in_source'] || []).to_h { |k| [k, true] }
-keys_meta = wl['keys'] || {}
+if wl.key?('keys')
+  warn("Error: workload #{workload} uses legacy 'keys:'; migrate to infra/env/classification/base.yaml vars")
+  exit 1
+end
+
+effective_specs = BoilerplateEnvMerge.effective_workload_var_specs(classification, workload)
+if effective_specs.empty?
+  warn("Error: workload #{workload} has no effective vars in classification (empty vars and inherits)")
+  exit 1
+end
+
+literals, literals_only, config_keys, secret_keys =
+  BoilerplateEnvMerge.derive_render_buckets(workload, classification)
 
 env_map = parse_env_file(merged_env)
 
 config_data = {}
 secret_data = {}
 
-keys_meta.each do |key, tier|
+effective_specs.each do |key, spec|
+  next unless spec.is_a?(Hash)
   next unless env_map.key?(key)
-
   next if literals[key] || literals_only[key]
 
-  case tier
-  when 'config'
+  if config_keys[key]
     config_data[key] = env_map[key]
-  when 'secret'
+  elsif secret_keys[key]
     secret_data[key] = env_map[key]
-  else
-    warn("Unknown tier for #{key}: #{tier}")
   end
 end
 
@@ -174,7 +215,19 @@ when 'secret'
     exit 4
   end
   print secret_yaml(sec_name, namespace, labels, secret_data)
+when 'secret-env-patch'
+  if secret_data.empty?
+    warn("SKIP no secret keys workload=#{workload}")
+    exit 4
+  end
+  targets = DEPLOYMENT_PATCH_TARGETS[workload]
+  if targets.nil?
+    warn("Error: workload #{workload} has no Deployment patch target (add to DEPLOYMENT_PATCH_TARGETS)")
+    exit 1
+  end
+  deployment_name, container_name = targets
+  print secret_env_strategic_merge_patch_yaml(deployment_name, container_name, sec_name, secret_data.keys.sort)
 else
-  usage('--emit must be both|configmap|secret')
+  usage('--emit must be both|configmap|secret|secret-env-patch')
 end
 exit 0

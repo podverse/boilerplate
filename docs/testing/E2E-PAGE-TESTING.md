@@ -53,13 +53,13 @@ For a copy-paste list of **one-spec report commands** (run each spec in isolatio
 ## Flow
 
 1. **`make e2e_deps`** — Test DBs and schema (same as `test_deps`: Postgres 5532,
-   Valkey 6479, `boilerplate_test`, `boilerplate_management_test`).
+   Valkey 6479, `boilerplate_app_test`, `boilerplate_management_test`).
 2. **`make e2e_seed`** — Load deterministic fixtures (idempotent: truncate + insert).
 3. **Run API gate decision** — by default (`off`), Make skips API integration tests. Pass
    `E2E_API_GATE_MODE=on` to run them; `E2E_API_GATE_MODE=auto` to run only when changed paths look API-impacting.
 4. Run Playwright (e.g. `make e2e_test_web` or `make e2e_test_management_web`).
    - Web E2E auto-starts API (`4010`), sidecar (`4011`), and web (`4012`) in production-like mode (`build` + `start`).
-   - Management-web E2E auto-starts management-api (`4110`) and management-web (`4112`) in production-like mode (`build` + `start`).
+   - Management-web E2E auto-starts management-api (`4110`), management-web runtime sidecar (`4111`), and management-web (`4112`) in production-like mode (`build` + `start` for API and Next; sidecar via `dev:sidecar` with explicit env).
 5. **`make e2e_teardown`** — Stop any manually started services. For full cleanup (remove test containers),
    run `make test_clean`.
 
@@ -85,9 +85,27 @@ Report order:
 
 Stability mode is now the default for all E2E commands. Startup is usually slower than dev mode because app builds run before servers start, but this reduces dev-only overlay noise and false positives.
 
+### Web Playwright: self-contained env (API, sidecar, Next)
+
+The three web Playwright configs (`playwright.config.ts`, `playwright.signup-enabled.config.ts`, `playwright.admin-only-email.config.ts`) build **explicit env prefixes** from `apps/web/playwright.e2e-server-env.ts` so child processes do not depend on your shell, direnv, or local `sidecar/.env` for critical values.
+
+- **API** uses the same test JWT as Vitest (`TEST_JWT_SECRET_API` from `@boilerplate/helpers`) and sets **`API_CORS_ORIGINS=http://localhost:4012`** so credentialed browser requests from the E2E web origin are never blocked by an inherited restrictive allowlist (a common symptom was login staying on `/login` with no redirect).
+- **Sidecar** receives every key required by `apps/web/sidecar/src/server.ts`, including **`API_SERVER_BASE_URL=http://127.0.0.1:4010`**, so SSR and server-side fetches target the Playwright API port instead of whatever might be in `sidecar/.env` (wrong port caused `ECONNREFUSED` / `fetch failed` in Next logs).
+- **Admin-only-email** sidecar uses **`WEB_SIDECAR_PORT=4011`** (not `PORT`), matching what the sidecar server reads.
+
+You do not need to tune local `sidecar/.env` for web E2E; the Playwright-started stack is intended to be self-contained.
+
+### Management-web Playwright: self-contained env (API, sidecar, Next)
+
+`apps/management-web/playwright.config.ts` builds **explicit env prefixes** from `apps/management-web/playwright.e2e-server-env.ts` so the stack does not depend on empty `RUNTIME_CONFIG_URL` or local `apps/management-web/sidecar/.env` (the app root layout requires a runtime-config sidecar when `RUNTIME_CONFIG_URL` is set—same pattern as web).
+
+- **Sidecar** listens on **`4111`** (`MANAGEMENT_WEB_SIDECAR_PORT`) and receives every key required by `apps/management-web/sidecar/src/server.ts`, including **`MANAGEMENT_API_SERVER_BASE_URL=http://127.0.0.1:4110`** for SSR fetches. **`NEXT_PUBLIC_MANAGEMENT_API_PUBLIC_BASE_URL`** must be a full **`http://` or `https://` URL** (sidecar startup uses `validateHttpOrHttpsUrl`); E2E sets **`http://localhost:4110`** so the browser calls the Playwright management-api origin directly (CORS allows `http://localhost:4112`).
+- **Next** uses **`RUNTIME_CONFIG_URL=http://localhost:4111`** during `build` and `start`.
+- **Management-api** sets **`MANAGEMENT_API_CORS_ORIGINS=http://localhost:4112`** so credentialed browser requests from the E2E management-web origin are allowed (aligned with web E2E CORS).
+
 ## E2E and AUTH_MODE (mode-specific runs)
 
-The **default** E2E run uses `AUTH_MODE=admin_only_username` (signup disabled, email flows disabled). The default Playwright config (`apps/web/playwright.config.ts`) sets this in the API `webServer` command so baseline runs are deterministic and do not depend on repo `.env`.
+The **default** E2E run uses `AUTH_MODE=admin_only_username` (signup disabled, email flows disabled). The default Playwright config sets this (and the rest of the API/sidecar/web env) via `playwright.e2e-server-env.ts` so baseline runs are deterministic and do not depend on repo `.env` or ambient overrides.
 
 Tests that depend on critical env (`AUTH_MODE`) use **separate specs and reports** so each mode is tested with single-outcome expectations (no dual-outcome tests).
 
@@ -299,8 +317,7 @@ notice at the top: "Run aborted during execution; this report is incomplete."
 | Management-api (E2E) | 4110 |
 | Management-web (E2E) | 4112 |
 
-See each app’s `.env.example` for `RUNTIME_CONFIG_URL`. For `NEXT_PUBLIC_*` and other vars, see
-`infra/config/env-templates/web-sidecar.env.example` and `management-web-sidecar.env.example`.
+See [docs/development/ENV-REFERENCE.md](../development/ENV-REFERENCE.md) and `infra/env/classification/base.yaml` workloads `web`, `web-sidecar`, `management-web`, and `management-web-sidecar` for `RUNTIME_CONFIG_URL` and `NEXT_PUBLIC_*` defaults.
 
 ## Where specs live
 

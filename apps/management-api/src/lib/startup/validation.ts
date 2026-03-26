@@ -1,10 +1,11 @@
 /**
- * Management API startup env validation. Requires MANAGEMENT_* and main DB vars.
+ * Management API startup env validation. Requires shared Postgres **`DB_HOST`** / **`DB_PORT`**,
+ * management DB **`DB_MANAGEMENT_NAME`** and **`DB_MANAGEMENT_READ_WRITE_*`**, and main app **`DB_APP_*`**
+ * for `@boilerplate/orm`.
  */
 import type { ValidationResult } from '@boilerplate/helpers';
 
 import {
-  getEffectiveUserAgent,
   validateAuthMode as validateAuthModeEnv,
   validateJwtSecret,
   validatePositiveInteger,
@@ -17,55 +18,52 @@ function validateAuthMode(): ValidationResult {
 }
 
 const USER_AGENT_PATTERN = /^[^/]+\/[^/]+\/[^/]+$/;
-const USER_AGENT_SUFFIX = ' Bot Local/Management-API/1';
 
 /**
- * Validates USER_AGENT (or effective value when blank, built from BRAND_NAME).
- * Format: BrandName Bot Environment/AppName/Version, e.g. "Boilerplate Bot Local/Management-API/1"
+ * Validates MANAGEMENT_API_USER_AGENT. Format: BrandName Bot Environment/AppName/Version, e.g. "boilerplate-management-api Bot Local/Management-API/1"
  */
 function validateUserAgent(): ValidationResult {
-  const brandName = process.env.BRAND_NAME;
-  if (brandName === undefined || brandName === null || brandName.trim() === '') {
+  const raw = process.env.MANAGEMENT_API_USER_AGENT;
+  const trimmed = raw?.trim() ?? '';
+  const isSet = trimmed !== '';
+
+  if (!isSet) {
     return {
-      name: 'USER_AGENT',
+      name: 'MANAGEMENT_API_USER_AGENT',
       isSet: false,
       isValid: false,
       isRequired: true,
-      message: 'BRAND_NAME required to validate USER_AGENT',
+      message:
+        'MANAGEMENT_API_USER_AGENT is required (set in classification / env; three slash-separated segments, first segment must contain "Bot")',
       category: 'Auth & Security',
     };
   }
-  const effectiveUserAgent = getEffectiveUserAgent({
-    userAgentRaw: process.env.USER_AGENT,
-    brandName,
-    suffix: USER_AGENT_SUFFIX,
-  });
 
-  if (!USER_AGENT_PATTERN.test(effectiveUserAgent)) {
+  if (!USER_AGENT_PATTERN.test(trimmed)) {
     return {
-      name: 'USER_AGENT',
-      isSet: process.env.USER_AGENT?.trim() !== '',
+      name: 'MANAGEMENT_API_USER_AGENT',
+      isSet: true,
       isValid: false,
       isRequired: true,
-      message: `Invalid format: "${effectiveUserAgent}" - must follow format: BrandName Bot Environment/AppName/Version`,
+      message: `Invalid format: "${trimmed}" - must follow format: BrandName Bot Environment/AppName/Version`,
       category: 'Auth & Security',
     };
   }
 
-  const firstPart = effectiveUserAgent.split('/')[0];
+  const firstPart = trimmed.split('/')[0];
   if (firstPart && !firstPart.includes('Bot')) {
     return {
-      name: 'USER_AGENT',
-      isSet: process.env.USER_AGENT?.trim() !== '',
+      name: 'MANAGEMENT_API_USER_AGENT',
+      isSet: true,
       isValid: false,
       isRequired: true,
-      message: `Missing "Bot" in first part: "${effectiveUserAgent}"`,
+      message: `Missing "Bot" in first part: "${trimmed}"`,
       category: 'Auth & Security',
     };
   }
 
   return {
-    name: 'USER_AGENT',
+    name: 'MANAGEMENT_API_USER_AGENT',
     isSet: true,
     isValid: true,
     isRequired: true,
@@ -78,27 +76,29 @@ function managementApiValidationResults() {
   return [
     validateAuthMode(),
     validatePositiveInteger('MANAGEMENT_API_PORT', 'Management API'),
-    validateRequired('BRAND_NAME', 'Management API'),
     validateUserAgent(),
-    validateJwtSecret('MANAGEMENT_JWT_SECRET', 'Management API'),
-    validateRequired('MANAGEMENT_SESSION_COOKIE_NAME', 'Management session cookies'),
-    validateRequired('MANAGEMENT_REFRESH_COOKIE_NAME', 'Management session cookies'),
-    validatePositiveInteger('MANAGEMENT_JWT_ACCESS_EXPIRY_SECONDS', 'Management session cookies'),
-    validatePositiveInteger('MANAGEMENT_JWT_REFRESH_EXPIRY_SECONDS', 'Management session cookies'),
-    validatePositiveInteger('USER_INVITATION_TTL_HOURS', 'Management users'),
-    validateRequired('MANAGEMENT_COOKIE_SAME_SITE', 'Management session cookies'),
-    validateRequired('MANAGEMENT_DB_HOST', 'Management DB'),
-    validatePositiveInteger('MANAGEMENT_DB_PORT', 'Management DB'),
-    validateRequired('MANAGEMENT_DB_NAME', 'Management DB'),
-    validateRequired('MANAGEMENT_DB_USERNAME', 'Management DB'),
-    validateRequired('MANAGEMENT_DB_PASSWORD', 'Management DB'),
+    validateJwtSecret('MANAGEMENT_API_JWT_SECRET', 'Management API'),
+    validateRequired('MANAGEMENT_API_SESSION_COOKIE_NAME', 'Management session cookies'),
+    validateRequired('MANAGEMENT_API_REFRESH_COOKIE_NAME', 'Management session cookies'),
+    validatePositiveInteger(
+      'MANAGEMENT_API_JWT_ACCESS_EXPIRY_SECONDS',
+      'Management session cookies'
+    ),
+    validatePositiveInteger(
+      'MANAGEMENT_API_JWT_REFRESH_EXPIRY_SECONDS',
+      'Management session cookies'
+    ),
+    validatePositiveInteger('MANAGEMENT_API_USER_INVITATION_TTL_HOURS', 'Management users'),
+    validateRequired('DB_MANAGEMENT_NAME', 'Management DB'),
+    validateRequired('DB_MANAGEMENT_READ_WRITE_USER', 'Management DB'),
+    validateRequired('DB_MANAGEMENT_READ_WRITE_PASSWORD', 'Management DB'),
     validateRequired('DB_HOST', 'Main DB'),
     validatePositiveInteger('DB_PORT', 'Main DB'),
-    validateRequired('DB_NAME', 'Main DB'),
-    validateRequired('DB_READ_USERNAME', 'Main DB'),
-    validateRequired('DB_READ_PASSWORD', 'Main DB'),
-    validateRequired('DB_READ_WRITE_USERNAME', 'Main DB'),
-    validateRequired('DB_READ_WRITE_PASSWORD', 'Main DB'),
+    validateRequired('DB_APP_NAME', 'Main DB'),
+    validateRequired('DB_APP_READ_USER', 'Main DB'),
+    validateRequired('DB_APP_READ_PASSWORD', 'Main DB'),
+    validateRequired('DB_APP_READ_WRITE_USER', 'Main DB'),
+    validateRequired('DB_APP_READ_WRITE_PASSWORD', 'Main DB'),
   ];
 }
 

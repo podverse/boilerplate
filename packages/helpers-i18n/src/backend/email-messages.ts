@@ -7,45 +7,48 @@ import { t } from './t.js';
 
 export function getVerificationEmailContent(
   locale: string,
-  link: string
+  link: string,
+  brand: string
 ): {
   subject: string;
   text: string;
   html: string;
 } {
   return {
-    subject: t(locale, 'email.verifySubject'),
-    text: t(locale, 'email.verifyText', { link }),
-    html: t(locale, 'email.verifyHtml', { link }),
+    subject: t(locale, 'email.verifySubject', { brand }),
+    text: t(locale, 'email.verifyText', { link, brand }),
+    html: t(locale, 'email.verifyHtml', { link, brand }),
   };
 }
 
 export function getPasswordResetEmailContent(
   locale: string,
-  link: string
+  link: string,
+  brand: string
 ): {
   subject: string;
   text: string;
   html: string;
 } {
   return {
-    subject: t(locale, 'email.resetSubject'),
-    text: t(locale, 'email.resetText', { link }),
-    html: t(locale, 'email.resetHtml', { link }),
+    subject: t(locale, 'email.resetSubject', { brand }),
+    text: t(locale, 'email.resetText', { link, brand }),
+    html: t(locale, 'email.resetHtml', { link, brand }),
   };
 }
 
 export function getEmailChangeVerificationContent(
   locale: string,
-  link: string
+  link: string,
+  brand: string
 ): {
   subject: string;
   text: string;
   html: string;
 } {
   return {
-    subject: t(locale, 'email.confirmEmailChangeSubject'),
-    text: t(locale, 'email.confirmEmailChangeText', { link }),
-    html: t(locale, 'email.confirmEmailChangeHtml', { link }),
+    subject: t(locale, 'email.confirmEmailChangeSubject', { brand }),
+    text: t(locale, 'email.confirmEmailChangeText', { link, brand }),
+    html: t(locale, 'email.confirmEmailChangeHtml', { link, brand }),
   };
 }

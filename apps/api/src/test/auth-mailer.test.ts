@@ -3,13 +3,13 @@
  * Verification flows use captured tokens from the mailer mock; no real SMTP.
  * Locale behavior (email locale, password validation locale) is in auth-locale.test.ts.
  * Shared auth endpoints in auth.test.ts; no-mailer flows in auth-no-mailer.test.ts.
- * Env overrides (AUTH_MODE, SMTP_*, APP_BASE_URL) are set here; app/config are loaded in beforeAll so overrides apply.
+ * Env overrides (AUTH_MODE, MAILER_*, WEB_BASE_URL) are set here; app/config are loaded in beforeAll so overrides apply.
  */
 process.env.AUTH_MODE = 'user_signup_email';
-process.env.SMTP_HOST = 'localhost';
-process.env.SMTP_PORT = '25';
-process.env.MAIL_FROM = 'test@test.com';
-process.env.APP_BASE_URL = 'http://localhost:3999';
+process.env.MAILER_HOST = 'localhost';
+process.env.MAILER_PORT = '25';
+process.env.MAILER_FROM = 'test@test.com';
+process.env.WEB_BASE_URL = 'http://localhost:3999';
 
 import type { Express } from 'express';
 

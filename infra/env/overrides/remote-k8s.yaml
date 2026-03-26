@@ -1,0 +1,27 @@
+version: 2
+workloads:
+  http:
+    web:
+      vars:
+        WEB_BASE_URL:
+          default: ""
+    management-web:
+      vars:
+        MANAGEMENT_WEB_BASE_URL:
+          default: ""
+  api:
+    vars:
+      API_COOKIE_DOMAIN:
+        default: ""
+      API_CORS_ORIGINS:
+        default: ""
+      API_USER_AGENT:
+        default: "boilerplate-web Bot Production/API/1"
+  management-api:
+    vars:
+      MANAGEMENT_API_COOKIE_DOMAIN:
+        default: ""
+      MANAGEMENT_API_CORS_ORIGINS:
+        default: ""
+      MANAGEMENT_API_USER_AGENT:
+        default: "boilerplate-management-api Bot Production/Management-API/1"

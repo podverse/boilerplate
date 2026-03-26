@@ -140,7 +140,7 @@ export const openApiDocument = {
     '/health': {
       get: {
         summary: 'Health check',
-        description: 'Liveness/readiness; returns app name',
+        description: 'Liveness/readiness; generic running message',
         operationId: 'health',
         responses: {
           '200': {
@@ -151,7 +151,7 @@ export const openApiDocument = {
                   type: 'object',
                   properties: {
                     status: { type: 'string', example: 'ok' },
-                    app: { type: 'string' },
+                    message: { type: 'string', example: 'The server is running.' },
                   },
                 },
               },

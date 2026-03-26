@@ -1,0 +1,10 @@
+version: 2
+workloads:
+  web-sidecar:
+    vars:
+      API_SERVER_BASE_URL:
+        default: "http://api:4000"
+  management-web-sidecar:
+    vars:
+      MANAGEMENT_API_SERVER_BASE_URL:
+        default: "http://management-api:4100"

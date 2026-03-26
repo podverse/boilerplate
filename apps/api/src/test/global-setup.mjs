@@ -1,18 +1,19 @@
 /**
  * Vitest globalSetup: truncate app tables so each test run starts with a clean DB.
  * Runs once before any test file. Uses same test env defaults as setup.ts (this
- * process does not run setupFiles). Requires Postgres and test DB to exist (e.g. make test_deps).
+ * process does not run setupFiles). Defaults must match make test_db_init and setup.ts.
+ * Requires Postgres and test DB to exist (e.g. make test_deps).
  */
 import pg from 'pg';
 
 const testEnv = {
   DB_HOST: 'localhost',
   DB_PORT: '5532',
-  DB_NAME: 'boilerplate_test',
-  DB_READ_USERNAME: 'read',
-  DB_READ_PASSWORD: 'test',
-  DB_READ_WRITE_USERNAME: 'read_write',
-  DB_READ_WRITE_PASSWORD: 'test',
+  DB_APP_NAME: 'boilerplate_app_test',
+  DB_APP_READ_USER: 'boilerplate_app_read',
+  DB_APP_READ_PASSWORD: 'test',
+  DB_APP_READ_WRITE_USER: 'boilerplate_app_read_write',
+  DB_APP_READ_WRITE_PASSWORD: 'test',
 };
 
 for (const [key, value] of Object.entries(testEnv)) {
@@ -25,9 +26,9 @@ export default async function globalSetup() {
   const client = new pg.Client({
     host: process.env.DB_HOST,
     port: Number(process.env.DB_PORT, 10),
-    database: process.env.DB_NAME,
-    user: process.env.DB_READ_WRITE_USERNAME,
-    password: process.env.DB_READ_WRITE_PASSWORD,
+    database: process.env.DB_APP_NAME,
+    user: process.env.DB_APP_READ_WRITE_USER,
+    password: process.env.DB_APP_READ_WRITE_PASSWORD,
   });
   try {
     await client.connect();

@@ -10,7 +10,7 @@ description: When adding or changing preconditions, cleanup steps, or env usage 
 When modifying Makefile targets or scripts that:
 
 - Start or stop local Docker Compose services or the local k3d cluster
-- Read or write `infra/config/local/*.env`
+- Read or write `infra/config/local/*.env` (generated from `infra/env/classification/` via `scripts/local-env/setup.sh`, not from `.env.example` stubs)
 - Check for “running” state before running env clean, setup, or reset
 
 ## Rule
@@ -21,7 +21,8 @@ Keep Docker and k3d local behavior aligned where they share resources (e.g. env 
 
 ## Do
 
-- Guard `local_env_clean` on both Docker Compose containers and the k3d cluster; document that both use `infra/config/local/*.env`.
+- **`infra/config/local/*-sidecar.env`** vs **`apps/*/sidecar/.env`**: **`local_env_setup`** generates **both** with **`merge-env`**: infra files use **`--profile local_docker`** (Compose **`env_file`**); app **`sidecar/.env`** files use **`--profile dev`** (host npm). They are independent outputs, not copies; do not assume byte parity.
+- Guard `local_env_clean` on both Docker Compose containers and the k3d cluster; document that both use `infra/config/local/*.env` (Postgres: single `db.env`; Valkey: `valkey-source-only.env`, `valkey.env`).
 - Include k3d in "full teardown" targets: `local_clean` should run `local_k3d_down` so Docker, k3d, and test/E2E are all torn down.
 - When adding a precondition or cleanup step that touches `infra/config/local/*.env` or “running” state, apply the same logic to both Docker and k3d (or document why they differ).
 

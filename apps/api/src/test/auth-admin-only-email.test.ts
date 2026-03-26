@@ -1,8 +1,8 @@
 process.env.AUTH_MODE = 'admin_only_email';
-process.env.SMTP_HOST = 'localhost';
-process.env.SMTP_PORT = '25';
-process.env.MAIL_FROM = 'test@test.com';
-process.env.APP_BASE_URL = 'http://localhost:3999';
+process.env.MAILER_HOST = 'localhost';
+process.env.MAILER_PORT = '25';
+process.env.MAILER_FROM = 'test@test.com';
+process.env.WEB_BASE_URL = 'http://localhost:3999';
 
 import type { Express } from 'express';
 

@@ -51,11 +51,11 @@ make local_k3d_up
 
 This script (`scripts/infra/k3d/local-up.sh`) does the following in order:
 
-1. **Env setup** – `scripts/local-env/setup.sh`: ensures `infra/config/local/*.env` and app `.env` files exist (copies from templates if missing; applies overrides from `dev/env-overrides/local/` if present).
+1. **Env setup** – `scripts/local-env/setup.sh`: ensures `infra/config/local/*.env` and app `.env` files exist (generates missing keys from classification `dev` / `local_docker` profiles; applies overrides from `dev/env-overrides/local/` if present).
 2. **Build images** – builds local Docker images (api, management-api, web, web-sidecar, management-web, management-web-sidecar) and tags them for k3d.
 3. **Create k3d cluster** – creates cluster `boilerplate-local` if it does not exist, with ports 4000, 4002, 4100, 4102, 5433, 6380 exposed.
 4. **Import images** – loads the built images into the k3d cluster.
-5. **Create Kubernetes secrets** – `scripts/infra/k3d/create-local-secrets.sh`: creates secrets in `boilerplate-local` from `infra/config/local/*.env`.
+5. **Create Kubernetes secrets** – `scripts/infra/k3d/create-local-secrets.sh`: creates secrets named **`boilerplate-<component>-secrets`** in `boilerplate-local` from `infra/config/local/*.env` (the **`db`** secret uses **`infra/config/local/db.env`** only).
 6. **Install ArgoCD** – installs ArgoCD in the `argocd` namespace and waits for the server.
 7. **Bootstrap ArgoCD** – applies `infra/k8s/argocd-project.yaml` and `infra/k8s/local-application.yaml` (app-of-apps).
 8. **Apply local stack** – `kubectl apply -k infra/k8s/local/stack` so the stack is up even before ArgoCD sync from the repo.

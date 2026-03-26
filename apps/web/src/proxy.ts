@@ -6,8 +6,8 @@ import { getApiVersionPath, getAuthMode, getServerApiBaseUrl } from './config/en
 import { getWebAuthModeCapabilities } from './lib/authMode';
 import { isPublicPath, ROUTES } from './lib/routes';
 
-const SESSION_COOKIE_NAME = 'session';
-const REFRESH_COOKIE_NAME = 'refresh';
+const SESSION_COOKIE_NAME = 'api_session';
+const REFRESH_COOKIE_NAME = 'api_refresh';
 const AUTH_USER_HEADER = 'x-auth-user';
 
 /** Clear session/refresh cookies (Path=/; Max-Age=0) so the client drops them. */

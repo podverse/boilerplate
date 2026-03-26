@@ -9,7 +9,7 @@ spec:
   project: boilerplate
   source:
     repoURL: https://github.com/podverse/boilerplate.git
-    targetRevision: develop
+    targetRevision: feature/k8s-alpha
     path: infra/k8s/local/apps
     directory:
       recurse: true

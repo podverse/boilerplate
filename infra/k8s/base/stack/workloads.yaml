@@ -18,12 +18,92 @@ spec:
           image: postgres:18.1
           ports:
             - containerPort: 5432
-          envFrom:
-            - secretRef:
-                name: boilerplate-db-env
           env:
-            - name: MANAGEMENT_DB_NAME
-              value: boilerplate_management
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: boilerplate-db-secrets
+                  key: DB_USER
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: boilerplate-db-secrets
+                  key: DB_PASSWORD
+            - name: POSTGRES_DB
+              valueFrom:
+                secretKeyRef:
+                  name: boilerplate-db-secrets
+                  key: DB_APP_NAME
+            - name: DB_APP_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: boilerplate-db-secrets
+                  key: DB_APP_NAME
+            - name: DB_APP_READ_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: boilerplate-db-secrets
+                  key: DB_APP_READ_PASSWORD
+            - name: DB_APP_READ_USER
+              valueFrom:
+                secretKeyRef:
+                  name: boilerplate-db-secrets
+                  key: DB_APP_READ_USER
+            - name: DB_APP_READ_WRITE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: boilerplate-db-secrets
+                  key: DB_APP_READ_WRITE_PASSWORD
+            - name: DB_APP_READ_WRITE_USER
+              valueFrom:
+                secretKeyRef:
+                  name: boilerplate-db-secrets
+                  key: DB_APP_READ_WRITE_USER
+            - name: DB_MANAGEMENT_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: boilerplate-db-secrets
+                  key: DB_MANAGEMENT_NAME
+            - name: DB_MANAGEMENT_READ_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: boilerplate-db-secrets
+                  key: DB_MANAGEMENT_READ_PASSWORD
+            - name: DB_MANAGEMENT_READ_USER
+              valueFrom:
+                secretKeyRef:
+                  name: boilerplate-db-secrets
+                  key: DB_MANAGEMENT_READ_USER
+            - name: DB_MANAGEMENT_READ_WRITE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: boilerplate-db-secrets
+                  key: DB_MANAGEMENT_READ_WRITE_PASSWORD
+            - name: DB_MANAGEMENT_READ_WRITE_USER
+              valueFrom:
+                secretKeyRef:
+                  name: boilerplate-db-secrets
+                  key: DB_MANAGEMENT_READ_WRITE_USER
+            - name: DB_MANAGEMENT_SUPERUSER_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: boilerplate-db-secrets
+                  key: DB_MANAGEMENT_SUPERUSER_PASSWORD
+            - name: DB_MANAGEMENT_SUPERUSER_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: boilerplate-db-secrets
+                  key: DB_MANAGEMENT_SUPERUSER_USERNAME
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: boilerplate-db-secrets
+                  key: DB_PASSWORD
+            - name: DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: boilerplate-db-secrets
+                  key: DB_USER
           volumeMounts:
             - name: postgres-data
               mountPath: /var/lib/postgresql
@@ -34,7 +114,7 @@ spec:
               command:
                 - /bin/sh
                 - -c
-                - pg_isready -U "${POSTGRES_USER:-postgres}"
+                - pg_isready -U "${DB_USER:-user}"
             initialDelaySeconds: 10
             periodSeconds: 5
           livenessProbe:
@@ -42,7 +122,7 @@ spec:
               command:
                 - /bin/sh
                 - -c
-                - pg_isready -U "${POSTGRES_USER:-postgres}"
+                - pg_isready -U "${DB_USER:-user}"
             initialDelaySeconds: 20
             periodSeconds: 10
       volumes:
@@ -76,9 +156,12 @@ spec:
             - /bin/sh
             - -c
             - exec valkey-server --requirepass "$VALKEY_PASSWORD"
-          envFrom:
-            - secretRef:
-                name: boilerplate-valkey-env
+          env:
+            - name: VALKEY_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: boilerplate-valkey-secrets
+                  key: VALKEY_PASSWORD
           ports:
             - containerPort: 6379
           volumeMounts:
@@ -123,10 +206,67 @@ spec:
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 4000
-          envFrom:
-            - secretRef:
-                name: boilerplate-api-env
           env:
+            - name: API_JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: boilerplate-api-secrets
+                  key: API_JWT_SECRET
+            - name: DB_APP_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: boilerplate-api-secrets
+                  key: DB_APP_NAME
+            - name: DB_APP_READ_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: boilerplate-api-secrets
+                  key: DB_APP_READ_PASSWORD
+            - name: DB_APP_READ_USER
+              valueFrom:
+                secretKeyRef:
+                  name: boilerplate-api-secrets
+                  key: DB_APP_READ_USER
+            - name: DB_APP_READ_WRITE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: boilerplate-api-secrets
+                  key: DB_APP_READ_WRITE_PASSWORD
+            - name: DB_APP_READ_WRITE_USER
+              valueFrom:
+                secretKeyRef:
+                  name: boilerplate-api-secrets
+                  key: DB_APP_READ_WRITE_USER
+            - name: MAILER_FROM
+              valueFrom:
+                secretKeyRef:
+                  name: boilerplate-api-secrets
+                  key: MAILER_FROM
+            - name: MAILER_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: boilerplate-api-secrets
+                  key: MAILER_HOST
+            - name: MAILER_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: boilerplate-api-secrets
+                  key: MAILER_PASSWORD
+            - name: MAILER_PORT
+              valueFrom:
+                secretKeyRef:
+                  name: boilerplate-api-secrets
+                  key: MAILER_PORT
+            - name: MAILER_USER
+              valueFrom:
+                secretKeyRef:
+                  name: boilerplate-api-secrets
+                  key: MAILER_USER
+            - name: VALKEY_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: boilerplate-api-secrets
+                  key: VALKEY_PASSWORD
             - name: DB_HOST
               value: postgres
             - name: DB_PORT
@@ -182,17 +322,70 @@ spec:
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 4100
-          envFrom:
-            - secretRef:
-                name: boilerplate-management-api-env
           env:
+            - name: DB_APP_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: boilerplate-management-api-secrets
+                  key: DB_APP_NAME
+            - name: DB_APP_READ_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: boilerplate-management-api-secrets
+                  key: DB_APP_READ_PASSWORD
+            - name: DB_APP_READ_USER
+              valueFrom:
+                secretKeyRef:
+                  name: boilerplate-management-api-secrets
+                  key: DB_APP_READ_USER
+            - name: DB_APP_READ_WRITE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: boilerplate-management-api-secrets
+                  key: DB_APP_READ_WRITE_PASSWORD
+            - name: DB_APP_READ_WRITE_USER
+              valueFrom:
+                secretKeyRef:
+                  name: boilerplate-management-api-secrets
+                  key: DB_APP_READ_WRITE_USER
+            - name: DB_MANAGEMENT_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: boilerplate-management-api-secrets
+                  key: DB_MANAGEMENT_NAME
+            - name: DB_MANAGEMENT_READ_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: boilerplate-management-api-secrets
+                  key: DB_MANAGEMENT_READ_PASSWORD
+            - name: DB_MANAGEMENT_READ_USER
+              valueFrom:
+                secretKeyRef:
+                  name: boilerplate-management-api-secrets
+                  key: DB_MANAGEMENT_READ_USER
+            - name: DB_MANAGEMENT_READ_WRITE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: boilerplate-management-api-secrets
+                  key: DB_MANAGEMENT_READ_WRITE_PASSWORD
+            - name: DB_MANAGEMENT_READ_WRITE_USER
+              valueFrom:
+                secretKeyRef:
+                  name: boilerplate-management-api-secrets
+                  key: DB_MANAGEMENT_READ_WRITE_USER
+            - name: MANAGEMENT_API_JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: boilerplate-management-api-secrets
+                  key: MANAGEMENT_API_JWT_SECRET
+            - name: VALKEY_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: boilerplate-management-api-secrets
+                  key: VALKEY_PASSWORD
             - name: DB_HOST
               value: postgres
             - name: DB_PORT
-              value: "5432"
-            - name: MANAGEMENT_DB_HOST
-              value: postgres
-            - name: MANAGEMENT_DB_PORT
               value: "5432"
             - name: VALKEY_HOST
               value: valkey
@@ -234,9 +427,9 @@ spec:
             - containerPort: 4001
           envFrom:
             - secretRef:
-                name: boilerplate-web-sidecar-env
+                name: boilerplate-web-sidecar-secrets
           env:
-            - name: API_BACKEND_URL
+            - name: API_SERVER_BASE_URL
               value: http://api:4000
 ---
 apiVersion: apps/v1
@@ -269,11 +462,11 @@ spec:
             - containerPort: 4002
           envFrom:
             - secretRef:
-                name: boilerplate-web-env
+                name: boilerplate-web-secrets
           env:
             - name: RUNTIME_CONFIG_URL
               value: http://web-sidecar:4001
-            - name: API_BACKEND_URL
+            - name: API_SERVER_BASE_URL
               value: http://api:4000
           readinessProbe:
             tcpSocket:
@@ -309,7 +502,7 @@ spec:
             - containerPort: 4101
           envFrom:
             - secretRef:
-                name: boilerplate-management-web-sidecar-env
+                name: boilerplate-management-web-sidecar-secrets
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -341,11 +534,11 @@ spec:
             - containerPort: 4102
           envFrom:
             - secretRef:
-                name: boilerplate-management-web-env
+                name: boilerplate-management-web-secrets
           env:
             - name: RUNTIME_CONFIG_URL
               value: http://management-web-sidecar:4101
-            - name: MANAGEMENT_API_BACKEND_URL
+            - name: MANAGEMENT_API_SERVER_BASE_URL
               value: http://management-api:4100
           readinessProbe:
             tcpSocket:

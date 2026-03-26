@@ -23,6 +23,8 @@
     "plugins": [{ "name": "next" }]
   },
   "include": [
+    "playwright.config.ts",
+    "playwright.e2e-server-env.ts",
     "src/**/*.ts",
     "src/**/*.tsx",
     "next-env.d.ts",

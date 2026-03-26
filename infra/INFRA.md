@@ -19,8 +19,8 @@ monorepo conventions). Includes Docker local infra and a k3d/k3s + ArgoCD deploy
 - **docker/local/** – Dockerfiles and docker-compose for api, web, sidecar, postgres, and valkey.
   Combined stack (from repo root): `docker compose -f infra/docker/local/docker-compose.yml
 --project-directory . up --build`. Shared network `boilerplate_local_network` is created on first
-  up. Run `make local_env_setup` to generate `infra/config/local/*.env` (including db.env and
-  valkey.env) for Docker.
+  up. Run `make local_env_setup` to generate `infra/config/local/*.env` (including postgres and
+  valkey split files: `db-source-only.env`, `db.env`, … and `valkey-source-only.env`, `valkey.env`).
 - **k8s/** – Kubernetes manifests and ArgoCD app-of-apps scaffold:
   - `base/` reusable manifests
   - `local/` k3d local overlay and child apps
@@ -35,7 +35,7 @@ Dedicated store for management identities, permissions, and audit events. The ma
 
 **Layout (same as database/):** Migrations in `management-database/migrations/`; run `scripts/database/combine-migrations.sh` to regenerate `management-database/combined/init_management_database.sql` (the script generates both main and management combined files). Do not edit the combined file by hand.
 
-**Postgres (second database):** Create a second database (e.g. `management_db`) on the same server as the main app. One-time: `psql -h HOST -p PORT -U USER -d postgres -c "CREATE DATABASE management_db;"` then run `psql ... -d management_db -f infra/management-database/combined/init_management_database.sql`. Connection env: `MANAGEMENT_DB_HOST`, `MANAGEMENT_DB_PORT`, `MANAGEMENT_DB_NAME`, `MANAGEMENT_DB_USERNAME`, `MANAGEMENT_DB_PASSWORD` (validate at app startup). The same Postgres container can host both databases.
+**Postgres (second database):** Create a second database (e.g. `management_db`) on the same server as the main app. One-time: `psql -h HOST -p PORT -U USER -d postgres -c "CREATE DATABASE management_db;"` then run `psql ... -d management_db -f infra/management-database/combined/init_management_database.sql`. Management-api connects with the same **`DB_HOST`** / **`DB_PORT`** as the main API plus **`DB_MANAGEMENT_NAME`** and **`DB_MANAGEMENT_READ_WRITE_USER`** / **`DB_MANAGEMENT_READ_WRITE_PASSWORD`** (see classification **`db.db-management`**). The same Postgres container can host both databases.
 
 **Schema:** `management_user` (super admin singleton + admins; no email/password on main table), `management_user_credentials` (1:1: email, password_hash), `management_user_bio` (1:1: display_name), `admin_permissions` (admins_crud and users_crud as 0–15 CRUD bitmasks; can_change_passwords, can_assign_permissions, event_visibility), `management_event` (audit log). Only the management API (and management-web via that API) use this store.
 

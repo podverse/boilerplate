@@ -16,7 +16,7 @@ export interface RequireAuthOptions {
  */
 export function requireAuth(options: RequireAuthOptions | string) {
   const jwtSecret = typeof options === 'string' ? options : options.jwtSecret;
-  const sessionCookieName = typeof options === 'string' ? 'session' : options.sessionCookieName;
+  const sessionCookieName = typeof options === 'string' ? 'api_session' : options.sessionCookieName;
 
   return async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     const cookieToken = req.cookies?.[sessionCookieName];

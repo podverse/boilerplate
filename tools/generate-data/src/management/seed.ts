@@ -2,7 +2,7 @@ import type { ActorType, EventVisibility } from '@boilerplate/management-orm';
 
 /**
  * Seeds the management DB with management_user, credentials, bio, admin_permissions, and management_event.
- * Call only after loading apps/management-api .env so managementDataSource has MANAGEMENT_DB_*.
+ * Call only after loading apps/management-api .env so managementDataSource has DB_HOST/DB_PORT and DB_MANAGEMENT_*.
  * Conditionally creates a super admin (username superadmin) only if one does not already exist
  * (e.g. create-super-admin.mjs may have run during local startup). Regular seeded users are
  * always non–super-admin admins.

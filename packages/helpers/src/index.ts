@@ -77,7 +77,11 @@ export type {
   PasswordValidationMessages,
   PasswordValidationResult,
 } from './credentials/password.js';
-export { parseCookieSameSite, parseCorsOrigins } from './startup/cors-and-cookies.js';
+export {
+  effectiveCookieDomainForSetCookie,
+  parseCookieSameSite,
+  parseCorsOrigins,
+} from './startup/cors-and-cookies.js';
 export type { CookieSameSite, SessionCookieOptions } from './startup/cors-and-cookies.js';
 export { normalizeVersionPath } from './startup/version-path.js';
 export {
@@ -100,4 +104,3 @@ export type { ValidationResult, ValidationSummary } from './startup/validation.j
 export { TEST_JWT_SECRET_API, TEST_JWT_SECRET_MANAGEMENT_API } from './startup/test-jwt-secrets.js';
 export { formatUserLabel } from './userLabel.js';
 export type { UserLabelInput } from './userLabel.js';
-export { getEffectiveUserAgent } from './userAgent.js';

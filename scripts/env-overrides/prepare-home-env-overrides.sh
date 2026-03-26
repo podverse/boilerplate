@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# Seed ~/.config/boilerplate/.../*.env from dev/env-overrides/examples/*.env.example when missing.
+# Ensure ~/.config/boilerplate/... exists for optional env overrides.
+# Defaults and key lists live in infra/env/classification/base.yaml; no repo example files are required.
 # Invoked by prepare-local-env-overrides.sh (--profile local) or prepare-k8s-env-overrides.sh (--profile k8s --env <name>).
 
 set -euo pipefail
@@ -7,8 +8,6 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 cd "$REPO_ROOT"
-
-EXAMPLES_DIR="dev/env-overrides/examples"
 
 PROFILE=""
 ENV_NAME=""
@@ -62,46 +61,42 @@ HOME_OVERRIDES_EXPANDED="${HOME_OVERRIDES_RAW/#\~/$HOME}"
 mkdir -p "$HOME_OVERRIDES_EXPANDED"
 HOME_OVERRIDES_DIR="$(cd "$HOME_OVERRIDES_EXPANDED" && pwd)"
 
-if ! ls "$EXAMPLES_DIR"/*.env.example >/dev/null 2>&1; then
-  if [[ "$PROFILE" == "local" ]]; then
-    echo "No override example files in $EXAMPLES_DIR. Secrets are auto-generated; prepare/link are optional."
-    echo "Run make local_env_setup to generate env files."
-  else
-    echo "No *.env.example files in $EXAMPLES_DIR. Add examples first."
-  fi
-  exit 0
+if ! command -v ruby >/dev/null 2>&1; then
+  echo "Error: ruby is required to generate home override stubs from classification." >&2
+  exit 1
 fi
 
-for example_file in "$EXAMPLES_DIR"/*.env.example; do
-  [[ -f "$example_file" ]] || continue
-  base_name="${example_file##*/}"
-  target_name="${base_name%.example}"
-  home_file="$HOME_OVERRIDES_DIR/$target_name"
-  if [[ ! -f "$home_file" ]]; then
-    cp "$example_file" "$home_file"
-    echo "Created $home_file"
-  fi
-done
+BOILERPLATE_ENV_RUBY="${BOILERPLATE_ENV_RUBY:-ruby}"
+MERGE_PROFILE="local_docker"
+if [[ "$PROFILE" == "k8s" ]]; then
+  MERGE_PROFILE="remote_k8s"
+fi
+
+"$BOILERPLATE_ENV_RUBY" "$REPO_ROOT/scripts/env-overrides/write-home-override-stubs.rb" \
+  --profile "$MERGE_PROFILE" \
+  --output-dir "$HOME_OVERRIDES_DIR"
+
+echo "Override directory ready: $HOME_OVERRIDES_DIR"
+echo "New files get every anchor override key with merged classification defaults (base.yaml + profile overlay)."
+echo "Existing files are not overwritten; use write-home-override-stubs.rb --force to replace (see script help)."
 
 if [[ "$PROFILE" == "local" ]]; then
   cat <<EOF
 
-Override files are in $HOME_OVERRIDES_DIR.
-Edit those files with your private or external values, then run:
+Then run:
 
   make local_env_link
   make local_env_setup
 
-Link makes dev/env-overrides/local/*.env point at home; setup generates app and infra env from them.
+Link creates symlinks in dev/env-overrides/local/ for files that exist here; setup merges overrides into generated env.
 EOF
 else
   cat <<EOF
 
-Override files are in $HOME_OVERRIDES_DIR.
-Edit those values, then run:
+Then run:
 
   make k8s_env_link K8S_ENV=${ENV_NAME}
 
-Link symlinks dev/env-overrides/${ENV_NAME}/*.env to home so render reads them.
+Link creates symlinks in dev/env-overrides/${ENV_NAME}/ for files that exist here so render-k8s-env can merge them.
 EOF
 fi

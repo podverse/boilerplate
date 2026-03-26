@@ -9,7 +9,9 @@ cd "$ROOT"
 FILES=(
   infra/config/local/api.env
   infra/config/local/web.env
+  infra/config/local/db-source-only.env
   infra/config/local/db.env
+  infra/config/local/valkey-source-only.env
   infra/config/local/valkey.env
   apps/api/.env
   apps/web/.env.local

@@ -43,7 +43,7 @@ export function createApp(): Express {
   });
   const versionedRouter = express.Router();
   versionedRouter.get('/health', (_req: Request, res: Response): void => {
-    res.json({ status: 'ok', app: config.brandName });
+    res.json({ status: 'ok', message: 'The server is running.' });
   });
   versionedRouter.get('/', (_req: Request, res: Response): void => {
     res.status(200).json({ status: 'ok', message: 'API is online' });

@@ -1,9 +1,16 @@
 # --- Local Docker: network and compose services (infra/docker/local). ---
 
+# Compose interpolation: postgres.environment reads DB_USER, DB_PASSWORD, DB_APP_NAME from merged infra/config/local/db.env.
+COMPOSE_LOCAL_ENV ?= --env-file infra/config/local/db.env
+
+# Empty stubs for missing paths so docker compose stop/down works after local_env_clean (see scripts/local-env/ensure-compose-local-env-paths.sh).
+compose_local_teardown_paths:
+	@bash scripts/local-env/ensure-compose-local-env-paths.sh
+
 .PHONY: local_network_create local_infra_up local_all_up local_postgres_wait local_create_super_admin
 .PHONY: local_postgres_up local_valkey_up local_pgadmin_up local_sidecar_up local_api_up local_web_up
 .PHONY: local_management_api_up local_management_web_sidecar_up local_management_web_up
-.PHONY: local_postgres_down local_valkey_down local_sidecar_down local_api_down local_web_down
+.PHONY: compose_local_teardown_paths local_postgres_down local_valkey_down local_sidecar_down local_api_down local_web_down
 .PHONY: local_management_api_down local_management_web_sidecar_down local_management_web_down
 .PHONY: local_apps_up local_apps_up_build local_start_all_apps local_apps_down local_down local_down_volumes local_clean
 .PHONY: local_prune_boilerplate_images
@@ -28,7 +35,7 @@ local_postgres_wait:
 # Then prompts for super admin username and creates the super admin user (password generated and printed once).
 # pgAdmin is available at http://localhost:4050 — no login required; both databases pre-connected.
 local_infra_up: local_network_create
-	docker compose -f $(COMPOSE_LOCAL) --project-directory . up -d postgres valkey boilerplate_local_pgadmin
+	docker compose $(COMPOSE_LOCAL_ENV) -f $(COMPOSE_LOCAL) --project-directory . up -d postgres valkey boilerplate_local_pgadmin
 	$(MAKE) local_postgres_wait
 	$(MAKE) local_db_init_management
 	$(MAKE) local_create_super_admin
@@ -36,69 +43,72 @@ local_infra_up: local_network_create
 # Create super admin in management DB. When testSuperAdmin=1 (e.g. make local_reset_env_infra testSuperAdmin=1),
 # creates username superadmin with password Test!1Aa (local-only). Otherwise interactive: prompts for username, prints generated password once.
 # Requires Postgres and management DB (e.g. after local_infra_up). Uses apps/management-api/.env.
+# Super admin: testSuperAdmin=1 sets LOCAL_SUPERADMIN_PASSWORD (fixed Test!1Aa). Otherwise
+# create-super-admin.mjs uses DB_MANAGEMENT_SUPERUSER_* from apps/management-api/.env when both are set
+# (local_env_setup copies overrides into db.env and management-api env), else interactive / generated.
 local_create_super_admin:
 	$(if $(testSuperAdmin),LOCAL_SUPERADMIN_PASSWORD='Test!1Aa',) node scripts/management-api/create-super-admin.mjs
 
 # Full stack in Docker (Path B: API, web, sidecar, Postgres, Valkey). Does not run local_env_setup.
 local_all_up: local_network_create
-	docker compose -f $(COMPOSE_LOCAL) --project-directory . up --build
+	docker compose $(COMPOSE_LOCAL_ENV) -f $(COMPOSE_LOCAL) --project-directory . up --build
 
 local_postgres_up: local_network_create
-	docker compose -f $(COMPOSE_LOCAL) --project-directory . up -d postgres
+	docker compose $(COMPOSE_LOCAL_ENV) -f $(COMPOSE_LOCAL) --project-directory . up -d postgres
 
 local_valkey_up: local_network_create
-	docker compose -f $(COMPOSE_LOCAL) --project-directory . up -d valkey
+	docker compose $(COMPOSE_LOCAL_ENV) -f $(COMPOSE_LOCAL) --project-directory . up -d valkey
 
 local_pgadmin_up: local_network_create local_postgres_up
-	docker compose -f $(COMPOSE_LOCAL) --project-directory . up -d boilerplate_local_pgadmin
+	docker compose $(COMPOSE_LOCAL_ENV) -f $(COMPOSE_LOCAL) --project-directory . up -d boilerplate_local_pgadmin
 
 local_sidecar_up: local_network_create
-	docker compose -f $(COMPOSE_LOCAL) --project-directory . up -d boilerplate_local_web_sidecar
+	docker compose $(COMPOSE_LOCAL_ENV) -f $(COMPOSE_LOCAL) --project-directory . up -d boilerplate_local_web_sidecar
 
 local_api_up: local_network_create local_postgres_up
-	docker compose -f $(COMPOSE_LOCAL) --project-directory . up -d boilerplate_local_api
+	docker compose $(COMPOSE_LOCAL_ENV) -f $(COMPOSE_LOCAL) --project-directory . up -d boilerplate_local_api
 
 local_web_up: local_sidecar_up
-	docker compose -f $(COMPOSE_LOCAL) --project-directory . up -d boilerplate_local_web
+	docker compose $(COMPOSE_LOCAL_ENV) -f $(COMPOSE_LOCAL) --project-directory . up -d boilerplate_local_web
 
 local_management_api_up: local_network_create local_postgres_up
-	docker compose -f $(COMPOSE_LOCAL) --project-directory . up -d boilerplate_local_management_api
+	docker compose $(COMPOSE_LOCAL_ENV) -f $(COMPOSE_LOCAL) --project-directory . up -d boilerplate_local_management_api
 
 local_management_web_sidecar_up: local_network_create
-	docker compose -f $(COMPOSE_LOCAL) --project-directory . up -d boilerplate_local_management_web_sidecar
+	docker compose $(COMPOSE_LOCAL_ENV) -f $(COMPOSE_LOCAL) --project-directory . up -d boilerplate_local_management_web_sidecar
 
 local_management_web_up: local_management_api_up local_management_web_sidecar_up
-	docker compose -f $(COMPOSE_LOCAL) --project-directory . up -d boilerplate_local_management_web
+	docker compose $(COMPOSE_LOCAL_ENV) -f $(COMPOSE_LOCAL) --project-directory . up -d boilerplate_local_management_web
 
-local_postgres_down:
-	docker compose -f $(COMPOSE_LOCAL) --project-directory . stop postgres 2>/dev/null || true
+local_postgres_down: compose_local_teardown_paths
+	docker compose $(COMPOSE_LOCAL_ENV) -f $(COMPOSE_LOCAL) --project-directory . stop postgres 2>/dev/null || true
 
-local_valkey_down:
-	docker compose -f $(COMPOSE_LOCAL) --project-directory . stop valkey 2>/dev/null || true
+local_valkey_down: compose_local_teardown_paths
+	docker compose $(COMPOSE_LOCAL_ENV) -f $(COMPOSE_LOCAL) --project-directory . stop valkey 2>/dev/null || true
 
-local_sidecar_down:
-	docker compose -f $(COMPOSE_LOCAL) --project-directory . stop boilerplate_local_web_sidecar 2>/dev/null || true
+local_sidecar_down: compose_local_teardown_paths
+	docker compose $(COMPOSE_LOCAL_ENV) -f $(COMPOSE_LOCAL) --project-directory . stop boilerplate_local_web_sidecar 2>/dev/null || true
 
-local_api_down:
-	docker compose -f $(COMPOSE_LOCAL) --project-directory . stop boilerplate_local_api 2>/dev/null || true
+local_api_down: compose_local_teardown_paths
+	docker compose $(COMPOSE_LOCAL_ENV) -f $(COMPOSE_LOCAL) --project-directory . stop boilerplate_local_api 2>/dev/null || true
 
-local_web_down:
-	docker compose -f $(COMPOSE_LOCAL) --project-directory . stop boilerplate_local_web 2>/dev/null || true
+local_web_down: compose_local_teardown_paths
+	docker compose $(COMPOSE_LOCAL_ENV) -f $(COMPOSE_LOCAL) --project-directory . stop boilerplate_local_web 2>/dev/null || true
 
-local_management_api_down:
-	docker compose -f $(COMPOSE_LOCAL) --project-directory . stop boilerplate_local_management_api 2>/dev/null || true
+local_management_api_down: compose_local_teardown_paths
+	docker compose $(COMPOSE_LOCAL_ENV) -f $(COMPOSE_LOCAL) --project-directory . stop boilerplate_local_management_api 2>/dev/null || true
 
-local_management_web_sidecar_down:
-	docker compose -f $(COMPOSE_LOCAL) --project-directory . stop boilerplate_local_management_web_sidecar 2>/dev/null || true
+local_management_web_sidecar_down: compose_local_teardown_paths
+	docker compose $(COMPOSE_LOCAL_ENV) -f $(COMPOSE_LOCAL) --project-directory . stop boilerplate_local_management_web_sidecar 2>/dev/null || true
 
-local_management_web_down:
-	docker compose -f $(COMPOSE_LOCAL) --project-directory . stop boilerplate_local_management_web 2>/dev/null || true
+local_management_web_down: compose_local_teardown_paths
+	docker compose $(COMPOSE_LOCAL_ENV) -f $(COMPOSE_LOCAL) --project-directory . stop boilerplate_local_management_web 2>/dev/null || true
 
 # Remove locally built Boilerplate app images (aligned with Podverse local_prune_*). Portable; no GNU xargs -r.
 # Base images (postgres, valkey, pgadmin) are not removed.
 local_prune_boilerplate_images:
 	@echo "Removing Boilerplate app images..."
-	@for img in boilerplate-api:latest boilerplate-web-sidecar:latest boilerplate-management-web-sidecar:latest boilerplate-web:latest boilerplate-management-api:latest boilerplate-management-web:latest; do \
+	@for img in boilerplate-api:latest boilerplate-web-sidecar:latest boilerplate-management-web-sidecar:latest boilerplate-web:latest boilerplate-management-api:latest boilerplate-management-web:latest boilerplate-dev-watch:latest; do \
 	  docker rmi -f "$$img" 2>/dev/null || true; \
 	done
 	@echo "Clearing Docker build cache..."
@@ -107,11 +117,11 @@ local_prune_boilerplate_images:
 
 # Start only app containers (API, management-api, web-sidecar, management-web-sidecar, web, management-web). Postgres and Valkey must already be running (e.g. local_infra_up).
 local_apps_up: local_network_create
-	docker compose -f $(COMPOSE_LOCAL) --project-directory . up -d $(LOCAL_COMPOSE_APP_SERVICES)
+	docker compose $(COMPOSE_LOCAL_ENV) -f $(COMPOSE_LOCAL) --project-directory . up -d $(LOCAL_COMPOSE_APP_SERVICES)
 
 # Same as local_apps_up but rebuild images first (use after local_infra_up or for local_nuke_rebuild_run).
 local_apps_up_build: local_network_create
-	docker compose -f $(COMPOSE_LOCAL) --project-directory . up -d --build $(LOCAL_COMPOSE_APP_SERVICES)
+	docker compose $(COMPOSE_LOCAL_ENV) -f $(COMPOSE_LOCAL) --project-directory . up -d --build $(LOCAL_COMPOSE_APP_SERVICES)
 
 # Podverse-aligned name: start all app containers without rebuild (depends on infra).
 local_start_all_apps: local_apps_up
@@ -121,11 +131,13 @@ local_apps_down: local_api_down local_management_api_down local_sidecar_down loc
 
 # Remove containers and built app images (api, management-api, web-sidecar, management-web-sidecar, web, management-web). Postgres and
 # valkey are pulled images, not built here, so they are never removed and persist for convenience.
-local_down:
-	docker compose -f $(COMPOSE_LOCAL) --project-directory . down --rmi local
+local_down: compose_local_teardown_paths
+	docker compose $(COMPOSE_LOCAL_ENV) -f $(COMPOSE_LOCAL) --project-directory . down --rmi local
+	@bash scripts/local-env/remove-boilerplate-local-containers.sh
 
-local_down_volumes:
-	docker compose -f $(COMPOSE_LOCAL) --project-directory . down -v --rmi local
+local_down_volumes: compose_local_teardown_paths
+	docker compose $(COMPOSE_LOCAL_ENV) -f $(COMPOSE_LOCAL) --project-directory . down -v --rmi local
+	@bash scripts/local-env/remove-boilerplate-local-containers.sh
 
 # Also stop k3d cluster (if present) and test/E2E containers (boilerplate_test_postgres, boilerplate_test_valkey, boilerplate_e2e_mailpit).
 local_clean: local_down local_down_volumes local_k3d_down test_clean

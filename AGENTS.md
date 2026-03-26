@@ -39,12 +39,13 @@ Node and npm are provided by the repo's Nix flake, not a global install. When ru
 ## Local env (aligned with Podverse)
 
 Secrets (JWT, DB, Valkey, etc.) are **auto-generated** by `make local_env_setup` via
-`scripts/env-setup-secrets.sh`. Override files (`dev/env-overrides/local/*.env`, seeded from `dev/env-overrides/examples/*.env.example` via prepare/link) are applied when present:
-**brand.env** (brand name, app title icon), **management-superuser.env**, **mailer.env** (SMTP — no defaults; devs bring their own; tests use mailpit), **auth.env** (AUTH_MODE), **locale.env** (DEFAULT_LOCALE, SUPPORTED_LOCALES with sensible defaults). **APP_BASE_URL, CORS_ORIGINS, WEB_APP_URL, MANAGEMENT_CORS_ORIGINS** stay as local dev defaults in each app’s `.env.example` (not in overrides). Prepare and link are no-ops when no `dev/env-overrides/examples/*.env.example` exist; otherwise they copy/link to `~/.config/boilerplate/local-env-overrides/`.
+`scripts/env-setup-secrets.sh`. **Canonical variable names and defaults** live in **`infra/env/classification/`** (see [docs/development/ENV-REFERENCE.md](docs/development/ENV-REFERENCE.md)); `scripts/local-env/setup.sh` generates app and `infra/config/local/*.env` files via `scripts/env-classification/boilerplate-env.rb` when missing. Optional override files under `dev/env-overrides/local/*.env` (symlinked from `~/.config/boilerplate/local-env-overrides/` via prepare/link) are applied when present:
+**info.env** (`WEB_BRAND_NAME` for web UI and for API transactional email when **`AUTH_MODE`** uses email flows; `MANAGEMENT_WEB_BRAND_NAME` for management-web UI), **user-agent.env** (`API_USER_AGENT`, `MANAGEMENT_API_USER_AGENT`; legacy `USER_AGENT_*` and prior **`MANAGEMENT_USER_AGENT`** are mapped in **`setup.sh`**), **db-management-superuser.env** (**`DB_MANAGEMENT_SUPERUSER_USERNAME`**, **`DB_MANAGEMENT_SUPERUSER_PASSWORD`** — copied into **`db.env`** and management-api env by **`setup.sh`** so **`create-super-admin.mjs`** can bootstrap the management super admin without a TTY when both are set), **mailer.env** (SMTP — no defaults; devs bring their own; tests use mailpit), **auth.env** (AUTH*MODE), **locale.env** (DEFAULT_LOCALE, SUPPORTED_LOCALES with sensible defaults). **`API_CORS_ORIGINS`** is **`api.vars`** (**`literal`**, aligned with **`http.web`** **`WEB_BASE_URL`** for local dev); **`MANAGEMENT_API_CORS_ORIGINS`** is **`management-api.vars`** (**`literal`**, aligned with **`http.management-web`** **`MANAGEMENT_WEB_BASE_URL`** for local dev; not home overrides; legacy \*\*`CORS_ORIGINS*\*`** and prior **`MANAGEMENT_CORS_ORIGINS`** are still mapped in **`setup.sh`**). **WEB_BASE_URL, WEB_URL\*\* stay as local dev defaults in generated app env (not in those override stubs).
 
-- **Prepare:** `make local_env_prepare` — no-op when no override examples; creates home files from examples when present
-- **Link:** `make local_env_link` — no-op when no override examples; symlinks when present
-- **Setup:** `make local_env_setup` — generate env files from templates, auto-generated secrets, and overrides (brand, management-superuser, mailer, auth, locale); missing override `.env` files are bootstrapped from `.env.example` so sensible defaults apply
+- **Prepare:** `make local_env_prepare` — ensures `~/.config/boilerplate/local-env-overrides/` exists and creates missing override `.env` files with all anchor keys and merged classification defaults (`write-home-override-stubs.rb`; never overwrites existing files); edit for non-default values
+- **Link:** `make local_env_link` — symlinks `dev/env-overrides/local/*.env` to existing files in the home overrides directory
+- **Clean:** `make local_env_clean` — removes generated repo env and **`dev/env-overrides/local/*.env`** symlinks; does **not** remove home files under `~/.config/boilerplate/local-env-overrides/`. Run **`local_env_link`** before **`local_env_setup`** after a clean if you use home overrides.
+- **Setup:** `make local_env_setup` — generate env files from classification, auto-generated secrets, and overrides (info, user-agent, db-management-superuser, mailer, auth, locale) when those override files exist (via repo paths under `dev/env-overrides/local/` after link).
 - **One-shot:** `make local_setup` — `local_env_setup` + `local_infra_up`
 
 See [docs/development/LOCAL-ENV-OVERRIDES.md](docs/development/LOCAL-ENV-OVERRIDES.md).
@@ -62,20 +63,24 @@ When implementing features or executing plans that touch **api** or **management
 - **API integration tests:** One setup file ([apps/api/src/test/setup.ts](apps/api/src/test/setup.ts)) provides smart-default env for all tests. Tests that need different env (e.g. signup/mailer) override only those vars at the top of the file and load app/config via dynamic import in `beforeAll` so overrides apply. Full coverage: `npm run test` from repo root. The **first step** is a requirements check: Postgres and Valkey must be reachable at the test ports (defaults 5532, 6479). If not, the script exits with instructions (e.g. `make test_deps`). In Nix/agent environments use `./scripts/nix/with-env npm run test`.
 - **Test requirements (Makefile):** Test-related commands live in `makefiles/local/Makefile.local.test.mk`. From
   repo root: `make test_deps` starts Postgres on 5532 and Valkey on 6479, creates **two** test databases:
-  `boilerplate_test` (main app; `infra/database/combined/init_database.sql`) and `boilerplate_management_test`
-  (management-api; `infra/management-database/combined/init_management_database.sql`), and creates read/read_write
-  users. `make help_test` prints instructions.
-- **Test databases:** Tests use dedicated DBs on the same Postgres instance. Main: `boilerplate_test` (api and
+  `boilerplate_app_test` (main app; `infra/database/combined/init_database.sql`) and `boilerplate_management_test`
+  (management-api; `infra/management-database/combined/init_management_database.sql`), and creates app/management
+  read and read_write roles (`boilerplate_app_read` / `boilerplate_app_read_write`, `boilerplate_management_read` /
+  `boilerplate_management_read_write`). `make help_test` prints instructions.
+- **Test databases:** Tests use dedicated DBs on the same Postgres instance. Main: `boilerplate_app_test` (api and
   management-api main-user CRUD). Management: `boilerplate_management_test` (management identities, permissions,
   events). Default test ports are **5532** (Postgres) and **6479** (Valkey). Each test run starts with a **clean slate**:
   globalSetup truncates main and management tables once before any test file runs (api: `apps/api/src/test/global-setup.mjs`;
   management-api: `apps/management-api/src/test/global-setup.mjs`).
 - **Database naming (dev/Docker/K8s):** Two databases in one Postgres instance, aligned with Podverse: app DB
-  `boilerplate_app`, management DB `boilerplate_management`. Env: `POSTGRES_DB` / `POSTGRES_MANAGEMENT_DB` in
-  `infra/config/env-templates/db.env.example`; apps use `DB_NAME` and `MANAGEMENT_DB_NAME`. DB user names align
-  with Podverse: app roles `boilerplate_app_read` / `boilerplate_app_read_write`, management roles
-  `boilerplate_management_read` / `boilerplate_management_read_write`; env vars `POSTGRES_READ_USER`,
-  `POSTGRES_READ_WRITE_USER`, `POSTGRES_MANAGEMENT_READ_USER`, `POSTGRES_MANAGEMENT_READ_WRITE_USER`.
+  `boilerplate_app`, management DB `boilerplate_management`. Classification defines `DB_APP_NAME` and `DB_MANAGEMENT_NAME`
+  (via `db` workload keys); cluster superuser is `DB_USER` (default `user`) and `DB_PASSWORD` in `db.env` (with
+  `DB_HOST` / `DB_PORT` for clients). The official Postgres Docker image still reads `POSTGRES_USER`, `POSTGRES_PASSWORD`,
+  `POSTGRES_DB`; local Compose maps them from `DB_USER`, `DB_PASSWORD`, and `DB_APP_NAME`. Apps use `DB_APP_NAME` (synced
+  by `local_env_setup`). Management-api uses the same **`DB_HOST`** / **`DB_PORT`** plus **`DB_MANAGEMENT_NAME`** and
+  **`DB_MANAGEMENT_READ_WRITE_*`** (inherited from classification workload **`db`**; no separate `MANAGEMENT_DB_*` vars).
+  Role names: `boilerplate_app_read` / `boilerplate_app_read_write`, `boilerplate_management_read` /
+  `boilerplate_management_read_write`; keys `DB_APP_READ_*` and `DB_MANAGEMENT_READ_*`.
 - **Mailer:** No local mailer service is required. Tests that cover verification flows use a Vitest mock of the
   mailer module to capture tokens and call verification endpoints; see `apps/api/src/test/*.test.ts`.
 
@@ -119,6 +124,7 @@ All configuration is project-scoped (no home-directory skills or rules).
 | **Forms / UI**           | **use-form-component**, **button-loading-async**, **password-strength-on-set-update**. **avoid-type-assertions**, **eqeqeq-strict-equality** rules apply.                                                                                                                                                                                                    |
 | **DB / ORM**             | **database-schema-naming**, **typeorm-orderby-property-names**, **generate-data-sync** when schema or entities change. **nested-resource-prefix-naming** for nested resources.                                                                                                                                                                               |
 | **K8s / Argo CD**        | **argocd-gitops-push** when changing files under `infra/k8s/` or sync targets for k8s (add push-to-Git reminder in response so Argo CD can sync).                                                                                                                                                                                                            |
+| **Env / classification** | **classification-env** when adding or changing `infra/env/classification/`, env generators, or K8s env render.                                                                                                                                                                                                                                               |
 | **Imports / paths**      | **path-casing-imports** when adding or changing relative imports (rule also applies on .ts/.tsx). **type-imports-separate-line** rule for type-only imports.                                                                                                                                                                                                 |
 
 For **file-modifying work**: update `.llm/history/active/[feature]/` per **llm-history** and the **llm-history-tracking** rule. For **large or multi-step plans**: save under `.llm/plans/active/` and use **plan-files-convention**; execute via COPY-PASTA prompts one plan at a time.

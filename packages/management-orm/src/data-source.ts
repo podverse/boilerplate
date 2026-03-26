@@ -2,9 +2,9 @@ import type { DataSourceOptions } from 'typeorm';
 
 /**
  * TypeORM DataSource for the management store (Postgres).
- * Set MANAGEMENT_DB_HOST, MANAGEMENT_DB_PORT, MANAGEMENT_DB_NAME, MANAGEMENT_DB_USERNAME,
- * MANAGEMENT_DB_PASSWORD (validate at app startup before using).
- * Run infra/management-database/combined/init_management_database.sql once to create the schema.
+ * Uses the same instance as the main app: **`DB_HOST`**, **`DB_PORT`** (from **`db.db`**) and management database
+ * **`DB_MANAGEMENT_NAME`** with **`DB_MANAGEMENT_READ_WRITE_USER`** / **`DB_MANAGEMENT_READ_WRITE_PASSWORD`**
+ * (from **`db.db-management`**). Run infra/management-database/combined/init_management_database.sql once.
  */
 import { DataSource } from 'typeorm';
 
@@ -17,20 +17,25 @@ import { ManagementUserBio } from './entities/ManagementUserBio.js';
 import { ManagementUserCredentials } from './entities/ManagementUserCredentials.js';
 
 function getManagementOptions(): DataSourceOptions {
-  const host = process.env.MANAGEMENT_DB_HOST;
-  const port = process.env.MANAGEMENT_DB_PORT;
-  const database = process.env.MANAGEMENT_DB_NAME;
-  const username = process.env.MANAGEMENT_DB_USERNAME;
-  const password = process.env.MANAGEMENT_DB_PASSWORD;
+  const host = process.env.DB_HOST;
+  const port = process.env.DB_PORT;
+  const database = process.env.DB_MANAGEMENT_NAME;
+  const username = process.env.DB_MANAGEMENT_READ_WRITE_USER;
+  const password = process.env.DB_MANAGEMENT_READ_WRITE_PASSWORD;
   if (
     host === undefined ||
+    host === '' ||
     port === undefined ||
+    port === '' ||
     database === undefined ||
+    database === '' ||
     username === undefined ||
-    password === undefined
+    username === '' ||
+    password === undefined ||
+    password === ''
   ) {
     throw new Error(
-      'Management DataSource requires MANAGEMENT_DB_HOST, MANAGEMENT_DB_PORT, MANAGEMENT_DB_NAME, MANAGEMENT_DB_USERNAME, MANAGEMENT_DB_PASSWORD (validate at startup).'
+      'Management DataSource requires DB_HOST, DB_PORT, DB_MANAGEMENT_NAME, DB_MANAGEMENT_READ_WRITE_USER, DB_MANAGEMENT_READ_WRITE_PASSWORD.'
     );
   }
   return {

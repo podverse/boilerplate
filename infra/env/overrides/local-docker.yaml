@@ -1,0 +1,26 @@
+version: 2
+workloads:
+  valkey:
+    valkey:
+      vars:
+        VALKEY_HOST:
+          default: "valkey"
+        VALKEY_PORT:
+          default: "6379"
+  http:
+    api:
+      vars:
+        API_SERVER_BASE_URL:
+          default: "http://boilerplate_local_api:4000"
+    management-api:
+      vars:
+        MANAGEMENT_API_SERVER_BASE_URL:
+          default: "http://boilerplate_local_management_api:4100"
+  web:
+    vars:
+      RUNTIME_CONFIG_URL:
+        default: "http://boilerplate_local_web_sidecar:4001"
+  management-web:
+    vars:
+      RUNTIME_CONFIG_URL:
+        default: "http://boilerplate_local_management_web_sidecar:4101"

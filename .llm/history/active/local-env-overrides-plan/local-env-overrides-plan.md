@@ -1,7 +1,7 @@
 # Local env overrides plan implementation
 
 Started: 2026-03-16
-Context: Boilerplate env vars audit and move customizable to .config (local-env-overrides). Plan: keep APP_BASE_URL, CORS_ORIGINS, WEB_APP_URL, MANAGEMENT_CORS_ORIGINS as local dev defaults; add mailer, auth, locale overrides with sensible defaults where applicable; no SMTP defaults.
+Context: Boilerplate env vars audit and move customizable to .config (local-env-overrides). Plan: keep WEB_BASE_URL, CORS_ORIGINS, WEB_APP_URL, MANAGEMENT_CORS_ORIGINS as local dev defaults; add mailer, auth, locale overrides with sensible defaults where applicable; no SMTP defaults.
 
 ---
 

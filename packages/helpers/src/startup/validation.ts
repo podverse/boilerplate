@@ -572,15 +572,15 @@ export function displayValidationResults(summary: ValidationSummary): void {
 }
 
 /**
- * Runs validation: builds summary from results, displays, throws if any required var missing/invalid.
+ * Runs validation: builds summary from results, displays, throws if any check failed (required or invalid optional).
  * Call after loadEnv(), before importing config.
  */
 export function validateStartupRequirements(results: ValidationResult[]): void {
   const summary = buildSummary(results);
   displayValidationResults(summary);
-  if (summary.requiredMissing > 0) {
+  if (summary.failed > 0) {
     throw new Error(
-      `FATAL: ${summary.requiredMissing} required environment variable(s) are missing or invalid. Please check the validation output above for details.`
+      `FATAL: ${summary.failed} environment variable validation error(s). Please check the validation output above for details.`
     );
   }
   console.log('Startup validation completed successfully.');

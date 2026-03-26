@@ -17,7 +17,7 @@ export interface RequireManagementAuthOptions {
 export function requireManagementAuth(options: RequireManagementAuthOptions | string) {
   const jwtSecret = typeof options === 'string' ? options : options.jwtSecret;
   const sessionCookieName =
-    typeof options === 'string' ? 'management_session' : options.sessionCookieName;
+    typeof options === 'string' ? 'management_api_session' : options.sessionCookieName;
 
   return async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     const cookieToken = req.cookies?.[sessionCookieName];

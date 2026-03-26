@@ -5,7 +5,7 @@ valkey (6380) exposed on host. **Sidecars are never exposed in Docker or K8s** â
 management-web sidecars have no host port mapping; only the web/management-web containers
 reach them on the internal network via RUNTIME_CONFIG_URL. Sidecars are only reachable on
 localhost when run via `npm run dev` (e.g. `npm run dev:web-sidecar`, port 4001;
-`npm run dev:management-web-sidecar`, port 4101). Shared network:
+`npm run dev:management-web-sidecar`, port 4101); those processes load **`apps/*/sidecar/.env`** from **`merge-env --profile dev`**, while Compose sidecar containers use **`infra/config/local/*-sidecar.env`** (**`local_docker`**). Shared network:
 `boilerplate_local_network`. Host ports 5433/6380 avoid conflict with podverse monorepo
 (5432/6379).
 

@@ -1,18 +1,9 @@
 import 'server-only';
 import { cookies } from 'next/headers';
 
-import { getRuntimeConfig } from '../config/runtime-config-store';
+import { getServerApiBaseUrl } from '../config/env';
 
-function getApiVersionPath(): string {
-  const ver = getRuntimeConfig().env.NEXT_PUBLIC_API_VERSION_PATH?.trim();
-  return ver && ver.startsWith('/') ? ver : '/v1';
-}
-
-export function getServerApiBaseUrl(): string {
-  const base = getRuntimeConfig().env.NEXT_PUBLIC_API_URL ?? '';
-  const trimmed = base.replace(/\/$/, '');
-  return trimmed + getApiVersionPath();
-}
+export { getServerApiBaseUrl };
 
 /**
  * Builds a Cookie header string from the current request's cookies.

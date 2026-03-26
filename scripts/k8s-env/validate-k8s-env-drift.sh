@@ -1,15 +1,19 @@
 #!/usr/bin/env bash
-# Compare rendered ConfigMaps to committed files in the GitOps output repo.
+# Compare rendered ConfigMaps and deployment-secret-env.yaml patches to committed files in the GitOps output repo.
 # Requires --output-repo PATH or BOILERPLATE_K8S_OUTPUT_REPO. Exits 1 if unset, overlay missing, or mismatch.
 # Usage: validate-k8s-env-drift.sh [--env alpha|beta|prod] [--output-repo PATH]
 #
-# Secrets are not compared (values vary; plain/ may be gitignored). Re-run render and commit
-# ConfigMaps when classification or .env.example changes.
+# ConfigMap and secret-env patch paths match k8s-env-render-manifest.inc.sh (same as render-k8s-env.sh).
+# Secret values are not compared (plain/ may be gitignored). Re-run render and commit
+# ConfigMaps and deployment-secret-env.yaml when infra/env/classification or dev/env-overrides change.
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 cd "$REPO_ROOT"
+
+# shellcheck source=k8s-env-render-manifest.inc.sh
+source "$SCRIPT_DIR/k8s-env-render-manifest.inc.sh"
 
 ENV_NAME="${K8S_ENV:-alpha}"
 OUTPUT_REPO_CLI=""
@@ -72,19 +76,15 @@ if ! bash "$SCRIPT_DIR/render-k8s-env.sh" --env "$ENV_NAME" --output-repo "$TMP"
 fi
 rm -f "$RENDER_LOG"
 
-# ConfigMap paths produced by render (see render-k8s-env.sh / configmap_filename_for_workload)
-cm_files=(
-  "api/configmap.yaml"
-  "management-api/configmap.yaml"
-  "web/configmap-web-sidecar.yaml"
-  "management-web/configmap-management-web-sidecar.yaml"
-  "db/configmap.yaml"
-)
+mapfile -t cm_files < <(k8s_env_render_configmap_relpaths_under_overlay "$ENV_NAME")
 
 failed=0
 for rel in "${cm_files[@]}"; do
   left="${TMP}/${OVERLAY}/${rel}"
   right="${COMPARE_ROOT}/${rel}"
+  if [[ ! -f "$left" && ! -f "$right" ]]; then
+    continue
+  fi
   if [[ ! -f "$right" ]]; then
     echo "validate-k8s-env-drift: missing committed file ${right}" >&2
     failed=1
@@ -102,8 +102,33 @@ for rel in "${cm_files[@]}"; do
   fi
 done
 
+mapfile -t patch_files < <(k8s_env_render_deployment_secret_patch_relpaths_under_overlay "$ENV_NAME")
+
+for rel in "${patch_files[@]}"; do
+  left="${TMP}/${OVERLAY}/${rel}"
+  right="${COMPARE_ROOT}/${rel}"
+  if [[ ! -f "$left" && ! -f "$right" ]]; then
+    continue
+  fi
+  if [[ ! -f "$right" ]]; then
+    echo "validate-k8s-env-drift: missing committed file ${right}" >&2
+    failed=1
+    continue
+  fi
+  if [[ ! -f "$left" ]]; then
+    echo "validate-k8s-env-drift: render did not produce ${left} (remove stale ${right}?)" >&2
+    failed=1
+    continue
+  fi
+  if ! cmp -s "$left" "$right"; then
+    echo "validate-k8s-env-drift: mismatch ${OVERLAY}/${rel}" >&2
+    diff -u "$right" "$left" >&2 || true
+    failed=1
+  fi
+done
+
 if [[ "$failed" -ne 0 ]]; then
-  echo "validate-k8s-env-drift: FAILED — run \`make alpha_env_render\` (or \`make k8s_env_render K8S_ENV=${ENV_NAME}\`) and commit ConfigMaps in the output repo." >&2
+  echo "validate-k8s-env-drift: FAILED — run \`make alpha_env_render\` (or \`make k8s_env_render K8S_ENV=${ENV_NAME}\`) and commit ConfigMaps and deployment-secret-env.yaml in the output repo." >&2
   exit 1
 fi
 

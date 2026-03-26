@@ -13,6 +13,6 @@ RUN npm ci --ignore-scripts && \
 
 EXPOSE 4001
 
-ENV PORT=4001
+ENV WEB_SIDECAR_PORT=4001
 
 CMD ["node", "apps/web/sidecar/dist/server.js"]

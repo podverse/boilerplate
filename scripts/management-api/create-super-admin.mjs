@@ -1,17 +1,17 @@
 import { randomBytes } from 'crypto';
 import path from 'path';
 /**
- * Interactive script to create the super admin user in the management database.
- * Used during infra up (make local_infra_up). Prompts for username, generates a secure
- * password, creates the user, and prints the password once with instructions.
+ * Create the super admin user in the management database (used by make local_infra_up).
  *
  * Run from repo root: node scripts/management-api/create-super-admin.mjs
  *
- * Loads .env from apps/management-api (MANAGEMENT_DB_*). If stdin is not a TTY,
- * uses default username "superadmin" and still creates user if none exists.
+ * Loads .env from apps/management-api (MANAGEMENT_DB_* and optional bootstrap vars).
  *
- * Local-only: when LOCAL_SUPERADMIN_PASSWORD is set (e.g. by Make), creates
- * username "superadmin" with that password (insecure; local dev only).
+ * Credential source (first match):
+ * 1. LOCAL_SUPERADMIN_PASSWORD — username fixed to "superadmin" (e.g. make testSuperAdmin=1; local/CI only).
+ * 2. DB_MANAGEMENT_SUPERUSER_USERNAME + DB_MANAGEMENT_SUPERUSER_PASSWORD both non-empty — non-interactive
+ *    (from db-management-superuser.env via local_env_setup).
+ * 3. Interactive TTY: prompt for username, generate password. Non-TTY: username superadmin + generated password.
  */
 import { createInterface } from 'readline';
 import { fileURLToPath } from 'url';
@@ -76,6 +76,8 @@ function generatePassword() {
     });
 }
 
+/** @typedef {'test' | 'env' | 'interactive'} PasswordSource */
+
 async function main() {
   await loadEnv();
 
@@ -92,15 +94,36 @@ async function main() {
     process.exit(1);
   }
 
-  const localPassword = process.env.LOCAL_SUPERADMIN_PASSWORD;
-  const username =
-    typeof localPassword === 'string' && localPassword.length > 0
-      ? DEFAULT_USERNAME
-      : await promptUsername();
-  const plainPassword =
-    typeof localPassword === 'string' && localPassword.length > 0
-      ? localPassword
-      : generatePassword();
+  const localTestPassword = process.env.LOCAL_SUPERADMIN_PASSWORD;
+  const envSuUser = (process.env.DB_MANAGEMENT_SUPERUSER_USERNAME ?? '').trim();
+  const envSuPass = process.env.DB_MANAGEMENT_SUPERUSER_PASSWORD ?? '';
+
+  /** @type {string} */
+  let username;
+  /** @type {string} */
+  let plainPassword;
+  /** @type {PasswordSource} */
+  let passwordSource;
+
+  if (typeof localTestPassword === 'string' && localTestPassword.length > 0) {
+    username = DEFAULT_USERNAME;
+    plainPassword = localTestPassword;
+    passwordSource = 'test';
+  } else if (envSuUser.length > 0 && envSuPass.length > 0) {
+    if (!isValidUsername(envSuUser)) {
+      console.error(
+        'Invalid DB_MANAGEMENT_SUPERUSER_USERNAME. Use a non-empty string (max 50 chars).'
+      );
+      process.exit(1);
+    }
+    username = envSuUser;
+    plainPassword = envSuPass;
+    passwordSource = 'env';
+  } else {
+    username = await promptUsername();
+    plainPassword = generatePassword();
+    passwordSource = 'interactive';
+  }
 
   const bcrypt = (await import('bcrypt')).default;
   const passwordHash = await bcrypt.hash(plainPassword, 10);
@@ -120,7 +143,8 @@ async function main() {
   try {
     await client.connect();
   } catch (err) {
-    console.error('Could not connect to management database:', err.message);
+    const message = err instanceof Error ? err.message : String(err);
+    console.error('Could not connect to management database:', message);
     process.exit(1);
   }
 
@@ -159,8 +183,14 @@ async function main() {
     console.log('');
     console.log('Super admin created.');
     console.log('Username:', username);
-    if (localPassword) {
-      console.log('Password: Test!1Aa (local-only insecure; change in production.)');
+    if (passwordSource === 'test') {
+      console.log('Password (from LOCAL_SUPERADMIN_PASSWORD; local-only):');
+      console.log('  ' + plainPassword);
+    } else if (passwordSource === 'env') {
+      console.log(
+        'Password (from DB_MANAGEMENT_SUPERUSER_PASSWORD; save locally; not for production):'
+      );
+      console.log('  ' + plainPassword);
     } else {
       console.log('Password (save this; it will not be shown again):');
       console.log('  ' + plainPassword);
@@ -170,7 +200,8 @@ async function main() {
     console.log('You can change this password later in the management app settings.');
     console.log('');
   } catch (err) {
-    console.error('Failed to create super admin:', err.message);
+    const message = err instanceof Error ? err.message : String(err);
+    console.error('Failed to create super admin:', message);
     process.exit(1);
   } finally {
     await client.end();

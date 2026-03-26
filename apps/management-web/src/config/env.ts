@@ -14,7 +14,7 @@ function env(key: ManagementWebRuntimeConfigEnvKey): string | undefined {
 
 /** Base URL of the management API (no version path). */
 export function getManagementApiUrl(): string {
-  const url = env('NEXT_PUBLIC_MANAGEMENT_API_URL') ?? '';
+  const url = env('NEXT_PUBLIC_MANAGEMENT_API_PUBLIC_BASE_URL') ?? '';
   return url.replace(/\/$/, '');
 }
 
@@ -24,7 +24,7 @@ export function getManagementApiVersionPath(): string {
   return path.startsWith('/') ? path : `/${path}`;
 }
 
-/** Full base URL for API requests (base URL + version path). Used by client and by server when MANAGEMENT_API_BACKEND_URL is not set. */
+/** Full base URL for API requests (base URL + version path). Used by client and by server when MANAGEMENT_API_SERVER_BASE_URL is not set. */
 export function getManagementApiBaseUrl(): string {
   return getManagementApiUrl() + getManagementApiVersionPath();
 }
@@ -35,7 +35,7 @@ export function getManagementApiBaseUrl(): string {
  * When not set, falls back to getManagementApiBaseUrl() (e.g. production same-host).
  */
 export function getServerManagementApiBaseUrl(): string {
-  const backend = env('MANAGEMENT_API_BACKEND_URL')?.trim();
+  const backend = env('MANAGEMENT_API_SERVER_BASE_URL')?.trim();
   if (backend !== undefined && backend !== '') {
     return backend.replace(/\/$/, '') + getManagementApiVersionPath();
   }
@@ -48,20 +48,14 @@ export function getServerManagementApiBaseUrl(): string {
  * When set, public and invite links use this base. When unset, public link falls back to same-origin; invite link is path-only.
  */
 export function getWebAppUrl(): string | undefined {
-  const url = env('NEXT_PUBLIC_WEB_APP_URL')?.trim();
+  const url = env('NEXT_PUBLIC_WEB_BASE_URL')?.trim();
   if (url === undefined || url === '') return undefined;
   return url.replace(/\/$/, '');
 }
 
-/** NEXT_PUBLIC_BRAND_NAME (for server components; pass to client as needed). */
-export function getBrandName(): string | undefined {
-  return env('NEXT_PUBLIC_BRAND_NAME')?.trim() || undefined;
-}
-
-/** NEXT_PUBLIC_APP_TITLE_ICON (for server components; pass to client as needed). */
-export function getAppTitleIcon(): string | undefined {
-  const v = env('NEXT_PUBLIC_APP_TITLE_ICON');
-  return typeof v === 'string' && v.trim() !== '' ? v.trim() : undefined;
+/** NEXT_PUBLIC_MANAGEMENT_WEB_BRAND_NAME (for server components; pass to client as needed). */
+export function getManagementWebBrandName(): string | undefined {
+  return env('NEXT_PUBLIC_MANAGEMENT_WEB_BRAND_NAME')?.trim() || undefined;
 }
 
 /** NEXT_PUBLIC_MANAGEMENT_SESSION_REFRESH_INTERVAL_MS (for server; pass to client as needed). */
