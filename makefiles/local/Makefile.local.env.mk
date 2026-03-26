@@ -69,7 +69,7 @@ local_clean_env_setup_infra_up:
 # Backward-compatible alias (canonical target is local_env_setup). See docs/development/LOCAL-ENV-OVERRIDES.md.
 env_setup: local_env_setup
 	@echo "Env files ready (infra/config/local/*.env, apps/*/.env or .env.local)."
-	@echo "apps/api/.env is set for API-on-host (localhost:5433, localhost:6380). infra/config/local/api.env is for Docker (postgres, valkey)."
+	@echo "apps/api/.env is set for API-on-host (localhost:5532, localhost:6479). infra/config/local/api.env is for Docker (postgres, valkey)."
 	@echo "apps/management-api/.env is set for Management API on host. make local_infra_up creates the management DB and then prompts for super admin (password generated and printed once)."
 
 # Remove local .env files (prompts for Y). Runs local_clean first. Prefer prepare/link/setup flow; see docs/development/LOCAL-ENV-OVERRIDES.md.

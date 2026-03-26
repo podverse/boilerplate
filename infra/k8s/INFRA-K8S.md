@@ -1,6 +1,6 @@
 # Kubernetes (k3d/k3s + ArgoCD)
 
-This directory contains a Podverse-style GitOps scaffold for Boilerplate:
+This directory contains a GitOps-style scaffold for Boilerplate:
 
 - `base/` for reusable manifests,
 - `local/` for localhost deployment overlays,
@@ -20,10 +20,11 @@ Local deployment is intentionally self-contained and does not depend on ansible:
 
 The base stack (`base/stack/`) builds a ConfigMap for Postgres init from scripts and SQL. Kustomize only allows generator files under the kustomization root, so the init SQL lives under `base/stack/postgres-init/` (init_database.sql, init_management_database.sql). The canonical sources are `infra/database/combined/init_database.sql` and `infra/management-database/combined/init_management_database.sql`. Running `scripts/database/combine-migrations.sh` regenerates those and automatically copies them into `base/stack/postgres-init/`, so the k8s stack stays in sync. For a one-off sync without regenerating (e.g. after a git pull), run `make sync_k8s_postgres_init`. `local_k3d_up` runs the sync automatically before apply. To verify the copies match the canonical files (e.g. in CI), run `make check_k8s_postgres_init_sync`; it fails with instructions if they differ.
 
-## Non-local (future)
+## Non-local (remote cluster + GitOps)
 
-`alpha`, `beta`, and `prod` should eventually consume cleartext/encrypted environment material from
-`boilerplate-ansible`. Keep those environments separate from local from day one.
+Remote deployment uses **your** GitOps repository (Kustomize overlays, Argo CD `Application` CRs, encrypted secrets). This repo supplies classification, `make alpha_env_render`, and `BOILERPLATE_K8S_OUTPUT_REPO`. Clean-slate steps (tooling, render, SOPS, registry pull secrets, sync order, super-admin bootstrap) are in **[`docs/development/REMOTE-K8S-GITOPS.md`](../../docs/development/REMOTE-K8S-GITOPS.md)**.
+
+`alpha`, `beta`, and `prod` consume rendered ConfigMaps/Secret patches from the Boilerplate repo (`make alpha_env_render` with `BOILERPLATE_K8S_OUTPUT_REPO`); encrypted secrets are committed in the GitOps repo, not under `infra/k8s/` here.
 
 ## Main files
 

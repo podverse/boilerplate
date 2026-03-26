@@ -30,7 +30,7 @@ services:
       - ./infra/database/combined/init_database.sql:/docker-entrypoint-initdb.d/init_database.sql:ro
       - ./infra/database/combined/seed_local_user.sql:/docker-entrypoint-initdb.d/seed_local_user.sql:ro
     ports:
-      - 127.0.0.1:5433:5432
+      - 127.0.0.1:5532:5432
     networks:
       - boilerplate_local_network
     healthcheck:
@@ -55,7 +55,7 @@ services:
     volumes:
       - boilerplate_valkey_data:/data
     ports:
-      - 127.0.0.1:6380:6379
+      - 127.0.0.1:6479:6379
     networks:
       - boilerplate_local_network
     healthcheck:

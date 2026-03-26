@@ -53,7 +53,7 @@ This script (`scripts/infra/k3d/local-up.sh`) does the following in order:
 
 1. **Env setup** – `scripts/local-env/setup.sh`: ensures `infra/config/local/*.env` and app `.env` files exist (generates missing keys from classification `dev` / `local_docker` profiles; applies overrides from `dev/env-overrides/local/` if present).
 2. **Build images** – builds local Docker images (api, management-api, web, web-sidecar, management-web, management-web-sidecar) and tags them for k3d.
-3. **Create k3d cluster** – creates cluster `boilerplate-local` if it does not exist, with ports 4000, 4002, 4100, 4102, 5433, 6380 exposed.
+3. **Create k3d cluster** – creates cluster `boilerplate-local` if it does not exist, with ports 4000, 4002, 4100, 4102, 5532, 6479 exposed. **Note:** An existing cluster created before this port change keeps its old loadbalancer maps until you delete and recreate the cluster (e.g. `k3d cluster delete boilerplate-local` then `make local_k3d_up`).
 4. **Import images** – loads the built images into the k3d cluster.
 5. **Create Kubernetes secrets** – `scripts/infra/k3d/create-local-secrets.sh`: creates secrets named **`boilerplate-<component>-secrets`** in `boilerplate-local` from `infra/config/local/*.env` (the **`db`** secret uses **`infra/config/local/db.env`** only).
 6. **Install ArgoCD** – installs ArgoCD in the `argocd` namespace and waits for the server.
@@ -78,8 +78,8 @@ You should see pods and services in `boilerplate-local`. Wait until pods are `Ru
 | Web            | http://localhost:4002 |
 | Management API | http://localhost:4100 |
 | Management Web | http://localhost:4102 |
-| Postgres       | localhost:5433        |
-| Valkey         | localhost:6380        |
+| Postgres       | localhost:5532        |
+| Valkey         | localhost:6479        |
 
 ### Step 5: Open ArgoCD UI (optional)
 
@@ -107,7 +107,7 @@ This removes the k3d cluster and all resources in it. For a full local teardown 
 
 - **Cluster already exists:** `make local_k3d_up` is idempotent for cluster create (skips if `boilerplate-local` exists). It will still run env setup, build images, import them, recreate secrets, re-apply ArgoCD and the local stack.
 - **k3d cluster creation fails with "proxyconnect tcp ... i/o timeout":** Docker is using an HTTP proxy to pull images and the proxy connection is timing out. Fix in Docker Desktop: open **Settings → Resources → Proxies**. For **Docker Desktop proxy**, select **No proxy**. For **Containers proxy**, select **No proxy**. Click **Apply**, then run `make local_k3d_up` again. (If you must use a proxy, choose Manual configuration and set a working HTTP/HTTPS proxy that can reach `ghcr.io` and `docker.io`; otherwise use No proxy for local k3d.)
-- **Ports in use:** Ensure 4000, 4002, 4100, 4102, 5433, 6380, and (for ArgoCD) 8080 are free. Change k3d port mapping in `scripts/infra/k3d/local-up.sh` if you need different host ports.
+- **Ports in use:** Ensure 4000, 4002, 4100, 4102, 5532, 6479, and (for ArgoCD) 8080 are free. Change k3d port mapping in `scripts/infra/k3d/local-up.sh` if you need different host ports.
 - **Pods not ready:** Run `make local_k3d_status` and `kubectl -n boilerplate-local describe pod <name>` for events. Check that DB and Valkey pods are up first; API and web depend on them.
 - **API/web/management pods show `ImagePullBackOff` for `boilerplate-local-*` images:** This means the app images were not present on one or more k3d nodes. `local_k3d_up` now validates imported images and exits early with an explicit error if any are missing. Re-run `make local_k3d_down` and then `make local_k3d_up`. To inspect node images directly: `docker exec k3d-boilerplate-local-server-0 crictl images` and `docker exec k3d-boilerplate-local-agent-0 crictl images`.
 - **Node events show `NodeHasDiskPressure` / `FreeDiskSpaceFailed`:** k3d nodes are running out of image disk and kubelet image garbage collection is evicting app images during startup/import. This can produce `ImagePullBackOff` and localhost connection resets even though `local_k3d_up` built images successfully. Fix by freeing Docker disk and increasing Docker Desktop disk image size (and memory if needed), then rerun: `make local_k3d_down && make local_k3d_up`.

@@ -19,8 +19,8 @@ if ! k3d cluster list "$CLUSTER_NAME" >/dev/null 2>&1; then
     --port "4002:4002@loadbalancer" \
     --port "4100:4100@loadbalancer" \
     --port "4102:4102@loadbalancer" \
-    --port "5433:5432@loadbalancer" \
-    --port "6380:6379@loadbalancer"
+    --port "5532:5432@loadbalancer" \
+    --port "6479:6379@loadbalancer"
 fi
 
 kubectl config use-context "k3d-$CLUSTER_NAME" >/dev/null
@@ -95,8 +95,8 @@ echo "API:             http://localhost:4000"
 echo "Web:             http://localhost:4002"
 echo "Management API:  http://localhost:4100"
 echo "Management Web:  http://localhost:4102"
-echo "Postgres:        localhost:5433"
-echo "Valkey:          localhost:6380"
+echo "Postgres:        localhost:5532"
+echo "Valkey:          localhost:6479"
 echo ""
 echo "ArgoCD UI:"
 echo "  kubectl -n argocd port-forward svc/argocd-server 8080:443"

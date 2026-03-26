@@ -1,4 +1,8 @@
 version: 2
+# DB_PORT / VALKEY_PORT literals below are host-published ports (e.g. Docker maps 127.0.0.1:5532->5432).
+# Defaults 5532 / 6479 avoid binding localhost:5432 and localhost:6379 so another local stack (e.g. Podverse)
+# can use the standard ports on the host while Boilerplate dev (npm on the machine) still reaches Postgres/Valkey.
+# In-cluster and in-Compose clients use profile overlays (local_docker, local_k8s, remote_k8s) for postgres:5432 / valkey:6379.
 namespace_label:
   key: environment
 env_groups:
@@ -12,10 +16,10 @@ env_groups:
         default: "5432"
       DB_HOST:
         kind: literal
-        default: "postgres"
+        default: "localhost"
       DB_PORT:
         kind: literal
-        default: "5432"
+        default: "5532"
       DB_USER:
         kind: secret
         default: "user"
@@ -78,10 +82,10 @@ env_groups:
       vars:
         VALKEY_HOST:
           kind: literal
-          default: "valkey"
+          default: "localhost"
         VALKEY_PORT:
           kind: literal
-          default: "6379"
+          default: "6479"
         VALKEY_PASSWORD:
           kind: secret
           default: ""

@@ -57,7 +57,7 @@ Suggested workflow: preview rendered YAML, validate (classification + ConfigMap/
 Examples with an explicit GitOps path:
 
 ```bash
-export BOILERPLATE_K8S_OUTPUT_REPO=/absolute/path/to/k.podcastdj.com
+export BOILERPLATE_K8S_OUTPUT_REPO=/absolute/path/to/your-gitops-repo
 
 make alpha_env_render_dry_run
 make alpha_env_validate
@@ -69,7 +69,7 @@ make alpha_env_render
 Generic env name (`beta` / `prod` when overlays exist):
 
 ```bash
-export BOILERPLATE_K8S_OUTPUT_REPO=/absolute/path/to/k.podcastdj.com
+export BOILERPLATE_K8S_OUTPUT_REPO=/absolute/path/to/your-gitops-repo
 
 make k8s_env_render_dry_run K8S_ENV=beta
 make k8s_env_validate K8S_ENV=beta
@@ -95,14 +95,13 @@ Optional: set `BOILERPLATE_HOME_ENV_OVERRIDES_DIR` when running `link-k8s-env-ov
    overlay `apps/boilerplate-<env>/` is missing, validation **fails** (exit 1).
 
 ```bash
-export BOILERPLATE_K8S_OUTPUT_REPO=/absolute/path/to/k.podcastdj.com
+export BOILERPLATE_K8S_OUTPUT_REPO=/absolute/path/to/your-gitops-repo
 make alpha_env_validate
 ```
 
 ## After render
 
-1. Encrypt Secret manifests with SOPS (do not commit cleartext). See
-   `k.podcastdj.com` docs for alpha deployment.
+1. Encrypt Secret manifests with SOPS (do not commit cleartext). Follow your GitOps repo’s deployment checklist (and [REMOTE-K8S-GITOPS.md](REMOTE-K8S-GITOPS.md) for the overall flow).
 2. Commit ConfigMaps under `apps/boilerplate-<env>/*/configmap*.yaml` and generated **`deployment-secret-env.yaml`** next to each patched Deployment.
 3. Ensure overlay **`kustomization.yaml`** lists **`patchesStrategicMerge`** for **`deployment-secret-env.yaml`** where that app’s env group has secret keys (api, management-api, db, valkey for Boilerplate alpha).
 4. Push Git so Argo CD syncs.

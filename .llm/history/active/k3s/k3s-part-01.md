@@ -374,6 +374,23 @@ The issue has been fixed. Please clean up the instrumentation.
 
 - .llm/history/active/k3s/k3s-part-01.md
 
+### Session 17 - 2026-03-26
+
+#### Prompt (Developer)
+
+i have tested the process for setting up local env vars and infra and running with npm run dev:all, and also running local all in docker, and also running local k8s. all of them work successfully. i want to handle the next case which is testing remote k8s. the repo that will contain the manifest overlays is k.podcastdj.com. give me the full steps and brief explanation of each that i need to do assume a clean slate environment and getting to the point of deploying remote k8s of the boilerplate on the metaboost.cc domain (the metaboost.cc domain is within the k.podcastdj.com repo, called boilerplate-alpha). create and save that doc file locally
+
+#### Key Decisions
+
+- Added **`docs/development/REMOTE-K8S-ALPHA-METABOOST.md`**: ordered guide from prerequisites through Argo apply, GHCR secret, **`alpha_env_*`** render into `BOILERPLATE_K8S_OUTPUT_REPO`, SOPS, image tags, Argo sync order, management super-admin bootstrap, and verification; cross-links **`k.podcastdj.com`** `BOILERPLATE-ALPHA-DEPLOYMENT.md`, **K8S-ENV-RENDER.md**, **ENV-REFERENCE.md**.
+- Updated **`infra/k8s/INFRA-K8S.md`** “Non-local” section to point at the new doc and clarify GitOps vs this repo.
+
+#### Files Created/Modified
+
+- docs/development/REMOTE-K8S-ALPHA-METABOOST.md
+- infra/k8s/INFRA-K8S.md
+- .llm/history/active/k3s/k3s-part-01.md
+
 ---
 
 ## Related Resources
