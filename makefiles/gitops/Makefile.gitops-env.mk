@@ -8,6 +8,7 @@
 #   alpha_env_render        Write ConfigMaps + plain Secrets (requires BOILERPLATE_K8S_OUTPUT_REPO)
 #   alpha_env_render_dry_run  Print rendered YAML without writing files (no output repo required)
 #   alpha_env_validate      validate-classification.sh + validate-k8s-env-drift.sh (requires BOILERPLATE_K8S_OUTPUT_REPO)
+#   k8s_remote_ports_render / k8s_remote_ports_validate — port + ingress patches only (see K8S-ENV-RENDER.md)
 #
 # Generic: set K8S_ENV=beta|prod for k8s_env_* targets (also k8s_env_clean).
 # Required for render/validate: export BOILERPLATE_K8S_OUTPUT_REPO=/path/to/gitops-repo
@@ -16,6 +17,8 @@
 .PHONY: alpha_env_render alpha_env_render_dry_run alpha_env_validate
 .PHONY: k8s_env_prepare k8s_env_link k8s_env_clean k8s_env_prepare_link
 .PHONY: k8s_env_render k8s_env_render_dry_run k8s_env_validate
+.PHONY: k8s_remote_ports_render k8s_remote_ports_validate
+.PHONY: alpha_remote_ports_render alpha_remote_ports_validate
 
 # Default environment for convenience targets
 K8S_ENV ?= alpha
@@ -70,3 +73,20 @@ k8s_env_validate:
 	$(if $(BOILERPLATE_K8S_OUTPUT_REPO),,$(error BOILERPLATE_K8S_OUTPUT_REPO is required for k8s_env_validate — set to the GitOps repo root))
 	bash scripts/k8s-env/validate-classification.sh
 	bash scripts/k8s-env/validate-k8s-env-drift.sh --env $(K8S_ENV) --output-repo "$(BOILERPLATE_K8S_OUTPUT_REPO)"
+
+# Port + ingress patches only (same BOILERPLATE_K8S_OUTPUT_REPO as env render).
+k8s_remote_ports_render:
+	$(if $(BOILERPLATE_K8S_OUTPUT_REPO),,$(error BOILERPLATE_K8S_OUTPUT_REPO is required))
+	ruby scripts/k8s-env/render_remote_k8s_ports.rb --env $(K8S_ENV) --output-repo "$(BOILERPLATE_K8S_OUTPUT_REPO)"
+
+k8s_remote_ports_validate:
+	$(if $(BOILERPLATE_K8S_OUTPUT_REPO),,$(error BOILERPLATE_K8S_OUTPUT_REPO is required))
+	bash scripts/k8s-env/validate-remote-k8s-ports-drift.sh --env $(K8S_ENV) --output-repo "$(BOILERPLATE_K8S_OUTPUT_REPO)"
+
+alpha_remote_ports_render:
+	$(if $(BOILERPLATE_K8S_OUTPUT_REPO),,$(error BOILERPLATE_K8S_OUTPUT_REPO is required))
+	ruby scripts/k8s-env/render_remote_k8s_ports.rb --env alpha --output-repo "$(BOILERPLATE_K8S_OUTPUT_REPO)"
+
+alpha_remote_ports_validate:
+	$(if $(BOILERPLATE_K8S_OUTPUT_REPO),,$(error BOILERPLATE_K8S_OUTPUT_REPO is required))
+	bash scripts/k8s-env/validate-remote-k8s-ports-drift.sh --env alpha --output-repo "$(BOILERPLATE_K8S_OUTPUT_REPO)"

@@ -21,11 +21,11 @@ monorepo conventions). Includes Docker local infra and a k3d/k3s + ArgoCD deploy
 --project-directory . up --build`. Shared network `boilerplate_local_network` is created on first
   up. Run `make local_env_setup` to generate `infra/config/local/*.env` (including postgres and
   valkey split files: `db-source-only.env`, `db.env`, … and `valkey-source-only.env`, `valkey.env`).
-- **k8s/** – Kubernetes manifests and ArgoCD app-of-apps scaffold:
-  - `base/` reusable manifests
+- **k8s/** – Kubernetes manifests and Argo CD scaffold:
+  - `base/` reusable manifests (per-component bases for remote GitOps + `base/stack/` for local)
   - `local/` k3d local overlay and child apps
-  - `alpha/` future environment scaffold
-  - root manifests: `argocd-project.yaml`, `local-application.yaml`, `alpha-application.yaml`
+  - `alpha/` docs-only remote-env placeholder (no root Argo app in this repo)
+  - root manifests: `argocd-project.yaml`, `local-application.yaml` (non-local Argo apps live in your GitOps repo; see [docs/development/ARGOCD-GITOPS-BOILERPLATE.md](../docs/development/ARGOCD-GITOPS-BOILERPLATE.md))
   - see [k8s/INFRA-K8S.md](k8s/INFRA-K8S.md) and
     [docs/development/K3D-ARGOCD-LOCAL.md](../docs/development/K3D-ARGOCD-LOCAL.md)
 

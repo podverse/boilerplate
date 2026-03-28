@@ -1,5 +1,7 @@
 # Remote Kubernetes (GitOps)
 
+**Start here** for deploying Boilerplate to a **remote** cluster with GitOps and Argo CD (thin overlays, env render, SOPS). For local k3d, see [K3D-ARGOCD-LOCAL.md](K3D-ARGOCD-LOCAL.md).
+
 End-to-end steps from a **clean slate** to a working Boilerplate stack on **your** cluster and **your** domains, using a **separate GitOps repository** for Kustomize overlays, Argo CD `Application` resources, and (after env render) generated ConfigMaps and Secret patches.
 
 This repository holds application source, [`infra/env/classification`](../../infra/env/classification/), and `make alpha_env_render`. The GitOps repo is yours: layout, namespace names, and hostnames are conventions you choose and keep consistent with Argo CD and ingress.
@@ -25,9 +27,63 @@ Throughout this doc, replace placeholders with your own names:
 | **This (Boilerplate) repo** | Source code, env classification, `make alpha_env_*`, image build (CI or local), and `BOILERPLATE_K8S_OUTPUT_REPO` pointing at your GitOps clone.   |
 | **Container registry**      | Hosts images (e.g. GitHub Container Registry); cluster needs an image pull secret if the registry is private.                                      |
 
+### GitOps repo vs public domains (Podverse reference)
+
+The **GitOps** repository (**k.podcastdj.com**) holds overlays, ingress, and Argo CD `Application`
+CRs. **Browser and API hostnames** for Boilerplate alpha are on **metaboost.cc** (same cluster,
+different DNS/TLS names). Keep **`alpha_env_render`** overrides, ingress rules, CORS, and cookie
+domains consistent with those public hosts. See also [ARGOCD-GITOPS-BOILERPLATE.md](ARGOCD-GITOPS-BOILERPLATE.md).
+
+### Publish order after changing Boilerplate bases
+
+When you change manifests under **`infra/k8s/base/`** in this repo:
+
+1. **Merge or tag** the Boilerplate branch that contains the change.
+2. In the **GitOps** repo, bump each remote base **`?ref=`** (or `targetRevision` if you use a single
+   multi-path Application) to that branch, tag, or commit.
+3. From **Boilerplate** root: **`make alpha_env_validate`** then **`make alpha_env_render`** (port +
+   ingress patches run at the end of render).
+4. **SOPS-encrypt** any new or changed Secret YAML under **`secrets/`**, commit **encrypted** files and
+   overlay updates in the GitOps repo.
+5. **Push** the GitOps branch Argo CD tracks, then **sync** Applications in dependency order (Step 11).
+
 ## Step 1 — Tooling and access
 
-**Do this:** Install or verify **kubectl**, **kustomize**, **SOPS**, **age** (encrypt/decrypt), **Docker** (optional local builds), **Ruby** (stdlib; used by render scripts), **Git**, and **make**. Ensure you can **push** to the Git remote Argo CD tracks and **pull** images from your registry (e.g. PAT with `read:packages` for GHCR pull secrets).
+**Do this:** Install **kubectl**, **SOPS**, **age** (encrypt/decrypt), **Docker** (optional local builds),
+**Ruby** (stdlib; used by render scripts), **Git**, and **make**. Ensure you can **push** to the Git remote
+Argo CD tracks and **pull** images from your registry (e.g. PAT with `read:packages` for GHCR pull secrets).
+
+**Kustomize:** Kustomize is **embedded in kubectl**. This guide uses **`kubectl kustomize <path>`** only. You do
+**not** install or verify a separate **`kustomize`** binary for the workflows here.
+
+**Verify tooling** (from any shell; versions should print and exit 0):
+
+```bash
+kubectl version --client=true
+sops --version
+age --version
+age-keygen --version
+docker --version
+ruby --version
+git --version
+make --version
+kubectl kustomize --help >/dev/null && echo "kubectl kustomize: ok"
+```
+
+**Verify Git push** (use the remote and branch Argo CD tracks; adjust names):
+
+```bash
+git remote -v
+git fetch origin
+git push --dry-run origin HEAD
+```
+
+**Verify registry pull** (optional; requires credentials with `read:packages` for GHCR):
+
+```bash
+docker login ghcr.io
+docker pull <registry>/<image>:<tag>
+```
 
 **Why:** Render and validation run from this repo; secrets must be encrypted before commit; Argo CD and kubectl need a working kubeconfig.
 
@@ -48,7 +104,33 @@ git clone <url-to-your-gitops-repo>
 
 ## Step 3 — Cluster and ingress assumptions
 
-**Do this:** Confirm **Argo CD** is installed (e.g. namespace `argocd`), your **kubeconfig** points at the target cluster, and **DNS** for your public hostnames resolves to the ingress entrypoint. Align **cert-manager** ClusterIssuer / ingress annotations in your GitOps **Ingress** resources with your DNS and CA workflow (HTTP-01, DNS-01, or your provider’s pattern).
+**Do this:** Ensure **Argo CD** is installed (e.g. namespace `argocd`), your **kubeconfig** points at the target
+cluster, and **DNS** for your public hostnames resolves to the ingress entrypoint. Align **cert-manager**
+ClusterIssuer / ingress annotations in your GitOps **Ingress** resources with your DNS and CA workflow
+(HTTP-01, DNS-01, or your provider’s pattern).
+
+**Verify cluster and Argo CD:**
+
+```bash
+kubectl config current-context
+kubectl cluster-info
+kubectl get ns argocd
+kubectl get pods -n argocd
+```
+
+**Verify DNS** (replace with your real API or app hostname):
+
+```bash
+dig +short api.example.com
+# or: nslookup api.example.com
+```
+
+**Verify cert-manager** (if you use it):
+
+```bash
+kubectl get clusterissuer
+kubectl -n <namespace> get certificate
+```
 
 **Why:** Wrong TLS or ingress class prevents HTTPS and breaks browser API calls until manifests match your platform.
 
@@ -59,6 +141,31 @@ git clone <url-to-your-gitops-repo>
 **Do this:** In each Argo `Application` under `argocd/boilerplate-<env>/`, set **`spec.source.repoURL`** and **`targetRevision`** to the Git URL and branch your Argo CD instance should track.
 
 **Why:** A fresh clone must not still reference someone else’s fork or branch.
+
+### Kustomize remote bases (thin overlays)
+
+If component overlays in your GitOps repo **pull** shared bases from this repository via
+`resources:` (instead of duplicating Deployments), each entry must be a **remote git URL**
+Kustomize can clone, not a bare `github.com/org/repo/...` string (that form is treated as a
+**relative path** and breaks `kubectl kustomize`).
+
+**Use:**
+
+```text
+https://github.com/<org>/boilerplate//infra/k8s/base/<component>?ref=<branch-or-tag>
+```
+
+Note the **`//`** after the repository segment: it separates the repo URL from the path **inside**
+the repo. Optional query params include `ref` (branch, tag, or full commit hash) and `timeout`.
+
+**Pin `ref`:** `kubectl kustomize` and Argo CD only resolve manifests that **exist at that
+revision**. After you add `infra/k8s/base/<component>/` in this repo, merge or tag it, then set
+`ref` in GitOps to that branch or tag (or an immutable tag for production).
+
+**Default branch vs `main`:** Your fork may use **`develop`** (or another branch) as **GitHub
+default HEAD** while **`main` lags**. If `ref=main` fails with missing `infra/` paths, check
+`git ls-remote <repo> HEAD` and align `ref` with the branch that actually contains
+`infra/k8s/base/<component>/`.
 
 ---
 
@@ -107,7 +214,7 @@ sops -d secrets/<path-to-encrypted-pull-secret>.yaml | kubectl apply -f -
 export BOILERPLATE_K8S_OUTPUT_REPO=/absolute/path/to/your/gitops-repo
 make alpha_env_render_dry_run          # optional: inspect stdout
 make alpha_env_validate                # classification + drift vs committed overlay
-make alpha_env_render                  # writes ConfigMaps, deployment-secret-env.yaml, secrets/.../plain/
+make alpha_env_render                  # writes ConfigMaps, deployment-secret-env.yaml, port/ingress patches, secrets/.../plain/
 ```
 
 **Why:** Keeps overlay ConfigMaps and **`deployment-secret-env.yaml`** in sync with [`infra/env/classification`](../../infra/env/classification). Full reference: **[K8S-ENV-RENDER.md](K8S-ENV-RENDER.md)**.
@@ -116,7 +223,7 @@ make alpha_env_render                  # writes ConfigMaps, deployment-secret-en
 
 ## Step 9 — Encrypt Secret YAML and commit (never commit cleartext)
 
-**Do this:** For each cleartext file under **`secrets/.../plain/`** (and any other tracked Secret), encrypt with **SOPS** (team **`.sops.yaml`** / age keys). Commit **encrypted** manifests and updated **`apps/boilerplate-<env>/**`** files. Do **not** commit **`plain/`\*\* if it is gitignored.
+**Do this:** For each cleartext file under **`secrets/.../plain/`** (and any other tracked Secret), encrypt with **SOPS** (team **`.sops.yaml`** / age keys). Commit **encrypted** manifests and updated **`apps/boilerplate-<env>/**`** files. Do **not** commit the **`plain/`\*\* directory if it is gitignored (or otherwise keep cleartext out of Git).
 
 **Why:** The GitOps repo stays safe; the cluster receives cleartext only via `sops -d | kubectl apply`, a secrets operator, or your org’s standard pattern.
 
@@ -165,17 +272,37 @@ sops -d secrets/<path>/boilerplate-api-secrets.enc.yaml | kubectl apply -n <name
 
 ---
 
-## Step 13 — Verify
+## Step 13 — Verify deployment
 
-**Do this:**
+**Do this:** Run the checks below with your real `<namespace>` and public hostnames. Kustomize is part of
+kubectl (Step 1); there is **no** separate `kustomize` install to verify here.
+
+**Verify workloads and ingress in the cluster:**
 
 ```bash
 kubectl -n <namespace> get pods,svc,ingress
 kubectl -n <namespace> get certificate   # if using cert-manager Certificate resources
-curl -sI https://api.example.com/v1/health   # use your API host and health path
 ```
 
-Open your web and management URLs in a browser. Use **`kustomize build apps/boilerplate-<env>/<app>`** locally to validate overlays.
+**Verify API health** (replace URL with your API base and path):
+
+```bash
+curl -sI https://api.example.com/v1/health
+```
+
+**Optional — validate a Kustomize overlay locally** (from your **GitOps** repo root; same engine Argo uses via
+kubectl). Only needed if you want a quick render check before push; skip if you rely on Argo sync alone:
+
+```bash
+kubectl kustomize apps/boilerplate-<env>/api --load-restrictor LoadRestrictionsNone >/dev/null && echo "kustomize api overlay: ok"
+# repeat per component: db, keyvaldb, management-api, web, management-web, common, …
+```
+
+**Remote git bases:** Overlays that use `resources:` URLs into this repo need
+**`--load-restrictor LoadRestrictionsNone`** so kubectl’s Kustomize can read cloned paths outside
+the overlay root (same behavior Argo CD uses for remote bases).
+
+Open your web and management URLs in a browser.
 
 **Why:** Confirms TLS, routing, and readiness.
 
@@ -208,6 +335,9 @@ make alpha_env_validate && make alpha_env_render
 
 # Argo CD: sync common → db/keyvaldb → apis → webs
 # Then: create-super-admin for management
+
+# Optional: kustomize check from GitOps root (remote bases need LoadRestrictionsNone)
+# kubectl kustomize apps/boilerplate-<env>/api --load-restrictor LoadRestrictionsNone >/dev/null
 ```
 
 ---
@@ -217,4 +347,6 @@ make alpha_env_validate && make alpha_env_render
 - **Env render / make targets:** [K8S-ENV-RENDER.md](K8S-ENV-RENDER.md).
 - **Variable catalog:** [ENV-REFERENCE.md](ENV-REFERENCE.md).
 - **Local k3d (contrast):** [K3D-ARGOCD-LOCAL.md](K3D-ARGOCD-LOCAL.md).
+- **Where Argo Applications live:** [ARGOCD-GITOPS-BOILERPLATE.md](ARGOCD-GITOPS-BOILERPLATE.md).
+- **Staging cutover:** [GITOPS-CUTOVER-STAGING-CHECKLIST.md](GITOPS-CUTOVER-STAGING-CHECKLIST.md).
 - **Deployment checklist, sync order, team scripts:** maintain in **your GitOps repository** (this open-source Boilerplate repo does not ship org-specific manifests).

@@ -36,6 +36,36 @@ K8S_ENV_RENDER_WORKLOADS=(
   management-web-sidecar
 )
 
+# Plan 05 (port sync): workload keys (same names as K8S_ENV_RENDER_WORKLOADS) that receive a generated
+# deployment-ports-and-probes.yaml next to the overlay kustomization.
+K8S_ENV_RENDER_PORT_PATCH_WORKLOADS=(
+  api
+  web-sidecar
+  management-api
+  management-web-sidecar
+)
+
+port_patch_filename() {
+  echo "deployment-ports-and-probes.yaml"
+}
+
+# Relative paths under apps/boilerplate-<env>/ (drift validation + prune).
+k8s_env_render_port_patch_relpaths_under_overlay() {
+  local odir w
+  for w in "${K8S_ENV_RENDER_PORT_PATCH_WORKLOADS[@]}"; do
+    odir=$(overlay_dir_for_workload "$w")
+    if [[ -z "$odir" ]]; then
+      continue
+    fi
+    echo "${odir}/$(port_patch_filename)"
+  done
+}
+
+# Ingress backend port numbers (generator-owned; strategic merge on boilerplate-alpha-ingress).
+k8s_env_render_port_ingress_relpath_under_overlay() {
+  echo "common/ingress-port-backends.yaml"
+}
+
 overlay_root_for_env() {
   echo "apps/boilerplate-${1}"
 }
@@ -82,4 +112,12 @@ k8s_env_render_owned_paths_relative_to_output_repo() {
     suffix=$(workload_resource_suffix "$w")
     echo "secrets/boilerplate-${env_name}/plain/boilerplate-${suffix}-secrets.yaml"
   done
+  for w in "${K8S_ENV_RENDER_PORT_PATCH_WORKLOADS[@]}"; do
+    odir=$(overlay_dir_for_workload "$w")
+    if [[ -z "$odir" ]]; then
+      continue
+    fi
+    echo "${oroot}/${odir}/$(port_patch_filename)"
+  done
+  echo "${oroot}/$(k8s_env_render_port_ingress_relpath_under_overlay)"
 }

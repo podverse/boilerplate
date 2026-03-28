@@ -3,9 +3,10 @@
 # Requires --output-repo PATH or BOILERPLATE_K8S_OUTPUT_REPO. Exits 1 if unset, overlay missing, or mismatch.
 # Usage: validate-k8s-env-drift.sh [--env alpha|beta|prod] [--output-repo PATH]
 #
-# ConfigMap and secret-env patch paths match k8s-env-render-manifest.inc.sh (same as render-k8s-env.sh).
-# Secret values are not compared (plain/ may be gitignored). Re-run render and commit
-# ConfigMaps and deployment-secret-env.yaml when infra/env/classification or dev/env-overrides change.
+# ConfigMap, secret-env patch, and (plan 05) port patch paths match k8s-env-render-manifest.inc.sh
+# (same as render-k8s-env.sh). Secret values are not compared (plain/ may be gitignored).
+# Re-run render and commit ConfigMaps and deployment-secret-env.yaml when infra/env/classification
+# or dev/env-overrides change; port patches when K8S_ENV_RENDER_PORT_PATCH_WORKLOADS is populated.
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -68,13 +69,21 @@ fi
 
 TMP="$(mktemp -d)"
 RENDER_LOG="$(mktemp)"
-trap 'rm -rf "$TMP" "$RENDER_LOG"' EXIT
+PORT_LOG="$(mktemp)"
+trap 'rm -rf "$TMP"; rm -f "$RENDER_LOG" "$PORT_LOG"' EXIT
 
 if ! bash "$SCRIPT_DIR/render-k8s-env.sh" --env "$ENV_NAME" --output-repo "$TMP" >"$RENDER_LOG" 2>&1; then
   cat "$RENDER_LOG" >&2
   exit 1
 fi
 rm -f "$RENDER_LOG"
+
+export BOILERPLATE_ENV_PROFILE="${BOILERPLATE_ENV_PROFILE:-remote_k8s}"
+if ! ruby "$SCRIPT_DIR/render_remote_k8s_ports.rb" --env "$ENV_NAME" --output-repo "$TMP" >"$PORT_LOG" 2>&1; then
+  cat "$PORT_LOG" >&2
+  exit 1
+fi
+rm -f "$PORT_LOG"
 
 mapfile -t cm_files < <(k8s_env_render_configmap_relpaths_under_overlay "$ENV_NAME")
 
@@ -127,8 +136,34 @@ for rel in "${patch_files[@]}"; do
   fi
 done
 
+mapfile -t port_patch_files < <(k8s_env_render_port_patch_relpaths_under_overlay)
+port_patch_files+=("$(k8s_env_render_port_ingress_relpath_under_overlay)")
+
+for rel in "${port_patch_files[@]}"; do
+  left="${TMP}/${OVERLAY}/${rel}"
+  right="${COMPARE_ROOT}/${rel}"
+  if [[ ! -f "$left" && ! -f "$right" ]]; then
+    continue
+  fi
+  if [[ ! -f "$right" ]]; then
+    echo "validate-k8s-env-drift: missing committed file ${right}" >&2
+    failed=1
+    continue
+  fi
+  if [[ ! -f "$left" ]]; then
+    echo "validate-k8s-env-drift: render did not produce ${left} (remove stale ${right}?)" >&2
+    failed=1
+    continue
+  fi
+  if ! cmp -s "$left" "$right"; then
+    echo "validate-k8s-env-drift: mismatch ${OVERLAY}/${rel}" >&2
+    diff -u "$right" "$left" >&2 || true
+    failed=1
+  fi
+done
+
 if [[ "$failed" -ne 0 ]]; then
-  echo "validate-k8s-env-drift: FAILED — run \`make alpha_env_render\` (or \`make k8s_env_render K8S_ENV=${ENV_NAME}\`) and commit ConfigMaps and deployment-secret-env.yaml in the output repo." >&2
+  echo "validate-k8s-env-drift: FAILED — run \`make alpha_env_render\` (or \`make k8s_env_render K8S_ENV=${ENV_NAME}\`) and commit ConfigMaps, deployment-secret-env.yaml, deployment-ports-and-probes.yaml, and common/ingress-port-backends.yaml in the output repo." >&2
   exit 1
 fi
 

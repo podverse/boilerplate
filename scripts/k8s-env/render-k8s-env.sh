@@ -4,7 +4,8 @@
 #
 # When not using --dry-run, OUTPUT_REPO is required: pass --output-repo PATH or set BOILERPLATE_K8S_OUTPUT_REPO
 # to the GitOps repo root (no implicit sibling or out/ default).
-# Prune: by default, removes generator-owned ConfigMaps, plain Secrets, and deployment-secret-env.yaml patches.
+# Prune: by default, removes generator-owned ConfigMaps, plain Secrets, deployment-secret-env.yaml
+# patches, and (when plan 05 port list is populated) deployment-ports-and-probes.yaml per manifest.
 # Use --no-prune to skip deletion. --dry-run never prunes or writes.
 
 set -euo pipefail
@@ -226,5 +227,10 @@ render_one api
 render_one web-sidecar
 render_one management-api
 render_one management-web-sidecar
+
+if [[ "$DRY_RUN" -eq 0 ]]; then
+  export BOILERPLATE_ENV_PROFILE="${BOILERPLATE_ENV_PROFILE:-remote_k8s}"
+  ruby "$SCRIPT_DIR/render_remote_k8s_ports.rb" --env "$ENV_NAME" --output-repo "$OUTPUT_REPO"
+fi
 
 echo "Render complete."

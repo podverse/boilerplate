@@ -7,7 +7,20 @@ Boilerplate keeps the canonical variable list in [`infra/env/classification/base
 - **`kind: secret`** — Emitted into the **Secret** when present in merged env.
 - **`kind: source_only`** — In merged env for this env group but not emitted into that group’s CM/Secret (same role as former `literals_only_in_source`).
 
-`scripts/k8s-env/render-k8s-env.sh` builds a merged env per classification env group with profile **`remote_k8s`** plus `dev/env-overrides/<env>/*.env` (see [ENV-REFERENCE.md](ENV-REFERENCE.md)). On a real write (not `--dry-run`), it **prunes first** by removing only **generator-owned** files: ConfigMaps, plain Secret YAML paths, and per-Deployment **`deployment-secret-env.yaml`** strategic-merge patches, as defined in [`scripts/k8s-env/k8s-env-render-manifest.inc.sh`](../scripts/k8s-env/k8s-env-render-manifest.inc.sh) (same list the renderer writes). That removes stale files when workloads or filenames change without touching `kustomization.yaml` (except generated patch filenames listed there), hand-maintained Deployment stubs, or other YAML in the overlay. Use **`--no-prune`** to skip deletion. **`--dry-run`** never prunes or writes.
+`scripts/k8s-env/render-k8s-env.sh` builds a merged env per classification env group with profile **`remote_k8s`** plus `dev/env-overrides/<env>/*.env` (see [ENV-REFERENCE.md](ENV-REFERENCE.md)). On a real write (not `--dry-run`), it **prunes first** by removing only **generator-owned** files: ConfigMaps, plain Secret YAML paths, per-Deployment **`deployment-secret-env.yaml`** strategic-merge patches, and (when enabled in the manifest) plan-**05** **`deployment-ports-and-probes.yaml`** files — all defined in [`scripts/k8s-env/k8s-env-render-manifest.inc.sh`](../scripts/k8s-env/k8s-env-render-manifest.inc.sh) (same list the renderer writes). That removes stale files when workloads or filenames change without touching `kustomization.yaml` (except generated patch filenames listed there), hand-maintained Deployment stubs, or other YAML in the overlay. Use **`--no-prune`** to skip deletion. **`--dry-run`** never prunes or writes.
+
+### GitOps repo layout (thin overlays)
+
+The GitOps repository (e.g. **k.podcastdj.com**) often holds **only** what differs per environment:
+**`apps/boilerplate-<env>/common/`** (namespace, ingress, TLS), per-component **`kustomization.yaml`**
+that references **remote** bases in this monorepo (`infra/k8s/base/<component>/`), plus **rendered**
+**`configmap.yaml`** / sidecar ConfigMaps, **`deployment-secret-env.yaml`**, generated
+**`deployment-ports-and-probes.yaml`**, and **`common/ingress-port-backends.yaml`**.
+Hand-maintained ingress and **`kustomization.yaml`** are **not** pruned. **Public browser/API URLs**
+in rendered config must match the hostnames on your ingress (for alpha on the shared cluster, that
+is **metaboost.cc** — see [REMOTE-K8S-GITOPS.md](REMOTE-K8S-GITOPS.md),
+[ARGOCD-GITOPS-BOILERPLATE.md](ARGOCD-GITOPS-BOILERPLATE.md), and the completed plan set
+`.llm/plans/completed/boilerplate-k8s-gitops-alignment/`).
 
 ### Deployment secret projection (`secretKeyRef`)
 
@@ -25,6 +38,33 @@ The **`db`** env group lists **all** database-related keys under **`env_groups.d
 
 Make targets live in [`makefiles/gitops/Makefile.gitops-env.mk`](../../makefiles/gitops/Makefile.gitops-env.mk)
 (included from [`makefiles/local/Makefile.local.mk`](../../makefiles/local/Makefile.local.mk)).
+
+### Port sync (listen ports, Services, Ingress backends)
+
+Plan **05** tooling keeps **container ports**, **probe ports**, **in-cluster URL env** (e.g.
+`http://api:<API_PORT>`), **Service `port` / `targetPort`**, and **Ingress `backend.service.port.number`**
+aligned with classification literals (`API_PORT`, `WEB_PORT`, …) plus `dev/env-overrides/<env>/*.env`.
+
+- **Contract:** [`infra/k8s/remote/port-contract.yaml`](../../infra/k8s/remote/port-contract.yaml) —
+  in-cluster **postgres** / **valkey** probe ports (defaults `5432` / `6379`) and **Ingress** rule
+  hostnames (alpha **metaboost.cc** defaults; edit when your GitOps ingress differs).
+- **Generator:** [`scripts/k8s-env/render_remote_k8s_ports.rb`](../scripts/k8s-env/render_remote_k8s_ports.rb)
+  — writes **`deployment-ports-and-probes.yaml`** under `api/`, `web/`, `management-api/`,
+  `management-web/` and **`common/ingress-port-backends.yaml`** in the GitOps overlay.
+- **Invoked automatically** at the end of **`make alpha_env_render`** / **`k8s_env_render`** (after env
+  render). Standalone: **`make k8s_remote_ports_render`** / **`make alpha_remote_ports_validate`** /
+  **`make k8s_remote_ports_validate`** (same `BOILERPLATE_K8S_OUTPUT_REPO` and `K8S_ENV` as env render).
+- **Drift:** [`validate-k8s-env-drift.sh`](../scripts/k8s-env/validate-k8s-env-drift.sh) runs the port
+  generator into the same temp tree as env render and byte-compares port + ingress files.
+  [`validate-remote-k8s-ports-drift.sh`](../scripts/k8s-env/validate-remote-k8s-ports-drift.sh) checks
+  only port artifacts (faster).
+- **Smoke:** [`scripts/k8s-env/test-render-remote-k8s-ports.sh`](../scripts/k8s-env/test-render-remote-k8s-ports.sh)
+  (`--dry-run`).
+
+Overlay **`kustomization.yaml`** must list **`deployment-ports-and-probes.yaml`** in
+**`patchesStrategicMerge`** (after secret-env patches where present). **`common/kustomization.yaml`**
+must patch ingress with **`ingress-port-backends.yaml`**. Generator-owned paths are listed in
+[`k8s-env-render-manifest.inc.sh`](../scripts/k8s-env/k8s-env-render-manifest.inc.sh) (prune + drift).
 
 ## `BOILERPLATE_K8S_OUTPUT_REPO`
 
@@ -48,7 +88,9 @@ export BOILERPLATE_K8S_OUTPUT_REPO="$PWD/out/k8s-env/alpha"
 - `make alpha_env_link` — Symlink `dev/env-overrides/alpha/*.env` → existing files under `~/.config/boilerplate/alpha-env-overrides/` so render reads the durable home copy.
 - `make alpha_env_clean` — Remove `dev/env-overrides/alpha/*.env` in the repo (symlinks to home in normal use; real files there would be removed too). Does **not** delete `~/.config/boilerplate/alpha-env-overrides/`. Run `make alpha_env_link` again before render if you use home overrides.
 - `make alpha_env_prepare_link` — `prepare` then `link` (same idea as local prepare + link).
-- `make alpha_env_render` — Emit ConfigMaps, **`deployment-secret-env.yaml`** patches under each overlay app directory, and cleartext Secrets under `secrets/boilerplate-<env>/plain/` (requires `BOILERPLATE_K8S_OUTPUT_REPO`). Prunes generator-owned paths first (see above).
+- `make alpha_env_render` — Emit ConfigMaps, **`deployment-secret-env.yaml`** patches, port + ingress patches (see **Port sync** above), and cleartext Secrets under `secrets/boilerplate-<env>/plain/` (requires `BOILERPLATE_K8S_OUTPUT_REPO`). Prunes generator-owned paths first (see above).
+- `make k8s_remote_ports_render` / `make alpha_remote_ports_render` — Port + ingress patches only (`K8S_ENV` for the generic target).
+- `make k8s_remote_ports_validate` / `make alpha_remote_ports_validate` — Drift-check port artifacts only.
 - `make alpha_env_render_dry_run` — Print rendered YAML only (no writes, no prune; no output repo required).
 - `make alpha_env_validate` — [`validate-classification.sh`](../../scripts/k8s-env/validate-classification.sh) + [`validate-k8s-env-drift.sh`](../../scripts/k8s-env/validate-k8s-env-drift.sh) (requires `BOILERPLATE_K8S_OUTPUT_REPO`).
 
@@ -89,8 +131,8 @@ Optional: set `BOILERPLATE_HOME_ENV_OVERRIDES_DIR` when running `link-k8s-env-ov
    only `literal` / `source_only` kinds (no `config`/`secret`).
 
 2. **ConfigMap and patch drift** — [`validate-k8s-env-drift.sh`](../../scripts/k8s-env/validate-k8s-env-drift.sh) renders into a
-   temp directory with the same inputs as `make alpha_env_render`, then byte-compares each generated ConfigMap and each
-   **`deployment-secret-env.yaml`** to the committed file under `apps/boilerplate-<env>/`. ConfigMap paths and patch paths match
+   temp directory with the same inputs as `make alpha_env_render`, then byte-compares each generated ConfigMap, each
+   **`deployment-secret-env.yaml`**, and each plan-**05** **`deployment-ports-and-probes.yaml`**, and **`common/ingress-port-backends.yaml`**, to the committed files under `apps/boilerplate-<env>/`. Paths match
    [`k8s-env-render-manifest.inc.sh`](../../scripts/k8s-env/k8s-env-render-manifest.inc.sh). If **both** render and the repo omit a ConfigMap or patch (env group with no config or no secret keys), that path is skipped. **Secret values** under `secrets/.../plain/` are not compared (overrides and SOPS). The GitOps repo path must be set via `BOILERPLATE_K8S_OUTPUT_REPO` (or `--output-repo`); if the
    overlay `apps/boilerplate-<env>/` is missing, validation **fails** (exit 1).
 
@@ -102,10 +144,14 @@ make alpha_env_validate
 ## After render
 
 1. Encrypt Secret manifests with SOPS (do not commit cleartext). Follow your GitOps repo’s deployment checklist (and [REMOTE-K8S-GITOPS.md](REMOTE-K8S-GITOPS.md) for the overall flow).
-2. Commit ConfigMaps under `apps/boilerplate-<env>/*/configmap*.yaml` and generated **`deployment-secret-env.yaml`** next to each patched Deployment.
-3. Ensure overlay **`kustomization.yaml`** lists **`patchesStrategicMerge`** for **`deployment-secret-env.yaml`** where that app’s env group has secret keys (api, management-api, db, valkey for Boilerplate alpha).
+2. Commit ConfigMaps under `apps/boilerplate-<env>/*/configmap*.yaml`, generated **`deployment-secret-env.yaml`**, **`deployment-ports-and-probes.yaml`**, and **`common/ingress-port-backends.yaml`**.
+3. Ensure overlay **`kustomization.yaml`** lists **`patchesStrategicMerge`** for **`deployment-secret-env.yaml`** (where secrets exist), **`deployment-ports-and-probes.yaml`** (api, web, management-api, management-web), and **`common/ingress-port-backends.yaml`** on **`common/kustomization.yaml`**.
 4. Push Git so Argo CD syncs.
 
 ## Requirements
 
-- Ruby (stdlib YAML) for `render_k8s_env.rb`, `validate-classification.sh`, and drift (via `render-k8s-env.sh`).
+- Ruby (stdlib YAML) for `render_k8s_env.rb`, `render_remote_k8s_ports.rb`, `validate-classification.sh`, and drift (via `render-k8s-env.sh`).
+
+## Related
+
+- [GITOPS-CUTOVER-STAGING-CHECKLIST.md](GITOPS-CUTOVER-STAGING-CHECKLIST.md) — operator checklist when rolling GitOps changes on staging.
