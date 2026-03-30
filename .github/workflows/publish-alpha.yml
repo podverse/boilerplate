@@ -265,6 +265,32 @@ jobs:
             fi
           done
 
+  # Surfaces the semver tag (e.g. 0.1.5-staging.3) on the workflow run Summary tab.
+  workflow-summary:
+    needs: [validate, verify-published-tags]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Published image version (workflow summary)
+        env:
+          VERSION: ${{ needs.validate.outputs.version }}
+          REPO: ${{ github.repository }}
+        run: |
+          {
+            echo "## Published Docker images"
+            echo ""
+            echo "**Image version (semver tag):** \`${VERSION}\`"
+            echo ""
+            echo "Each image was also tagged **\`staging\`** (floating)."
+            echo ""
+            echo "| Image | Tags |"
+            echo "|-------|------|"
+            for app in api management-api web web-sidecar management-web management-web-sidecar; do
+              echo "| \`ghcr.io/${REPO}/${app}\` | \`${VERSION}\`, \`staging\` |"
+            done
+            echo ""
+            echo "Pin GitOps to **\`${VERSION}\`** or **\`staging\`** as appropriate."
+          } >> "$GITHUB_STEP_SUMMARY"
+
   git-tag-staging:
     needs: [validate, verify-published-tags]
     runs-on: ubuntu-latest
