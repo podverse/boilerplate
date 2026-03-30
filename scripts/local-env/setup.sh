@@ -172,7 +172,6 @@ for f in "$MANAGEMENT_API_APP_ENV" "$MANAGEMENT_API_INFRA_ENV"; do
   upsert_var "$f" "DB_APP_READ_WRITE_PASSWORD" "$DB_APP_READ_WRITE_PASSWORD"
   upsert_var "$f" "DB_MANAGEMENT_READ_PASSWORD" "$DB_MANAGEMENT_READ_PASSWORD"
   upsert_var "$f" "DB_MANAGEMENT_READ_WRITE_PASSWORD" "$DB_MANAGEMENT_READ_WRITE_PASSWORD"
-  upsert_var "$f" "MANAGEMENT_DB_PASSWORD" "$DB_MANAGEMENT_READ_WRITE_PASSWORD"
   upsert_var "$f" "VALKEY_PASSWORD" "$VALKEY_PASSWORD"
 done
 
@@ -200,8 +199,8 @@ for f in "$MANAGEMENT_API_APP_ENV" "$MANAGEMENT_API_INFRA_ENV"; do
   upsert_var "$f" "DB_APP_NAME" "$db_app_name_val"
   upsert_var "$f" "DB_APP_READ_USER" "$db_app_read_user_val"
   upsert_var "$f" "DB_APP_READ_WRITE_USER" "$db_app_rw_user_val"
-  upsert_var "$f" "MANAGEMENT_DB_NAME" "$mgmt_db_name_val"
-  upsert_var "$f" "MANAGEMENT_DB_USERNAME" "$mgmt_rw_user_val"
+  upsert_var "$f" "DB_MANAGEMENT_NAME" "$mgmt_db_name_val"
+  upsert_var "$f" "DB_MANAGEMENT_READ_WRITE_USER" "$mgmt_rw_user_val"
 done
 
 # Host connection defaults only (no secret generation)

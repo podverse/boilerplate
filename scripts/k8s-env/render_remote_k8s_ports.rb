@@ -194,7 +194,6 @@ def patch_management_api_deployment(mgmt_port, pg_port, vk_port)
               'ports' => [{ 'containerPort' => mgmt_port }],
               'env' => [
                 { 'name' => 'DB_PORT', 'value' => pg_port.to_s },
-                { 'name' => 'MANAGEMENT_DB_PORT', 'value' => pg_port.to_s },
                 { 'name' => 'VALKEY_PORT', 'value' => vk_port.to_s }
               ],
               'readinessProbe' => {

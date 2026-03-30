@@ -6,19 +6,30 @@ End-to-end steps from a **clean slate** to a working Boilerplate stack on **your
 
 This repository holds application source, [`infra/env/classification`](../../infra/env/classification/), and `make alpha_env_render`. The GitOps repo is yours: layout, namespace names, and hostnames are conventions you choose and keep consistent with Argo CD and ingress.
 
+**Wipe Postgres data and re-align Secrets with a fresh volume:** [REMOTE-K8S-POSTGRES-REINIT.md](REMOTE-K8S-POSTGRES-REINIT.md).
+
 ## Dry runs first (recommended)
 
-Where a **dry run** exists, use it **before** the real command so you catch mistakes without writing to Git, the cluster, or the registry.
+Where a **dry run** exists for **kubectl**, **Argo CD**, **env render**, or **GitOps helper scripts** (pin bump, align sources), use it **before** the real command so you catch mistakes without changing cluster state, publishing to the registry prematurely, or writing overlay files until you mean to.
 
 | When                                                        | Dry run (use this first)                                                                                                | Then                                                                                    |
 | ----------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
-| **Git push** (GitOps **`main`**)                            | `git push --dry-run origin main`                                                                                        | `git push`                                                                              |
 | **Pin images + Boilerplate `?ref=`** (e.g. k.podcastdj.com) | `./scripts/bump-boilerplate-alpha-pins.sh <VERSION_TAG> --dry-run`                                                      | `./scripts/bump-boilerplate-alpha-pins.sh <VERSION_TAG> --push` or manual edit + commit |
 | **Env render** (Boilerplate root)                           | `make alpha_env_render_dry_run` (optional: set `BOILERPLATE_K8S_OUTPUT_REPO` to match validate/render)                  | `make alpha_env_validate` then `make alpha_env_render`                                  |
 | **Apply Argo `Application` / `AppProject` YAML**            | `kubectl apply --dry-run=server -f …` (or `=client` if server dry-run is unavailable)                                   | `kubectl apply -f …`                                                                    |
 | **Apply decrypted Secret YAML**                             | `sops -d secrets/… \| kubectl apply --dry-run=server -n <namespace> -f -`                                               | `sops -d … \| kubectl apply -n <namespace> -f -`                                        |
 | **Compile overlays locally**                                | `kubectl kustomize apps/boilerplate-<env>/api --load-restrictor LoadRestrictionsNone >/dev/null` (repeat per component) | Push GitOps and sync Argo                                                               |
 | **Argo CD sync** (CLI)                                      | `argocd app sync <app> --dry-run` when your Argo CD version supports it                                                 | Normal sync (UI or CLI)                                                                 |
+
+### Argo CD CLI login (HTTPS-only ingress)
+
+When Argo CD is exposed **only on HTTPS** (typical behind Traefik or similar), use
+`argocd login <host> --grpc-web` with **TLS** (default for a bare hostname). Do **not** use
+`--plaintext`; that forces HTTP and often yields **404** on paths like
+`session.SessionService/Create` or `application.ApplicationService/Get`. If the certificate is not
+trusted locally, use `--insecure` only for testing, or install your CA.
+
+**Git push (GitOps `main`):** After **`git status`** / **`git diff`** look right, push with **`git push origin main`**. No separate Git dry-run step is documented here.
 
 **Boilerplate remote bases:** Pin **`?ref=`** to an **immutable tag** (e.g. **`X.Y.Z-staging.N`** from publish), not a branch name, for production-style alpha overlays—see [BOILERPLATE-PUBLISH-GITOPS-BUMP-CHECKLIST.md](BOILERPLATE-PUBLISH-GITOPS-BUMP-CHECKLIST.md).
 
@@ -68,7 +79,8 @@ When you change manifests under **`infra/k8s/base/`** in this repo, or ship new 
 4. From **Boilerplate** root: **`make alpha_env_render_dry_run`**, then **`make alpha_env_validate`**, then
    **`make alpha_env_render`** when env/classification/overrides changed (port + ingress patches run at the
    end of render). Skip render if this release is images-only with no env changes.
-5. **SOPS-encrypt** any new or changed Secret YAML under **`secrets/`**, commit **encrypted** files and
+5. **SOPS-encrypt** any new or changed Secret YAML under **`secrets/`** (use **`encrypt_boilerplate_plain_secrets.sh`**
+   in the GitOps repo for **`plain/boilerplate-*-secrets.yaml`** when available), commit **encrypted** files and
    overlay updates in the GitOps repo.
 6. **Push** **`main`** on the GitOps repo (matching **`targetRevision`**), then **sync** Applications in
    dependency order (Step 11). Prefer **dry-run sync** when available (see table above).
@@ -97,14 +109,14 @@ make --version
 kubectl kustomize --help >/dev/null && echo "kubectl kustomize: ok"
 ```
 
-**Verify Git push** to **`main`** on the GitOps remote Argo CD tracks. **Always dry-run push first**
-when automating or before a large promotion:
+**Verify Git remote** on the GitOps clone Argo CD tracks (from that repository):
 
 ```bash
 git remote -v
 git fetch origin
-git push --dry-run origin main
 ```
+
+When commits are ready, push **`main`** with **`git push origin main`** (see Step 11).
 
 **Verify registry pull** (optional; requires credentials with `read:packages` for GHCR):
 
@@ -420,7 +432,17 @@ make alpha_env_render           # writes ConfigMaps, deployment-secret-env.yaml,
 
 ## Step 9 — Encrypt Secret YAML and commit (never commit cleartext)
 
-**Do this:** For each cleartext file under **`secrets/.../plain/`** (and any other tracked Secret), encrypt with **SOPS** (team **`.sops.yaml`** / age keys). Commit **encrypted** manifests and updated **`apps/boilerplate-<env>/**`** files. Do **not** commit the **`plain/`\*\* directory if it is gitignored (or otherwise keep cleartext out of Git).
+**Do this:** After **`make alpha_env_render`** (or **`make k8s_env_render`**) writes cleartext Boilerplate workload manifests under **`secrets/<namespace>/plain/`**, encrypt them with **SOPS** using your GitOps repo’s **`.sops.yaml`** / age keys, then commit **only** the **`*.enc.yaml`** files (and updated **`apps/boilerplate-<env>/**`**). Do **not** commit the **`plain/`\*\* tree if it is gitignored (or otherwise keep cleartext out of Git).
+
+**Boilerplate workload secrets (batch):** From **your GitOps repository root**, if **`./scripts/encrypt_boilerplate_plain_secrets.sh`** exists (e.g. **k.podcastdj.com**), run:
+
+```bash
+./scripts/encrypt_boilerplate_plain_secrets.sh --namespace boilerplate-alpha --dry-run   # preview
+./scripts/encrypt_boilerplate_plain_secrets.sh --namespace boilerplate-alpha             # write *.enc.yaml
+./scripts/encrypt_boilerplate_plain_secrets.sh --namespace boilerplate-alpha --rm-plain # encrypt then delete plain/*.yaml
+```
+
+That encrypts every **`secrets/<namespace>/plain/boilerplate-*-secrets.yaml`** to **`secrets/<namespace>/<same-basename>.enc.yaml`**. **`--rm-plain`** removes those cleartext files after encrypt (optional; next **`make alpha_env_render`** regenerates **`plain/`** anyway). Other secrets (registry PAT, Tailscale, etc.) still use **`sops -e`** or their own helper scripts.
 
 **Why:** The GitOps repo stays safe; the cluster receives cleartext only via `sops -d | kubectl apply`, a secrets operator, or your org’s standard pattern.
 
@@ -432,6 +454,15 @@ sops -d secrets/<path>/boilerplate-api-secrets.enc.yaml | kubectl apply --dry-ru
 sops -d secrets/<path>/boilerplate-api-secrets.enc.yaml | kubectl apply -n <namespace> -f -
 # ... db, valkey, management-api, web, management-web, sidecars as applicable
 ```
+
+**Boilerplate workload secrets (batch apply):** From **your GitOps repository root**, if **`./scripts/apply_boilerplate_encrypted_secrets.sh`** exists, decrypt and apply every **`secrets/<namespace>/boilerplate-*-secrets.enc.yaml`** in sorted order (workload secrets only; not registry or other ad-hoc **`*.enc.yaml`**). Rendered manifests set **`metadata.namespace`**; **`kubectl -n`** is optional if you want an extra guardrail.
+
+```bash
+./scripts/apply_boilerplate_encrypted_secrets.sh --namespace boilerplate-alpha --server-dry-run   # k8s API validation only
+./scripts/apply_boilerplate_encrypted_secrets.sh --namespace boilerplate-alpha                 # apply for real
+```
+
+**`--print-only`** prints each **`sops -d … | kubectl apply …`** line without running **`sops`**, **`kubectl`**, or touching the cluster.
 
 ---
 
@@ -447,16 +478,48 @@ sops -d secrets/<path>/boilerplate-api-secrets.enc.yaml | kubectl apply -n <name
 
 ## Step 11 — Push GitOps; sync Argo CD in order
 
-**Do this:** **Dry-run `git push`** to **`main`** on the GitOps remote (Step 1 table), then push for real.
-In Argo CD, sync in dependency order (datastores before APIs, APIs before web), e.g.:
+**Do this:** Push the branch Argo **`Application.spec.source.targetRevision`** tracks (often **`main`**), then
+sync **Applications** in dependency order via the Argo CD CLI (or UI). **CLI:** log in first (HTTPS +
+**`--grpc-web`**; see **Argo CD CLI login (HTTPS-only ingress)** above)—do not use **`--plaintext`** if
+your ingress is HTTPS-only.
 
-1. **common** (namespace, ingress, TLS hosts)
-2. **db**, **keyvaldb**
-3. **api**, **management-api**
-4. **web**, **management-web**
+**Git (from your GitOps repo root),** when **`targetRevision`** is **`main`**:
 
-Use **dry-run sync** first when your tooling supports it (e.g. **`argocd app sync <app> --dry-run`**), then
-sync for real (UI or CLI).
+```bash
+git push origin main
+```
+
+**Argo CD application names** must match **`metadata.name`** on each `Application` CR (below uses the
+usual **alpha** names from **`argocd/boilerplate-alpha/*.yaml`**; substitute **`beta`**, **`prod`**, or
+your prefix if different).
+
+**1) Dry-run sync** (same order; skip if your Argo CD CLI does not support **`app sync --dry-run`**):
+
+```bash
+argocd app sync boilerplate-alpha-common --dry-run
+argocd app sync boilerplate-alpha-db --dry-run
+argocd app sync boilerplate-alpha-keyvaldb --dry-run
+argocd app sync boilerplate-alpha-api --dry-run
+argocd app sync boilerplate-alpha-management-api --dry-run
+argocd app sync boilerplate-alpha-web --dry-run
+argocd app sync boilerplate-alpha-management-web --dry-run
+```
+
+**2) Sync for real** (repeat without **`--dry-run`**):
+
+```bash
+argocd app sync boilerplate-alpha-common
+argocd app sync boilerplate-alpha-db
+argocd app sync boilerplate-alpha-keyvaldb
+argocd app sync boilerplate-alpha-api
+argocd app sync boilerplate-alpha-management-api
+argocd app sync boilerplate-alpha-web
+argocd app sync boilerplate-alpha-management-web
+```
+
+**Order:** **common** (namespace, ingress, TLS hosts) → **db**, **keyvaldb** → **api**,
+**management-api** → **web**, **management-web**. If **`syncPolicy.automated`** is enabled, Argo may sync
+without these commands; run them when you want an explicit pass or to confirm after a push.
 
 **Why:** Datastores must be ready before APIs; web depends on APIs and runtime config.
 
@@ -464,14 +527,43 @@ sync for real (UI or CLI).
 
 ## Step 12 — Bootstrap the first management super admin
 
-**Do this:** Remote clusters do **not** run **`make local_infra_up`** or **`create-super-admin.mjs`** automatically. After **management-api** can reach Postgres and the management database exists, create the super admin once, e.g.:
-
-- **Port-forward** Postgres (or management-api), point **`apps/management-api/.env`** at the forwarded host and DB secrets, then from Boilerplate root:  
-  `node scripts/management-api/create-super-admin.mjs`  
-  (or use **`DB_MANAGEMENT_SUPERUSER_USERNAME`** / **`DB_MANAGEMENT_SUPERUSER_PASSWORD`** in overrides for non-interactive bootstrap — see script header), **or**
-- **`kubectl exec`** into a one-off job/pod with the management-api image and env — team-specific.
-
 **Why:** Management web login requires a row in the management DB; schema init does not insert that user.
+
+**Prerequisites:** Postgres has the management database and schema; **`boilerplate-db-secrets`** includes non-empty **`DB_MANAGEMENT_SUPERUSER_USERNAME`** and **`DB_MANAGEMENT_SUPERUSER_PASSWORD`** (same keys used by the Postgres workload). The management-api container image must include **`/app/scripts/management-api/create-super-admin.mjs`** (Boilerplate **`infra/docker/local/management-api/Dockerfile`**).
+
+### Option A — In-cluster Job (preferred; no local `.env`)
+
+GitOps (**`k.podcastdj.com`**) ships **`Job`** **`boilerplate-management-api-bootstrap-super-admin`** in the **`management-api`** Kustomize overlay. It uses the same **`boilerplate-management-api-config`** and **`boilerplate-management-api-secrets`** as the Deployment, plus **`DB_MANAGEMENT_SUPERUSER_*`** from **`boilerplate-db-secrets`**. **`ttlSecondsAfterFinished`** garbage-collects the Job pod after completion.
+
+1. Merge and sync so the Job exists and runs once (or watch logs after sync):
+
+```bash
+kubectl -n <namespace> logs job/boilerplate-management-api-bootstrap-super-admin -f
+```
+
+2. **Re-run** (e.g. after wiping the management DB): delete the Job, then re-sync or re-apply so Kubernetes creates a new Job. Changing an existing completed Job’s pod template is not allowed.
+
+```bash
+kubectl -n <namespace> delete job boilerplate-management-api-bootstrap-super-admin
+```
+
+3. If Argo CD shows sync issues on the Job resource after manual deletes, run a refresh/sync or **`kubectl apply -k`** for that overlay path.
+
+**TTL:** The Job sets **`ttlSecondsAfterFinished`** so the controller may delete the Job object after completion. A later Argo sync can recreate it; **`create-super-admin.mjs`** exits successfully if a super admin already exists (idempotent).
+
+### Option B — From your laptop (port-forward + repo)
+
+**Port-forward** Postgres (or reach DB another way), ensure **`apps/management-api/.env`** has the same **`DB_*`** keys as management-api (**`DB_HOST`**, **`DB_PORT`**, **`DB_MANAGEMENT_NAME`**, **`DB_MANAGEMENT_READ_WRITE_USER`**, **`DB_MANAGEMENT_READ_WRITE_PASSWORD`**) plus optional **`DB_MANAGEMENT_SUPERUSER_*`** for non-interactive bootstrap, then from Boilerplate root:
+
+```bash
+node scripts/management-api/create-super-admin.mjs
+```
+
+See the script header for **`LOCAL_SUPERADMIN_PASSWORD`** (local/CI only) and **`DB_MANAGEMENT_SUPERUSER_*`**.
+
+### Option C — Ad hoc
+
+**`kubectl exec`** or **`kubectl run --rm`** with the management-api image and equivalent env — team-specific.
 
 ---
 

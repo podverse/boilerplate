@@ -4,8 +4,10 @@ import path from 'path';
  * Create the super admin user in the management database (used by make local_infra_up).
  *
  * Run from repo root: node scripts/management-api/create-super-admin.mjs
+ * In-cluster (image with script baked in): node /app/scripts/management-api/create-super-admin.mjs
  *
- * Loads .env from apps/management-api (MANAGEMENT_DB_* and optional bootstrap vars).
+ * Loads .env from apps/management-api (same DB_* keys as management-api: DB_HOST, DB_PORT,
+ * DB_MANAGEMENT_NAME, DB_MANAGEMENT_READ_WRITE_USER, DB_MANAGEMENT_READ_WRITE_PASSWORD) plus optional bootstrap vars.
  *
  * Credential source (first match):
  * 1. LOCAL_SUPERADMIN_PASSWORD — username fixed to "superadmin" (e.g. make testSuperAdmin=1; local/CI only).
@@ -81,15 +83,15 @@ function generatePassword() {
 async function main() {
   await loadEnv();
 
-  const host = process.env.MANAGEMENT_DB_HOST;
-  const port = process.env.MANAGEMENT_DB_PORT ?? '5532';
-  const database = process.env.MANAGEMENT_DB_NAME;
-  const user = process.env.MANAGEMENT_DB_USERNAME;
-  const password = process.env.MANAGEMENT_DB_PASSWORD;
+  const host = process.env.DB_HOST;
+  const port = process.env.DB_PORT ?? '5532';
+  const database = process.env.DB_MANAGEMENT_NAME;
+  const user = process.env.DB_MANAGEMENT_READ_WRITE_USER;
+  const password = process.env.DB_MANAGEMENT_READ_WRITE_PASSWORD;
 
   if (!host || !database || !user) {
     console.error(
-      'Missing MANAGEMENT_DB_HOST, MANAGEMENT_DB_NAME, or MANAGEMENT_DB_USERNAME. Set apps/management-api/.env (e.g. from .env.example or make local_env_setup or make env_setup).'
+      'Missing DB_HOST, DB_MANAGEMENT_NAME, or DB_MANAGEMENT_READ_WRITE_USER. Set apps/management-api/.env (e.g. make local_env_setup).'
     );
     process.exit(1);
   }

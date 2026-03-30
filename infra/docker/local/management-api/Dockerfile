@@ -6,6 +6,7 @@ WORKDIR /app
 COPY package.json package-lock.json tsconfig.base.json ./
 COPY packages/ ./packages/
 COPY apps/ ./apps/
+COPY scripts/management-api/create-super-admin.mjs ./scripts/management-api/create-super-admin.mjs
 
 RUN npm ci --ignore-scripts && \
   npm run i18n:compile -w @boilerplate/helpers-i18n && \

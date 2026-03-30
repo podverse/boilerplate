@@ -29,7 +29,7 @@ fi
 # apps/management-api/.env: host connection defaults (main DB and management DB same host/port).
 # Usernames must match infra/config/local/db-app.env role names (e.g. boilerplate_app_read), not generic read/read_write.
 if [ -f "$MGMT_API_DOT_ENV" ]; then
-  for var_value in "DB_HOST:localhost" "DB_PORT:5532" "DB_APP_NAME:boilerplate_app" "DB_APP_READ_USER:boilerplate_app_read" "DB_APP_READ_WRITE_USER:boilerplate_app_read_write" "MANAGEMENT_DB_HOST:localhost" "MANAGEMENT_DB_PORT:5532" "MANAGEMENT_DB_NAME:boilerplate_management" "MANAGEMENT_DB_USERNAME:boilerplate_management_read_write"; do
+  for var_value in "DB_HOST:localhost" "DB_PORT:5532" "DB_APP_NAME:boilerplate_app" "DB_APP_READ_USER:boilerplate_app_read" "DB_APP_READ_WRITE_USER:boilerplate_app_read_write" "DB_MANAGEMENT_NAME:boilerplate_management" "DB_MANAGEMENT_READ_WRITE_USER:boilerplate_management_read_write"; do
     var="${var_value%%:*}"
     value="${var_value#*:}"
     if grep -q "^${var}=" "$MGMT_API_DOT_ENV" 2>/dev/null; then
@@ -39,5 +39,5 @@ if [ -f "$MGMT_API_DOT_ENV" ]; then
       echo "${var}=\"${value}\"" >> "$MGMT_API_DOT_ENV"
     fi
   done
-  echo "Set host connection defaults in apps/management-api/.env (localhost:5532, boilerplate_management)."
+  echo "Set host connection defaults in apps/management-api/.env (localhost:5532, DB_MANAGEMENT_* defaults)."
 fi

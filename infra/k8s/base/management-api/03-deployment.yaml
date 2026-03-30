@@ -41,10 +41,6 @@ spec:
               value: postgres
             - name: DB_PORT
               value: "5432"
-            - name: MANAGEMENT_DB_HOST
-              value: postgres
-            - name: MANAGEMENT_DB_PORT
-              value: "5432"
             - name: VALKEY_HOST
               value: valkey
             - name: VALKEY_PORT

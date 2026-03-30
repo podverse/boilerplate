@@ -155,3 +155,88 @@ when this runs, and there are intentionally different values, the error is confu
 
 - boilerplate/scripts/k8s-env/validate-k8s-env-drift.sh
 - boilerplate/.llm/history/active/gitops-step4-bootstrap/gitops-step4-bootstrap-part-01.md
+
+### Session 8 - 2026-03-29
+
+#### Prompt (Developer)
+
+add the script and update related documentation (both in boilerplate and in k.podcastdj.com) so we know to use the script instead of manually encrypting each one
+
+#### Key Decisions
+
+- Added **`scripts/encrypt_boilerplate_plain_secrets.sh`** in **k.podcastdj.com** (batch **`sops -e`** from **`secrets/<ns>/plain/boilerplate-*-secrets.yaml`** to **`*.enc.yaml`**; **`--dry-run`**).
+- Updated **REMOTE-K8S-GITOPS** Step 9, **K8S-ENV-RENDER.md**, **k.podcastdj.com** README + **GITOPS-BOOTSTRAP.md**.
+
+#### Files Created/Modified
+
+- k.podcastdj.com/scripts/encrypt_boilerplate_plain_secrets.sh
+- k.podcastdj.com/README.md
+- k.podcastdj.com/docs/GITOPS-BOOTSTRAP.md
+- boilerplate/docs/development/REMOTE-K8S-GITOPS.md
+- boilerplate/docs/development/K8S-ENV-RENDER.md
+- boilerplate/.llm/history/active/gitops-step4-bootstrap/gitops-step4-bootstrap-part-01.md
+
+### Session 9 - 2026-03-29
+
+#### Prompt (Developer)
+
+@/Users/mitcheldowney/.cursor/projects/Users-mitcheldowney-repos-pv-pv-code-workspace/terminals/23.txt:98-110 would it make sense to automatically remove the plain text versions after the encrypt step finishes?
+
+#### Key Decisions
+
+- Default **keeps** cleartext (safe, allows diff / re-encrypt); added opt-in **`--rm-plain`** to remove **`plain/boilerplate-*-secrets.yaml`** after successful encrypt; docs updated.
+
+#### Files Created/Modified
+
+- k.podcastdj.com/scripts/encrypt_boilerplate_plain_secrets.sh
+- k.podcastdj.com/README.md
+- k.podcastdj.com/docs/GITOPS-BOOTSTRAP.md
+- boilerplate/docs/development/REMOTE-K8S-GITOPS.md
+- boilerplate/docs/development/K8S-ENV-RENDER.md
+- boilerplate/.llm/history/active/gitops-step4-bootstrap/gitops-step4-bootstrap-part-01.md
+
+### Session 10 - 2026-03-29
+
+#### Prompt (Developer)
+
+Batch apply Boilerplate SOPS-encrypted Secrets
+
+Implement the plan as specified, it is attached for your reference. Do NOT edit the plan file itself.
+
+To-do's from the plan have already been created. Do not create them again. Mark them as in_progress as you work, starting with the first one. Don't stop until you have completed all the to-dos.
+
+#### Key Decisions
+
+- Added **`scripts/apply_boilerplate_encrypted_secrets.sh`**: sorted glob **`secrets/<namespace>/boilerplate-*-secrets.enc.yaml`**, **`sops -d | kubectl apply -f -`**, **`--server-dry-run`**, **`--print-only`**, exit 0 when no matches; **`shellcheck`**-clean (quoted namespace in glob).
+- Cross-link from **`encrypt_boilerplate_plain_secrets.sh`** header to the apply script.
+- Docs: **REMOTE-K8S-GITOPS** Step 9 (batch apply subsection), **K8S-ENV-RENDER.md** SOPS paragraph, **GITOPS-BOOTSTRAP.md** + **k.podcastdj.com** README.
+
+#### Files Created/Modified
+
+- k.podcastdj.com/scripts/apply_boilerplate_encrypted_secrets.sh
+- k.podcastdj.com/scripts/encrypt_boilerplate_plain_secrets.sh
+- k.podcastdj.com/README.md
+- k.podcastdj.com/docs/GITOPS-BOOTSTRAP.md
+- boilerplate/docs/development/REMOTE-K8S-GITOPS.md
+- boilerplate/docs/development/K8S-ENV-RENDER.md
+- boilerplate/.llm/history/active/gitops-step4-bootstrap/gitops-step4-bootstrap-part-01.md
+
+### Session 11 - 2026-03-29
+
+#### Prompt (Developer)
+
+Remove Git dry-run from REMOTE-K8S-GITOPS
+
+Implement the plan as specified, it is attached for your reference. Do NOT edit the plan file itself.
+
+To-do's from the plan have already been created. Do not create them again. Mark them as in_progress as you work, starting with the first one. Don't stop until you have completed all the to-dos.
+
+#### Key Decisions
+
+- Removed **`git push --dry-run`** from the dry-run table, Step 1 verify block, and Step 11; retitled intro to scope dry runs to kubectl/Argo/render/GitOps scripts only.
+- Added short **Git push** note under the table (review diff/status, then **`git push origin main`**).
+
+#### Files Created/Modified
+
+- boilerplate/docs/development/REMOTE-K8S-GITOPS.md
+- boilerplate/.llm/history/active/gitops-step4-bootstrap/gitops-step4-bootstrap-part-01.md
