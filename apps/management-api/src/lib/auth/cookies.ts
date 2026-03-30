@@ -1,9 +1,19 @@
 import type { SessionCookieOptions } from '@boilerplate/helpers';
 import type { Response } from 'express';
 
+import { effectiveCookieDomainForSetCookie } from '@boilerplate/helpers';
+
 export interface CookieOptions extends SessionCookieOptions {
   accessMaxAgeSeconds: number;
   refreshMaxAgeSeconds: number;
+}
+
+function domainAttribute(cookieDomain: string | undefined): string {
+  const d = effectiveCookieDomainForSetCookie(cookieDomain);
+  if (d === undefined || d === '') {
+    return '';
+  }
+  return `; Domain=${d}`;
 }
 
 export function setSessionCookies(
@@ -14,8 +24,9 @@ export function setSessionCookies(
 ): void {
   const sameSite = options.cookieSameSite;
   const secure = options.cookieSecure;
-  const sessionOpts = `Path=/; Max-Age=${options.accessMaxAgeSeconds}; HttpOnly; SameSite=${sameSite}${secure ? '; Secure' : ''}`;
-  const refreshOpts = `Path=/; Max-Age=${options.refreshMaxAgeSeconds}; HttpOnly; SameSite=${sameSite}${secure ? '; Secure' : ''}`;
+  const domain = domainAttribute(options.cookieDomain);
+  const sessionOpts = `Path=/; Max-Age=${options.accessMaxAgeSeconds}; HttpOnly; SameSite=${sameSite}${secure ? '; Secure' : ''}${domain}`;
+  const refreshOpts = `Path=/; Max-Age=${options.refreshMaxAgeSeconds}; HttpOnly; SameSite=${sameSite}${secure ? '; Secure' : ''}${domain}`;
   res.setHeader('Set-Cookie', [
     `${options.sessionCookieName}=${encodeURIComponent(accessToken)}; ${sessionOpts}`,
     `${options.refreshCookieName}=${encodeURIComponent(refreshToken)}; ${refreshOpts}`,
@@ -25,7 +36,8 @@ export function setSessionCookies(
 export function clearSessionCookies(res: Response, options: SessionCookieOptions): void {
   const sameSite = options.cookieSameSite;
   const secure = options.cookieSecure;
-  const clearOpts = `Path=/; Max-Age=0; HttpOnly; SameSite=${sameSite}${secure ? '; Secure' : ''}`;
+  const domain = domainAttribute(options.cookieDomain);
+  const clearOpts = `Path=/; Max-Age=0; HttpOnly; SameSite=${sameSite}${secure ? '; Secure' : ''}${domain}`;
   res.setHeader('Set-Cookie', [
     `${options.sessionCookieName}=; ${clearOpts}`,
     `${options.refreshCookieName}=; ${clearOpts}`,

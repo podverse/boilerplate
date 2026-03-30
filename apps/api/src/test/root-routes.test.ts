@@ -25,9 +25,9 @@ describe('API root routes', () => {
     expect(res.body).toEqual({ status: 'ok', message: 'API is online' });
   });
 
-  it('GET /health returns 200 with status and app name', async () => {
+  it('GET /health returns 200 with status and generic message', async () => {
     const res = await request(app).get(`${API}/health`).expect(200);
-    expect(res.body).toEqual({ status: 'ok', app: config.brandName });
+    expect(res.body).toEqual({ status: 'ok', message: 'The server is running.' });
   });
 
   it('GET / (versioned root) returns 200 with basic success message', async () => {

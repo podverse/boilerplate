@@ -2,18 +2,24 @@
 /**
  * Deterministic E2E seed for management-web: management DB (boilerplate_management_test).
  * Inserts fixed super admin and optional admin. Run after make e2e_deps.
- * Uses test DB env defaults (MANAGEMENT_DB_* or localhost, 5532, boilerplate_management_test, read_write/test).
+ * Uses test DB env defaults (DB_HOST/DB_PORT, DB_MANAGEMENT_*, or localhost / 5532 / boilerplate_management_test).
  */
 import bcrypt from 'bcrypt';
 import pg from 'pg';
 
-const DB_HOST = process.env.MANAGEMENT_DB_HOST ?? process.env.DB_HOST ?? 'localhost';
-const DB_PORT = Number(process.env.MANAGEMENT_DB_PORT ?? process.env.DB_PORT ?? '5532', 10);
-const DB_NAME = process.env.MANAGEMENT_DB_NAME ?? 'boilerplate_management_test';
+const DB_HOST = process.env.DB_HOST ?? 'localhost';
+const DB_PORT = Number(process.env.DB_PORT ?? '5532', 10);
+const managementDbName = process.env.DB_MANAGEMENT_NAME ?? 'boilerplate_management_test';
 const DB_USER =
-  process.env.MANAGEMENT_DB_USERNAME ?? process.env.DB_READ_WRITE_USERNAME ?? 'read_write';
+  process.env.DB_MANAGEMENT_READ_WRITE_USER ??
+  process.env.DB_APP_READ_WRITE_USER ??
+  process.env.DB_READ_WRITE_USER ??
+  'boilerplate_management_read_write';
 const DB_PASSWORD =
-  process.env.MANAGEMENT_DB_PASSWORD ?? process.env.DB_READ_WRITE_PASSWORD ?? 'test';
+  process.env.DB_MANAGEMENT_READ_WRITE_PASSWORD ??
+  process.env.DB_APP_READ_WRITE_PASSWORD ??
+  process.env.DB_READ_WRITE_PASSWORD ??
+  'test';
 
 const E2E_SUPER_ADMIN_ID = 'aaaaaaaa-aaaa-4aaa-aaaa-aaaaaaaaaaaa';
 const E2E_SUPER_ADMIN_USERNAME = 'e2e-superadmin';
@@ -34,7 +40,7 @@ async function main() {
   const client = new pg.Client({
     host: DB_HOST,
     port: DB_PORT,
-    database: DB_NAME,
+    database: managementDbName,
     user: DB_USER,
     password: DB_PASSWORD,
   });

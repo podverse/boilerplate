@@ -30,10 +30,10 @@ agent): `./scripts/nix/with-env <command>`.
 
 ## Environment
 
-- **Main**: Uses `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_READ_WRITE_USERNAME`, `DB_READ_WRITE_PASSWORD`
+- **Main**: Uses `DB_HOST`, `DB_PORT`, `DB_APP_NAME`, `DB_APP_READ_WRITE_USER`, `DB_APP_READ_WRITE_PASSWORD`
   from `apps/api/.env`.
-- **Management**: Uses `MANAGEMENT_DB_HOST`, `MANAGEMENT_DB_PORT`, `MANAGEMENT_DB_NAME`,
-  `MANAGEMENT_DB_USERNAME`, `MANAGEMENT_DB_PASSWORD` from `apps/management-api/.env`.
+- **Management**: Uses the same keys as management-api / `@boilerplate/management-orm`: `DB_HOST`, `DB_PORT`,
+  `DB_MANAGEMENT_NAME`, `DB_MANAGEMENT_READ_WRITE_USER`, `DB_MANAGEMENT_READ_WRITE_PASSWORD` from `apps/management-api/.env`.
 
 ## What gets seeded
 

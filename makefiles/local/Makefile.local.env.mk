@@ -2,14 +2,15 @@
 
 .PHONY: local_env_prepare local_env_link local_env_setup local_env_clean local_setup
 .PHONY: env_setup local_env_remove local_db_init_management local_reset_env_infra local_nuke_rebuild_run
+.PHONY: local_clean_env_setup_infra_up
 
 # Local Postgres container (from docker-compose) and management DB name for dev
 LOCAL_PG_CONTAINER ?= boilerplate_local_postgres
-LOCAL_PG_USER ?= postgres
-# Must match POSTGRES_READ_USER / POSTGRES_READ_WRITE_USER in infra/config/local/db.env (roles created by 01_create_users.sh).
+LOCAL_PG_USER ?= user
+# Must match DB_APP_READ_USER / DB_APP_READ_WRITE_USER in infra/config/local/db.env (roles from 01_create_users.sh).
 LOCAL_POSTGRES_READ_USER ?= boilerplate_app_read
 LOCAL_POSTGRES_READ_WRITE_USER ?= boilerplate_app_read_write
-# Must match POSTGRES_MANAGEMENT_*_USER in infra/config/local/db.env (see scripts/local-env/local-management-db.sh).
+# Must match DB_MANAGEMENT_*_USER in infra/config/local/db.env (see scripts/local-env/local-management-db.sh).
 LOCAL_POSTGRES_MANAGEMENT_READ_USER ?= boilerplate_management_read
 LOCAL_POSTGRES_MANAGEMENT_READ_WRITE_USER ?= boilerplate_management_read_write
 LOCAL_MANAGEMENT_DB_NAME ?= boilerplate_management
@@ -17,10 +18,10 @@ LOCAL_MANAGEMENT_DB_NAME ?= boilerplate_management
 K3D_CLUSTER_NAME ?= boilerplate-local
 
 local_env_prepare:
-	bash scripts/local-env/prepare-overrides.sh
+	bash scripts/local-env/prepare-local-env-overrides.sh
 
 local_env_link:
-	bash scripts/local-env/link-overrides.sh
+	bash scripts/local-env/link-local-env-overrides.sh
 
 # Non-destructive local env setup: create missing env files, generate secrets, apply overrides from dev/env-overrides/local/*.env
 local_env_setup:
@@ -40,7 +41,7 @@ local_env_clean:
 		echo "Stop it first with: make local_k3d_down"; \
 		exit 1; \
 	fi
-	@echo "Removing local env files (keeping dev/env-overrides/local/*.env)..."
+	@echo "Removing local env files and dev/env-overrides/local/*.env (repo symlinks to home overrides)..."
 	@rm -f $(ROOT)infra/config/local/*.env \
 		$(ROOT)apps/api/.env \
 		$(ROOT)apps/web/.env.local \
@@ -48,15 +49,27 @@ local_env_clean:
 		$(ROOT)apps/management-api/.env \
 		$(ROOT)apps/management-web/.env.local \
 		$(ROOT)apps/management-web/sidecar/.env
-	@echo "Local env files removed. Run make local_env_setup to regenerate."
+	@rm -f $(ROOT)dev/env-overrides/local/*.env
+	@echo "Local env files removed. If you use home overrides, run make local_env_link before make local_env_setup. Home files under ~/.config/boilerplate/local-env-overrides/ are unchanged."
 
 # One-shot: env setup then start Postgres, Valkey, management DB, and create super admin.
 local_setup: local_env_setup local_infra_up
 
+# Full reset: tear down Docker/k3d/tests, remove generated env, re-seed home override stubs, link,
+# regenerate env, then Postgres + Valkey + management DB + super admin. Sequential (safe with make -j).
+# Pass testSuperAdmin=1 for non-interactive super admin (Test!1Aa): make local_clean_env_setup_infra_up testSuperAdmin=1
+local_clean_env_setup_infra_up:
+	$(MAKE) local_clean
+	$(MAKE) local_env_clean
+	$(MAKE) local_env_prepare
+	$(MAKE) local_env_link
+	$(MAKE) local_env_setup
+	$(MAKE) local_infra_up testSuperAdmin=$(testSuperAdmin)
+
 # Backward-compatible alias (canonical target is local_env_setup). See docs/development/LOCAL-ENV-OVERRIDES.md.
 env_setup: local_env_setup
 	@echo "Env files ready (infra/config/local/*.env, apps/*/.env or .env.local)."
-	@echo "apps/api/.env is set for API-on-host (localhost:5433, localhost:6380). infra/config/local/api.env is for Docker (postgres, valkey)."
+	@echo "apps/api/.env is set for API-on-host (localhost:5532, localhost:6479). infra/config/local/api.env is for Docker (postgres, valkey)."
 	@echo "apps/management-api/.env is set for Management API on host. make local_infra_up creates the management DB and then prompts for super admin (password generated and printed once)."
 
 # Remove local .env files (prompts for Y). Runs local_clean first. Prefer prepare/link/setup flow; see docs/development/LOCAL-ENV-OVERRIDES.md.
@@ -71,12 +84,16 @@ local_reset_env_infra:
 	$(MAKE) local_infra_up testSuperAdmin=$(testSuperAdmin)
 
 # Nuclear rebuild (Podverse-aligned): tear down, prune app images, env setup, infra + management DB +
-# super admin, then build and start all app containers in Docker. For stuck host dev ports, run
+# super admin, then build and start all app containers in Docker. After local_env_clean, runs
+# local_env_prepare and local_env_link (same as local_clean_env_setup_infra_up) so home overrides
+# are restored before local_env_setup. For stuck host dev ports, run
 # scripts/development/kill-boilerplate-port-blockers.sh manually (not invoked from Make).
 # Pass testSuperAdmin=1 to use a preset super admin (username superadmin, password Test!1Aa).
 local_nuke_rebuild_run:
 	$(MAKE) local_clean
 	$(MAKE) local_env_clean
+	$(MAKE) local_env_prepare
+	$(MAKE) local_env_link
 	$(MAKE) local_prune_boilerplate_images
 	$(MAKE) local_env_setup
 	$(MAKE) local_infra_up testSuperAdmin=$(testSuperAdmin)

@@ -17,7 +17,7 @@ DRY_RUN=0
 print_usage() {
   cat <<'EOF'
 Usage:
-  bash scripts/development/kill-boilerplate-port-blockers.sh [--dry-run] [--ports "4000 4001 5433"]
+  bash scripts/development/kill-boilerplate-port-blockers.sh [--dry-run] [--ports "4000 4001 5532 6479"]
 
 Options:
   --dry-run          Print matching listeners without killing.

@@ -15,6 +15,25 @@ export interface SessionCookieOptions {
   refreshCookieName: string;
   cookieSecure: boolean;
   cookieSameSite: CookieSameSite;
+  /**
+   * When set after normalization, appended as `Domain=` on Set-Cookie for cross-subdomain auth (e.g. `.example.com`).
+   * The literal hostname **`localhost`** (case-insensitive, trimmed) is treated as unset: omit `Domain` for host-only cookies on `npm run dev:all`.
+   */
+  cookieDomain?: string;
+}
+
+/**
+ * Returns the cookie `Domain` value to use in `Set-Cookie`, or `undefined` to omit `Domain` (host-only cookie).
+ * Empty, whitespace-only, and **`localhost`** yield `undefined` so browsers do not receive a misleading `Domain=` on local dev.
+ */
+export function effectiveCookieDomainForSetCookie(
+  cookieDomain: string | undefined
+): string | undefined {
+  if (cookieDomain === undefined) return undefined;
+  const t = cookieDomain.trim();
+  if (t === '') return undefined;
+  if (t.toLowerCase() === 'localhost') return undefined;
+  return t;
 }
 
 const COOKIE_SAME_SITE_VALUES: CookieSameSite[] = ['lax', 'strict', 'none'];

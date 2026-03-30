@@ -15,20 +15,19 @@ const AUTH_MODE_USER_SIGNUP_EMAIL = 'user_signup_email';
 
 function getTransporter(): Transporter {
   if (transporter !== null) return transporter;
-  const host = process.env.SMTP_HOST;
-  const port = process.env.SMTP_PORT;
-  const user = process.env.SMTP_USER;
-  const pass = process.env.SMTP_PASSWORD;
-  const from = process.env.MAIL_FROM;
+  const host = process.env.MAILER_HOST;
+  const port = process.env.MAILER_PORT;
+  const user = process.env.MAILER_USER;
+  const pass = process.env.MAILER_PASSWORD;
+  const from = process.env.MAILER_FROM;
   if (host === undefined || port === undefined || from === undefined) {
     throw new Error(
-      'Mailer requires SMTP_HOST, SMTP_PORT, and MAIL_FROM when AUTH_MODE uses email flows'
+      'Mailer requires MAILER_HOST, MAILER_PORT, and MAILER_FROM when AUTH_MODE uses email flows'
     );
   }
   transporter = nodemailer.createTransport({
     host,
     port: Number.parseInt(port, 10),
-    secure: process.env.SMTP_SECURE === 'true',
     auth:
       user !== undefined && user !== '' && pass !== undefined && pass !== ''
         ? { user, pass }
@@ -38,11 +37,19 @@ function getTransporter(): Transporter {
 }
 
 function getBaseUrl(): string {
-  const url = process.env.APP_BASE_URL;
+  const url = process.env.WEB_BASE_URL;
   if (url === undefined || url === '') {
-    throw new Error('Mailer requires APP_BASE_URL when AUTH_MODE uses email flows');
+    throw new Error('Mailer requires WEB_BASE_URL when AUTH_MODE uses email flows');
   }
   return url.replace(/\/$/, '');
+}
+
+function getWebBrandNameForEmail(): string {
+  const v = process.env.WEB_BRAND_NAME?.trim();
+  if (v === undefined || v === '') {
+    throw new Error('Mailer requires WEB_BRAND_NAME when AUTH_MODE uses email flows');
+  }
+  return v;
 }
 
 export function isMailerEnabled(): boolean {
@@ -58,9 +65,10 @@ export async function sendVerificationEmail(
   if (!isMailerEnabled()) return;
   const base = getBaseUrl();
   const link = `${base}/auth/verify-email?token=${encodeURIComponent(token)}`;
-  const content = getVerificationEmailContent(locale, link);
+  const brand = getWebBrandNameForEmail();
+  const content = getVerificationEmailContent(locale, link, brand);
   const transport = getTransporter();
-  const from = process.env.MAIL_FROM ?? 'noreply@localhost';
+  const from = process.env.MAILER_FROM ?? 'noreply@localhost';
   await transport.sendMail({
     from,
     to,
@@ -78,9 +86,10 @@ export async function sendPasswordResetEmail(
   if (!isMailerEnabled()) return;
   const base = getBaseUrl();
   const link = `${base}/auth/reset-password?token=${encodeURIComponent(token)}`;
-  const content = getPasswordResetEmailContent(locale, link);
+  const brand = getWebBrandNameForEmail();
+  const content = getPasswordResetEmailContent(locale, link, brand);
   const transport = getTransporter();
-  const from = process.env.MAIL_FROM ?? 'noreply@localhost';
+  const from = process.env.MAILER_FROM ?? 'noreply@localhost';
   await transport.sendMail({
     from,
     to,
@@ -98,9 +107,10 @@ export async function sendEmailChangeVerificationEmail(
   if (!isMailerEnabled()) return;
   const base = getBaseUrl();
   const link = `${base}/auth/confirm-email-change?token=${encodeURIComponent(token)}`;
-  const content = getEmailChangeVerificationContent(locale, link);
+  const brand = getWebBrandNameForEmail();
+  const content = getEmailChangeVerificationContent(locale, link, brand);
   const transport = getTransporter();
-  const from = process.env.MAIL_FROM ?? 'noreply@localhost';
+  const from = process.env.MAILER_FROM ?? 'noreply@localhost';
   await transport.sendMail({
     from,
     to,

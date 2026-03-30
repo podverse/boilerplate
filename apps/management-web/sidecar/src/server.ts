@@ -10,7 +10,6 @@ import {
   validateApiVersionPath,
   validateHttpOrHttpsUrl,
   validateLocale,
-  validateOptional,
   validatePositiveNumber,
   validateRequired,
   validateSupportedLocalesList,
@@ -18,27 +17,25 @@ import {
 
 // Keep key lists in sync with apps/management-web/src/config/runtime-config.ts (ManagementWebRuntimeConfigEnvKey).
 const requiredKeys = [
-  'NEXT_PUBLIC_MANAGEMENT_API_URL',
+  'NEXT_PUBLIC_MANAGEMENT_API_PUBLIC_BASE_URL',
   'NEXT_PUBLIC_MANAGEMENT_API_VERSION_PATH',
   'NEXT_PUBLIC_MANAGEMENT_SESSION_REFRESH_INTERVAL_MS',
-  'NEXT_PUBLIC_BRAND_NAME',
-  'NEXT_PUBLIC_WEB_APP_URL',
+  'NEXT_PUBLIC_MANAGEMENT_WEB_BRAND_NAME',
+  'NEXT_PUBLIC_WEB_BASE_URL',
   'NEXT_PUBLIC_DEFAULT_LOCALE',
   'NEXT_PUBLIC_SUPPORTED_LOCALES',
-  'MANAGEMENT_API_BACKEND_URL',
+  'MANAGEMENT_API_SERVER_BASE_URL',
 ] as const;
 
-const optionalKeys = ['NEXT_PUBLIC_APP_TITLE_ICON'] as const;
+const allKeys = [...requiredKeys];
 
-const allKeys = [...requiredKeys, ...optionalKeys];
-
-function validatePort(): ValidationResult {
-  const value = process.env.PORT;
+function validateManagementWebSidecarPort(): ValidationResult {
+  const value = process.env.MANAGEMENT_WEB_SIDECAR_PORT;
   const isSet =
     value !== undefined && value !== null && typeof value === 'string' && value.trim() !== '';
   if (!isSet) {
     return {
-      name: 'PORT',
+      name: 'MANAGEMENT_WEB_SIDECAR_PORT',
       isSet: false,
       isValid: false,
       isRequired: true,
@@ -49,7 +46,7 @@ function validatePort(): ValidationResult {
   const port = Number.parseInt(value, 10);
   if (!Number.isFinite(port) || port <= 0) {
     return {
-      name: 'PORT',
+      name: 'MANAGEMENT_WEB_SIDECAR_PORT',
       isSet: true,
       isValid: false,
       isRequired: true,
@@ -58,7 +55,7 @@ function validatePort(): ValidationResult {
     };
   }
   return {
-    name: 'PORT',
+    name: 'MANAGEMENT_WEB_SIDECAR_PORT',
     isSet: true,
     isValid: true,
     isRequired: true,
@@ -69,26 +66,25 @@ function validatePort(): ValidationResult {
 
 function getCategory(key: string): string {
   const map: Record<string, string> = {
-    PORT: 'Server',
-    NEXT_PUBLIC_MANAGEMENT_API_URL: 'API',
+    MANAGEMENT_WEB_SIDECAR_PORT: 'Server',
+    NEXT_PUBLIC_MANAGEMENT_API_PUBLIC_BASE_URL: 'API',
     NEXT_PUBLIC_MANAGEMENT_API_VERSION_PATH: 'API',
     NEXT_PUBLIC_MANAGEMENT_SESSION_REFRESH_INTERVAL_MS: 'Session',
-    NEXT_PUBLIC_BRAND_NAME: 'Brand',
-    NEXT_PUBLIC_APP_TITLE_ICON: 'Brand',
-    NEXT_PUBLIC_WEB_APP_URL: 'Web',
+    NEXT_PUBLIC_MANAGEMENT_WEB_BRAND_NAME: 'Brand',
+    NEXT_PUBLIC_WEB_BASE_URL: 'Web',
     NEXT_PUBLIC_DEFAULT_LOCALE: 'i18n',
     NEXT_PUBLIC_SUPPORTED_LOCALES: 'i18n',
-    MANAGEMENT_API_BACKEND_URL: 'API',
+    MANAGEMENT_API_SERVER_BASE_URL: 'API',
   };
   return map[key] ?? 'Config';
 }
 
-function validateOne(key: string, isRequired: boolean): ValidationResult {
+function validateOne(key: string): ValidationResult {
   const category = getCategory(key);
   if (
-    key === 'NEXT_PUBLIC_MANAGEMENT_API_URL' ||
-    key === 'NEXT_PUBLIC_WEB_APP_URL' ||
-    key === 'MANAGEMENT_API_BACKEND_URL'
+    key === 'NEXT_PUBLIC_MANAGEMENT_API_PUBLIC_BASE_URL' ||
+    key === 'NEXT_PUBLIC_WEB_BASE_URL' ||
+    key === 'MANAGEMENT_API_SERVER_BASE_URL'
   ) {
     return validateHttpOrHttpsUrl(key, category);
   }
@@ -104,23 +100,14 @@ function validateOne(key: string, isRequired: boolean): ValidationResult {
   if (key === 'NEXT_PUBLIC_SUPPORTED_LOCALES') {
     return validateSupportedLocalesList(key, category);
   }
-  if (key === 'NEXT_PUBLIC_APP_TITLE_ICON') {
-    return validateOptional(key, category, 'Skipped');
-  }
-  if (isRequired) {
-    return validateRequired(key, category);
-  }
-  return validateOptional(key, category, 'Skipped');
+  return validateRequired(key, category);
 }
 
 function buildValidationResults(): ValidationResult[] {
   const results: ValidationResult[] = [];
-  results.push(validatePort());
+  results.push(validateManagementWebSidecarPort());
   for (const key of requiredKeys) {
-    results.push(validateOne(key, true));
-  }
-  for (const key of optionalKeys) {
-    results.push(validateOne(key, false));
+    results.push(validateOne(key));
   }
   return results;
 }
@@ -143,13 +130,13 @@ function findMissingRequiredKeys(runtimeConfig: {
 }
 
 function getPort(): number {
-  const portValue = process.env.PORT;
+  const portValue = process.env.MANAGEMENT_WEB_SIDECAR_PORT;
   if (!portValue) {
-    throw new Error('Missing PORT for runtime config sidecar.');
+    throw new Error('Missing MANAGEMENT_WEB_SIDECAR_PORT for runtime config sidecar.');
   }
   const port = Number.parseInt(portValue, 10);
   if (!Number.isFinite(port) || port <= 0) {
-    throw new Error('Invalid PORT for runtime config sidecar.');
+    throw new Error('Invalid MANAGEMENT_WEB_SIDECAR_PORT for runtime config sidecar.');
   }
   return port;
 }

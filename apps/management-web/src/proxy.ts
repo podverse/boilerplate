@@ -5,8 +5,8 @@ import { NextResponse } from 'next/server';
 import { getServerManagementApiBaseUrl } from './config/env';
 import { PUBLIC_PATHS, ROUTES } from './lib/routes';
 
-const SESSION_COOKIE_NAME = 'management_session';
-const REFRESH_COOKIE_NAME = 'management_refresh';
+const SESSION_COOKIE_NAME = 'management_api_session';
+const REFRESH_COOKIE_NAME = 'management_api_refresh';
 const AUTH_USER_HEADER = 'x-auth-user';
 
 async function trySessionRestore(

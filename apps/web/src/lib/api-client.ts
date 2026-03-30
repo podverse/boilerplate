@@ -6,7 +6,7 @@ function getApiVersionPath(): string {
 }
 
 export function getApiBaseUrl(): string {
-  const base = getRuntimeConfig().env.NEXT_PUBLIC_API_URL ?? '';
+  const base = getRuntimeConfig().env.NEXT_PUBLIC_API_PUBLIC_BASE_URL ?? '';
   const trimmed = base.replace(/\/$/, '');
   return trimmed + getApiVersionPath();
 }

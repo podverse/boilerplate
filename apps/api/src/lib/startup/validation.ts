@@ -1,7 +1,7 @@
 /**
  * API startup env validation. Delegates to @boilerplate/helpers.
- * Requires DB_READ_* and DB_READ_WRITE_* when using database (ORM).
- * Requires JWT_SECRET (min length 32, must not be a weak/predictable value).
+ * Requires DB_APP_READ_* and DB_APP_READ_WRITE_* when using database (ORM).
+ * Requires API_JWT_SECRET (min length 32, must not be a weak/predictable value).
  */
 import type { ValidationResult } from '@boilerplate/helpers';
 
@@ -9,7 +9,6 @@ import {
   AUTH_MODE_ADMIN_ONLY_EMAIL,
   AUTH_MODE_ADMIN_ONLY_USERNAME,
   AUTH_MODE_USER_SIGNUP_EMAIL,
-  getEffectiveUserAgent,
   normalizedAuthMode,
   validateAuthMode as validateAuthModeEnv,
   validateJwtSecret,
@@ -41,60 +40,88 @@ function validateOptionalUnset(name: string, category: string): ValidationResult
   };
 }
 
+/**
+ * SMTP AUTH: both MAILER_USER and MAILER_PASSWORD must be non-empty, or both empty (open relay / Mailpit).
+ */
+function validateMailerSmtpAuthPair(): ValidationResult {
+  const userRaw = process.env.MAILER_USER;
+  const passRaw = process.env.MAILER_PASSWORD;
+  const userSet = userRaw !== undefined && userRaw !== null && userRaw.trim() !== '';
+  const passSet = passRaw !== undefined && passRaw !== null && passRaw.trim() !== '';
+  if (userSet === passSet) {
+    return {
+      name: 'MAILER_SMTP_AUTH',
+      isSet: userSet,
+      isValid: true,
+      isRequired: false,
+      message: userSet
+        ? 'MAILER_USER and MAILER_PASSWORD both set (SMTP authentication)'
+        : 'MAILER_USER and MAILER_PASSWORD both empty (no SMTP authentication)',
+      category: 'Mailer',
+    };
+  }
+  return {
+    name: 'MAILER_SMTP_AUTH',
+    isSet: true,
+    isValid: false,
+    isRequired: true,
+    message:
+      'Set both MAILER_USER and MAILER_PASSWORD for SMTP authentication, or leave both empty (e.g. Mailpit). One is set without the other.',
+    category: 'Mailer',
+  };
+}
+
 function validateAuthMode(): ValidationResult {
   return validateAuthModeEnv('AUTH_MODE', 'Auth');
 }
 
 const USER_AGENT_PATTERN = /^[^/]+\/[^/]+\/[^/]+$/;
-const USER_AGENT_SUFFIX = ' Bot Local/API/1';
 
 /**
- * Validates USER_AGENT (or effective value when blank, built from BRAND_NAME).
- * Format: BrandName Bot Environment/AppName/Version, e.g. "Boilerplate Bot Local/API/1"
+ * Validates API_USER_AGENT. Format: BrandName Bot Environment/AppName/Version, e.g. "boilerplate-web Bot Local/API/1"
  */
 function validateUserAgent(): ValidationResult {
-  const brandName = process.env.BRAND_NAME;
-  if (brandName === undefined || brandName === null || brandName.trim() === '') {
+  const raw = process.env.API_USER_AGENT;
+  const trimmed = raw?.trim() ?? '';
+  const isSet = trimmed !== '';
+
+  if (!isSet) {
     return {
-      name: 'USER_AGENT',
+      name: 'API_USER_AGENT',
       isSet: false,
       isValid: false,
       isRequired: true,
-      message: 'BRAND_NAME required to validate USER_AGENT',
+      message:
+        'API_USER_AGENT is required (set in classification / env; three slash-separated segments, first segment must contain "Bot")',
       category: 'Auth & Security',
     };
   }
-  const effectiveUserAgent = getEffectiveUserAgent({
-    userAgentRaw: process.env.USER_AGENT,
-    brandName,
-    suffix: USER_AGENT_SUFFIX,
-  });
 
-  if (!USER_AGENT_PATTERN.test(effectiveUserAgent)) {
+  if (!USER_AGENT_PATTERN.test(trimmed)) {
     return {
-      name: 'USER_AGENT',
-      isSet: process.env.USER_AGENT?.trim() !== '',
+      name: 'API_USER_AGENT',
+      isSet: true,
       isValid: false,
       isRequired: true,
-      message: `Invalid format: "${effectiveUserAgent}" - must follow format: BrandName Bot Environment/AppName/Version`,
+      message: `Invalid format: "${trimmed}" - must follow format: BrandName Bot Environment/AppName/Version`,
       category: 'Auth & Security',
     };
   }
 
-  const firstPart = effectiveUserAgent.split('/')[0];
+  const firstPart = trimmed.split('/')[0];
   if (firstPart && !firstPart.includes('Bot')) {
     return {
-      name: 'USER_AGENT',
-      isSet: process.env.USER_AGENT?.trim() !== '',
+      name: 'API_USER_AGENT',
+      isSet: true,
       isValid: false,
       isRequired: true,
-      message: `Missing "Bot" in first part: "${effectiveUserAgent}"`,
+      message: `Missing "Bot" in first part: "${trimmed}"`,
       category: 'Auth & Security',
     };
   }
 
   return {
-    name: 'USER_AGENT',
+    name: 'API_USER_AGENT',
     isSet: true,
     isValid: true,
     isRequired: true,
@@ -107,37 +134,36 @@ function apiValidationResults(): ValidationResult[] {
   const results: ValidationResult[] = [
     validateAuthMode(),
     validatePositiveInteger('API_PORT', 'API'),
-    validateRequired('BRAND_NAME', 'API'),
     validateUserAgent(),
-    validateJwtSecret('JWT_SECRET', 'API'),
-    validateRequired('SESSION_COOKIE_NAME', 'Session cookies'),
-    validateRequired('REFRESH_COOKIE_NAME', 'Session cookies'),
-    validatePositiveInteger('JWT_ACCESS_EXPIRY_SECONDS', 'Session cookies'),
-    validatePositiveInteger('JWT_REFRESH_EXPIRY_SECONDS', 'Session cookies'),
-    validateRequired('COOKIE_SAME_SITE', 'Session cookies'),
+    validateJwtSecret('API_JWT_SECRET', 'API'),
+    validateRequired('API_SESSION_COOKIE_NAME', 'Session cookies'),
+    validateRequired('API_REFRESH_COOKIE_NAME', 'Session cookies'),
+    validatePositiveInteger('API_JWT_ACCESS_EXPIRY_SECONDS', 'Session cookies'),
+    validatePositiveInteger('API_JWT_REFRESH_EXPIRY_SECONDS', 'Session cookies'),
     validateRequired('DB_HOST', 'Database'),
     validatePositiveInteger('DB_PORT', 'Database'),
-    validateRequired('DB_NAME', 'Database'),
-    validateRequired('DB_READ_USERNAME', 'Database'),
-    validateRequired('DB_READ_PASSWORD', 'Database'),
-    validateRequired('DB_READ_WRITE_USERNAME', 'Database'),
-    validateRequired('DB_READ_WRITE_PASSWORD', 'Database'),
+    validateRequired('DB_APP_NAME', 'Database'),
+    validateRequired('DB_APP_READ_USER', 'Database'),
+    validateRequired('DB_APP_READ_PASSWORD', 'Database'),
+    validateRequired('DB_APP_READ_WRITE_USER', 'Database'),
+    validateRequired('DB_APP_READ_WRITE_PASSWORD', 'Database'),
     validateRequired('VALKEY_PASSWORD', 'Valkey'),
   ];
   const authMode = resolveAuthMode();
   if (authModeUsesEmailFlows(authMode)) {
     results.push(
-      validateRequired('SMTP_HOST', 'Mailer'),
-      validateRequired('SMTP_PORT', 'Mailer'),
-      validateRequired('MAIL_FROM', 'Mailer'),
-      validateRequired('APP_BASE_URL', 'Mailer')
+      validateRequired('WEB_BRAND_NAME', 'Mailer'),
+      validateRequired('MAILER_HOST', 'Mailer'),
+      validateRequired('MAILER_PORT', 'Mailer'),
+      validateRequired('MAILER_FROM', 'Mailer'),
+      validateRequired('WEB_BASE_URL', 'Mailer'),
+      validateMailerSmtpAuthPair()
     );
   } else if (authMode === AUTH_MODE_ADMIN_ONLY_USERNAME) {
+    // HOST/PORT/FROM may be present from shared .env; only SMTP credentials must stay unset.
     results.push(
-      validateOptionalUnset('SMTP_HOST', 'Mailer'),
-      validateOptionalUnset('SMTP_PORT', 'Mailer'),
-      validateOptionalUnset('MAIL_FROM', 'Mailer'),
-      validateOptionalUnset('APP_BASE_URL', 'Mailer')
+      validateOptionalUnset('MAILER_USER', 'Mailer'),
+      validateOptionalUnset('MAILER_PASSWORD', 'Mailer')
     );
   }
   return results;

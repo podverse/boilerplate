@@ -11,6 +11,8 @@ services:
     container_name: boilerplate_local_api
     env_file:
       - ../../../config/local/api.env
+      - ../../../config/local/db.env
+      - ../../../config/local/db-app.env
     networks:
       boilerplate_local_network:
         aliases:

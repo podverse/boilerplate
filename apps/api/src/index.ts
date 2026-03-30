@@ -32,7 +32,7 @@ const run = async (): Promise<void> => {
   const { createApp } = await import('./app.js');
   const app = createApp();
   const server = app.listen(config.port, () => {
-    console.warn(`${config.brandName} API listening on port ${config.port}`);
+    console.warn(`API listening on port ${config.port}`);
   });
 
   let shuttingDown = false;

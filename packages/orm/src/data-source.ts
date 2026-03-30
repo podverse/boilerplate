@@ -1,9 +1,9 @@
 import type { DataSourceOptions } from 'typeorm';
 
 /**
- * TypeORM DataSources: read-only (DB_READ_*) and read-write (DB_READ_WRITE_*).
+ * TypeORM DataSources: read-only (DB_APP_READ_*) and read-write (DB_APP_READ_WRITE_*).
  * Use the read connection in service methods that only read; use read-write where writes occur.
- * Validate DB_READ_* and DB_READ_WRITE_* at app startup before using.
+ * Validate DB_APP_READ_* and DB_APP_READ_WRITE_* at app startup before using.
  */
 import { DataSource } from 'typeorm';
 
@@ -36,9 +36,9 @@ const ENTITIES = [
 function getReadOptions(): DataSourceOptions {
   const host = process.env.DB_HOST;
   const port = process.env.DB_PORT;
-  const database = process.env.DB_NAME;
-  const username = process.env.DB_READ_USERNAME;
-  const password = process.env.DB_READ_PASSWORD;
+  const database = process.env.DB_APP_NAME;
+  const username = process.env.DB_APP_READ_USER;
+  const password = process.env.DB_APP_READ_PASSWORD;
   if (
     host === undefined ||
     port === undefined ||
@@ -47,7 +47,7 @@ function getReadOptions(): DataSourceOptions {
     password === undefined
   ) {
     throw new Error(
-      'Read DataSource requires DB_HOST, DB_PORT, DB_NAME, DB_READ_USERNAME, DB_READ_PASSWORD (validate at startup).'
+      'Read DataSource requires DB_HOST, DB_PORT, DB_APP_NAME, DB_APP_READ_USER, DB_APP_READ_PASSWORD (validate at startup).'
     );
   }
   return {
@@ -66,9 +66,9 @@ function getReadOptions(): DataSourceOptions {
 function getReadWriteOptions(): DataSourceOptions {
   const host = process.env.DB_HOST;
   const port = process.env.DB_PORT;
-  const database = process.env.DB_NAME;
-  const username = process.env.DB_READ_WRITE_USERNAME;
-  const password = process.env.DB_READ_WRITE_PASSWORD;
+  const database = process.env.DB_APP_NAME;
+  const username = process.env.DB_APP_READ_WRITE_USER;
+  const password = process.env.DB_APP_READ_WRITE_PASSWORD;
   if (
     host === undefined ||
     port === undefined ||
@@ -77,7 +77,7 @@ function getReadWriteOptions(): DataSourceOptions {
     password === undefined
   ) {
     throw new Error(
-      'Read-write DataSource requires DB_HOST, DB_PORT, DB_NAME, DB_READ_WRITE_USERNAME, DB_READ_WRITE_PASSWORD (validate at startup).'
+      'Read-write DataSource requires DB_HOST, DB_PORT, DB_APP_NAME, DB_APP_READ_WRITE_USER, DB_APP_READ_WRITE_PASSWORD (validate at startup).'
     );
   }
   return {

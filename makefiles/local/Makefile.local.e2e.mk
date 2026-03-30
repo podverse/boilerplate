@@ -93,7 +93,7 @@ e2e_test_web:
 	@npm run test:e2e -w apps/web -- $(WEB_SPEC_ORDERED) && $(MAKE) e2e_mailpit_up && npm run test:e2e -w apps/web -- --config=playwright.signup-enabled.config.ts $(SIGNUP_ENABLED_WEB_SPEC_ARGS)
 
 # Run API gate decision first; if gate runs and succeeds, re-seed both E2E datasets, then run Playwright for management-web only.
-# Playwright auto-starts management-api/management-web on dedicated E2E ports (4110/4112)
+# Playwright auto-starts management-api, management-web sidecar, and management-web on E2E ports (4110/4111/4112)
 # using production-like build/start commands.
 e2e_test_management_web:
 	@$(call e2e_run_api_gate)

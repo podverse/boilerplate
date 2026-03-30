@@ -31,7 +31,7 @@ const run = async (): Promise<void> => {
   const { config } = await import('./config/index.js');
   const app = (await import('./app.js')).createApp();
   const server = app.listen(config.port, () => {
-    console.warn(`${config.brandName} listening on port ${config.port}`);
+    console.warn(`Management API listening on port ${config.port}`);
   });
 
   let shuttingDown = false;

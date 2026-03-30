@@ -17,6 +17,7 @@ function getCookieOptions() {
     refreshCookieName: config.refreshCookieName,
     cookieSecure: config.cookieSecure,
     cookieSameSite: config.cookieSameSite,
+    cookieDomain: config.cookieDomain,
     accessMaxAgeSeconds: config.accessTokenMaxAgeSeconds,
     refreshMaxAgeSeconds: config.refreshTokenMaxAgeSeconds,
   };

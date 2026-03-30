@@ -3,13 +3,16 @@ import { getTranslations } from 'next-intl/server';
 import { Main } from '@boilerplate/ui';
 
 import { NavBar } from '../../components/NavBar';
-import { getAppTitleIcon } from '../../config/env';
+import { getRuntimeConfig } from '../../config/runtime-config-store';
 import { getVisibleNavItems } from '../../lib/main-nav';
 import { ROUTES } from '../../lib/routes';
 import { getServerUser } from '../../lib/server-auth';
 
 export default async function MainLayout({ children }: { children: React.ReactNode }) {
   const user = await getServerUser();
+  const runtimeConfig = getRuntimeConfig();
+  const brandName =
+    runtimeConfig.env.NEXT_PUBLIC_MANAGEMENT_WEB_BRAND_NAME ?? 'boilerplate-management-web';
   const t = await getTranslations('common');
   const allNavItems = getVisibleNavItems(
     user?.isSuperAdmin === true,
@@ -17,11 +20,9 @@ export default async function MainLayout({ children }: { children: React.ReactNo
     (key) => t(key)
   );
   const mainNavItems = allNavItems.filter((item) => item.href !== ROUTES.DASHBOARD);
-  const titleIcon = getAppTitleIcon();
-
   return (
     <>
-      <NavBar mainNavItems={mainNavItems} titleIcon={titleIcon} />
+      <NavBar brandName={brandName} mainNavItems={mainNavItems} />
       <Main>{children}</Main>
     </>
   );

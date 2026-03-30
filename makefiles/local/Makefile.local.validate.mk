@@ -9,23 +9,26 @@ validate:
 	@echo "  Running Pre-Push Validation"
 	@echo "============================================"
 	@echo ""
-	@echo "Step 1/6: Security audit..."
+	@echo "Step 1/7: Security audit..."
 	npm audit --omit=dev
 	@echo ""
-	@echo "Step 2/6: Building packages..."
+	@echo "Step 2/7: Env classification (validate-parity)..."
+	@bash scripts/env-classification/validate-parity.sh
+	@echo ""
+	@echo "Step 3/7: Building packages..."
 	npm run build:packages
 	@echo ""
-	@echo "Step 3/6: Linting..."
+	@echo "Step 4/7: Linting..."
 	npm run lint
 	@echo ""
-	@echo "Step 4/6: Type checking..."
+	@echo "Step 5/7: Type checking..."
 	npm run type-check
 	@echo ""
-	@echo "Step 5/6: Setting up env for web (Next.js .env.local)..."
-	@cp -n apps/web/.env.example apps/web/.env.local 2>/dev/null || true
-	@echo "  (apps/web/.env.local from .env.example if missing)"
+	@echo "Step 6/7: Setting up env for web (Next.js .env.local)..."
+	@test -f apps/web/.env.local || ruby scripts/env-classification/boilerplate-env.rb merge-env --profile dev --group web --output apps/web/.env.local
+	@echo "  (apps/web/.env.local from classification if missing)"
 	@echo ""
-	@echo "Step 6/6: Building apps..."
+	@echo "Step 7/7: Building apps..."
 	npm run build:apps
 	@echo ""
 	@echo "============================================"
