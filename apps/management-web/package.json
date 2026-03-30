@@ -1,6 +1,6 @@
 {
   "name": "@boilerplate/management-web",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "private": true,
   "scripts": {
     "i18n:compile": "node ../../scripts/i18n/compile.mjs management-web",
