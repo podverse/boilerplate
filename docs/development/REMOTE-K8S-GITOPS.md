@@ -165,9 +165,37 @@ kubectl -n <namespace> get certificate
 
 ## Step 4 — Align Argo CD `Application` sources with your Git remote
 
-**Do this:** In each Argo `Application` under `argocd/boilerplate-<env>/`, set **`spec.source.repoURL`** and **`targetRevision`** to the Git URL and branch your Argo CD instance should track.
+### One-time bootstrap (your GitOps remote)
 
-**Why:** A fresh clone must not still reference someone else’s fork or branch.
+After a **fresh clone or fork** of your GitOps repository, each Argo `Application` under
+`argocd/boilerplate-<env>/` must use **`spec.source.repoURL`** and **`targetRevision`** for **your**
+Git remote and branch — not a template or another operator’s fork.
+
+**Automate (recommended):** In a GitOps repo that uses the Boilerplate thin-overlay layout, run
+the helper from your clone (see
+[GITOPS-BOOTSTRAP.md](https://github.com/podverse/k.podcastdj.com/blob/main/docs/GITOPS-BOOTSTRAP.md)
+in **podverse/k.podcastdj.com** or your fork), for example:
+
+```bash
+./scripts/align-argocd-application-sources.sh --repo-url 'https://github.com/<you>/<gitops-repo>.git' --revision main --env alpha
+```
+
+Use **`--dry-run`** to preview diffs; omit `--repo-url` / `--revision` on a TTY (or pass
+`--interactive`) to be prompted.
+
+**Manual:** Edit each YAML under `argocd/boilerplate-<env>/` and set **`repoURL`** and
+**`targetRevision`** explicitly.
+
+**Why:** Argo CD must sync **your** GitOps repo; a stale `repoURL` points at the wrong repository.
+
+### Recurring: pin Boilerplate bases and images
+
+After **Boilerplate** publish (immutable tag on Git + GHCR), update overlay **`images[].newTag`**
+and **`?ref=`** on remote Boilerplate URLs. Your GitOps repo should document the bump script (see
+[BOILERPLATE-GITOPS-PINS.md](https://github.com/podverse/k.podcastdj.com/blob/main/docs/BOILERPLATE-GITOPS-PINS.md)).
+Set **`BOILERPLATE_GIT_BASE`** when pins target a **fork** of Boilerplate. To rewrite only the
+Boilerplate **repo URL prefix** (e.g. after forking) without changing the pin tag, use
+**`align-boilerplate-git-base.sh`** as described in **GITOPS-BOOTSTRAP.md**.
 
 ### Kustomize remote bases (thin overlays)
 
