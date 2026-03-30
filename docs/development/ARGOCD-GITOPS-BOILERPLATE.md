@@ -15,7 +15,9 @@ source of truth for:
 - **SOPS-encrypted** secrets committed to Git.
 
 The Podverse reference GitOps repo is **k.podcastdj.com** (private org layout); forks should mirror
-that pattern under their own repo and branch that Argo CD’s `targetRevision` tracks.
+that pattern under their own repo. Argo CD’s **`targetRevision`** typically tracks **one** default branch
+(e.g. **`main`**); **alpha / beta / prod** are separate **paths** (`apps/boilerplate-<env>/`), not separate
+Git branches on the GitOps repo.
 
 **Do not** `kubectl apply` a root `Application` from this repo expecting it to drive alpha: the
 former `infra/k8s/alpha-application.yaml` pointed at `infra/k8s/alpha/apps`, which is a **placeholder**

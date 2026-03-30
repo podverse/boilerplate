@@ -21,7 +21,7 @@ not use bare `X.Y.Z` unless you intentionally override the workflow.
 
 **k.podcastdj.com:** run **`./scripts/bump-boilerplate-alpha-pins.sh <VERSION_TAG> --dry-run`** first, then
 **`--push`** (same string as step 1 / Actions **VERSION** output); see
-[k.podcastdj.com `docs/BOILERPLATE-ALPHA-BUMP.md`](https://github.com/podverse/k.podcastdj.com/blob/develop/docs/BOILERPLATE-ALPHA-BUMP.md).
+[k.podcastdj.com `docs/BOILERPLATE-GITOPS-PINS.md`](https://github.com/podverse/k.podcastdj.com/blob/main/docs/BOILERPLATE-GITOPS-PINS.md).
 That sets every **`newTag`** and **`?ref=`** on podverse/boilerplate bases under **`apps/boilerplate-alpha/`**
 (including **db** and **keyvaldb**).
 
@@ -41,9 +41,10 @@ Alternatively, edit manually in your **GitOps** repository (example paths for **
 unchanged if their remote bases already use an immutable tag; the scripted bump updates **db** and
 **keyvaldb** **`?ref=`** for consistency.
 
-**Argo CD `Application` `targetRevision` (k.podcastdj.com):** boilerplate-alpha Applications should use
-**`targetRevision: alpha`** on the GitOps repo so Argo syncs the branch you merge pin bumps into; image
-bumps still live in overlay **`newTag`** / **`?ref=`** as above.
+**Argo CD `Application` `targetRevision` (k.podcastdj.com):** Applications use **`targetRevision: main`**
+(or your GitOps repo default branch). **Alpha / beta / prod** are **folders** (`apps/boilerplate-alpha`, …),
+not separate Git branches on the GitOps repo. Image pins still live in overlay **`newTag`** / **`?ref=`** as
+above. See [k.podcastdj.com `docs/GITOPS-ENVIRONMENTS.md`](https://github.com/podverse/k.podcastdj.com/blob/main/docs/GITOPS-ENVIRONMENTS.md).
 
 ## 3. Optional — env render from Boilerplate
 

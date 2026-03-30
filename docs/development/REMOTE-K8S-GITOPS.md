@@ -61,9 +61,10 @@ When you change manifests under **`infra/k8s/base/`** in this repo, or ship new 
    [BOILERPLATE-PUBLISH-GITOPS-BUMP-CHECKLIST.md](BOILERPLATE-PUBLISH-GITOPS-BUMP-CHECKLIST.md). **Dry run**
    the pin bump when a script supports it (e.g. **`--dry-run`**) before **`--push`** / commit.
 3. **Argo `Application.spec.source.targetRevision`** points at a **branch (or tag) on the GitOps repo
-   itself**, not at Boilerplate. Example: **k.podcastdj.com** uses **`targetRevision: alpha`** on the
-   GitOps repo while **`?ref=`** on Boilerplate URLs uses **`X.Y.Z-staging.N`**. Simpler setups may use
-   **`main`** on the GitOps repo only; keep **GitOps branch** and **Boilerplate `?ref=`** mentally separate.
+   itself**, not at Boilerplate. Example: **k.podcastdj.com** uses **`targetRevision: main`** (default
+   branch) while **alpha / beta / prod** are **path prefixes** (`apps/boilerplate-alpha`, …)—not separate
+   Git branches per environment on that repo. **`?ref=`** on Boilerplate URLs still uses the immutable tag
+   **`X.Y.Z-staging.N`**. Keep **GitOps repo branch** and **Boilerplate `?ref=`** mentally separate.
 4. From **Boilerplate** root: **`make alpha_env_render_dry_run`**, then **`make alpha_env_validate`**, then
    **`make alpha_env_render`** when env/classification/overrides changed (port + ingress patches run at the
    end of render). Skip render if this release is images-only with no env changes.

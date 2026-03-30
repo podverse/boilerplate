@@ -63,3 +63,44 @@ is the @boilerplate/docs/development/REMOTE-K8S-GITOPS.md still up to date with 
 - docs/development/REMOTE-K8S-GITOPS.md
 - docs/development/BOILERPLATE-PUBLISH-GITOPS-BUMP-CHECKLIST.md
 - .llm/history/active/gitops-bump-0.1.4-docs/gitops-bump-0.1.4-docs-part-01.md
+
+### Session 4 - 2026-03-29
+
+#### Prompt (Developer)
+
+@/Users/mitcheldowney/repos/pv/k.podcastdj.com/argocd/boilerplate-alpha/keyvaldb.yaml:10 this target revision seems wrong to push to the develop branch. maybe we should change those lines later in an alpha branch commit?
+
+#### Key Decisions
+
+- **k.podcastdj.com:** `argocd/boilerplate-alpha/*.yaml` **`targetRevision: alpha` → `develop`** for commits on **`develop`**; **`docs/BOILERPLATE-ALPHA-BUMP.md`** documents flipping to **`alpha`** on **`alpha`** branch when promoting.
+- **Boilerplate:** **REMOTE-K8S-GITOPS.md** publish-order example and **BOILERPLATE-PUBLISH-GITOPS-BUMP-CHECKLIST.md** Argo note updated to match develop vs alpha branch alignment.
+
+#### Files Created/Modified
+
+- (k.podcastdj.com) argocd/boilerplate-alpha/*.yaml, docs/BOILERPLATE-ALPHA-BUMP.md
+- docs/development/REMOTE-K8S-GITOPS.md
+- docs/development/BOILERPLATE-PUBLISH-GITOPS-BUMP-CHECKLIST.md
+- .llm/history/active/gitops-bump-0.1.4-docs/gitops-bump-0.1.4-docs-part-01.md
+
+### Session 5 - 2026-03-29
+
+#### Prompt (Developer)
+
+Folder-per-environment GitOps (no env-specific Git branches on k.podcastdj.com)
+
+Implement the plan as specified, it is attached for your reference. Do NOT edit the plan file itself.
+
+To-do's from the plan have already been created. Do not create them again. Mark them as in_progress as you work, starting with the first one. Don't stop until you have completed all the to-dos.
+
+#### Key Decisions
+
+- **k.podcastdj.com:** Confirmed **`targetRevision: main`** on boilerplate-alpha Applications; added **`scripts/bump-boilerplate-alpha-pins.sh`** with **`BASE_BRANCH` / `PR_BASE_BRANCH` default `main`**; workflow checks out **`main`** and PR base **`main`**; new **`docs/GITOPS-ENVIRONMENTS.md`**, **`docs/BOILERPLATE-GITOPS-PINS.md`**; README GitOps blurb (folder-per-env, no env Git branches).
+- **Boilerplate:** **REMOTE-K8S-GITOPS.md**, **BOILERPLATE-PUBLISH-GITOPS-BUMP-CHECKLIST.md**, **ARGOCD-GITOPS-BOILERPLATE.md** updated; k.podcastdj doc links use **`blob/main`** and **BOILERPLATE-GITOPS-PINS** / **GITOPS-ENVIRONMENTS**.
+
+#### Files Created/Modified
+
+- (k.podcastdj.com) scripts/bump-boilerplate-alpha-pins.sh, .github/workflows/bump-boilerplate-alpha-pins.yml, docs/GITOPS-ENVIRONMENTS.md, docs/BOILERPLATE-GITOPS-PINS.md, docs/BOILERPLATE-ALPHA-BUMP.md (stub redirect), README.md
+- docs/development/REMOTE-K8S-GITOPS.md
+- docs/development/BOILERPLATE-PUBLISH-GITOPS-BUMP-CHECKLIST.md
+- docs/development/ARGOCD-GITOPS-BOILERPLATE.md
+- .llm/history/active/gitops-bump-0.1.4-docs/gitops-bump-0.1.4-docs-part-01.md
