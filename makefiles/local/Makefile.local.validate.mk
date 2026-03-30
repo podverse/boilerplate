@@ -35,7 +35,7 @@ validate:
 	@echo "  All checks passed!"
 	@echo "============================================"
 
-# Optional: after validate, build Docker images for alpha publish parity.
+# Optional: after validate, build Docker images with the same Dockerfiles CI uses for staging publish.
 # Uses infra/docker/local/* Dockerfiles for api, management-api, web, web-sidecar,
 # management-web, and management-web-sidecar.
 validate_docker: validate

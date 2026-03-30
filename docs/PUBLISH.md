@@ -1,17 +1,22 @@
-# Alpha Publish
+# Alpha branch: publish staging images
 
-This document describes how alpha (release-candidate) Docker images are published for the
-Boilerplate monorepo.
+This document describes how **staging** Docker images are published from the **`alpha`** branch for
+the Boilerplate monorepo. Pre-release tags use **`X.Y.Z-staging.N`** and a floating **`:staging`**
+tag so the same build can be pinned from multiple non-prod clusters (e.g. alpha and beta) via
+GitOps.
 
 ## What the alpha branch is for
 
-The **`alpha`** branch is the release-candidate branch. Default branch remains **`develop`**.
-When you merge from `develop` into `alpha` (or push directly to `alpha`), the **Publish Alpha**
-GitHub Action runs: it validates the repo (audit, build, lint, type-check), builds and pushes
-Docker images to GitHub Container Registry (GHCR), then verifies the pushed tags exist.
+The **`alpha`** branch is the release-candidate line. Default branch remains **`develop`**.
+When you merge from `develop` into `alpha` (or push directly to `alpha`), the **Publish staging
+(alpha branch)** GitHub Action runs: it validates the repo (audit, build, lint, type-check), builds
+and pushes Docker images to GitHub Container Registry (GHCR), verifies tags, and creates a matching
+**Git tag** on the workflow commit.
 
-No Kubernetes deployment is performed in this repo. The images are produced here, and deployment
-must be handled by an external runtime or GitOps repo.
+No Kubernetes manifests are applied from this repo. Clusters consume images and overlays from your
+**GitOps** repository (e.g. Argo CD `Application` `targetRevision`, Kustomize `newTag`). After each
+publish, update those pins in the GitOps repo (PR, automation in that repo, or manual commit)—this
+Boilerplate workflow does not push to other repositories.
 
 ## How to publish
 
@@ -24,8 +29,12 @@ must be handled by an external runtime or GitOps repo.
    If your branch protection does not allow direct push to `alpha`, open a PR from `develop` to
    `alpha` instead.
 
-2. **Merge to alpha** – Open a PR from `develop` into `alpha` (or push to `alpha`). The workflow [.github/workflows/publish-alpha.yml](../.github/workflows/publish-alpha.yml) runs on push to `alpha`.
-3. **Manual run** – In GitHub: Actions → "Publish Alpha" → "Run workflow". Choose the `alpha` branch and run. You can optionally set **Version override** to a specific version string (e.g. `0.1.2-alpha.99`); when set, that value is used and the usual auto-increment from GHCR is skipped. Useful for re-publishing a specific version or testing.
+2. **Merge to alpha** – Open a PR from `develop` into `alpha` (or push to `alpha`). The workflow
+   [.github/workflows/publish-alpha.yml](../.github/workflows/publish-alpha.yml) runs on push to
+   `alpha`.
+3. **Manual run** – In GitHub: Actions → **Publish staging (alpha branch)** → **Run workflow**.
+   Choose the `alpha` branch. You can set **Version override** (e.g. `0.1.2-staging.99`); when set,
+   that value is used and GHCR auto-increment is skipped.
 
 When bumping version via `scripts/publish/bump-version.sh`, the script regenerates the lockfile
 under Linux (Docker) before committing so CI gets the correct optional deps. If you add or change
@@ -43,81 +52,77 @@ Six images are built from the Dockerfiles under `infra/docker/local/`:
 - **management-web** – Next.js management web app
 - **management-web-sidecar** – Runtime-config sidecar for the management web app
 
-Each image is tagged with **`:alpha`** (always the latest alpha build) and with a **version tag**
-that is unique per run. The version is derived from the root `package.json` base version (e.g.
-`0.1.2`) plus an auto-incremented alpha suffix: `0.1.2-alpha.0`, `0.1.2-alpha.1`, and so on.
-You can pin a specific alpha build by using the version tag; use `:alpha` when you always want
-the latest.
+Each image is tagged with **`:staging`** (latest staging build from this pipeline) and an immutable
+**version tag** `X.Y.Z-staging.N` derived from root `package.json` base version (prerelease stripped)
+plus an auto-incremented **N** from existing GHCR tags for that base. Pin clusters with the version
+tag; use **`:staging`** only when you intentionally want “latest staging.”
 
-On a first-ever publish where GHCR does not yet have the package path, the workflow treats
-`404` from tag discovery as an expected bootstrap state and automatically starts at
-`X.Y.Z-alpha.0`.
+On first publish where GHCR has no package yet, tag discovery `404` bootstraps at **`X.Y.Z-staging.0`**.
+
+### Migration from `-alpha.N` / `:alpha`
+
+Older GHCR tags `*-alpha.*` and `:alpha` are **not** renamed. After this naming change, new tags use
+`-staging.N` and `:staging` for the same branch trigger. Historical alpha tags remain in the registry.
 
 ## How to consume the images
 
 Replace `OWNER` and `REPO` with your GitHub org/user and repo name (e.g. `myorg/boilerplate`).
 
 ```bash
-# Pull by alpha tag (latest alpha build)
-docker pull ghcr.io/OWNER/REPO/api:alpha
-docker pull ghcr.io/OWNER/REPO/management-api:alpha
-docker pull ghcr.io/OWNER/REPO/web:alpha
-docker pull ghcr.io/OWNER/REPO/web-sidecar:alpha
-docker pull ghcr.io/OWNER/REPO/management-web:alpha
-docker pull ghcr.io/OWNER/REPO/management-web-sidecar:alpha
+# Pull by staging tag (latest staging build from alpha branch pipeline)
+docker pull ghcr.io/OWNER/REPO/api:staging
+docker pull ghcr.io/OWNER/REPO/management-api:staging
+docker pull ghcr.io/OWNER/REPO/web:staging
+docker pull ghcr.io/OWNER/REPO/web-sidecar:staging
+docker pull ghcr.io/OWNER/REPO/management-web:staging
+docker pull ghcr.io/OWNER/REPO/management-web-sidecar:staging
 
-# Or by version tag (e.g. a specific alpha build)
-docker pull ghcr.io/OWNER/REPO/api:0.1.2-alpha.2
-docker pull ghcr.io/OWNER/REPO/management-api:0.1.2-alpha.2
-docker pull ghcr.io/OWNER/REPO/web:0.1.2-alpha.2
-docker pull ghcr.io/OWNER/REPO/web-sidecar:0.1.2-alpha.2
-docker pull ghcr.io/OWNER/REPO/management-web:0.1.2-alpha.2
-docker pull ghcr.io/OWNER/REPO/management-web-sidecar:0.1.2-alpha.2
+# Or by version tag (immutable)
+docker pull ghcr.io/OWNER/REPO/api:0.1.2-staging.2
+docker pull ghcr.io/OWNER/REPO/management-api:0.1.2-staging.2
+docker pull ghcr.io/OWNER/REPO/web:0.1.2-staging.2
+docker pull ghcr.io/OWNER/REPO/web-sidecar:0.1.2-staging.2
+docker pull ghcr.io/OWNER/REPO/management-web:0.1.2-staging.2
+docker pull ghcr.io/OWNER/REPO/management-web-sidecar:0.1.2-staging.2
 ```
 
-For private repos, authenticate to GHCR first (e.g. `echo $GITHUB_TOKEN | docker login ghcr.io -u USERNAME --password-stdin`).
+For private repos, authenticate to GHCR first (e.g.
+`echo $GITHUB_TOKEN | docker login ghcr.io -u USERNAME --password-stdin`).
 
 ## Workflow reference
 
-- **Workflow:** [.github/workflows/publish-alpha.yml](../.github/workflows/publish-alpha.yml) – Runs on push to `alpha` or via workflow_dispatch.
+- **Workflow:** [.github/workflows/publish-alpha.yml](../.github/workflows/publish-alpha.yml) — runs
+  on push to `alpha` or `workflow_dispatch`. Display name: **Publish staging (alpha branch)**.
 
 ## Secrets and permissions
 
 The workflow supports two tokens for GHCR tag discovery:
 
 - `GHCR_REGISTRY_TOKEN` (recommended): repository secret with `packages:read`
-- `GITHUB_TOKEN` (fallback): built-in token used if `GHCR_REGISTRY_TOKEN` is not set
+- `GITHUB_TOKEN` (fallback): built-in token if `GHCR_REGISTRY_TOKEN` is not set
 
-If GHCR tag listing fails, the workflow exits with an actionable error and asks for one of:
+If GHCR tag listing fails, the workflow exits with guidance or use **Version override** on manual
+dispatch.
 
-- configure `GHCR_REGISTRY_TOKEN`, or
-- re-run with **Version override** in manual dispatch
-
-Pushing images still uses `GITHUB_TOKEN` with `packages:write` permissions in the publish job.
-For repository setup details, see
-[repo-management/GITHUB-SETUP.md](repo-management/GITHUB-SETUP.md).
+Image push uses `GITHUB_TOKEN` with `packages:write` in the publish job.
 
 The workflow behavior for GHCR tag discovery is:
 
 - `200`: normal tag discovery and increment behavior
-- `404`: expected first-run bootstrap state, auto-starts at `X.Y.Z-alpha.0`
+- `404`: first-run bootstrap, starts at `X.Y.Z-staging.0`
 - `401`/`403`: auth or package permission issue (fails with guidance)
-- Other status codes: treated as unexpected and fail fast
+- Other status codes: unexpected, fail fast
 
 ## Deployment contract
 
-- This repo's alpha pipeline is **publish-only**.
-- The workflow publishes images and verifies tags; it does not apply Kubernetes manifests.
-- `infra/k8s/alpha/` is scaffold-only and not a wired deployment target today.
-- Consumers should reference immutable version tags (for example `0.1.2-alpha.3`) in their
-  deployment repo and use `:alpha` only when "latest alpha" behavior is intended.
+- This pipeline is **publish-first**; it does not apply Kubernetes manifests in-cluster or modify a
+  GitOps repo.
+- `infra/k8s/alpha/` is scaffold-only; remote overlays live in your GitOps repo.
+- Prefer immutable **`X.Y.Z-staging.N`** (and matching **Git tag** on this repo) in overlays;
+  **`:staging`** only when you want rolling “latest staging.”
 
 ## Troubleshooting
 
-- **Tag discovery returns `404`**: This is expected on first publish. The workflow now bootstraps
-  automatically at `X.Y.Z-alpha.0`.
-- **Tag discovery returns `401` or `403`**: Check `GHCR_REGISTRY_TOKEN` scope
-  (`packages:read`), org secret visibility for this repo, and whether org policy restricts
-  package read access from workflow tokens.
-- **Need a specific tag for an emergency republish**: Use manual dispatch with
-  `version_override`.
+- **Tag discovery returns `404`**: Expected on first publish; bootstraps at `X.Y.Z-staging.0`.
+- **Tag discovery returns `401` or `403`**: Check `GHCR_REGISTRY_TOKEN` and org package policy.
+- **Emergency republish**: Manual dispatch with `version_override`.

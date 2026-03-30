@@ -38,7 +38,11 @@ domains consistent with those public hosts. See also [ARGOCD-GITOPS-BOILERPLATE.
 
 When you change manifests under **`infra/k8s/base/`** in this repo:
 
-1. **Merge or tag** the Boilerplate branch that contains the change.
+1. **Merge or tag** the Boilerplate branch that contains the change. After a successful **Publish
+   staging (alpha branch)** run, a **Git tag** matching the GHCR **`X.Y.Z-staging.N`** tag exists on
+   that commit (see [ARGOCD-GITOPS-BOILERPLATE.md](ARGOCD-GITOPS-BOILERPLATE.md)). Bump
+   **`?ref=`** / **`targetRevision`** and image **`newTag`** in your **GitOps** repo to that tag
+   (or commit) as needed.
 2. In the **GitOps** repo, bump each remote base **`?ref=`** (or `targetRevision` if you use a single
    multi-path Application) to that branch, tag, or commit.
 3. From **Boilerplate** root: **`make alpha_env_validate`** then **`make alpha_env_render`** (port +
@@ -348,5 +352,7 @@ make alpha_env_validate && make alpha_env_render
 - **Variable catalog:** [ENV-REFERENCE.md](ENV-REFERENCE.md).
 - **Local k3d (contrast):** [K3D-ARGOCD-LOCAL.md](K3D-ARGOCD-LOCAL.md).
 - **Where Argo Applications live:** [ARGOCD-GITOPS-BOILERPLATE.md](ARGOCD-GITOPS-BOILERPLATE.md).
+- **Future beta/prod GitOps notes (placeholder):**
+  [GITOPS-FUTURE-ENVIRONMENTS.md](GITOPS-FUTURE-ENVIRONMENTS.md).
 - **Staging cutover:** [GITOPS-CUTOVER-STAGING-CHECKLIST.md](GITOPS-CUTOVER-STAGING-CHECKLIST.md).
 - **Deployment checklist, sync order, team scripts:** maintain in **your GitOps repository** (this open-source Boilerplate repo does not ship org-specific manifests).

@@ -21,6 +21,17 @@ that pattern under their own repo and branch that Argo CD’s `targetRevision` t
 former `infra/k8s/alpha-application.yaml` pointed at `infra/k8s/alpha/apps`, which is a **placeholder**
 only (no child Applications). That file was removed to avoid a misleading duplicate source of truth.
 
+## Alpha branch publish: staging tags and Argo CD refs
+
+The **Publish staging (alpha branch)** workflow (`.github/workflows/publish-alpha.yml`, triggered on
+push to **`alpha`**) pushes Docker images as SemVer pre-releases **`X.Y.Z-staging.N`** and a floating
+**`:staging`** tag. After GHCR verification it creates a **Git tag** with the same name as the
+version tag on the workflow commit. Point Kustomize remote bases (`?ref=`) or Argo CD
+`source.targetRevision` at that tag when syncing paths **in this repository** so bases match the
+image tag. Alpha and beta clusters can share the same image stream; pins differ in **GitOps**
+overlays. Update those pins in your GitOps repository after each publish (this app repo does not
+push GitOps commits from CI).
+
 ## Optional: app-of-apps from this repo
 
 If your org wants a Boilerplate-hosted app-of-apps, add real `Application` YAML under
@@ -32,4 +43,6 @@ described in [REMOTE-K8S-GITOPS.md](REMOTE-K8S-GITOPS.md).
 
 - [REMOTE-K8S-GITOPS.md](REMOTE-K8S-GITOPS.md) — clone, render, SOPS, sync order.
 - [GITOPS-CUTOVER-STAGING-CHECKLIST.md](GITOPS-CUTOVER-STAGING-CHECKLIST.md) — staging rollout steps.
+- [GITOPS-FUTURE-ENVIRONMENTS.md](GITOPS-FUTURE-ENVIRONMENTS.md) — **future** beta/prod GitOps and
+  promotion notes (not implemented; for when that work is scheduled).
 - [infra/k8s/INFRA-K8S.md](../../infra/k8s/INFRA-K8S.md) — layout of `base/`, `local/`, `alpha/`.
