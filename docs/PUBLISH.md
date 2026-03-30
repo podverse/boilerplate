@@ -5,6 +5,16 @@ the Boilerplate monorepo. Pre-release tags use **`X.Y.Z-staging.N`** and a float
 tag so the same build can be pinned from multiple non-prod clusters (e.g. alpha and beta) via
 GitOps.
 
+## Naming (Git branch, semver, environments)
+
+| Name                                     | Meaning                                                                                                   |
+| ---------------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| Git branch **`alpha`**                   | Triggers the publish workflow; release-candidate line from **`develop`**.                                 |
+| **`X.Y.Z-staging.N`** / **`:staging`**   | **Image** tags (SemVer prerelease + floating tag). Not a cluster or namespace name.                       |
+| GitOps **`boilerplate-alpha`** (example) | **Environment** folder/namespace (alpha, beta, prod, …). Independent of the word “staging” in image tags. |
+
+Same **`X.Y.Z-staging.N`** stream can pin **alpha** and **beta** overlays with different GitOps commits.
+
 ## What the alpha branch is for
 
 The **`alpha`** branch is the release-candidate line. Default branch remains **`develop`**.
@@ -17,6 +27,8 @@ No Kubernetes manifests are applied from this repo. Clusters consume images and 
 **GitOps** repository (e.g. Argo CD `Application` `targetRevision`, Kustomize `newTag`). After each
 publish, update those pins in the GitOps repo (PR, automation in that repo, or manual commit)—this
 Boilerplate workflow does not push to other repositories.
+
+Step-by-step GitOps file list: [BOILERPLATE-PUBLISH-GITOPS-BUMP-CHECKLIST.md](development/BOILERPLATE-PUBLISH-GITOPS-BUMP-CHECKLIST.md).
 
 ## How to publish
 

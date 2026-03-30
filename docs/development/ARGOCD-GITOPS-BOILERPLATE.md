@@ -7,7 +7,7 @@ cluster.
 
 ## Where production Applications live
 
-For **remote** clusters (alpha, staging, production), treat your **GitOps repository** as the only
+For **remote** clusters (alpha, beta, production), treat your **GitOps repository** as the only
 source of truth for:
 
 - Argo CD **`Application`** and **`AppProject`** CRs (paths such as `argocd/boilerplate-<env>/`),
@@ -30,7 +30,8 @@ version tag on the workflow commit. Point Kustomize remote bases (`?ref=`) or Ar
 `source.targetRevision` at that tag when syncing paths **in this repository** so bases match the
 image tag. Alpha and beta clusters can share the same image stream; pins differ in **GitOps**
 overlays. Update those pins in your GitOps repository after each publish (this app repo does not
-push GitOps commits from CI).
+push GitOps commits from CI). The **`staging`** in **`X.Y.Z-staging.N`** names the **pre-release image
+tag**, not a required Kubernetes environment name—your overlays stay **`boilerplate-alpha`**, **`boilerplate-beta`**, etc.
 
 ## Optional: app-of-apps from this repo
 
@@ -41,6 +42,7 @@ described in [REMOTE-K8S-GITOPS.md](REMOTE-K8S-GITOPS.md).
 
 ## Related
 
+- [BOILERPLATE-PUBLISH-GITOPS-BUMP-CHECKLIST.md](BOILERPLATE-PUBLISH-GITOPS-BUMP-CHECKLIST.md) — overlay files to bump after publish.
 - [REMOTE-K8S-GITOPS.md](REMOTE-K8S-GITOPS.md) — clone, render, SOPS, sync order.
 - [GITOPS-CUTOVER-STAGING-CHECKLIST.md](GITOPS-CUTOVER-STAGING-CHECKLIST.md) — staging rollout steps.
 - [GITOPS-FUTURE-ENVIRONMENTS.md](GITOPS-FUTURE-ENVIRONMENTS.md) — **future** beta/prod GitOps and

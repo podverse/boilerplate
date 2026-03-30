@@ -6,17 +6,33 @@ End-to-end steps from a **clean slate** to a working Boilerplate stack on **your
 
 This repository holds application source, [`infra/env/classification`](../../infra/env/classification/), and `make alpha_env_render`. The GitOps repo is yours: layout, namespace names, and hostnames are conventions you choose and keep consistent with Argo CD and ingress.
 
+## Dry runs first (recommended)
+
+Where a **dry run** exists, use it **before** the real command so you catch mistakes without writing to Git, the cluster, or the registry.
+
+| When                                                        | Dry run (use this first)                                                                                                | Then                                                                                    |
+| ----------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
+| **Git push** (GitOps or Boilerplate)                        | `git push --dry-run origin <branch>`                                                                                    | `git push`                                                                              |
+| **Pin images + Boilerplate `?ref=`** (e.g. k.podcastdj.com) | `./scripts/bump-boilerplate-alpha-pins.sh <VERSION_TAG> --dry-run`                                                      | `./scripts/bump-boilerplate-alpha-pins.sh <VERSION_TAG> --push` or manual edit + commit |
+| **Env render** (Boilerplate root)                           | `make alpha_env_render_dry_run` (optional: set `BOILERPLATE_K8S_OUTPUT_REPO` to match validate/render)                  | `make alpha_env_validate` then `make alpha_env_render`                                  |
+| **Apply Argo `Application` / `AppProject` YAML**            | `kubectl apply --dry-run=server -f …` (or `=client` if server dry-run is unavailable)                                   | `kubectl apply -f …`                                                                    |
+| **Apply decrypted Secret YAML**                             | `sops -d secrets/… \| kubectl apply --dry-run=server -n <namespace> -f -`                                               | `sops -d … \| kubectl apply -n <namespace> -f -`                                        |
+| **Compile overlays locally**                                | `kubectl kustomize apps/boilerplate-<env>/api --load-restrictor LoadRestrictionsNone >/dev/null` (repeat per component) | Push GitOps and sync Argo                                                               |
+| **Argo CD sync** (CLI)                                      | `argocd app sync <app> --dry-run` when your Argo CD version supports it                                                 | Normal sync (UI or CLI)                                                                 |
+
+**Boilerplate remote bases:** Pin **`?ref=`** to an **immutable tag** (e.g. **`X.Y.Z-staging.N`** from publish), not a branch name, for production-style alpha overlays—see [BOILERPLATE-PUBLISH-GITOPS-BUMP-CHECKLIST.md](BOILERPLATE-PUBLISH-GITOPS-BUMP-CHECKLIST.md).
+
 ## Terminology (examples)
 
 Throughout this doc, replace placeholders with your own names:
 
-| Placeholder                     | Meaning                                                                                                                                                        |
-| ------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **GitOps repo**                 | Repository Argo CD syncs (clone URL you control).                                                                                                              |
-| **`apps/boilerplate-<env>/`**   | Per-component overlays (e.g. `alpha`, `staging`). Render output paths use the same `<env>` as `dev/env-overrides/<env>/` in this repo.                         |
-| **`argocd/boilerplate-<env>/`** | Argo `Application` manifests for that environment.                                                                                                             |
-| **`<namespace>`**               | Kubernetes namespace for workloads (often matches env, e.g. `boilerplate-alpha`).                                                                              |
-| **Public URLs**                 | e.g. `https://app.example.com`, `https://api.example.com`, `https://management.example.com` — must match ingress, TLS, CORS, and cookie settings in overrides. |
+| Placeholder                     | Meaning                                                                                                                                                                                                                          |
+| ------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **GitOps repo**                 | Repository Argo CD syncs (clone URL you control).                                                                                                                                                                                |
+| **`apps/boilerplate-<env>/`**   | Per-component overlays (e.g. `alpha`, `beta`, `prod`). Render output paths use the same `<env>` as `dev/env-overrides/<env>/` in this repo. The SemVer segment **`-staging.N`** on **images** is not a cluster environment name. |
+| **`argocd/boilerplate-<env>/`** | Argo `Application` manifests for that environment.                                                                                                                                                                               |
+| **`<namespace>`**               | Kubernetes namespace for workloads (often matches env, e.g. `boilerplate-alpha`).                                                                                                                                                |
+| **Public URLs**                 | e.g. `https://app.example.com`, `https://api.example.com`, `https://management.example.com` — must match ingress, TLS, CORS, and cookie settings in overrides.                                                                   |
 
 ## What you are wiring
 
@@ -36,20 +52,25 @@ domains consistent with those public hosts. See also [ARGOCD-GITOPS-BOILERPLATE.
 
 ### Publish order after changing Boilerplate bases
 
-When you change manifests under **`infra/k8s/base/`** in this repo:
+When you change manifests under **`infra/k8s/base/`** in this repo, or ship new images:
 
-1. **Merge or tag** the Boilerplate branch that contains the change. After a successful **Publish
-   staging (alpha branch)** run, a **Git tag** matching the GHCR **`X.Y.Z-staging.N`** tag exists on
-   that commit (see [ARGOCD-GITOPS-BOILERPLATE.md](ARGOCD-GITOPS-BOILERPLATE.md)). Bump
-   **`?ref=`** / **`targetRevision`** and image **`newTag`** in your **GitOps** repo to that tag
-   (or commit) as needed.
-2. In the **GitOps** repo, bump each remote base **`?ref=`** (or `targetRevision` if you use a single
-   multi-path Application) to that branch, tag, or commit.
-3. From **Boilerplate** root: **`make alpha_env_validate`** then **`make alpha_env_render`** (port +
-   ingress patches run at the end of render).
-4. **SOPS-encrypt** any new or changed Secret YAML under **`secrets/`**, commit **encrypted** files and
+1. After a successful **Publish staging (alpha branch)** run, a **Git tag** **`X.Y.Z-staging.N`** exists
+   on Boilerplate (same string as GHCR; see [ARGOCD-GITOPS-BOILERPLATE.md](ARGOCD-GITOPS-BOILERPLATE.md)).
+2. In your **GitOps** repo, set overlay **`images[].newTag`** and remote Boilerplate base **`?ref=`** to
+   that **immutable tag** (scripted or manual)—see
+   [BOILERPLATE-PUBLISH-GITOPS-BUMP-CHECKLIST.md](BOILERPLATE-PUBLISH-GITOPS-BUMP-CHECKLIST.md). **Dry run**
+   the pin bump when a script supports it (e.g. **`--dry-run`**) before **`--push`** / commit.
+3. **Argo `Application.spec.source.targetRevision`** points at a **branch (or tag) on the GitOps repo
+   itself**, not at Boilerplate. Example: **k.podcastdj.com** uses **`targetRevision: alpha`** on the
+   GitOps repo while **`?ref=`** on Boilerplate URLs uses **`X.Y.Z-staging.N`**. Simpler setups may use
+   **`main`** on the GitOps repo only; keep **GitOps branch** and **Boilerplate `?ref=`** mentally separate.
+4. From **Boilerplate** root: **`make alpha_env_render_dry_run`**, then **`make alpha_env_validate`**, then
+   **`make alpha_env_render`** when env/classification/overrides changed (port + ingress patches run at the
+   end of render). Skip render if this release is images-only with no env changes.
+5. **SOPS-encrypt** any new or changed Secret YAML under **`secrets/`**, commit **encrypted** files and
    overlay updates in the GitOps repo.
-5. **Push** the GitOps branch Argo CD tracks, then **sync** Applications in dependency order (Step 11).
+6. **Push** the GitOps branch **`targetRevision`** references, then **sync** Applications in dependency
+   order (Step 11). Prefer **dry-run sync** when available (see table above).
 
 ## Step 1 — Tooling and access
 
@@ -74,7 +95,8 @@ make --version
 kubectl kustomize --help >/dev/null && echo "kubectl kustomize: ok"
 ```
 
-**Verify Git push** (use the remote and branch Argo CD tracks; adjust names):
+**Verify Git push** (use the remote and branch Argo CD tracks; adjust names). **Always dry-run push
+first** when automating or before a large promotion:
 
 ```bash
 git remote -v
@@ -175,9 +197,11 @@ default HEAD** while **`main` lags**. If `ref=main` fails with missing `infra/` 
 
 ## Step 5 — Register the Argo CD project and applications
 
-**Do this:** From the **GitOps** repo root, with kubectl context set to the remote cluster, apply your **AppProject** and the **Application** set for Boilerplate (paths depend on how you organized the repo), for example:
+**Do this:** From the **GitOps** repo root, with kubectl context set to the remote cluster, apply your **AppProject** and the **Application** set for Boilerplate (paths depend on how you organized the repo). **Dry-run apply first** so the API rejects invalid YAML before anything is stored:
 
 ```bash
+kubectl apply --dry-run=server -f argocd/apps/<your-project>.yaml
+kubectl apply --dry-run=server -f argocd/boilerplate-<env>/
 kubectl apply -f argocd/apps/<your-project>.yaml
 kubectl apply -f argocd/boilerplate-<env>/
 ```
@@ -212,13 +236,13 @@ sops -d secrets/<path-to-encrypted-pull-secret>.yaml | kubectl apply -f -
 
 ## Step 8 — Render ConfigMaps and Secret patches into the GitOps repo
 
-**Do this:** From **Boilerplate** root:
+**Do this:** From **Boilerplate** root, **in order** (dry run before writing files):
 
 ```bash
 export BOILERPLATE_K8S_OUTPUT_REPO=/absolute/path/to/your/gitops-repo
-make alpha_env_render_dry_run          # optional: inspect stdout
-make alpha_env_validate                # classification + drift vs committed overlay
-make alpha_env_render                  # writes ConfigMaps, deployment-secret-env.yaml, port/ingress patches, secrets/.../plain/
+make alpha_env_render_dry_run   # always first: prints rendered YAML; does not write
+make alpha_env_validate         # classification + drift vs committed overlay (needs output repo)
+make alpha_env_render           # writes ConfigMaps, deployment-secret-env.yaml, port/ingress patches, secrets/.../plain/
 ```
 
 **Why:** Keeps overlay ConfigMaps and **`deployment-secret-env.yaml`** in sync with [`infra/env/classification`](../../infra/env/classification). Full reference: **[K8S-ENV-RENDER.md](K8S-ENV-RENDER.md)**.
@@ -231,9 +255,11 @@ make alpha_env_render                  # writes ConfigMaps, deployment-secret-en
 
 **Why:** The GitOps repo stays safe; the cluster receives cleartext only via `sops -d | kubectl apply`, a secrets operator, or your org’s standard pattern.
 
-Apply encrypted secrets to the cluster (repeat per file as documented in your GitOps repo):
+Apply encrypted secrets to the cluster (repeat per file as documented in your GitOps repo). **Dry-run
+apply first** when you want the API server to validate objects without persisting them:
 
 ```bash
+sops -d secrets/<path>/boilerplate-api-secrets.enc.yaml | kubectl apply --dry-run=server -n <namespace> -f -
 sops -d secrets/<path>/boilerplate-api-secrets.enc.yaml | kubectl apply -n <namespace> -f -
 # ... db, valkey, management-api, web, management-web, sidecars as applicable
 ```
@@ -242,7 +268,7 @@ sops -d secrets/<path>/boilerplate-api-secrets.enc.yaml | kubectl apply -n <name
 
 ## Step 10 — Build and publish container images
 
-**Do this:** Push images to your registry with tags referenced in GitOps Kustomize **`images[].newTag`** (e.g. per-app `kustomization.yaml`). Typical path: CI on a release or staging branch builds and publishes. Alternatively build and push locally with the same tag scheme.
+**Do this:** Push images to your registry with tags referenced in GitOps Kustomize **`images[].newTag`** (e.g. per-app `kustomization.yaml`). Typical path: CI runs **Publish staging (alpha branch)** on **`alpha`** and publishes pre-release tags **`X.Y.Z-staging.N`**. Alternatively build and push locally with the same tag scheme.
 
 **Why:** Argo CD syncs Deployments that point at immutable tags; missing tags cause pull failures.
 
@@ -252,12 +278,16 @@ sops -d secrets/<path>/boilerplate-api-secrets.enc.yaml | kubectl apply -n <name
 
 ## Step 11 — Push GitOps; sync Argo CD in order
 
-**Do this:** Push the GitOps repo to the branch **`targetRevision`** references. In Argo CD, sync in dependency order (datastores before APIs, APIs before web), e.g.:
+**Do this:** **Dry-run `git push`** to the branch **`targetRevision`** references (Step 1 table), then push
+for real. In Argo CD, sync in dependency order (datastores before APIs, APIs before web), e.g.:
 
 1. **common** (namespace, ingress, TLS hosts)
 2. **db**, **keyvaldb**
 3. **api**, **management-api**
 4. **web**, **management-web**
+
+Use **dry-run sync** first when your tooling supports it (e.g. **`argocd app sync <app> --dry-run`**), then
+sync for real (UI or CLI).
 
 **Why:** Datastores must be ready before APIs; web depends on APIs and runtime config.
 
@@ -294,8 +324,8 @@ kubectl -n <namespace> get certificate   # if using cert-manager Certificate res
 curl -sI https://api.example.com/v1/health
 ```
 
-**Optional — validate a Kustomize overlay locally** (from your **GitOps** repo root; same engine Argo uses via
-kubectl). Only needed if you want a quick render check before push; skip if you rely on Argo sync alone:
+**Recommended before push — validate Kustomize overlays locally** (from your **GitOps** repo root; same
+engine Argo uses via kubectl). This is a **dry run** of manifest compilation (no cluster writes):
 
 ```bash
 kubectl kustomize apps/boilerplate-<env>/api --load-restrictor LoadRestrictionsNone >/dev/null && echo "kustomize api overlay: ok"
@@ -319,6 +349,8 @@ Open your web and management URLs in a browser.
 git clone <boilerplate> && git clone <gitops-repo>
 
 # GitOps registration (gitops repo root, correct kube context)
+kubectl apply --dry-run=server -f argocd/apps/<project>.yaml
+kubectl apply --dry-run=server -f argocd/boilerplate-<env>/
 kubectl apply -f argocd/apps/<project>.yaml
 kubectl apply -f argocd/boilerplate-<env>/
 
@@ -330,10 +362,10 @@ cd boilerplate
 make alpha_env_prepare_link
 # edit ~/.config/boilerplate/alpha-env-overrides/*.env
 export BOILERPLATE_K8S_OUTPUT_REPO=/absolute/path/to/gitops-repo
-make alpha_env_validate && make alpha_env_render
+make alpha_env_render_dry_run && make alpha_env_validate && make alpha_env_render
 
 # GitOps: sops encrypt plain secrets, commit, push
-# kubectl apply decrypted secrets to <namespace>
+# kubectl apply --dry-run=server … then kubectl apply decrypted secrets to <namespace>
 
 # Images: CI or local push; tags must match kustomization newTag
 
@@ -348,6 +380,7 @@ make alpha_env_validate && make alpha_env_render
 
 ## Related docs
 
+- **Pins after each publish:** [BOILERPLATE-PUBLISH-GITOPS-BUMP-CHECKLIST.md](BOILERPLATE-PUBLISH-GITOPS-BUMP-CHECKLIST.md).
 - **Env render / make targets:** [K8S-ENV-RENDER.md](K8S-ENV-RENDER.md).
 - **Variable catalog:** [ENV-REFERENCE.md](ENV-REFERENCE.md).
 - **Local k3d (contrast):** [K3D-ARGOCD-LOCAL.md](K3D-ARGOCD-LOCAL.md).
