@@ -2,7 +2,7 @@
 
 Boilerplate keeps the canonical variable list in [`infra/env/classification/base.yaml`](../../infra/env/classification/base.yaml) with optional overlays in [`infra/env/overrides/`](../../infra/env/overrides/). Each classification **env group** defines **`vars`** with per-key:
 
-- **`kind: literal`** — Not emitted into ConfigMap/Secret by render (typically set in Deployment `env:`).
+- **`kind: literal`** — Non-secret; emitted into the **ConfigMap** by `render_k8s_env.rb` when present in merged env (same as **`kind: config`** for K8s). Local `.env` generation may still treat literals separately from **`kind: config`**.
 - **`kind: config`** — Emitted into the **ConfigMap** when present in merged env.
 - **`kind: secret`** — Emitted into the **Secret** when present in merged env.
 - **`kind: source_only`** — In merged env for this env group but not emitted into that group’s CM/Secret (same role as former `literals_only_in_source`).
@@ -17,6 +17,8 @@ Boilerplate keeps the canonical variable list in [`infra/env/classification/base
 - When **`BOILERPLATE_K8S_OUTPUT_REPO`** is set, it is the root for the default GitOps overlay path even if rendered files are written elsewhere (e.g. drift validation renders to a temp dir but **exports `BOILERPLATE_K8S_OUTPUT_REPO`** to the real clone first so the overlay is read from committed YAML).
 
 On a real write (not `--dry-run`), it **prunes first** by removing only **generator-owned** files: ConfigMaps, plain Secret YAML paths, per-Deployment **`deployment-secret-env.yaml`** strategic-merge patches, and (when enabled in the manifest) plan-**05** **`deployment-ports-and-probes.yaml`** files — all defined in [`scripts/k8s-env/k8s-env-render-manifest.inc.sh`](../scripts/k8s-env/k8s-env-render-manifest.inc.sh) (same list the renderer writes). That removes stale files when workloads or filenames change without touching `kustomization.yaml` (except generated patch filenames listed there), hand-maintained Deployment stubs, or other YAML in the overlay. Use **`--no-prune`** to skip deletion. **`--dry-run`** never prunes or writes.
+
+**SOPS:** Cleartext workload Secrets are written under **`secrets/boilerplate-<env>/plain/`**. Before Git commit, encrypt them in the GitOps repo (e.g. **`./scripts/encrypt_boilerplate_plain_secrets.sh --namespace boilerplate-<env>`** when that script exists; optional **`--rm-plain`** removes those cleartext files after encrypt). To batch-decrypt and **`kubectl apply`** the matching **`boilerplate-*-secrets.enc.yaml`** (manual bootstrap or emergency apply), use **`./scripts/apply_boilerplate_encrypted_secrets.sh`** when that script exists. See [REMOTE-K8S-GITOPS.md](REMOTE-K8S-GITOPS.md) Step 9.
 
 ### GitOps repo layout (thin overlays)
 
@@ -43,7 +45,7 @@ Do **not** use **`envFrom.secretRef`** for Boilerplate-rendered secrets in GitOp
 
 Env groups with **no** classified secret keys (e.g. **`web-sidecar`**) do not get **`deployment-secret-env.yaml`**; drift validation skips the path when neither render nor the repo has the file.
 
-The **`db`** env group lists **all** database-related keys under **`env_groups.db.vars`** in classification. Local dev writes them into one **`infra/config/local/db.env`** via **`merge-env --profile local_docker --group db`**. Postgres **role names and passwords** are **secret**; **`DB_HOST_SOURCE_ONLY`** / **`DB_PORT_SOURCE_ONLY`** are **`source_only`**; **`DB_HOST`** / **`DB_PORT`** are **`literal`** (neither group is emitted into the db overlay ConfigMap/Secret by render).
+The **`db`** env group lists **all** database-related keys under **`env_groups.db.vars`** in classification. Local dev writes them into one **`infra/config/local/db.env`** via **`merge-env --profile local_docker --group db`**. Postgres **role names and passwords** are **secret**; **`DB_HOST_SOURCE_ONLY`** / **`DB_PORT_SOURCE_ONLY`** are **`source_only`** (omitted from pod env by render); **`DB_HOST`** / **`DB_PORT`** are **`literal`** and appear in the **db** overlay ConfigMap when merged (same as other non-secret literals).
 
 Make targets live in [`makefiles/gitops/Makefile.gitops-env.mk`](../../makefiles/gitops/Makefile.gitops-env.mk)
 (included from [`makefiles/local/Makefile.local.mk`](../../makefiles/local/Makefile.local.mk)).
