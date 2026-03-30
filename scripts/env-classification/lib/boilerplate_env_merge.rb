@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require 'securerandom'
 require 'set'
 require 'yaml'
 
@@ -59,10 +60,16 @@ module BoilerplateEnvMerge
     ) || {}
   end
 
-  def merged_classification(profile)
+  # Optional extra_overlay_path: GitOps-hosted YAML (same shape as infra/env/overrides/<profile>.yaml),
+  # merged after the monorepo profile overlay. See docs/development/K8S-ENV-RENDER.md.
+  def merged_classification(profile, extra_overlay_path: nil)
     base = load_yaml(base_path)
     ov = overlay_path(profile)
-    deep_merge(base, ov && load_yaml(ov))
+    merged = deep_merge(base, ov && load_yaml(ov))
+    if extra_overlay_path && !extra_overlay_path.to_s.empty? && File.file?(extra_overlay_path)
+      merged = deep_merge(merged, load_yaml(extra_overlay_path))
+    end
+    merged
   end
 
   def merge_var_specs(base_specs, override_specs)
@@ -285,6 +292,71 @@ module BoilerplateEnvMerge
 
       d = spec['default']
       out[key] = d.nil? || d.to_s.empty? ? '' : d.to_s
+    end
+    out
+  end
+
+  # Aggregate stringData from every *.yaml under dir (K8s plain Secret manifests). Later files override
+  # earlier keys on conflict. Used by K8s env render to reuse committed cleartext before generating.
+  def load_plain_secret_stringdata_aggregate(dir)
+    return {} if dir.nil? || dir.to_s.empty? || !File.directory?(dir)
+
+    out = {}
+    Dir.glob(File.join(dir, '*.yaml')).sort.each do |path|
+      next unless File.file?(path)
+
+      doc = YAML.safe_load(
+        File.read(path),
+        permitted_classes: [Symbol, Time],
+        aliases: true
+      )
+      next unless doc.is_a?(Hash)
+
+      sd = doc['stringData']
+      next unless sd.is_a?(Hash)
+
+      sd.each do |k, v|
+        key = k.to_s
+        next if key.empty?
+
+        s = v.nil? ? '' : v.to_s
+        next if s.empty?
+
+        out[key] = s
+      end
+    end
+    out
+  end
+
+  # Fills empty values for keys with kind: secret and local_generator: hex_32 (same set as
+  # scripts/local-env/setup.sh). Order: keep non-empty merged env; else plain aggregate; else state
+  # file; else SecureRandom.hex(32) (append KEY=value to state_path). Opt-in from merge-env only.
+  def apply_local_generator_hex32_fill!(env, classification, group_name, state_path:, plain_dir: nil)
+    return env if state_path.nil? || state_path.to_s.empty?
+
+    plain = load_plain_secret_stringdata_aggregate(plain_dir)
+    state_map = File.file?(state_path) ? parse_env_file(state_path) : {}
+    specs = effective_env_group_var_specs(classification, group_name)
+    out = env.dup
+
+    specs.each do |key, spec|
+      next unless spec.is_a?(Hash)
+      next unless spec['kind'].to_s == 'secret'
+      next unless spec['local_generator'].to_s == 'hex_32'
+      next if out[key].to_s != ''
+
+      chosen = plain[key]
+      chosen = nil if chosen.nil? || chosen.to_s.empty?
+      if chosen.nil?
+        s = state_map[key]
+        chosen = s if !s.nil? && s != ''
+      end
+      if chosen.nil?
+        chosen = SecureRandom.hex(32)
+        File.open(state_path, 'a:UTF-8') { |f| f.puts(format_env_line(key, chosen)) }
+        state_map[key] = chosen
+      end
+      out[key] = chosen
     end
     out
   end

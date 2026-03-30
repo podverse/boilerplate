@@ -7,9 +7,12 @@ def usage(msg = nil)
   warn("Error: #{msg}") if msg
   warn <<~USAGE
     Usage:
-      boilerplate-env.rb merge-env --profile PROFILE --group NAME [--extra-env PATH]... [--output PATH]
+      boilerplate-env.rb merge-env --profile PROFILE --group NAME [--classification-overlay PATH] [--extra-env PATH]... [--output PATH] [--fill-empty-local-generator-secrets --hex32-state-file PATH] [--reuse-plain-secrets-dir PATH]
       boilerplate-env.rb write-valkey-split --profile PROFILE --valkey-source-only-out P --valkey-out P
     merge-env: prints KEY=value lines (classification var order) to stdout unless --output is set.
+      Optional --classification-overlay: extra classification YAML (e.g. GitOps apps/boilerplate-<env>/env/remote-k8s.yaml).
+      Optional --fill-empty-local-generator-secrets: fill kind: secret + local_generator: hex_32 empties (requires --hex32-state-file). Used by render-k8s-env.sh only; omit for deterministic merge (e.g. validate-parity).
+      Optional --reuse-plain-secrets-dir: directory of plain K8s Secret YAML (*.yaml) whose stringData is reused before generate/state.
   USAGE
   exit 1
 end
@@ -22,8 +25,12 @@ case cmd
 when 'merge-env', 'print-env'
   profile = nil
   group = nil
+  classification_overlay = nil
   extra = []
   output_path = nil
+  fill_empty_local_generator_secrets = false
+  hex32_state_file = nil
+  reuse_plain_secrets_dir = nil
 
   until args.empty?
     case args.shift
@@ -31,10 +38,18 @@ when 'merge-env', 'print-env'
       profile = args.shift
     when '--group'
       group = args.shift
+    when '--classification-overlay'
+      classification_overlay = args.shift
     when '--extra-env'
       extra << args.shift
     when '--output'
       output_path = args.shift
+    when '--fill-empty-local-generator-secrets'
+      fill_empty_local_generator_secrets = true
+    when '--hex32-state-file'
+      hex32_state_file = args.shift
+    when '--reuse-plain-secrets-dir'
+      reuse_plain_secrets_dir = args.shift
     when '-h', '--help'
       usage
     else
@@ -44,14 +59,31 @@ when 'merge-env', 'print-env'
 
   usage('missing --profile') if profile.nil? || profile.empty?
   usage('missing --group') if group.nil? || group.empty?
+  if fill_empty_local_generator_secrets
+    usage('--hex32-state-file is required with --fill-empty-local-generator-secrets') if hex32_state_file.nil? || hex32_state_file.empty?
+  elsif !hex32_state_file.nil? && !hex32_state_file.empty?
+    usage('--hex32-state-file requires --fill-empty-local-generator-secrets')
+  end
 
-  classification = BoilerplateEnvMerge.merged_classification(profile)
+  classification = BoilerplateEnvMerge.merged_classification(
+    profile,
+    extra_overlay_path: classification_overlay
+  )
   flat = BoilerplateEnvMerge.flatten_env_group_env(classification, group)
   merged = BoilerplateEnvMerge.apply_env_file_overlays(flat, extra)
   merged = BoilerplateEnvMerge.apply_locale_next_public_sync(merged, group)
   merged = BoilerplateEnvMerge.apply_auth_mode_next_public_sync(merged, group)
   merged = BoilerplateEnvMerge.apply_info_next_public_sync(merged, group)
   merged = BoilerplateEnvMerge.reorder_env_map_to_group_vars(merged, classification, group)
+  if fill_empty_local_generator_secrets
+    merged = BoilerplateEnvMerge.apply_local_generator_hex32_fill!(
+      merged,
+      classification,
+      group,
+      state_path: hex32_state_file,
+      plain_dir: reuse_plain_secrets_dir
+    )
+  end
 
   if output_path
     BoilerplateEnvMerge.write_env_file(output_path, merged)

@@ -3,6 +3,10 @@
 # Requires --output-repo PATH or BOILERPLATE_K8S_OUTPUT_REPO. Exits 1 if unset, overlay missing, or mismatch.
 # Usage: validate-k8s-env-drift.sh [--env alpha|beta|prod] [--output-repo PATH]
 #
+# Renders to a temp dir but must read GitOps classification YAML from the real repo: before calling
+# render-k8s-env.sh we export BOILERPLATE_K8S_OUTPUT_REPO to that real root so optional
+# apps/boilerplate-<env>/env/remote-k8s.yaml is merged during render (same as a normal alpha_env_render).
+#
 # ConfigMap, secret-env patch, and (plan 05) port patch paths match k8s-env-render-manifest.inc.sh
 # (same as render-k8s-env.sh). Secret values are not compared (plain/ may be gitignored).
 # Re-run render and commit ConfigMaps and deployment-secret-env.yaml when infra/env/classification
@@ -71,6 +75,8 @@ TMP="$(mktemp -d)"
 RENDER_LOG="$(mktemp)"
 PORT_LOG="$(mktemp)"
 trap 'rm -rf "$TMP"; rm -f "$RENDER_LOG" "$PORT_LOG"' EXIT
+
+export BOILERPLATE_K8S_OUTPUT_REPO="$OUTPUT_REPO"
 
 if ! bash "$SCRIPT_DIR/render-k8s-env.sh" --env "$ENV_NAME" --output-repo "$TMP" >"$RENDER_LOG" 2>&1; then
   cat "$RENDER_LOG" >&2
@@ -164,6 +170,7 @@ done
 
 if [[ "$failed" -ne 0 ]]; then
   echo "validate-k8s-env-drift: FAILED — run \`make alpha_env_render\` (or \`make k8s_env_render K8S_ENV=${ENV_NAME}\`) and commit ConfigMaps, deployment-secret-env.yaml, deployment-ports-and-probes.yaml, and common/ingress-port-backends.yaml in the output repo." >&2
+  echo "validate-k8s-env-drift: Note: A mismatch only means a fresh render (this monorepo + dev/env-overrides/${ENV_NAME} + GitOps apps/boilerplate-${ENV_NAME}/env/remote-k8s.yaml) would differ from what is committed. If you intend those fields to differ until you render and commit—or you are mid-edit—this is expected drift, not necessarily a broken pipeline." >&2
   exit 1
 fi
 

@@ -7,7 +7,16 @@ Boilerplate keeps the canonical variable list in [`infra/env/classification/base
 - **`kind: secret`** — Emitted into the **Secret** when present in merged env.
 - **`kind: source_only`** — In merged env for this env group but not emitted into that group’s CM/Secret (same role as former `literals_only_in_source`).
 
-`scripts/k8s-env/render-k8s-env.sh` builds a merged env per classification env group with profile **`remote_k8s`** plus `dev/env-overrides/<env>/*.env` (see [ENV-REFERENCE.md](ENV-REFERENCE.md)). On a real write (not `--dry-run`), it **prunes first** by removing only **generator-owned** files: ConfigMaps, plain Secret YAML paths, per-Deployment **`deployment-secret-env.yaml`** strategic-merge patches, and (when enabled in the manifest) plan-**05** **`deployment-ports-and-probes.yaml`** files — all defined in [`scripts/k8s-env/k8s-env-render-manifest.inc.sh`](../scripts/k8s-env/k8s-env-render-manifest.inc.sh) (same list the renderer writes). That removes stale files when workloads or filenames change without touching `kustomization.yaml` (except generated patch filenames listed there), hand-maintained Deployment stubs, or other YAML in the overlay. Use **`--no-prune`** to skip deletion. **`--dry-run`** never prunes or writes.
+`scripts/k8s-env/render-k8s-env.sh` builds a merged env per classification env group with profile **`remote_k8s`**, an optional **GitOps classification overlay**, then `dev/env-overrides/<env>/*.env` (see [ENV-REFERENCE.md](ENV-REFERENCE.md)).
+
+**Merge order (later wins on conflicts):** `infra/env/classification/base.yaml` → `infra/env/overrides/remote-k8s.yaml` (Boilerplate monorepo) → optional **`${BOILERPLATE_K8S_OUTPUT_REPO}/apps/boilerplate-<env>/env/remote-k8s.yaml`** (same `version` / `env_groups` shape as the monorepo overlay) → each `dev/env-overrides/<env>/*.env` in sorted filename order.
+
+**`local_generator: hex_32` (opt-in fill):** Plain **`merge-env --profile remote_k8s`** does not synthesize secrets; classification **`local_generator`** is documentation unless you pass the flags **`render-k8s-env.sh`** uses: **`--fill-empty-local-generator-secrets`**, **`--hex32-state-file`** (temp file, removed on exit), and **`--reuse-plain-secrets-dir`** pointing at **`secrets/boilerplate-<env>/plain/`** when that directory exists. For each **`kind: secret`** key with **`local_generator: hex_32`**, an empty merged value is replaced by (in order): existing non-empty overlay/classification value; **`stringData`** from any **`plain/*.yaml`** (later files override earlier keys); an existing line in the state file; **`SecureRandom.hex(32)`** (appended to the state file). That keeps shared keys consistent across env groups in one render (e.g. **`VALKEY_PASSWORD`** for **`api`** after **`valkey`**). **`validate-parity`** and ad-hoc **`merge-env`** do **not** pass these flags so output stays deterministic. See [ENV-REFERENCE.md](ENV-REFERENCE.md) § Merge order.
+
+- If **`BOILERPLATE_REMOTE_K8S_CLASSIFICATION_OVERLAY`** is set to an absolute path, that file is used instead of the default path under the GitOps repo.
+- When **`BOILERPLATE_K8S_OUTPUT_REPO`** is set, it is the root for the default GitOps overlay path even if rendered files are written elsewhere (e.g. drift validation renders to a temp dir but **exports `BOILERPLATE_K8S_OUTPUT_REPO`** to the real clone first so the overlay is read from committed YAML).
+
+On a real write (not `--dry-run`), it **prunes first** by removing only **generator-owned** files: ConfigMaps, plain Secret YAML paths, per-Deployment **`deployment-secret-env.yaml`** strategic-merge patches, and (when enabled in the manifest) plan-**05** **`deployment-ports-and-probes.yaml`** files — all defined in [`scripts/k8s-env/k8s-env-render-manifest.inc.sh`](../scripts/k8s-env/k8s-env-render-manifest.inc.sh) (same list the renderer writes). That removes stale files when workloads or filenames change without touching `kustomization.yaml` (except generated patch filenames listed there), hand-maintained Deployment stubs, or other YAML in the overlay. Use **`--no-prune`** to skip deletion. **`--dry-run`** never prunes or writes.
 
 ### GitOps repo layout (thin overlays)
 
@@ -70,7 +79,9 @@ must patch ingress with **`ingress-port-backends.yaml`**. Generator-owned paths 
 
 **Render** (`alpha_env_render`, `k8s_env_render`) and **validate** (`alpha_env_validate`, `k8s_env_validate`) require
 `BOILERPLATE_K8S_OUTPUT_REPO` set to the **absolute path** of your GitOps repo clone (or any directory you want to emit
-into). Export it once per shell or add it to your profile for a fixed path.
+into). Export it once per shell or add it to your profile for a fixed path. The same variable selects the default path for the optional **`apps/boilerplate-<env>/env/remote-k8s.yaml`** classification overlay.
+
+**`BOILERPLATE_REMOTE_K8S_CLASSIFICATION_OVERLAY`** (optional): absolute path to a single classification YAML file; when set, overrides the default GitOps overlay path above (useful for dry-run or nonstandard repo layouts).
 
 **Dry-run** targets (`alpha_env_render_dry_run`, `k8s_env_render_dry_run`) print YAML to stdout only and **do not** require
 this variable.

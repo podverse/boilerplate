@@ -1,9 +1,17 @@
 #!/usr/bin/env bash
 # Render ConfigMap + Secret YAML for Boilerplate K8s workloads.
 # Usage: render-k8s-env.sh --env alpha|beta|prod [--output-repo PATH] [--dry-run] [--no-prune]
+# Fills empty classification local_generator: hex_32 secrets via merge-env (state file + optional plain/*.yaml reuse); see docs/development/K8S-ENV-RENDER.md.
 #
 # When not using --dry-run, OUTPUT_REPO is required: pass --output-repo PATH or set BOILERPLATE_K8S_OUTPUT_REPO
 # to the GitOps repo root (no implicit sibling or out/ default).
+#
+# Optional GitOps classification overlay (merged after monorepo infra/env/overrides/remote-k8s.yaml):
+#   BOILERPLATE_REMOTE_K8S_CLASSIFICATION_OVERLAY — absolute path to YAML (overrides default path), or
+#   default: ${BOILERPLATE_K8S_OUTPUT_REPO}/apps/boilerplate-<env>/env/remote-k8s.yaml when that file exists,
+#   else ${OUTPUT_REPO}/... when BOILERPLATE_K8S_OUTPUT_REPO is unset (e.g. dry-run with only output repo).
+# When writing to a temp dir, set BOILERPLATE_K8S_OUTPUT_REPO to the real GitOps root so the overlay is read
+# from committed files (validate-k8s-env-drift.sh does this).
 # Prune: by default, removes generator-owned ConfigMaps, plain Secrets, deployment-secret-env.yaml
 # patches, and (when plan 05 port list is populated) deployment-ports-and-probes.yaml per manifest.
 # Use --no-prune to skip deletion. --dry-run never prunes or writes.
@@ -80,6 +88,29 @@ else
   PLAIN_SECRETS_DIR=""
 fi
 
+CLASSIFICATION_OVERLAY_FILE=""
+if [[ -n "${BOILERPLATE_REMOTE_K8S_CLASSIFICATION_OVERLAY:-}" ]]; then
+  CLASSIFICATION_OVERLAY_FILE="${BOILERPLATE_REMOTE_K8S_CLASSIFICATION_OVERLAY}"
+elif [[ -n "${BOILERPLATE_K8S_OUTPUT_REPO:-}" ]]; then
+  CLASSIFICATION_OVERLAY_FILE="$(cd "${BOILERPLATE_K8S_OUTPUT_REPO}" && pwd)/apps/boilerplate-${ENV_NAME}/env/remote-k8s.yaml"
+elif [[ -n "${OUTPUT_REPO:-}" ]]; then
+  CLASSIFICATION_OVERLAY_FILE="$(cd "${OUTPUT_REPO}" && pwd)/apps/boilerplate-${ENV_NAME}/env/remote-k8s.yaml"
+fi
+
+CLASSIFICATION_OVERLAY_ARGS=()
+if [[ -n "$CLASSIFICATION_OVERLAY_FILE" && -f "$CLASSIFICATION_OVERLAY_FILE" ]]; then
+  CLASSIFICATION_OVERLAY_ARGS=(--classification-overlay "$CLASSIFICATION_OVERLAY_FILE")
+  echo "Using GitOps classification overlay: ${CLASSIFICATION_OVERLAY_FILE}"
+fi
+
+# Per-run state: reuse hex_32 secrets across merge-env calls (e.g. VALKEY_PASSWORD for api after valkey).
+HEX32_STATE="$(mktemp)"
+trap 'rm -f "$HEX32_STATE"' EXIT
+MERGE_HEX32_FILL_ARGS=(--fill-empty-local-generator-secrets --hex32-state-file "$HEX32_STATE")
+if [[ -n "${PLAIN_SECRETS_DIR:-}" && -d "$PLAIN_SECRETS_DIR" ]]; then
+  MERGE_HEX32_FILL_ARGS+=(--reuse-plain-secrets-dir "$PLAIN_SECRETS_DIR")
+fi
+
 render_one() {
   local group=$1
   local merged
@@ -97,6 +128,8 @@ render_one() {
   ruby "$REPO_ROOT/scripts/env-classification/boilerplate-env.rb" merge-env \
     --profile remote_k8s \
     --group "$group" \
+    "${CLASSIFICATION_OVERLAY_ARGS[@]}" \
+    "${MERGE_HEX32_FILL_ARGS[@]}" \
     "${extra_args[@]}" >"$merged"
 
   export BOILERPLATE_ENV_PROFILE=remote_k8s
@@ -117,6 +150,7 @@ render_one() {
     ruby "$SCRIPT_DIR/render_k8s_env.rb" \
       --group "$group" \
       --merged-env "$merged" \
+      "${CLASSIFICATION_OVERLAY_ARGS[@]}" \
       --namespace "$NAMESPACE" \
       --environment "$ENV_NAME" \
       --resource-suffix "$suffix" \
@@ -125,6 +159,7 @@ render_one() {
     ruby "$SCRIPT_DIR/render_k8s_env.rb" \
       --group "$group" \
       --merged-env "$merged" \
+      "${CLASSIFICATION_OVERLAY_ARGS[@]}" \
       --namespace "$NAMESPACE" \
       --environment "$ENV_NAME" \
       --resource-suffix "$suffix" \
@@ -133,6 +168,7 @@ render_one() {
     ruby "$SCRIPT_DIR/render_k8s_env.rb" \
       --group "$group" \
       --merged-env "$merged" \
+      "${CLASSIFICATION_OVERLAY_ARGS[@]}" \
       --namespace "$NAMESPACE" \
       --environment "$ENV_NAME" \
       --resource-suffix "$suffix" \
@@ -149,6 +185,7 @@ render_one() {
   ruby "$SCRIPT_DIR/render_k8s_env.rb" \
     --group "$group" \
     --merged-env "$merged" \
+    "${CLASSIFICATION_OVERLAY_ARGS[@]}" \
     --namespace "$NAMESPACE" \
     --environment "$ENV_NAME" \
     --resource-suffix "$suffix" \
@@ -169,6 +206,7 @@ render_one() {
   ruby "$SCRIPT_DIR/render_k8s_env.rb" \
     --group "$group" \
     --merged-env "$merged" \
+    "${CLASSIFICATION_OVERLAY_ARGS[@]}" \
     --namespace "$NAMESPACE" \
     --environment "$ENV_NAME" \
     --resource-suffix "$suffix" \
@@ -189,6 +227,7 @@ render_one() {
   ruby "$SCRIPT_DIR/render_k8s_env.rb" \
     --group "$group" \
     --merged-env "$merged" \
+    "${CLASSIFICATION_OVERLAY_ARGS[@]}" \
     --namespace "$NAMESPACE" \
     --environment "$ENV_NAME" \
     --resource-suffix "$suffix" \

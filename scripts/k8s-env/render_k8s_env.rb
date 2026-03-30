@@ -19,9 +19,10 @@ def usage(msg = nil)
   warn("Error: #{msg}") if msg
   warn <<~USAGE
     Usage: render_k8s_env.rb --group NAME --merged-env PATH --namespace NS --environment ENV \\
-      --resource-suffix SUFFIX [--emit MODE]
+      --resource-suffix SUFFIX [--classification-overlay PATH] [--emit MODE]
 
     --emit: both | configmap | secret | secret-env-patch (default: both)
+    Optional --classification-overlay: same GitOps YAML passed to boilerplate-env.rb merge-env for this render.
   USAGE
   exit 1
 end
@@ -113,6 +114,7 @@ end
 args = ARGV.dup
 group = nil
 merged_env = nil
+classification_overlay = nil
 namespace = 'boilerplate-alpha'
 environment = 'alpha'
 resource_suffix = nil
@@ -124,6 +126,8 @@ until args.empty?
     group = args.shift
   when '--merged-env'
     merged_env = args.shift
+  when '--classification-overlay'
+    classification_overlay = args.shift
   when '--namespace'
     namespace = args.shift
   when '--environment'
@@ -144,7 +148,10 @@ usage('missing --merged-env') if merged_env.nil?
 usage('missing --resource-suffix') if resource_suffix.nil? || resource_suffix.empty?
 
 profile = ENV['BOILERPLATE_ENV_PROFILE'] || 'remote_k8s'
-classification = BoilerplateEnvMerge.merged_classification(profile)
+classification = BoilerplateEnvMerge.merged_classification(
+  profile,
+  extra_overlay_path: classification_overlay
+)
 wl = classification.dig(BoilerplateEnvMerge::CLASSIFICATION_ENV_GROUPS_KEY, group)
 usage("unknown env group: #{group}") unless wl
 

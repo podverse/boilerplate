@@ -12,7 +12,7 @@ Where a **dry run** exists, use it **before** the real command so you catch mist
 
 | When                                                        | Dry run (use this first)                                                                                                | Then                                                                                    |
 | ----------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
-| **Git push** (GitOps or Boilerplate)                        | `git push --dry-run origin <branch>`                                                                                    | `git push`                                                                              |
+| **Git push** (GitOps **`main`**)                            | `git push --dry-run origin main`                                                                                        | `git push`                                                                              |
 | **Pin images + Boilerplate `?ref=`** (e.g. k.podcastdj.com) | `./scripts/bump-boilerplate-alpha-pins.sh <VERSION_TAG> --dry-run`                                                      | `./scripts/bump-boilerplate-alpha-pins.sh <VERSION_TAG> --push` or manual edit + commit |
 | **Env render** (Boilerplate root)                           | `make alpha_env_render_dry_run` (optional: set `BOILERPLATE_K8S_OUTPUT_REPO` to match validate/render)                  | `make alpha_env_validate` then `make alpha_env_render`                                  |
 | **Apply Argo `Application` / `AppProject` YAML**            | `kubectl apply --dry-run=server -f …` (or `=client` if server dry-run is unavailable)                                   | `kubectl apply -f …`                                                                    |
@@ -54,30 +54,31 @@ domains consistent with those public hosts. See also [ARGOCD-GITOPS-BOILERPLATE.
 
 When you change manifests under **`infra/k8s/base/`** in this repo, or ship new images:
 
-1. After a successful **Publish staging (alpha branch)** run, a **Git tag** **`X.Y.Z-staging.N`** exists
-   on Boilerplate (same string as GHCR; see [ARGOCD-GITOPS-BOILERPLATE.md](ARGOCD-GITOPS-BOILERPLATE.md)).
+1. After a successful **Publish staging** run in **this** repository, a **Git tag** **`X.Y.Z-staging.N`**
+   exists (same string as GHCR; see [ARGOCD-GITOPS-BOILERPLATE.md](ARGOCD-GITOPS-BOILERPLATE.md)).
 2. In your **GitOps** repo, set overlay **`images[].newTag`** and remote Boilerplate base **`?ref=`** to
    that **immutable tag** (scripted or manual)—see
    [BOILERPLATE-PUBLISH-GITOPS-BUMP-CHECKLIST.md](BOILERPLATE-PUBLISH-GITOPS-BUMP-CHECKLIST.md). **Dry run**
    the pin bump when a script supports it (e.g. **`--dry-run`**) before **`--push`** / commit.
-3. **Argo `Application.spec.source.targetRevision`** points at a **branch (or tag) on the GitOps repo
-   itself**, not at Boilerplate. Example: **k.podcastdj.com** uses **`targetRevision: main`** (default
-   branch) while **alpha / beta / prod** are **path prefixes** (`apps/boilerplate-alpha`, …)—not separate
-   Git branches per environment on that repo. **`?ref=`** on Boilerplate URLs still uses the immutable tag
-   **`X.Y.Z-staging.N`**. Keep **GitOps repo branch** and **Boilerplate `?ref=`** mentally separate.
+3. **Argo `Application.spec.source.targetRevision`** on the GitOps repo should be **`main`** (not
+   Boilerplate). **Alpha / beta / prod** are **path prefixes** (`apps/boilerplate-alpha`, …), not
+   extra long-lived branches on the GitOps repo. **`?ref=`** on Boilerplate URLs still uses the
+   immutable tag **`X.Y.Z-staging.N`**. Keep **GitOps `targetRevision`** and **Boilerplate `?ref=`**
+   mentally separate.
 4. From **Boilerplate** root: **`make alpha_env_render_dry_run`**, then **`make alpha_env_validate`**, then
    **`make alpha_env_render`** when env/classification/overrides changed (port + ingress patches run at the
    end of render). Skip render if this release is images-only with no env changes.
 5. **SOPS-encrypt** any new or changed Secret YAML under **`secrets/`**, commit **encrypted** files and
    overlay updates in the GitOps repo.
-6. **Push** the GitOps branch **`targetRevision`** references, then **sync** Applications in dependency
-   order (Step 11). Prefer **dry-run sync** when available (see table above).
+6. **Push** **`main`** on the GitOps repo (matching **`targetRevision`**), then **sync** Applications in
+   dependency order (Step 11). Prefer **dry-run sync** when available (see table above).
 
 ## Step 1 — Tooling and access
 
 **Do this:** Install **kubectl**, **SOPS**, **age** (encrypt/decrypt), **Docker** (optional local builds),
-**Ruby** (stdlib; used by render scripts), **Git**, and **make**. Ensure you can **push** to the Git remote
-Argo CD tracks and **pull** images from your registry (e.g. PAT with `read:packages` for GHCR pull secrets).
+**Ruby** (stdlib; used by render scripts), **Git**, and **make**. Ensure you can **push** **`main`** on the
+GitOps remote Argo CD syncs and **pull** images from your registry (e.g. PAT with `read:packages` for GHCR pull
+secrets).
 
 **Kustomize:** Kustomize is **embedded in kubectl**. This guide uses **`kubectl kustomize <path>`** only. You do
 **not** install or verify a separate **`kustomize`** binary for the workflows here.
@@ -96,13 +97,13 @@ make --version
 kubectl kustomize --help >/dev/null && echo "kubectl kustomize: ok"
 ```
 
-**Verify Git push** (use the remote and branch Argo CD tracks; adjust names). **Always dry-run push
-first** when automating or before a large promotion:
+**Verify Git push** to **`main`** on the GitOps remote Argo CD tracks. **Always dry-run push first**
+when automating or before a large promotion:
 
 ```bash
 git remote -v
 git fetch origin
-git push --dry-run origin HEAD
+git push --dry-run origin main
 ```
 
 **Verify registry pull** (optional; requires credentials with `read:packages` for GHCR):
@@ -169,33 +170,133 @@ kubectl -n <namespace> get certificate
 
 After a **fresh clone or fork** of your GitOps repository, each Argo `Application` under
 `argocd/boilerplate-<env>/` must use **`spec.source.repoURL`** and **`targetRevision`** for **your**
-Git remote and branch — not a template or another operator’s fork.
+Git remote URL and **`main`** — not a template or another operator’s fork.
 
-**Automate (recommended):** In a GitOps repo that uses the Boilerplate thin-overlay layout, run
-the helper from your clone (see
-[GITOPS-BOOTSTRAP.md](https://github.com/podverse/k.podcastdj.com/blob/main/docs/GITOPS-BOOTSTRAP.md)
-in **podverse/k.podcastdj.com** or your fork), for example:
+Run all commands from the **root of your GitOps repository** (where `scripts/` and `argocd/` live).
+Replace placeholders (`<org>`, `<gitops-repo>`, `<env>`, tags) with your values. More detail lives in
+your clone’s **`docs/GITOPS-BOOTSTRAP.md`** and **`docs/BOILERPLATE-GITOPS-PINS.md`** when present.
+
+**1. Preview** Argo `Application` sources (no writes) — one env or all `argocd/boilerplate-*/`
+directories:
 
 ```bash
-./scripts/align-argocd-application-sources.sh --repo-url 'https://github.com/<you>/<gitops-repo>.git' --revision main --env alpha
+./scripts/align-argocd-application-sources.sh \
+  --repo-url 'https://github.com/<org>/<gitops-repo>.git' \
+  --revision main \
+  --env <env> \
+  --dry-run
 ```
 
-Use **`--dry-run`** to preview diffs; omit `--repo-url` / `--revision` on a TTY (or pass
-`--interactive`) to be prompted.
+```bash
+./scripts/align-argocd-application-sources.sh \
+  --repo-url 'https://github.com/<org>/<gitops-repo>.git' \
+  --revision main \
+  --all-boilerplate \
+  --dry-run
+```
+
+**2. Apply** when the diff is correct (skip if dry-run showed no diff — already aligned):
+
+```bash
+./scripts/align-argocd-application-sources.sh \
+  --repo-url 'https://github.com/<org>/<gitops-repo>.git' \
+  --revision main \
+  --env <env>
+```
+
+```bash
+./scripts/align-argocd-application-sources.sh \
+  --repo-url 'https://github.com/<org>/<gitops-repo>.git' \
+  --revision main \
+  --all-boilerplate
+```
+
+**Interactive:** On a TTY you may omit **`--repo-url`** and **`--revision`** (script prompts); you
+must still pass **`--env`**, **`--all-boilerplate`**, or **`--dir`**. Use **`--interactive`** to
+force prompts when stdin is not a TTY. See **`./scripts/align-argocd-application-sources.sh --help`**.
 
 **Manual:** Edit each YAML under `argocd/boilerplate-<env>/` and set **`repoURL`** and
 **`targetRevision`** explicitly.
 
 **Why:** Argo CD must sync **your** GitOps repo; a stale `repoURL` points at the wrong repository.
 
+### Optional: Boilerplate fork (remote base URL only)
+
+If overlays must pull bases from **your** Boilerplate fork, rewrite the repo **prefix** on remote
+`resources:` URLs (does **not** change **`?ref=`** or image tags).
+
+**1. Preview:**
+
+```bash
+./scripts/align-boilerplate-git-base.sh \
+  --from 'https://github.com/<upstream-org>/boilerplate' \
+  --to 'https://github.com/<your-org>/boilerplate' \
+  --env <env> \
+  --dry-run
+```
+
+**2. Apply** without **`--dry-run`** (skip if you keep upstream Boilerplate bases):
+
+```bash
+./scripts/align-boilerplate-git-base.sh \
+  --from 'https://github.com/<upstream-org>/boilerplate' \
+  --to 'https://github.com/<your-org>/boilerplate' \
+  --env <env>
+```
+
 ### Recurring: pin Boilerplate bases and images
 
-After **Boilerplate** publish (immutable tag on Git + GHCR), update overlay **`images[].newTag`**
-and **`?ref=`** on remote Boilerplate URLs. Your GitOps repo should document the bump script (see
-[BOILERPLATE-GITOPS-PINS.md](https://github.com/podverse/k.podcastdj.com/blob/main/docs/BOILERPLATE-GITOPS-PINS.md)).
-Set **`BOILERPLATE_GIT_BASE`** when pins target a **fork** of Boilerplate. To rewrite only the
-Boilerplate **repo URL prefix** (e.g. after forking) without changing the pin tag, use
-**`align-boilerplate-git-base.sh`** as described in **GITOPS-BOOTSTRAP.md**.
+After **Boilerplate** publish, **`?ref=`** on remote bases and **`images[].newTag`** must use the
+same immutable tag as Git and GHCR.
+
+**1. Preview:**
+
+```bash
+./scripts/bump-boilerplate-alpha-pins.sh '<X.Y.Z-staging.N>' --dry-run
+```
+
+**2. Apply** (writes files):
+
+```bash
+./scripts/bump-boilerplate-alpha-pins.sh '<X.Y.Z-staging.N>'
+```
+
+Then **`git diff`**, commit, and push. For scripted **topic branch** + push (e.g. PR flow), use
+**`--push`** as documented in your GitOps repo’s **`docs/BOILERPLATE-GITOPS-PINS.md`**.
+
+**Fork:** When pins target a Boilerplate fork, set **`BOILERPLATE_GIT_BASE`** (no trailing slash) on
+the same command line:
+
+```bash
+BOILERPLATE_GIT_BASE='https://github.com/<your-org>/boilerplate' \
+  ./scripts/bump-boilerplate-alpha-pins.sh '<X.Y.Z-staging.N>' --dry-run
+```
+
+```bash
+BOILERPLATE_GIT_BASE='https://github.com/<your-org>/boilerplate' \
+  ./scripts/bump-boilerplate-alpha-pins.sh '<X.Y.Z-staging.N>'
+```
+
+Details: your GitOps repo’s **`docs/BOILERPLATE-GITOPS-PINS.md`**.
+
+### Optional: compile overlays locally
+
+```bash
+kubectl kustomize apps/boilerplate-<env>/api \
+  --load-restrictor LoadRestrictionsNone >/dev/null
+kubectl kustomize apps/boilerplate-<env>/web \
+  --load-restrictor LoadRestrictionsNone >/dev/null
+kubectl kustomize apps/boilerplate-<env>/management-api \
+  --load-restrictor LoadRestrictionsNone >/dev/null
+kubectl kustomize apps/boilerplate-<env>/management-web \
+  --load-restrictor LoadRestrictionsNone >/dev/null
+kubectl kustomize apps/boilerplate-<env>/db \
+  --load-restrictor LoadRestrictionsNone >/dev/null
+kubectl kustomize apps/boilerplate-<env>/keyvaldb \
+  --load-restrictor LoadRestrictionsNone >/dev/null
+kubectl kustomize apps/boilerplate-<env>/common \
+  --load-restrictor LoadRestrictionsNone >/dev/null
+```
 
 ### Kustomize remote bases (thin overlays)
 
@@ -207,20 +308,15 @@ Kustomize can clone, not a bare `github.com/org/repo/...` string (that form is t
 **Use:**
 
 ```text
-https://github.com/<org>/boilerplate//infra/k8s/base/<component>?ref=<branch-or-tag>
+https://github.com/<org>/boilerplate//infra/k8s/base/<component>?ref=<immutable-tag-or-commit>
 ```
 
 Note the **`//`** after the repository segment: it separates the repo URL from the path **inside**
-the repo. Optional query params include `ref` (branch, tag, or full commit hash) and `timeout`.
+the repo. Optional query params include `ref` (immutable tag or full commit hash) and `timeout`.
 
 **Pin `ref`:** `kubectl kustomize` and Argo CD only resolve manifests that **exist at that
-revision**. After you add `infra/k8s/base/<component>/` in this repo, merge or tag it, then set
-`ref` in GitOps to that branch or tag (or an immutable tag for production).
-
-**Default branch vs `main`:** Your fork may use **`develop`** (or another branch) as **GitHub
-default HEAD** while **`main` lags**. If `ref=main` fails with missing `infra/` paths, check
-`git ls-remote <repo> HEAD` and align `ref` with the branch that actually contains
-`infra/k8s/base/<component>/`.
+revision**. For production-style overlays, set **`ref`** to the **immutable publish tag**
+**`X.Y.Z-staging.N`** (same as GHCR), not a moving branch name.
 
 ---
 
@@ -241,25 +337,69 @@ kubectl apply -f argocd/boilerplate-<env>/
 
 ## Step 6 — Container registry pull secret (`<namespace>`)
 
-**Do this:** Create a **docker-registry** (or equivalent) Secret in `<namespace>` so Deployments can pull private images. If you use a helper script in the GitOps repo, run it with your registry credentials and target namespace. Encrypt with **SOPS** before commit if you store manifests in Git; apply decrypted YAML to the cluster when bootstrapping:
+**Do this:** Create a **`docker-registry`** Secret in **`<namespace>`** so workloads can pull **private**
+images. Many GitOps repos that ship Boilerplate overlays include a **GitHub Container Registry (GHCR)**
+helper; otherwise create the Secret by hand, encrypt with **SOPS** before commit, and apply decrypted YAML
+when bootstrapping.
+
+### GitHub Container Registry (when `create_github_registry_secret.sh` exists)
+
+From **your GitOps repository root**, if **`./scripts/create_github_registry_secret.sh`** is present:
+
+1. Run **`./scripts/create_github_registry_secret.sh`** (it **prompts** for GitHub username, a **Personal
+   Access Token**, and namespace — use **`<namespace>`** e.g. **`boilerplate-alpha`**). The PAT needs
+   **`read:packages`** (and **`write:packages`** only if you push images with that token).
+2. The script writes **`secrets/<namespace>/github-registry-secret.enc.yaml`** (SOPS-encrypted
+   **`docker-registry`** secret for **`ghcr.io`**, name **`github-registry-secret`**). Commit the **encrypted**
+   file only; requires repo **`.sops.yaml`** / age keys like your other secrets.
+3. Apply to the cluster:
+
+```bash
+sops -d secrets/<namespace>/github-registry-secret.enc.yaml | kubectl apply -f -
+```
+
+The manifest includes **`metadata.namespace`**; **`kubectl apply -f -`** targets that namespace.
+
+**`imagePullSecrets`:** Pod templates (or the **`ServiceAccount`** they use) must reference
+**`github-registry-secret`** (or whatever name your script uses). Wire this in your GitOps overlays or
+patches — see **your GitOps repo** README or deployment docs.
+
+### Other registries or no helper script
+
+Create a **`docker-registry`** Secret manifest without applying cleartext to the cluster, then encrypt and
+commit:
+
+```bash
+kubectl create secret docker-registry <secret-name> \
+  --docker-server=<registry-host> \
+  --docker-username=<user> \
+  --docker-password=<token> \
+  --namespace=<namespace> \
+  --dry-run=client -o yaml > temp-secret.yaml
+# encrypt temp-secret.yaml with sops to secrets/<namespace>/<file>.enc.yaml, commit, remove temp-secret.yaml
+```
+
+Apply when bootstrapping:
 
 ```bash
 sops -d secrets/<path-to-encrypted-pull-secret>.yaml | kubectl apply -f -
 ```
 
-**Why:** Without pull credentials, pods remain in `ImagePullBackOff`.
+**Why:** Without pull credentials, pods remain in **`ImagePullBackOff`**.
 
 ---
 
-## Step 7 — Env overrides in this repo (`remote_k8s`)
+## Step 7 — Env overrides (`remote_k8s` + GitOps overlay)
 
-**Do this:** In **Boilerplate** repo root:
+**Do this:**
 
-1. `make alpha_env_prepare` — creates **`~/.config/boilerplate/alpha-env-overrides/`** stub files (non-destructive).
-2. `make alpha_env_link` — symlinks **`dev/env-overrides/alpha/*.env`** to those home files.
-3. Edit overrides so **public URLs, cookies, and CORS** match your real hosts. The **`remote_k8s`** overlay in [`infra/env/overrides/remote-k8s.yaml`](../../infra/env/overrides/remote-k8s.yaml) clears localhost-oriented defaults; you supply production values via overrides: **`WEB_BASE_URL`**, **`MANAGEMENT_WEB_BASE_URL`**, **`API_PUBLIC_BASE_URL`**, **`API_COOKIE_DOMAIN`**, **`API_CORS_ORIGINS`**, **`MANAGEMENT_API_*`**, JWT secrets, DB passwords, Valkey password, mailer if used, etc. Use **`https://`** where ingress serves TLS.
+1. **GitOps repo (per environment):** Add or edit **`apps/boilerplate-<env>/env/remote-k8s.yaml`** — same YAML shape as the monorepo’s [`infra/env/overrides/remote-k8s.yaml`](../../infra/env/overrides/remote-k8s.yaml) (`version` + `env_groups`). Put **deployment-specific** defaults here: **`WEB_BASE_URL`**, **`MANAGEMENT_WEB_BASE_URL`**, **`API_PUBLIC_BASE_URL`**, **`MANAGEMENT_API_PUBLIC_BASE_URL`**, **`API_COOKIE_DOMAIN`**, **`API_CORS_ORIGINS`**, **`MANAGEMENT_API_COOKIE_DOMAIN`**, **`MANAGEMENT_API_CORS_ORIGINS`**, etc. Use **`https://`** where ingress serves TLS. Commit this file in the GitOps repo (not under **`secrets/`**).
 
-**Why:** Classification drives ConfigMaps and Secret key sets; wrong hosts or cookies break auth and browser API calls.
+2. **Boilerplate monorepo:** [`infra/env/overrides/remote-k8s.yaml`](../../infra/env/overrides/remote-k8s.yaml) stays **portable** (in-cluster **`postgres`** / **`valkey`** hostnames, empty URL shells). Forks do not need to fork site-specific hosts.
+
+3. **Optional `.env` layers:** In **Boilerplate** repo root, **`make alpha_env_prepare`** / **`make alpha_env_link`** then edit **`~/.config/boilerplate/alpha-env-overrides/*.env`** for secrets and any keys you do not want in Git (JWT, DB passwords, Valkey password, mailer, etc.).
+
+**Why:** Classification drives ConfigMaps and Secret key sets; public URLs and cookies must match ingress. Keeping site defaults in the GitOps overlay keeps the Boilerplate clone generic; `make alpha_env_render` merges the GitOps file automatically when **`BOILERPLATE_K8S_OUTPUT_REPO`** points at that clone (see **[K8S-ENV-RENDER.md](K8S-ENV-RENDER.md)**).
 
 ---
 
@@ -297,7 +437,7 @@ sops -d secrets/<path>/boilerplate-api-secrets.enc.yaml | kubectl apply -n <name
 
 ## Step 10 — Build and publish container images
 
-**Do this:** Push images to your registry with tags referenced in GitOps Kustomize **`images[].newTag`** (e.g. per-app `kustomization.yaml`). Typical path: CI runs **Publish staging (alpha branch)** on **`alpha`** and publishes pre-release tags **`X.Y.Z-staging.N`**. Alternatively build and push locally with the same tag scheme.
+**Do this:** Push images to your registry with tags referenced in GitOps Kustomize **`images[].newTag`** (e.g. per-app `kustomization.yaml`). Typical path: CI runs **Publish staging** and publishes pre-release tags **`X.Y.Z-staging.N`**. Alternatively build and push locally with the same tag scheme.
 
 **Why:** Argo CD syncs Deployments that point at immutable tags; missing tags cause pull failures.
 
@@ -307,8 +447,8 @@ sops -d secrets/<path>/boilerplate-api-secrets.enc.yaml | kubectl apply -n <name
 
 ## Step 11 — Push GitOps; sync Argo CD in order
 
-**Do this:** **Dry-run `git push`** to the branch **`targetRevision`** references (Step 1 table), then push
-for real. In Argo CD, sync in dependency order (datastores before APIs, APIs before web), e.g.:
+**Do this:** **Dry-run `git push`** to **`main`** on the GitOps remote (Step 1 table), then push for real.
+In Argo CD, sync in dependency order (datastores before APIs, APIs before web), e.g.:
 
 1. **common** (namespace, ingress, TLS hosts)
 2. **db**, **keyvaldb**
