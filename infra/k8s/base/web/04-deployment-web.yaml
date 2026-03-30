@@ -30,7 +30,7 @@ spec:
           env:
             - name: RUNTIME_CONFIG_URL
               value: http://web-sidecar:4001
-            - name: API_BACKEND_URL
+            - name: API_SERVER_BASE_URL
               value: http://api:4000
           readinessProbe:
             tcpSocket:

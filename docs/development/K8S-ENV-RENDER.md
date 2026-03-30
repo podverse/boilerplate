@@ -9,7 +9,7 @@ Boilerplate keeps the canonical variable list in [`infra/env/classification/base
 
 `scripts/k8s-env/render-k8s-env.sh` builds a merged env per classification env group with profile **`remote_k8s`**, an optional **GitOps classification overlay**, then `dev/env-overrides/<env>/*.env` (see [ENV-REFERENCE.md](ENV-REFERENCE.md)).
 
-**Merge order (later wins on conflicts):** `infra/env/classification/base.yaml` → `infra/env/overrides/remote-k8s.yaml` (Boilerplate monorepo) → optional **`${BOILERPLATE_K8S_OUTPUT_REPO}/apps/boilerplate-<env>/env/remote-k8s.yaml`** (same `version` / `env_groups` shape as the monorepo overlay) → each `dev/env-overrides/<env>/*.env` in sorted filename order.
+**Merge order (later wins on conflicts):** `infra/env/classification/base.yaml` → `infra/env/overrides/remote-k8s.yaml` (Boilerplate monorepo; sets in-cluster **`API_SERVER_BASE_URL`** / **`MANAGEMENT_API_SERVER_BASE_URL`** for Next.js server-side fetch) → optional **`${BOILERPLATE_K8S_OUTPUT_REPO}/apps/boilerplate-<env>/env/remote-k8s.yaml`** (same `version` / `env_groups` shape as the monorepo overlay) → each `dev/env-overrides/<env>/*.env` in sorted filename order.
 
 **`local_generator: hex_32` (opt-in fill):** Plain **`merge-env --profile remote_k8s`** does not synthesize secrets; classification **`local_generator`** is documentation unless you pass the flags **`render-k8s-env.sh`** uses: **`--fill-empty-local-generator-secrets`**, **`--hex32-state-file`** (temp file, removed on exit), and **`--reuse-plain-secrets-dir`** pointing at **`secrets/boilerplate-<env>/plain/`** when that directory exists. For each **`kind: secret`** key with **`local_generator: hex_32`**, an empty merged value is replaced by (in order): existing non-empty overlay/classification value; **`stringData`** from any **`plain/*.yaml`** (later files override earlier keys); an existing line in the state file; **`SecureRandom.hex(32)`** (appended to the state file). That keeps shared keys consistent across env groups in one render (e.g. **`VALKEY_PASSWORD`** for **`api`** after **`valkey`**). **`validate-parity`** and ad-hoc **`merge-env`** do **not** pass these flags so output stays deterministic. See [ENV-REFERENCE.md](ENV-REFERENCE.md) § Merge order.
 
@@ -52,8 +52,7 @@ Make targets live in [`makefiles/gitops/Makefile.gitops-env.mk`](../../makefiles
 
 ### Port sync (listen ports, Services, Ingress backends)
 
-Plan **05** tooling keeps **container ports**, **probe ports**, **in-cluster URL env** (e.g.
-`http://api:<API_PORT>`), **Service `port` / `targetPort`**, and **Ingress `backend.service.port.number`**
+Plan **05** tooling keeps **container ports**, **probe ports**, **in-cluster URL env** on web / management-web Deployments (`API_SERVER_BASE_URL`, `MANAGEMENT_API_SERVER_BASE_URL`; see `apps/web/src/config/env.ts` and `apps/management-web/src/config/env.ts`), **Service `port` / `targetPort`**, and **Ingress `backend.service.port.number`**
 aligned with classification literals (`API_PORT`, `WEB_PORT`, …) plus `dev/env-overrides/<env>/*.env`.
 
 - **Contract:** [`infra/k8s/remote/port-contract.yaml`](../../infra/k8s/remote/port-contract.yaml) —

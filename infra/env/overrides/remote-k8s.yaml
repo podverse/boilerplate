@@ -8,6 +8,10 @@ version: 2
 # Another product (e.g. Podverse) in a different namespace has its own postgres/valkey Services and ClusterIPs,
 # so there is no Kubernetes-level port collision. Caveats: shared NodePort numbers, hostNetwork, or one shared
 # host-level or managed DB endpoint require intentional coordination outside these defaults.
+#
+# Server-side Next.js uses API_SERVER_BASE_URL / MANAGEMENT_API_SERVER_BASE_URL (apps/web and
+# apps/management-web). For remote K8s they must target in-cluster Services (api, management-api), not
+# localhost. Override ports in GitOps remote-k8s.yaml if your Service ports differ from 4000/4100.
 env_groups:
   db:
     vars:
@@ -23,6 +27,14 @@ env_groups:
         VALKEY_PORT:
           default: "6379"
   http:
+    api:
+      vars:
+        API_SERVER_BASE_URL:
+          default: "http://api:4000"
+    management-api:
+      vars:
+        MANAGEMENT_API_SERVER_BASE_URL:
+          default: "http://management-api:4100"
     web:
       vars:
         WEB_BASE_URL:

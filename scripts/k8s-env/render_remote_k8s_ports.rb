@@ -237,7 +237,7 @@ def patch_web_deployment(web_port, sidecar_port, api_port)
               'ports' => [{ 'containerPort' => web_port }],
               'env' => [
                 { 'name' => 'RUNTIME_CONFIG_URL', 'value' => "http://web-sidecar:#{sidecar_port}" },
-                { 'name' => 'API_BACKEND_URL', 'value' => "http://api:#{api_port}" }
+                { 'name' => 'API_SERVER_BASE_URL', 'value' => "http://api:#{api_port}" }
               ],
               'readinessProbe' => {
                 'tcpSocket' => { 'port' => web_port }
@@ -266,7 +266,7 @@ def patch_web_sidecar_deployment(sidecar_port, api_port)
               'name' => 'web-sidecar',
               'ports' => [{ 'containerPort' => sidecar_port }],
               'env' => [
-                { 'name' => 'API_BACKEND_URL', 'value' => "http://api:#{api_port}" }
+                { 'name' => 'API_SERVER_BASE_URL', 'value' => "http://api:#{api_port}" }
               ]
             }
           ]
@@ -297,7 +297,7 @@ def patch_management_web_deployment(mw_port, sidecar_port, mgmt_api_port)
               'ports' => [{ 'containerPort' => mw_port }],
               'env' => [
                 { 'name' => 'RUNTIME_CONFIG_URL', 'value' => "http://management-web-sidecar:#{sidecar_port}" },
-                { 'name' => 'MANAGEMENT_API_BACKEND_URL', 'value' => "http://management-api:#{mgmt_api_port}" }
+                { 'name' => 'MANAGEMENT_API_SERVER_BASE_URL', 'value' => "http://management-api:#{mgmt_api_port}" }
               ],
               'readinessProbe' => {
                 'tcpSocket' => { 'port' => mw_port }
