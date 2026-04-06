@@ -107,6 +107,8 @@ k8s_env_render_owned_paths_relative_to_output_repo() {
     rel=$(k8s_config_bundle_relpath_for_workload "$w")
     [[ -z "$rel" ]] && continue
     echo "${oroot}/${rel}"
+    odir=$(overlay_dir_for_workload "$w")
+    [[ -z "$odir" ]] && continue
     echo "${oroot}/${odir}/deployment-secret-env.yaml"
     suffix=$(workload_resource_suffix "$w")
     echo "secrets/boilerplate-${env_name}/plain/boilerplate-${suffix}-secrets.yaml"

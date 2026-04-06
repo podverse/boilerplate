@@ -71,3 +71,25 @@ drop the number prefixes in k8s file names
 - scripts/local-env/local-management-db.sh
 - makefiles/local/Makefile.local.env.mk
 - .llm/history/active/kustomize-native-gitops/kustomize-native-gitops-part-01.md
+
+### Session 4 - 2026-04-03
+
+#### Prompt (Developer)
+
+k.podcastdj.com: bundle vs `.env` — what git actually shows
+
+Implement the plan as specified, it is attached for your reference. Do NOT edit the plan file itself.
+
+To-do's from the plan have already been created. Do not create them again. Mark them as in_progress as you work, starting with the first one. Don't stop until you have completed all the to-dos.
+
+#### Key Decisions
+
+- Ran **`make alpha_env_render`** into **`k.podcastdj.com`**; committed wiring uses **`boilerplate-*-config.bundle/`** per overlay **`kustomization.yaml`**; removed orphan **`boilerplate-*-config.env`** files (not listed in Kustomize).
+- Fixed **`k8s_env_render_owned_paths_relative_to_output_repo`**: set **`odir`** from **`overlay_dir_for_workload`** before echoing **`deployment-secret-env.yaml`** path (avoids **`odir: unbound variable`** under **`set -u`** during prune).
+- Staged **`k.podcastdj.com`** bundles + kustomization updates + related docs/scripts; verified **`kubectl kustomize --load-restrictor LoadRestrictionsNone`** for **`api`**, **`db`**, **`keyvaldb`**, **`web`**, **`management-api`**, **`management-web`**.
+
+#### Files Modified
+
+- boilerplate/scripts/k8s-env/k8s-env-render-manifest.inc.sh
+- boilerplate/.llm/history/active/kustomize-native-gitops/kustomize-native-gitops-part-01.md
+- (GitOps repo **`k.podcastdj.com`**: staged changes under **`apps/boilerplate-alpha/`**, **`docs/`**, **`scripts/`**, **`.github/workflows/`** — not listed as paths in this monorepo file list)
