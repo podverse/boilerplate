@@ -1,6 +1,6 @@
 {
   "name": "@boilerplate/helpers-requests",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "type": "module",
   "private": true,
   "main": "dist/index.js",

@@ -1,6 +1,6 @@
 {
   "name": "@boilerplate/web",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "private": true,
   "scripts": {
     "i18n:compile": "node ../../scripts/i18n/compile.mjs web",
