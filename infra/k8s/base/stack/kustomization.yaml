@@ -15,8 +15,9 @@ generatorOptions:
 configMapGenerator:
   - name: boilerplate-postgres-init
     files:
-      # Filenames sort lexicographically in docker-entrypoint-initdb.d/: shell bootstrap, then z_* schema loads.
+      # Filenames sort lexicographically in docker-entrypoint-initdb.d/: app roles, management DB+roles, schemas, management grants.
       - postgres-init/create_app_db_users.sh
       - postgres-init/setup_management_database.sh
       - postgres-init/z_load_app_schema.sql
       - postgres-init/z_load_management_schema.sql
+      - postgres-init/zz_management_grants.sh

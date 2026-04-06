@@ -1,7 +1,8 @@
 #!/bin/bash
-# Verify that combined database files match the migration files.
+# Verify that committed k8s postgres-init SQL (z_load_*.sql) matches migration directories.
 #
-# Used by CI so combined outputs are not out of sync with migrations.
+# Used by CI and make check_k8s_postgres_init_sync. Canonical combined SQL lives under
+# infra/k8s/base/stack/postgres-init/ (see scripts/database/combine-migrations.sh).
 # Run after editing files in infra/database/migrations/ or infra/management-database/migrations/.
 #
 # Usage: ./scripts/database/verify-migrations-combined.sh
@@ -62,11 +63,11 @@ ERRORS=0
 
 # Main database
 MAIN_MIGRATIONS="$REPO_ROOT/infra/database/migrations"
-MAIN_COMBINED="$REPO_ROOT/infra/database/combined/init_database.sql"
-MAIN_TEMP="$TEMP_DIR/init_database.sql"
+MAIN_COMBINED="$REPO_ROOT/infra/k8s/base/stack/postgres-init/z_load_app_schema.sql"
+MAIN_TEMP="$TEMP_DIR/z_load_app_schema.sql"
 
 combine_to_temp "$MAIN_MIGRATIONS" "$MAIN_TEMP"
-if ! compare_files "$MAIN_TEMP" "$MAIN_COMBINED" "Main database (init_database.sql)"; then
+if ! compare_files "$MAIN_TEMP" "$MAIN_COMBINED" "Main database (z_load_app_schema.sql)"; then
   ERRORS=$((ERRORS + 1))
 fi
 
@@ -74,11 +75,11 @@ echo ""
 
 # Management database
 MGMT_MIGRATIONS="$REPO_ROOT/infra/management-database/migrations"
-MGMT_COMBINED="$REPO_ROOT/infra/management-database/combined/init_management_database.sql"
-MGMT_TEMP="$TEMP_DIR/init_management_database.sql"
+MGMT_COMBINED="$REPO_ROOT/infra/k8s/base/stack/postgres-init/z_load_management_schema.sql"
+MGMT_TEMP="$TEMP_DIR/z_load_management_schema.sql"
 
 combine_to_temp "$MGMT_MIGRATIONS" "$MGMT_TEMP"
-if ! compare_files "$MGMT_TEMP" "$MGMT_COMBINED" "Management database (init_management_database.sql)"; then
+if ! compare_files "$MGMT_TEMP" "$MGMT_COMBINED" "Management database (z_load_management_schema.sql)"; then
   ERRORS=$((ERRORS + 1))
 fi
 
@@ -92,7 +93,7 @@ if [ $ERRORS -gt 0 ]; then
   echo -e "${YELLOW}To fix, run:${NC}"
   echo "  bash scripts/database/combine-migrations.sh"
   echo ""
-  echo "Then commit the updated combined files."
+  echo "Then commit the updated infra/k8s/base/stack/postgres-init/z_load_*.sql (and run combine-migrations.sh to sync base/db/postgres-init/)."
   exit 1
 fi
 

@@ -11,7 +11,7 @@ When adding or changing files under:
 
 - `infra/k8s/` (local, base, or app-of-apps manifests and referenced resources),
 - Or any path that is part of an Argo CD Application source (e.g. `infra/k8s/local/apps`, `infra/k8s/local/stack`, `infra/k8s/base/stack`, postgres-init under base, and files referenced by those via Kustomize),
-- Or canonical sources that get copied into k8s (e.g. postgres-init SQL in `infra/database/combined/` or `infra/management-database/combined/` when `sync_k8s_postgres_init` or `make sync_k8s_postgres_init` is used).
+- Or canonical combined schema under k8s (e.g. `infra/k8s/base/stack/postgres-init/z_load_*.sql` from `scripts/database/combine-migrations.sh`; `make sync_k8s_postgres_init` copies stack → `base/db/postgres-init/` for Kustomize).
 
 ## What Argo CD syncs
 

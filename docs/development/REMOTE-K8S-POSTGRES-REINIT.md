@@ -8,6 +8,8 @@ Full GitOps context: [REMOTE-K8S-GITOPS.md](REMOTE-K8S-GITOPS.md), env render: [
 
 Replace **`boilerplate-alpha`** with your namespace if different.
 
+**Greenfield (new empty Postgres PVC):** The GitOps **`infra/k8s/base/db`** Deployment mounts the same **`docker-entrypoint-initdb.d`** ConfigMap as **`infra/k8s/base/stack`**, so combined schema SQL, the management database, ORM roles, and grants run automatically on first start when **`boilerplate-db-secrets`** is applied before the pod initializes data. You do **not** need **`remote_postgres_reinit_bootstrap.py --bootstrap-only`** for that path unless you are re-seeding an existing data directory, fixing drift, or rotated role passwords without wiping the volume.
+
 ---
 
 ## Option B (automated): one script for PVC wipe + bootstrap
@@ -31,7 +33,7 @@ Flags:
 | **`--bootstrap-only`** | Skip PVC deletion; run SQL bootstrap only (Postgres already up with empty/existing DBs you want to re-seed). |
 | **`--pvc-only`**       | Only delete PVC(s) and wait for rollouts (no SQL).                                                           |
 
-The script reads role names and passwords from the same Secrets the API Deployments use, applies **`infra/database/combined/init_database.sql`** and **`infra/management-database/combined/init_management_database.sql`**, creates the four ORM roles if missing, and runs the same **GRANT** pattern as **`makefiles/local/Makefile.local.test.mk`** (`test_db_init` / `test_db_init_management`).
+The script reads role names and passwords from the same Secrets the API Deployments use, applies **`infra/k8s/base/stack/postgres-init/z_load_app_schema.sql`** and **`z_load_management_schema.sql`** (same combined output as **`scripts/database/combine-migrations.sh`**), creates the four ORM roles if missing, and runs the same **GRANT** pattern as **`makefiles/local/Makefile.local.test.mk`** (`test_db_init` / `test_db_init_management`).
 
 **Requires:** **`kubectl`** configured for the cluster; **Python 3** on the machine running the script (stdlib only).
 
@@ -122,8 +124,8 @@ psql -d postgres -c "CREATE DATABASE \"$MGMT_DB\";"
 Apply combined schema (main app DB, then management DB):
 
 ```bash
-psql -d "$APP_DB" -f infra/database/combined/init_database.sql
-psql -d "$MGMT_DB" -f infra/management-database/combined/init_management_database.sql
+psql -d "$APP_DB" -f infra/k8s/base/stack/postgres-init/z_load_app_schema.sql
+psql -d "$MGMT_DB" -f infra/k8s/base/stack/postgres-init/z_load_management_schema.sql
 ```
 
 Create **role** users with passwords **identical** to the Secrets the APIs use. Read passwords from Secrets (same `base64 -d` pattern as above) for:

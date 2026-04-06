@@ -3,6 +3,10 @@
 Destructive remote K8s Option B: delete Postgres (and optionally Valkey) PVCs, wait for pods,
 then bootstrap management DB + schema + role users + grants from Kubernetes Secrets.
 
+Greenfield clusters using current Boilerplate infra/k8s/base/db often do not need this script on a
+new empty Postgres volume: docker-entrypoint-initdb.d runs the same init as base/stack. Use this
+script for PVC wipe flows, re-seed, drift repair, or password rotation without wipe.
+
 Prerequisites: kubectl configured. Run from Boilerplate repo root so infra/database paths resolve.
 
 Align Secrets and apply them BEFORE running this script (see docs/development/REMOTE-K8S-POSTGRES-REINIT.md §1).
@@ -157,8 +161,8 @@ def main() -> None:
     ns = args.namespace
     root = (args.repo_root or Path(__file__).resolve().parents[2]).resolve()
 
-    init_app = root / 'infra/database/combined/init_database.sql'
-    init_mgmt = root / 'infra/management-database/combined/init_management_database.sql'
+    init_app = root / 'infra/k8s/base/stack/postgres-init/z_load_app_schema.sql'
+    init_mgmt = root / 'infra/k8s/base/stack/postgres-init/z_load_management_schema.sql'
     if not args.pvc_only:
         if not init_app.is_file():
             raise SystemExit(f"Missing {init_app} (run from Boilerplate repo root or pass --repo-root)")

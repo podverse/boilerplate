@@ -11,7 +11,7 @@ tokens. Align CRUD permissioning with management API conventions (CrudOp, bitmas
 
 **Key files:**
 
-- `infra/database/combined/` – init/migration SQL
+- `infra/k8s/base/stack/postgres-init/z_load_*.sql` – combined init SQL (from migrations via `combine-migrations.sh`)
 - `packages/orm/` – ApiToken entity, ApiTokenService
 - `apps/api/src/` – middleware, routes, controller, schemas, openapi
 
@@ -21,7 +21,7 @@ tokens. Align CRUD permissioning with management API conventions (CrudOp, bitmas
 
 1. Create a **new migration file** (do not edit the combined file directly):  
    `infra/database/migrations/0003_api_token.sql` (or next available number after 0002).  
-   The combined file `infra/database/combined/init_database.sql` is generated from migrations;  
+   The combined file `infra/k8s/base/stack/postgres-init/z_load_app_schema.sql` is generated from migrations;  
    after adding the migration, run `./scripts/database/combine-migrations.sh` and commit the  
    updated combined file. Run `./scripts/database/verify-migrations-combined.sh` in CI so  
    combined stays in sync.
@@ -198,7 +198,7 @@ tokens.
    - Use API token with `auth` update: change-password succeeds (if applicable).
 
 2. Follow existing test patterns (supertest, app factory, test DB). Test DB is initialized
-   with `infra/database/combined/init_database.sql` (see `apps/api/src/test/setup.ts` and
+   with `infra/k8s/base/stack/postgres-init/z_load_app_schema.sql` (see `apps/api/src/test/setup.ts` and
    AGENTS.md). After adding the api_token migration and running combine-migrations.sh, the
    combined init includes the new table; no change to test setup is required. If globalSetup
    truncates by table list, ensure truncation includes `api_token`.

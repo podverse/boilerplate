@@ -1,17 +1,22 @@
 .PHONY: local_k3d_up local_k3d_down local_argocd_port_forward local_k3d_status local_k3d_postgres_reset sync_k8s_postgres_init check_k8s_postgres_init_sync
 
-# Sync postgres init SQL into k8s base stack so Kustomize (load restrictor) can read them. Run after changing canonical init SQL.
+# Copy canonical postgres-init from stack to db (Kustomize load restrictor). Canonical SQL is only under stack/db k8s trees; run combine-migrations.sh to regenerate from migrations.
 sync_k8s_postgres_init:
-	cp infra/database/combined/init_database.sql infra/k8s/base/stack/postgres-init/init_database.sql
-	cp infra/management-database/combined/init_management_database.sql infra/k8s/base/stack/postgres-init/init_management_database.sql
+	mkdir -p infra/k8s/base/db/postgres-init
+	cp infra/k8s/base/stack/postgres-init/z_load_app_schema.sql infra/k8s/base/db/postgres-init/z_load_app_schema.sql
+	cp infra/k8s/base/stack/postgres-init/z_load_management_schema.sql infra/k8s/base/db/postgres-init/z_load_management_schema.sql
+	cp infra/k8s/base/stack/postgres-init/*.sh infra/k8s/base/db/postgres-init/
 
-# Fail if canonical combined SQL and k8s postgres-init copies differ (catches manual edits or missed sync).
+# Fail if stack/db postgres-init copies differ or migrations do not match committed k8s SQL.
 check_k8s_postgres_init_sync:
-	@diff -q infra/database/combined/init_database.sql infra/k8s/base/stack/postgres-init/init_database.sql >/dev/null || \
-	  (echo "ERROR: infra/k8s/base/stack/postgres-init/init_database.sql differs from canonical. Run: make sync_k8s_postgres_init or scripts/database/combine-migrations.sh"; exit 1)
-	@diff -q infra/management-database/combined/init_management_database.sql infra/k8s/base/stack/postgres-init/init_management_database.sql >/dev/null || \
-	  (echo "ERROR: infra/k8s/base/stack/postgres-init/init_management_database.sql differs from canonical. Run: make sync_k8s_postgres_init or scripts/database/combine-migrations.sh"; exit 1)
-	@echo "Postgres-init SQL in sync with canonical."
+	@diff -q infra/k8s/base/stack/postgres-init/z_load_app_schema.sql infra/k8s/base/db/postgres-init/z_load_app_schema.sql >/dev/null || \
+	  (echo "ERROR: stack vs db z_load_app_schema.sql differ. Run: make sync_k8s_postgres_init or scripts/database/combine-migrations.sh"; exit 1)
+	@diff -q infra/k8s/base/stack/postgres-init/z_load_management_schema.sql infra/k8s/base/db/postgres-init/z_load_management_schema.sql >/dev/null || \
+	  (echo "ERROR: stack vs db z_load_management_schema.sql differ. Run: make sync_k8s_postgres_init or scripts/database/combine-migrations.sh"; exit 1)
+	@diff -qr infra/k8s/base/stack/postgres-init infra/k8s/base/db/postgres-init >/dev/null || \
+	  (echo "ERROR: stack postgres-init and db/postgres-init differ. Run: make sync_k8s_postgres_init or scripts/database/combine-migrations.sh"; exit 1)
+	@bash scripts/database/verify-migrations-combined.sh
+	@echo "Postgres-init SQL and stack/db copies in sync; migrations match k8s z_load files."
 
 local_k3d_up: sync_k8s_postgres_init
 	bash scripts/infra/k3d/local-up.sh

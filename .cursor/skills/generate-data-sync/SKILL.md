@@ -37,6 +37,6 @@ true` for seeded rows.
 
 ## References
 
-- Main schema: `infra/database/combined/init_database.sql`
-- Management schema: `infra/management-database/combined/init_management_database.sql`
+- Main schema: `infra/k8s/base/stack/postgres-init/z_load_app_schema.sql`
+- Management schema: `infra/k8s/base/stack/postgres-init/z_load_management_schema.sql`
 - Seeders: `tools/generate-data/src/main/seed.ts`, `tools/generate-data/src/management/seed.ts`
