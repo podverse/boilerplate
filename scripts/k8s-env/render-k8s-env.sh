@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Render ConfigMap + Secret YAML for Boilerplate K8s workloads.
+# Render Kustomize config bundles (per-key files + kustomization.yaml for configMapGenerator), plain Secret YAML, and secret env patches.
 # Usage: render-k8s-env.sh --env alpha|beta|prod [--output-repo PATH] [--dry-run] [--no-prune]
 # Fills empty classification local_generator: hex_32 secrets via merge-env (state file + optional plain/*.yaml reuse); see docs/development/K8S-ENV-RENDER.md.
 #
@@ -12,7 +12,7 @@
 #   else ${OUTPUT_REPO}/... when BOILERPLATE_K8S_OUTPUT_REPO is unset (e.g. dry-run with only output repo).
 # When writing to a temp dir, set BOILERPLATE_K8S_OUTPUT_REPO to the real GitOps root so the overlay is read
 # from committed files (validate-k8s-env-drift.sh does this).
-# Prune: by default, removes generator-owned ConfigMaps, plain Secrets, deployment-secret-env.yaml
+# Prune: by default, removes generator-owned config bundle directories, plain Secrets, deployment-secret-env.yaml
 # patches, and (when plan 05 port list is populated) deployment-ports-and-probes.yaml per manifest.
 # Use --no-prune to skip deletion. --dry-run never prunes or writes.
 
@@ -142,11 +142,9 @@ render_one() {
     return 0
   fi
 
-  local dest_base cm_file
-  cm_file=$(configmap_filename_for_workload "$group")
-
   if [[ "$DRY_RUN" -eq 1 ]]; then
-    echo "=== ConfigMap ${group}"
+    echo "=== Config bundle ${group}"
+    bd_preview="$(mktemp -d)"
     ruby "$SCRIPT_DIR/render_k8s_env.rb" \
       --group "$group" \
       --merged-env "$merged" \
@@ -154,7 +152,12 @@ render_one() {
       --namespace "$NAMESPACE" \
       --environment "$ENV_NAME" \
       --resource-suffix "$suffix" \
-      --emit configmap || true
+      --emit config-bundle \
+      --bundle-dir "$bd_preview" || true
+    if [[ -d "$bd_preview" ]]; then
+      find "$bd_preview" -type f | sort | sed "s|^|  |" || true
+      rm -rf "$bd_preview"
+    fi
     echo "=== Secret ${group}"
     ruby "$SCRIPT_DIR/render_k8s_env.rb" \
       --group "$group" \
@@ -177,7 +180,9 @@ render_one() {
     return 0
   fi
 
+  local dest_base bundle_dir
   dest_base="${OUTPUT_REPO}/${OVERLAY}/${odir}"
+  bundle_dir="${OUTPUT_REPO}/${OVERLAY}/$(k8s_config_bundle_relpath_for_workload "$group")"
   mkdir -p "$dest_base"
   mkdir -p "$PLAIN_SECRETS_DIR"
 
@@ -189,17 +194,18 @@ render_one() {
     --namespace "$NAMESPACE" \
     --environment "$ENV_NAME" \
     --resource-suffix "$suffix" \
-    --emit configmap >"${dest_base}/${cm_file}"
-  cm_rc=$?
+    --emit config-bundle \
+    --bundle-dir "$bundle_dir"
+  bundle_rc=$?
   set -e
-  case $cm_rc in
-    0) echo "Wrote ${dest_base}/${cm_file}" ;;
+  case $bundle_rc in
+    0) echo "Wrote config bundle ${bundle_dir}" ;;
     3) echo "Skip env group ${group} (no_env_from)" ;;
-    4) echo "Skip ConfigMap for ${group} (no config keys)" ;;
-    *) echo "Error: configmap render failed for ${group} (exit $cm_rc)" >&2; rm -f "$merged"; exit 1 ;;
+    4) echo "Skip config bundle for ${group} (no config keys)" ;;
+    *) echo "Error: config-bundle render failed for ${group} (exit $bundle_rc)" >&2; rm -f "$merged"; exit 1 ;;
   esac
-  if [[ $cm_rc -ne 0 ]]; then
-    rm -f "${dest_base}/${cm_file}"
+  if [[ $bundle_rc -ne 0 ]]; then
+    rm -rf "${bundle_dir}"
   fi
 
   set +e
@@ -256,7 +262,7 @@ echo "ENV=${ENV_NAME} OUTPUT_REPO=${OUTPUT_REPO} NAMESPACE=${NAMESPACE}"
 if [[ "$DRY_RUN" -eq 0 && "$PRUNE" -eq 1 ]]; then
   echo "Pruning generator-owned paths under ${OUTPUT_REPO}"
   while IFS= read -r rel; do
-    rm -f "${OUTPUT_REPO}/${rel}"
+    rm -rf "${OUTPUT_REPO}/${rel}"
   done < <(k8s_env_render_owned_paths_relative_to_output_repo "$ENV_NAME")
 fi
 

@@ -18,12 +18,16 @@ overlay_dir_for_workload() {
   esac
 }
 
-configmap_filename_for_workload() {
-  case "$1" in
-    web-sidecar) echo configmap-web-sidecar.yaml ;;
-    management-web-sidecar) echo configmap-management-web-sidecar.yaml ;;
-    *) echo configmap.yaml ;;
-  esac
+# Relative path (under overlay component dir) to rendered Kustomize bundle (per-key files + kustomization.yaml).
+k8s_config_bundle_relpath_for_workload() {
+  local odir suffix
+  odir=$(overlay_dir_for_workload "$1")
+  if [[ -z "$odir" ]]; then
+    echo ""
+    return 0
+  fi
+  suffix=$(workload_resource_suffix "$1")
+  echo "${odir}/boilerplate-${suffix}-config.bundle"
 }
 
 # Order must match render-k8s-env.sh render_one sequence.
@@ -70,17 +74,15 @@ overlay_root_for_env() {
   echo "apps/boilerplate-${1}"
 }
 
-# ConfigMap paths relative to apps/boilerplate-<env>/ (used by drift validation).
-k8s_env_render_configmap_relpaths_under_overlay() {
+# Config bundle directory paths relative to apps/boilerplate-<env>/ (used by drift validation).
+k8s_env_render_config_bundle_relpaths_under_overlay() {
   local env_name="$1"
-  local odir cm_file w
+  local rel w
   for w in "${K8S_ENV_RENDER_WORKLOADS[@]}"; do
-    odir=$(overlay_dir_for_workload "$w")
-    if [[ -z "$odir" ]]; then
-      continue
+    rel=$(k8s_config_bundle_relpath_for_workload "$w")
+    if [[ -n "$rel" ]]; then
+      echo "$rel"
     fi
-    cm_file=$(configmap_filename_for_workload "$w")
-    echo "${odir}/${cm_file}"
   done
 }
 
@@ -96,18 +98,15 @@ k8s_env_render_deployment_secret_patch_relpaths_under_overlay() {
   done
 }
 
-# All generator-owned paths relative to GitOps repo root (ConfigMaps + plain Secrets + secret env patches).
+# All generator-owned paths relative to GitOps repo root (config bundles + plain Secrets + secret env patches).
 k8s_env_render_owned_paths_relative_to_output_repo() {
   local env_name="$1"
-  local oroot odir cm_file suffix w
+  local oroot rel w
   oroot=$(overlay_root_for_env "$env_name")
   for w in "${K8S_ENV_RENDER_WORKLOADS[@]}"; do
-    odir=$(overlay_dir_for_workload "$w")
-    if [[ -z "$odir" ]]; then
-      continue
-    fi
-    cm_file=$(configmap_filename_for_workload "$w")
-    echo "${oroot}/${odir}/${cm_file}"
+    rel=$(k8s_config_bundle_relpath_for_workload "$w")
+    [[ -z "$rel" ]] && continue
+    echo "${oroot}/${rel}"
     echo "${oroot}/${odir}/deployment-secret-env.yaml"
     suffix=$(workload_resource_suffix "$w")
     echo "secrets/boilerplate-${env_name}/plain/boilerplate-${suffix}-secrets.yaml"

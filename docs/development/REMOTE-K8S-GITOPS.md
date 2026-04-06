@@ -2,7 +2,7 @@
 
 **Start here** for deploying Boilerplate to a **remote** cluster with GitOps and Argo CD (thin overlays, env render, SOPS). For local k3d, see [K3D-ARGOCD-LOCAL.md](K3D-ARGOCD-LOCAL.md).
 
-End-to-end steps from a **clean slate** to a working Boilerplate stack on **your** cluster and **your** domains, using a **separate GitOps repository** for Kustomize overlays, Argo CD `Application` resources, and (after env render) generated ConfigMaps and Secret patches.
+End-to-end steps from a **clean slate** to a working Boilerplate stack on **your** cluster and **your** domains, using a **separate GitOps repository** for Kustomize overlays, Argo CD `Application` resources, and (after env render) generated **`boilerplate-*-config.bundle/`** directories (each with **`configMapGenerator`** **`files:`** → ConfigMaps) and Secret patches.
 
 This repository holds application source, [`infra/env/classification`](../../infra/env/classification/), and `make alpha_env_render`. The GitOps repo is yours: layout, namespace names, and hostnames are conventions you choose and keep consistent with Argo CD and ingress.
 
@@ -47,12 +47,12 @@ Throughout this doc, replace placeholders with your own names:
 
 ## What you are wiring
 
-| Piece                       | Role                                                                                                                                               |
-| --------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Kubernetes cluster**      | Runs workloads; typically has **Argo CD**, **cert-manager**, and an **ingress controller** (Traefik, nginx, etc.).                                 |
-| **GitOps repo**             | Kustomize overlays, Argo `Application` CRs, encrypted registry/pull secrets, and (after render) ConfigMaps + `deployment-secret-env.yaml` patches. |
-| **This (Boilerplate) repo** | Source code, env classification, `make alpha_env_*`, image build (CI or local), and `BOILERPLATE_K8S_OUTPUT_REPO` pointing at your GitOps clone.   |
-| **Container registry**      | Hosts images (e.g. GitHub Container Registry); cluster needs an image pull secret if the registry is private.                                      |
+| Piece                       | Role                                                                                                                                                                                                |
+| --------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Kubernetes cluster**      | Runs workloads; typically has **Argo CD**, **cert-manager**, and an **ingress controller** (Traefik, nginx, etc.).                                                                                  |
+| **GitOps repo**             | Kustomize overlays, Argo `Application` CRs, encrypted registry/pull secrets, and (after render) **`boilerplate-*-config.bundle/`** (sub-overlay ConfigMaps) + `deployment-secret-env.yaml` patches. |
+| **This (Boilerplate) repo** | Source code, env classification, `make alpha_env_*`, image build (CI or local), and `BOILERPLATE_K8S_OUTPUT_REPO` pointing at your GitOps clone.                                                    |
+| **Container registry**      | Hosts images (e.g. GitHub Container Registry); cluster needs an image pull secret if the registry is private.                                                                                       |
 
 ### GitOps repo vs public domains (Podverse reference)
 
@@ -92,8 +92,10 @@ When you change manifests under **`infra/k8s/base/`** in this repo, or ship new 
 GitOps remote Argo CD syncs and **pull** images from your registry (e.g. PAT with `read:packages` for GHCR pull
 secrets).
 
-**Kustomize:** Kustomize is **embedded in kubectl**. This guide uses **`kubectl kustomize <path>`** only. You do
-**not** install or verify a separate **`kustomize`** binary for the workflows here.
+**Kustomize (two roles):**
+
+- **Build / validate overlays:** use **`kubectl kustomize <path>`** (Kustomize is embedded in kubectl). This is enough for compiling GitOps paths locally and matches common Argo CD behavior.
+- **Edit `kustomization.yaml` from scripts:** your GitOps repo may ship helpers (e.g. **`bump-boilerplate-alpha-pins.sh`**, **`align-boilerplate-git-base.sh`** on **k.podcastdj.com**) that run **`kustomize edit`** (`set image`, `add`/`remove resource`). Those require the **standalone [`kustomize` CLI](https://kubectl.docs.kubernetes.io/installation/kustomize/)** on **`PATH`** (or **`KUSTOMIZE_BIN`**). They also use **Ruby** (stdlib **YAML**) to read ordered **`resources:`** before rewriting via **`kustomize edit`**.
 
 **Verify tooling** (from any shell; versions should print and exit 0):
 
@@ -107,6 +109,7 @@ ruby --version
 git --version
 make --version
 kubectl kustomize --help >/dev/null && echo "kubectl kustomize: ok"
+command -v kustomize >/dev/null && kustomize version && echo "kustomize CLI: ok" || echo "kustomize CLI: skip (only needed for GitOps pin/align scripts)"
 ```
 
 **Verify Git remote** on the GitOps clone Argo CD tracks (from that repository):
@@ -411,22 +414,22 @@ sops -d secrets/<path-to-encrypted-pull-secret>.yaml | kubectl apply -f -
 
 3. **Optional `.env` layers:** In **Boilerplate** repo root, **`make alpha_env_prepare`** / **`make alpha_env_link`** then edit **`~/.config/boilerplate/alpha-env-overrides/*.env`** for secrets and any keys you do not want in Git (JWT, DB passwords, Valkey password, mailer, etc.).
 
-**Why:** Classification drives ConfigMaps and Secret key sets; public URLs and cookies must match ingress. Keeping site defaults in the GitOps overlay keeps the Boilerplate clone generic; `make alpha_env_render` merges the GitOps file automatically when **`BOILERPLATE_K8S_OUTPUT_REPO`** points at that clone (see **[K8S-ENV-RENDER.md](K8S-ENV-RENDER.md)**).
+**Why:** Classification drives non-secret config (`.env` → ConfigMap) and Secret key sets; public URLs and cookies must match ingress. Keeping site defaults in the GitOps overlay keeps the Boilerplate clone generic; `make alpha_env_render` merges the GitOps file automatically when **`BOILERPLATE_K8S_OUTPUT_REPO`** points at that clone (see **[K8S-ENV-RENDER.md](K8S-ENV-RENDER.md)**).
 
 ---
 
-## Step 8 — Render ConfigMaps and Secret patches into the GitOps repo
+## Step 8 — Render config env files and Secret patches into the GitOps repo
 
 **Do this:** From **Boilerplate** root, **in order** (dry run before writing files):
 
 ```bash
 export BOILERPLATE_K8S_OUTPUT_REPO=/absolute/path/to/your/gitops-repo
-make alpha_env_render_dry_run   # always first: prints rendered YAML; does not write
+make alpha_env_render_dry_run   # always first: prints rendered .env + Secret YAML; does not write
 make alpha_env_validate         # classification + drift vs committed overlay (needs output repo)
-make alpha_env_render           # writes ConfigMaps, deployment-secret-env.yaml, port/ingress patches, secrets/.../plain/
+make alpha_env_render           # writes boilerplate-*-config.bundle/, deployment-secret-env.yaml, port/ingress patches, secrets/.../plain/
 ```
 
-**Why:** Keeps overlay ConfigMaps and **`deployment-secret-env.yaml`** in sync with [`infra/env/classification`](../../infra/env/classification). Full reference: **[K8S-ENV-RENDER.md](K8S-ENV-RENDER.md)**.
+**Why:** Keeps overlay **`boilerplate-*-config.bundle/`** (referenced from each component **`kustomization.yaml`**) and **`deployment-secret-env.yaml`** in sync with [`infra/env/classification`](../../infra/env/classification). Full reference: **[K8S-ENV-RENDER.md](K8S-ENV-RENDER.md)**.
 
 ---
 
@@ -569,8 +572,9 @@ See the script header for **`LOCAL_SUPERADMIN_PASSWORD`** (local/CI only) and **
 
 ## Step 13 — Verify deployment
 
-**Do this:** Run the checks below with your real `<namespace>` and public hostnames. Kustomize is part of
-kubectl (Step 1); there is **no** separate `kustomize` install to verify here.
+**Do this:** Run the checks below with your real `<namespace>` and public hostnames. **Compile** overlays with
+**`kubectl kustomize`** (Step 1). A **standalone `kustomize`** binary is **only** required if you run GitOps
+scripts that invoke **`kustomize edit`** (see Step 1).
 
 **Verify workloads and ingress in the cluster:**
 

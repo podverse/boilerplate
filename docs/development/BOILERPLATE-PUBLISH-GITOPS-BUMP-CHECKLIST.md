@@ -19,6 +19,11 @@ not use bare `X.Y.Z` unless you intentionally override the workflow.
 
 ## 2. GitOps repo — bump images and (recommended) remote bases
 
+**Prerequisites (local or CI):** standalone **[`kustomize` CLI](https://kubectl.docs.kubernetes.io/installation/kustomize/)**
+on **`PATH`** (the bump script uses **`kustomize edit`**), plus **Ruby** (stdlib **YAML**). Optional: **`KUSTOMIZE_BIN`**
+to point at a non-default binary. The GitHub Actions workflow **Bump boilerplate alpha pins** installs **kustomize**
+before running the script.
+
 **k.podcastdj.com:** run **`./scripts/bump-boilerplate-alpha-pins.sh <VERSION_TAG> --dry-run`** first, then
 **`--push`** (same string as step 1 / Actions **VERSION** output); see
 [k.podcastdj.com `docs/BOILERPLATE-GITOPS-PINS.md`](https://github.com/podverse/k.podcastdj.com/blob/main/docs/BOILERPLATE-GITOPS-PINS.md).

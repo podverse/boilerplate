@@ -1,6 +1,6 @@
 #!/bin/bash
 # Creates app DB read-only and read-write users (names from DB_APP_READ_USER, DB_APP_READ_WRITE_USER).
-# Runs first in docker-entrypoint-initdb.d/ so ALTER DEFAULT PRIVILEGES apply to tables created by init_database.sql.
+# Runs first in docker-entrypoint-initdb.d/ so ALTER DEFAULT PRIVILEGES apply to tables created by z_load_app_schema.sql.
 set -e
 
 : "${DB_APP_READ_USER:?Missing DB_APP_READ_USER}"

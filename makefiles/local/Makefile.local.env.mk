@@ -7,7 +7,7 @@
 # Local Postgres container (from docker-compose) and management DB name for dev
 LOCAL_PG_CONTAINER ?= boilerplate_local_postgres
 LOCAL_PG_USER ?= user
-# Must match DB_APP_READ_USER / DB_APP_READ_WRITE_USER in infra/config/local/db.env (roles from 01_create_users.sh).
+# Must match DB_APP_READ_USER / DB_APP_READ_WRITE_USER in infra/config/local/db.env (roles from create_app_db_users.sh).
 LOCAL_POSTGRES_READ_USER ?= boilerplate_app_read
 LOCAL_POSTGRES_READ_WRITE_USER ?= boilerplate_app_read_write
 # Must match DB_MANAGEMENT_*_USER in infra/config/local/db.env (see scripts/local-env/local-management-db.sh).

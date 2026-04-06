@@ -89,7 +89,7 @@ kubectl -n boilerplate-alpha scale deployment/postgres --replicas=1
 
 Wait until **`kubectl -n boilerplate-alpha get pods`** shows **`postgres`** **Running**.
 
-On first start with an **empty** volume, the image creates the cluster using **`POSTGRES_USER`** / **`POSTGRES_PASSWORD`** / **`POSTGRES_DB`** from **`boilerplate-db-secrets`** (see monorepo **`infra/k8s/base/db/03-deployment-postgres.yaml`**). That creates only the **app** database (typically **`DB_APP_NAME`**). It does **not** create app/management role users or the management database.
+On first start with an **empty** volume, the image creates the cluster using **`POSTGRES_USER`** / **`POSTGRES_PASSWORD`** / **`POSTGRES_DB`** from **`boilerplate-db-secrets`** (see monorepo **`infra/k8s/base/db/deployment-postgres.yaml`**). That creates only the **app** database (typically **`DB_APP_NAME`**). It does **not** create app/management role users or the management database.
 
 ---
 

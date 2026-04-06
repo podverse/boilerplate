@@ -1,7 +1,10 @@
 #!/usr/bin/env ruby
 # frozen_string_literal: true
 
-# Renders Kubernetes ConfigMap and/or Secret YAML from classification + merged env file.
+# Renders a Kustomize bundle (configMapGenerator files: + kustomization.yaml) and/or Secret YAML from
+# classification + merged env file.
+
+require 'fileutils'
 
 require_relative '../env-classification/lib/boilerplate_env_merge'
 
@@ -19,9 +22,11 @@ def usage(msg = nil)
   warn("Error: #{msg}") if msg
   warn <<~USAGE
     Usage: render_k8s_env.rb --group NAME --merged-env PATH --namespace NS --environment ENV \\
-      --resource-suffix SUFFIX [--classification-overlay PATH] [--emit MODE]
+      --resource-suffix SUFFIX [--classification-overlay PATH] --emit MODE \\
+      [--bundle-dir PATH]
 
-    --emit: both | configmap | secret | secret-env-patch (default: both)
+    --emit: config-bundle | secret | secret-env-patch (required)
+    --bundle-dir: directory to write (required for --emit config-bundle); one file per config key plus kustomization.yaml.
     Optional --classification-overlay: same GitOps YAML passed to boilerplate-env.rb merge-env for this render.
   USAGE
   exit 1
@@ -31,20 +36,27 @@ def yaml_escape_double_quoted(str)
   str.to_s.gsub('\\', '\\\\').gsub('"', '\\"').gsub("\n", '\\n')
 end
 
-def config_map_yaml(name, namespace, labels, data)
-  lines = []
-  lines << 'apiVersion: v1'
-  lines << 'kind: ConfigMap'
-  lines << 'metadata:'
-  lines << "  name: #{name}"
-  lines << "  namespace: #{namespace}"
-  lines << '  labels:'
-  labels.each { |k, v| lines << "    #{k}: \"#{v}\"" }
-  lines << 'data:'
-  data.each do |k, v|
-    lines << "  #{k}: \"#{yaml_escape_double_quoted(v)}\""
+# Writes bundle_dir/kustomization.yaml and bundle_dir/<KEY> per entry (raw UTF-8 values; Kustomize files:).
+def write_config_bundle(bundle_dir, cm_name, namespace, config_data)
+  FileUtils.rm_rf(bundle_dir)
+  FileUtils.mkdir_p(bundle_dir)
+  sorted_keys = config_data.keys.sort
+  sorted_keys.each do |k|
+    File.write(File.join(bundle_dir, k), config_data[k].to_s, encoding: 'UTF-8')
   end
-  lines.join("\n") + "\n"
+  lines = []
+  lines << 'apiVersion: kustomize.config.k8s.io/v1beta1'
+  lines << 'kind: Kustomization'
+  lines << "namespace: #{namespace}"
+  lines << 'generatorOptions:'
+  lines << '  disableNameSuffixHash: true'
+  lines << 'configMapGenerator:'
+  lines << "  - name: #{cm_name}"
+  lines << '    files:'
+  sorted_keys.each do |k|
+    lines << "      - #{k}"
+  end
+  File.write(File.join(bundle_dir, 'kustomization.yaml'), "#{lines.join("\n")}\n", encoding: 'UTF-8')
 end
 
 def secret_yaml(name, namespace, labels, string_data)
@@ -55,7 +67,7 @@ def secret_yaml(name, namespace, labels, string_data)
   lines << "  name: #{name}"
   lines << "  namespace: #{namespace}"
   lines << '  labels:'
-  labels.each { |k, v| lines << "    #{k}: \"#{v}\"" }
+  labels.each { |lk, v| lines << "    #{lk}: \"#{v}\"" }
   lines << 'type: Opaque'
   lines << 'stringData:'
   string_data.each do |k, v|
@@ -118,7 +130,8 @@ classification_overlay = nil
 namespace = 'boilerplate-alpha'
 environment = 'alpha'
 resource_suffix = nil
-emit = 'both' # both | configmap | secret | secret-env-patch
+emit = nil
+bundle_dir = nil
 
 until args.empty?
   case args.shift
@@ -136,6 +149,8 @@ until args.empty?
     resource_suffix = args.shift
   when '--emit'
     emit = args.shift
+  when '--bundle-dir'
+    bundle_dir = args.shift
   when '-h', '--help'
     usage
   else
@@ -146,6 +161,7 @@ end
 usage('missing --group') if group.nil? || group.empty?
 usage('missing --merged-env') if merged_env.nil?
 usage('missing --resource-suffix') if resource_suffix.nil? || resource_suffix.empty?
+usage('missing --emit') if emit.nil? || emit.empty?
 
 profile = ENV['BOILERPLATE_ENV_PROFILE'] || 'remote_k8s'
 classification = BoilerplateEnvMerge.merged_classification(
@@ -204,21 +220,13 @@ cm_name = "boilerplate-#{resource_suffix}-config"
 sec_name = "boilerplate-#{resource_suffix}-secrets"
 
 case emit
-when 'both'
-  if config_data.empty? && secret_data.empty?
-    warn("No config or secret keys for env group #{group} (after filters).")
-    exit 1
-  end
-  parts = []
-  parts << config_map_yaml(cm_name, namespace, labels, config_data) unless config_data.empty?
-  parts << secret_yaml(sec_name, namespace, labels, secret_data) unless secret_data.empty?
-  print parts.join("---\n")
-when 'configmap'
+when 'config-bundle'
+  usage('missing --bundle-dir for config-bundle') if bundle_dir.nil? || bundle_dir.empty?
   if config_data.empty?
     warn("SKIP no config keys group=#{group}")
     exit 4
   end
-  print config_map_yaml(cm_name, namespace, labels, config_data)
+  write_config_bundle(bundle_dir, cm_name, namespace, config_data)
 when 'secret'
   if secret_data.empty?
     warn("SKIP no secret keys group=#{group}")
@@ -238,6 +246,6 @@ when 'secret-env-patch'
   deployment_name, container_name = targets
   print secret_env_strategic_merge_patch_yaml(deployment_name, container_name, sec_name, secret_data.keys.sort)
 else
-  usage('--emit must be both|configmap|secret|secret-env-patch')
+  usage('--emit must be config-bundle|secret|secret-env-patch')
 end
 exit 0

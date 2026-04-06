@@ -1,12 +1,12 @@
 # GitOps K8s env render (alpha / beta / prod) — see docs/development/K8S-ENV-RENDER.md
-# Included from makefiles/local/Makefile.local.mk. Targets write ConfigMaps + plain Secrets into the output repo.
+# Included from makefiles/local/Makefile.local.mk. Targets write boilerplate-*-config.bundle/ + plain Secrets into the output repo.
 #
 #   alpha_env_prepare       Ensure ~/.config/boilerplate/alpha-env-overrides/ exists (optional overrides; defaults in infra/env/classification)
 #   alpha_env_link          Symlink dev/env-overrides/alpha/*.env → home for each override file that exists there
 #   alpha_env_clean         Remove dev/env-overrides/alpha/*.env (repo symlinks); home overrides unchanged; run link before render if using home
 #   alpha_env_prepare_link  prepare + link (same idea as local_env_prepare + local_env_link)
-#   alpha_env_render        Write ConfigMaps + plain Secrets (requires BOILERPLATE_K8S_OUTPUT_REPO)
-#   alpha_env_render_dry_run  Print rendered YAML without writing files (no output repo required)
+#   alpha_env_render        Write boilerplate-*-config.bundle/ + plain Secrets (requires BOILERPLATE_K8S_OUTPUT_REPO)
+#   alpha_env_render_dry_run  Print bundle listing + YAML without writing files (no output repo required)
 #   alpha_env_validate      validate-classification.sh + validate-k8s-env-drift.sh (requires BOILERPLATE_K8S_OUTPUT_REPO)
 #   k8s_remote_ports_render / k8s_remote_ports_validate — port + ingress patches only (see K8S-ENV-RENDER.md)
 #
