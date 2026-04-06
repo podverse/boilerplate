@@ -526,7 +526,7 @@ without these commands; run them when you want an explicit pass or to confirm af
 
 **Why:** Datastores must be ready before APIs; web depends on APIs and runtime config.
 
-**Postgres init:** On a **new empty** data volume, Boilerplate **`infra/k8s/base/db`** mounts **`docker-entrypoint-initdb.d`** (same assets as **`infra/k8s/base/stack`**) so combined schema SQL, the management database, ORM roles, and grants run at first start when **`boilerplate-db-secrets`** is applied before the pod initializes **`PGDATA`**. You typically **do not** need **`remote_postgres_reinit_bootstrap.py`** before syncing APIs unless you are re-seeding, fixing drift, or on an older **`base/db`** without the init ConfigMap. See [REMOTE-K8S-POSTGRES-REINIT.md](REMOTE-K8S-POSTGRES-REINIT.md).
+**Postgres init:** On a **new empty** data volume, Boilerplate **`infra/k8s/base/db`** mounts **`docker-entrypoint-initdb.d`** (same assets as **`infra/k8s/base/stack`**) so combined schema SQL, the management database, ORM roles, and grants run at first start when **`boilerplate-db-secrets`** is applied before the pod initializes **`PGDATA`**. Re-seeding, drift, or legacy overlays without the init ConfigMap require a **PVC wipe and fresh pod** or **manual SQL** — see [REMOTE-K8S-POSTGRES-REINIT.md](REMOTE-K8S-POSTGRES-REINIT.md).
 
 ---
 

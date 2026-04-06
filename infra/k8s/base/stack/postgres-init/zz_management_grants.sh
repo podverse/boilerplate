@@ -1,5 +1,5 @@
 #!/bin/bash
-# Runs after z_load_management_schema.sql so tables exist. Matches remote_postgres_reinit_bootstrap.py grants.
+# Runs after z_load_management_schema.sql so tables exist. Aligned with makefiles/local/Makefile.local.test.mk (test_db_init_management).
 set -e
 
 : "${DB_MANAGEMENT_READ_USER:?Missing DB_MANAGEMENT_READ_USER}"

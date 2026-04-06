@@ -2,42 +2,15 @@
 
 **Destructive:** Deletes database files on the volume. Use for disposable envs (e.g. alpha), not production without a backup plan.
 
-**Context:** Changing Kubernetes Secrets does **not** change passwords already stored in Postgres. If secrets and the PVC are out of sync, wipe the volume and bootstrap again.
+**Context:** Changing Kubernetes Secrets does **not** change passwords already stored in Postgres. If secrets and the PVC are out of sync, wipe the volume and let first-start init run again, or apply manual SQL (below).
 
 Full GitOps context: [REMOTE-K8S-GITOPS.md](REMOTE-K8S-GITOPS.md), env render: [K8S-ENV-RENDER.md](K8S-ENV-RENDER.md).
 
 Replace **`boilerplate-alpha`** with your namespace if different.
 
-**Greenfield (new empty Postgres PVC):** The GitOps **`infra/k8s/base/db`** Deployment mounts the same **`docker-entrypoint-initdb.d`** ConfigMap as **`infra/k8s/base/stack`**, so combined schema SQL, the management database, ORM roles, and grants run automatically on first start when **`boilerplate-db-secrets`** is applied before the pod initializes data. You do **not** need **`remote_postgres_reinit_bootstrap.py --bootstrap-only`** for that path unless you are re-seeding an existing data directory, fixing drift, or rotated role passwords without wiping the volume.
+**Greenfield (new empty Postgres PVC):** The GitOps **`infra/k8s/base/db`** Deployment mounts the same **`docker-entrypoint-initdb.d`** ConfigMap as **`infra/k8s/base/stack`**, so combined schema SQL, the management database, ORM roles, and grants run automatically on first start when **`boilerplate-db-secrets`** is applied before the pod initializes data. No separate bootstrap script is required for that path.
 
----
-
-## Option B (automated): one script for PVC wipe + bootstrap
-
-From the **Boilerplate** repo root, after **§1** (Secrets applied in the cluster and consistent across **`boilerplate-db-secrets`**, **`boilerplate-api-secrets`**, **`boilerplate-management-api-secrets`**):
-
-```bash
-./scripts/k8s/remote_postgres_reinit_bootstrap.py --namespace boilerplate-alpha
-```
-
-Also reset Valkey if **`VALKEY_PASSWORD`** changed and the old volume is incompatible:
-
-```bash
-./scripts/k8s/remote_postgres_reinit_bootstrap.py --namespace boilerplate-alpha --with-valkey
-```
-
-Flags:
-
-| Flag                   | Meaning                                                                                                      |
-| ---------------------- | ------------------------------------------------------------------------------------------------------------ |
-| **`--bootstrap-only`** | Skip PVC deletion; run SQL bootstrap only (Postgres already up with empty/existing DBs you want to re-seed). |
-| **`--pvc-only`**       | Only delete PVC(s) and wait for rollouts (no SQL).                                                           |
-
-The script reads role names and passwords from the same Secrets the API Deployments use, applies **`infra/k8s/base/stack/postgres-init/z_load_app_schema.sql`** and **`z_load_management_schema.sql`** (same combined output as **`scripts/database/combine-migrations.sh`**), creates the four ORM roles if missing, and runs the same **GRANT** pattern as **`makefiles/local/Makefile.local.test.mk`** (`test_db_init` / `test_db_init_management`).
-
-**Requires:** **`kubectl`** configured for the cluster; **Python 3** on the machine running the script (stdlib only).
-
-Then restart APIs and bootstrap the management super admin (**§5** and [REMOTE-K8S-GITOPS.md](REMOTE-K8S-GITOPS.md) Step 12).
+**Existing data / drift / password rotation without wipe:** Use **§4** (manual SQL from your machine) or delete the Postgres PVC and bring the pod back so **`PGDATA`** is empty and first-start init runs again (**§3**).
 
 ---
 
@@ -91,13 +64,15 @@ kubectl -n boilerplate-alpha scale deployment/postgres --replicas=1
 
 Wait until **`kubectl -n boilerplate-alpha get pods`** shows **`postgres`** **Running**.
 
-On first start with an **empty** volume, the image creates the cluster using **`POSTGRES_USER`** / **`POSTGRES_PASSWORD`** / **`POSTGRES_DB`** from **`boilerplate-db-secrets`** (see monorepo **`infra/k8s/base/db/deployment-postgres.yaml`**). That creates only the **app** database (typically **`DB_APP_NAME`**). It does **not** create app/management role users or the management database.
+On first start with an **empty** volume, the official image runs **`docker-entrypoint-initdb.d`** from the Boilerplate **`base/db`** ConfigMap (see **`infra/k8s/base/db/deployment-postgres.yaml`**): that creates the cluster superuser and app database from **`POSTGRES_*`**, runs shell/SQL init (management database, ORM roles, **`z_load_*`**, grants). **You do not need §4** if this completed successfully.
 
 ---
 
-## 4. Bootstrap schema and roles (manual alternative to the script)
+## 4. Bootstrap schema and roles (when first-start init did not run)
 
-If you prefer not to use **`scripts/k8s/remote_postgres_reinit_bootstrap.py`**, work from **Boilerplate** repo root so paths resolve. Forward Postgres:
+Use this when **`PGDATA` already existed** (skipped init), you are on an older overlay **without** the init ConfigMap, or you must fix drift **without** deleting the PVC.
+
+Work from **Boilerplate** repo root so paths resolve. Forward Postgres:
 
 ```bash
 kubectl -n boilerplate-alpha port-forward svc/postgres 5432:5432
@@ -115,17 +90,17 @@ export APP_DB=$(kubectl get secret boilerplate-db-secrets -n "$NS" -o jsonpath='
 export MGMT_DB=$(kubectl get secret boilerplate-db-secrets -n "$NS" -o jsonpath='{.data.DB_MANAGEMENT_NAME}' | base64 -d)
 ```
 
-Create the **management** database (empty):
+Create the **management** database (empty) if it does not exist:
 
 ```bash
 psql -d postgres -c "CREATE DATABASE \"$MGMT_DB\";"
 ```
 
-Apply combined schema (main app DB, then management DB):
+Apply combined schema (main app DB, then management DB). Paths under **`infra/k8s/base/db/postgres-init/`** match **`stack`** (same assets):
 
 ```bash
-psql -d "$APP_DB" -f infra/k8s/base/stack/postgres-init/z_load_app_schema.sql
-psql -d "$MGMT_DB" -f infra/k8s/base/stack/postgres-init/z_load_management_schema.sql
+psql -d "$APP_DB" -f infra/k8s/base/db/postgres-init/z_load_app_schema.sql
+psql -d "$MGMT_DB" -f infra/k8s/base/db/postgres-init/z_load_management_schema.sql
 ```
 
 Create **role** users with passwords **identical** to the Secrets the APIs use. Read passwords from Secrets (same `base64 -d` pattern as above) for:

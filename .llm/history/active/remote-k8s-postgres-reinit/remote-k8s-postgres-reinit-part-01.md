@@ -52,3 +52,22 @@ implement option b
 
 - scripts/k8s/remote_postgres_reinit_bootstrap.py
 - docs/development/REMOTE-K8S-POSTGRES-REINIT.md (manual `MGMT_DB`, §6 checklist)
+
+### Session 4 - 2026-04-06
+
+#### Prompt (Developer)
+
+remove it
+
+#### Key Decisions
+
+- Deleted **`scripts/k8s/remote_postgres_reinit_bootstrap.py`**. Ops path: empty PVC → **`docker-entrypoint-initdb.d`**; otherwise **`REMOTE-K8S-POSTGRES-REINIT.md` §4** (manual **`psql`**) or PVC wipe + fresh pod.
+
+#### Files Modified
+
+- Deleted `scripts/k8s/remote_postgres_reinit_bootstrap.py`
+- `docs/development/REMOTE-K8S-POSTGRES-REINIT.md`
+- `docs/development/REMOTE-K8S-GITOPS.md`
+- `infra/k8s/base/db/postgres-init/zz_management_grants.sh`
+- `infra/k8s/base/stack/postgres-init/zz_management_grants.sh`
+- `k.podcastdj.com/docs/k8s/boilerplate/alpha/BOILERPLATE-REDEPLOY-FULL.md`

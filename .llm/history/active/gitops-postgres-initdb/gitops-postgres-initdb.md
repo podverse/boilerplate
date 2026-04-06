@@ -68,3 +68,25 @@ To-do's from the plan have already been created. Do not create them again. Mark 
 - `.cursor/skills/api-testing/SKILL.md`, `roles-schema-sync/SKILL.md`, `generate-data-sync/SKILL.md`, `argocd-gitops-push/SKILL.md`
 - `.llm/plans/active/api-tokens/01-api-tokens-backend.md`
 - Deleted `infra/database/combined/init_database.sql`, `infra/management-database/combined/init_management_database.sql`
+
+## Session 3 - 2026-04-06
+
+#### Prompt (Developer)
+
+remove it
+
+#### Key Decisions
+
+- Removed **`scripts/k8s/remote_postgres_reinit_bootstrap.py`**; greenfield relies on **`docker-entrypoint-initdb.d`** only; non-greenfield uses **REMOTE-K8S-POSTGRES-REINIT §4** (manual **`psql`**) or PVC wipe.
+- **`zz_management_grants.sh`** header comment now references **`Makefile.local.test.mk`** instead of the deleted script.
+- **`k.podcastdj.com`** redeploy runbook **B4** points at §4 instead of the script.
+
+#### Files Created/Modified
+
+- Deleted `scripts/k8s/remote_postgres_reinit_bootstrap.py`
+- `docs/development/REMOTE-K8S-POSTGRES-REINIT.md`
+- `docs/development/REMOTE-K8S-GITOPS.md`
+- `infra/k8s/base/db/postgres-init/zz_management_grants.sh`
+- `infra/k8s/base/stack/postgres-init/zz_management_grants.sh`
+- `k.podcastdj.com/docs/k8s/boilerplate/alpha/BOILERPLATE-REDEPLOY-FULL.md`
+- `.llm/history/active/gitops-postgres-initdb/gitops-postgres-initdb.md`
