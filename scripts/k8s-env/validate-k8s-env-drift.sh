@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Compare rendered config bundles and deployment-secret-env.yaml patches to committed files in the GitOps output repo.
+# Compare rendered config dotenv files and deployment-secret-env.yaml patches to committed files in the GitOps output repo.
 # Requires --output-repo PATH or BOILERPLATE_K8S_OUTPUT_REPO. Exits 1 if unset, overlay missing, or mismatch.
 # Usage: validate-k8s-env-drift.sh [--env alpha|beta|prod] [--output-repo PATH]
 #
@@ -7,9 +7,9 @@
 # render-k8s-env.sh we export BOILERPLATE_K8S_OUTPUT_REPO to that real root so optional
 # apps/boilerplate-<env>/env/remote-k8s.yaml is merged during render (same as a normal alpha_env_render).
 #
-# Config bundles, secret-env patch, and (plan 05) port patch paths match k8s-env-render-manifest.inc.sh
+# Config env files, secret-env patch, and (plan 05) port patch paths match k8s-env-render-manifest.inc.sh
 # (same as render-k8s-env.sh). Secret values are not compared (plain/ may be gitignored).
-# Re-run render and commit `boilerplate-*-config.bundle/` and deployment-secret-env.yaml when infra/env/classification
+# Re-run render and commit `source/boilerplate-*-config.env` and deployment-secret-env.yaml when infra/env/classification
 # or dev/env-overrides change; port patches when K8S_ENV_RENDER_PORT_PATCH_WORKLOADS is populated.
 set -euo pipefail
 
@@ -91,28 +91,28 @@ if ! ruby "$SCRIPT_DIR/render_remote_k8s_ports.rb" --env "$ENV_NAME" --output-re
 fi
 rm -f "$PORT_LOG"
 
-mapfile -t config_bundle_dirs < <(k8s_env_render_config_bundle_relpaths_under_overlay "$ENV_NAME")
+mapfile -t config_env_files < <(k8s_env_render_config_env_relpaths_under_overlay "$ENV_NAME")
 
 failed=0
-for rel in "${config_bundle_dirs[@]}"; do
+for rel in "${config_env_files[@]}"; do
   left="${TMP}/${OVERLAY}/${rel}"
   right="${COMPARE_ROOT}/${rel}"
-  if [[ ! -d "$left" && ! -d "$right" ]]; then
+  if [[ ! -f "$left" && ! -f "$right" ]]; then
     continue
   fi
-  if [[ ! -d "$right" ]]; then
-    echo "validate-k8s-env-drift: missing committed directory ${right}" >&2
+  if [[ ! -f "$right" ]]; then
+    echo "validate-k8s-env-drift: missing committed file ${right}" >&2
     failed=1
     continue
   fi
-  if [[ ! -d "$left" ]]; then
+  if [[ ! -f "$left" ]]; then
     echo "validate-k8s-env-drift: render did not produce ${left}" >&2
     failed=1
     continue
   fi
-  if ! diff -qr "$left" "$right" >/dev/null; then
+  if ! cmp -s "$left" "$right"; then
     echo "validate-k8s-env-drift: mismatch ${OVERLAY}/${rel}" >&2
-    diff -qr "$right" "$left" >&2 || true
+    diff -u "$right" "$left" >&2 || true
     failed=1
   fi
 done
@@ -169,7 +169,7 @@ for rel in "${port_patch_files[@]}"; do
 done
 
 if [[ "$failed" -ne 0 ]]; then
-  echo "validate-k8s-env-drift: FAILED — run \`make alpha_env_render\` (or \`make k8s_env_render K8S_ENV=${ENV_NAME}\`) and commit boilerplate-*-config.bundle directories, deployment-secret-env.yaml, deployment-ports-and-probes.yaml, and common/ingress-port-backends.yaml in the output repo." >&2
+  echo "validate-k8s-env-drift: FAILED — run \`make alpha_env_render\` (or \`make k8s_env_render K8S_ENV=${ENV_NAME}\`) and commit source/boilerplate-*-config.env files, deployment-secret-env.yaml, deployment-ports-and-probes.yaml, and common/ingress-port-backends.yaml in the output repo." >&2
   echo "validate-k8s-env-drift: Note: A mismatch only means a fresh render (this monorepo + dev/env-overrides/${ENV_NAME} + GitOps apps/boilerplate-${ENV_NAME}/env/remote-k8s.yaml) would differ from what is committed. If you intend those fields to differ until you render and commit—or you are mid-edit—this is expected drift, not necessarily a broken pipeline." >&2
   exit 1
 fi

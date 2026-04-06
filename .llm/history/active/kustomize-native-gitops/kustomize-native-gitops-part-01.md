@@ -93,3 +93,31 @@ To-do's from the plan have already been created. Do not create them again. Mark 
 - boilerplate/scripts/k8s-env/k8s-env-render-manifest.inc.sh
 - boilerplate/.llm/history/active/kustomize-native-gitops/kustomize-native-gitops-part-01.md
 - (GitOps repo **`k.podcastdj.com`**: staged changes under **`apps/boilerplate-alpha/`**, **`docs/`**, **`scripts/`**, **`.github/workflows/`** — not listed as paths in this monorepo file list)
+
+### Session 5 - 2026-04-05
+
+#### Prompt (Developer)
+
+Recommend (1) if your dislike of bundles is mostly ergonomics and you're willing to encode rules + CI kustomize build so bad dotenv lines never land.
+
+implemnet
+
+#### Key Decisions
+
+- Replaced **per-key bundle** output with **`source/boilerplate-<suffix>-config.env`** + overlay **`configMapGenerator`** **`envs:`** (Podverse-style); **`render_k8s_env.rb`** uses **`--emit config-env`** and **`write_config_dotenv`** with quoting for Kustomize dotenv.
+- **Prune** removes new env files, **legacy** **`boilerplate-*-config.bundle/`** dirs, secrets, patches; drift compares dotenv files with **`cmp`**.
+- Added **`validate-gitops-kustomize-build.sh`** and **`alpha_env_kustomize_check`**; **`alpha_env_validate`** / **`k8s_env_validate`** run kustomize build on each component overlay.
+- Updated **`K8S-ENV-RENDER.md`**, **`REMOTE-K8S-GITOPS.md`**; re-rendered **`k.podcastdj.com`** overlays.
+
+#### Files Modified
+
+- boilerplate/scripts/k8s-env/render_k8s_env.rb
+- boilerplate/scripts/k8s-env/render-k8s-env.sh
+- boilerplate/scripts/k8s-env/k8s-env-render-manifest.inc.sh
+- boilerplate/scripts/k8s-env/validate-k8s-env-drift.sh
+- boilerplate/scripts/k8s-env/validate-gitops-kustomize-build.sh
+- boilerplate/makefiles/gitops/Makefile.gitops-env.mk
+- boilerplate/docs/development/K8S-ENV-RENDER.md
+- boilerplate/docs/development/REMOTE-K8S-GITOPS.md
+- boilerplate/.llm/history/active/kustomize-native-gitops/kustomize-native-gitops-part-01.md
+- (GitOps **`k.podcastdj.com`**: **`apps/boilerplate-alpha/*/kustomization.yaml`**, **`apps/boilerplate-alpha/*/source/*.env`**, removed bundle trees)

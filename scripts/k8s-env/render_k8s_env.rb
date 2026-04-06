@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 # frozen_string_literal: true
 
-# Renders a Kustomize bundle (configMapGenerator files: + kustomization.yaml) and/or Secret YAML from
+# Renders a single dotenv file for configMapGenerator envs: and/or Secret YAML from
 # classification + merged env file.
 
 require 'fileutils'
@@ -23,10 +23,10 @@ def usage(msg = nil)
   warn <<~USAGE
     Usage: render_k8s_env.rb --group NAME --merged-env PATH --namespace NS --environment ENV \\
       --resource-suffix SUFFIX [--classification-overlay PATH] --emit MODE \\
-      [--bundle-dir PATH]
+      [--config-env-file PATH]
 
-    --emit: config-bundle | secret | secret-env-patch (required)
-    --bundle-dir: directory to write (required for --emit config-bundle); one file per config key plus kustomization.yaml.
+    --emit: config-env | secret | secret-env-patch (required)
+    --config-env-file: dotenv path to write (required for --emit config-env); consumed by overlay kustomization configMapGenerator envs:.
     Optional --classification-overlay: same GitOps YAML passed to boilerplate-env.rb merge-env for this render.
   USAGE
   exit 1
@@ -36,27 +36,26 @@ def yaml_escape_double_quoted(str)
   str.to_s.gsub('\\', '\\\\').gsub('"', '\\"').gsub("\n", '\\n')
 end
 
-# Writes bundle_dir/kustomization.yaml and bundle_dir/<KEY> per entry (raw UTF-8 values; Kustomize files:).
-def write_config_bundle(bundle_dir, cm_name, namespace, config_data)
-  FileUtils.rm_rf(bundle_dir)
-  FileUtils.mkdir_p(bundle_dir)
+# Writes a single dotenv file for Kustomize configMapGenerator envs: (Podverse-style GitOps).
+# Escapes values so they round-trip through Kustomize's env file parser.
+def dotenv_line(key, val)
+  s = val.to_s
+  return "#{key}=\n" if s.empty?
+
+  need_quote = /[\r\n#= ]/.match?(s) || s != s.strip || s.include?('"') || s.include?("'")
+  if need_quote
+    escaped = s.gsub('\\', '\\\\').gsub('"', '\\"').gsub("\n", '\\n').gsub("\r", '\\r')
+    "#{key}=\"#{escaped}\""
+  else
+    "#{key}=#{s}"
+  end
+end
+
+def write_config_dotenv(path, config_data)
+  FileUtils.mkdir_p(File.dirname(path))
   sorted_keys = config_data.keys.sort
-  sorted_keys.each do |k|
-    File.write(File.join(bundle_dir, k), config_data[k].to_s, encoding: 'UTF-8')
-  end
-  lines = []
-  lines << 'apiVersion: kustomize.config.k8s.io/v1beta1'
-  lines << 'kind: Kustomization'
-  lines << "namespace: #{namespace}"
-  lines << 'generatorOptions:'
-  lines << '  disableNameSuffixHash: true'
-  lines << 'configMapGenerator:'
-  lines << "  - name: #{cm_name}"
-  lines << '    files:'
-  sorted_keys.each do |k|
-    lines << "      - #{k}"
-  end
-  File.write(File.join(bundle_dir, 'kustomization.yaml'), "#{lines.join("\n")}\n", encoding: 'UTF-8')
+  lines = sorted_keys.map { |k| dotenv_line(k, config_data[k]) }
+  File.write(path, "#{lines.join("\n")}\n", encoding: 'UTF-8')
 end
 
 def secret_yaml(name, namespace, labels, string_data)
@@ -131,7 +130,7 @@ namespace = 'boilerplate-alpha'
 environment = 'alpha'
 resource_suffix = nil
 emit = nil
-bundle_dir = nil
+config_env_file = nil
 
 until args.empty?
   case args.shift
@@ -149,8 +148,8 @@ until args.empty?
     resource_suffix = args.shift
   when '--emit'
     emit = args.shift
-  when '--bundle-dir'
-    bundle_dir = args.shift
+  when '--config-env-file'
+    config_env_file = args.shift
   when '-h', '--help'
     usage
   else
@@ -220,13 +219,13 @@ cm_name = "boilerplate-#{resource_suffix}-config"
 sec_name = "boilerplate-#{resource_suffix}-secrets"
 
 case emit
-when 'config-bundle'
-  usage('missing --bundle-dir for config-bundle') if bundle_dir.nil? || bundle_dir.empty?
+when 'config-env'
+  usage('missing --config-env-file for config-env') if config_env_file.nil? || config_env_file.empty?
   if config_data.empty?
     warn("SKIP no config keys group=#{group}")
     exit 4
   end
-  write_config_bundle(bundle_dir, cm_name, namespace, config_data)
+  write_config_dotenv(config_env_file, config_data)
 when 'secret'
   if secret_data.empty?
     warn("SKIP no secret keys group=#{group}")
@@ -246,6 +245,6 @@ when 'secret-env-patch'
   deployment_name, container_name = targets
   print secret_env_strategic_merge_patch_yaml(deployment_name, container_name, sec_name, secret_data.keys.sort)
 else
-  usage('--emit must be config-bundle|secret|secret-env-patch')
+  usage('--emit must be config-env|secret|secret-env-patch')
 end
 exit 0

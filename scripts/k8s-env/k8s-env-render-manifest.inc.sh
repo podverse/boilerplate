@@ -18,8 +18,20 @@ overlay_dir_for_workload() {
   esac
 }
 
-# Relative path (under overlay component dir) to rendered Kustomize bundle (per-key files + kustomization.yaml).
-k8s_config_bundle_relpath_for_workload() {
+# Relative path (under overlay component dir) to rendered dotenv for configMapGenerator envs:.
+k8s_config_env_file_relpath_for_workload() {
+  local odir suffix
+  odir=$(overlay_dir_for_workload "$1")
+  if [[ -z "$odir" ]]; then
+    echo ""
+    return 0
+  fi
+  suffix=$(workload_resource_suffix "$1")
+  echo "${odir}/source/boilerplate-${suffix}-config.env"
+}
+
+# Legacy: per-key bundle directory (removed by prune when migrating to source/*.env).
+k8s_legacy_config_bundle_relpath_for_workload() {
   local odir suffix
   odir=$(overlay_dir_for_workload "$1")
   if [[ -z "$odir" ]]; then
@@ -74,12 +86,24 @@ overlay_root_for_env() {
   echo "apps/boilerplate-${1}"
 }
 
-# Config bundle directory paths relative to apps/boilerplate-<env>/ (used by drift validation).
-k8s_env_render_config_bundle_relpaths_under_overlay() {
+# Config dotenv paths relative to apps/boilerplate-<env>/ (used by drift validation).
+k8s_env_render_config_env_relpaths_under_overlay() {
   local env_name="$1"
   local rel w
   for w in "${K8S_ENV_RENDER_WORKLOADS[@]}"; do
-    rel=$(k8s_config_bundle_relpath_for_workload "$w")
+    rel=$(k8s_config_env_file_relpath_for_workload "$w")
+    if [[ -n "$rel" ]]; then
+      echo "$rel"
+    fi
+  done
+}
+
+# Legacy bundle dirs to prune (migration from bundle subtrees to source/*.env).
+k8s_env_render_legacy_bundle_relpaths_under_overlay() {
+  local env_name="$1"
+  local rel w
+  for w in "${K8S_ENV_RENDER_WORKLOADS[@]}"; do
+    rel=$(k8s_legacy_config_bundle_relpath_for_workload "$w")
     if [[ -n "$rel" ]]; then
       echo "$rel"
     fi
@@ -98,15 +122,18 @@ k8s_env_render_deployment_secret_patch_relpaths_under_overlay() {
   done
 }
 
-# All generator-owned paths relative to GitOps repo root (config bundles + plain Secrets + secret env patches).
+# All generator-owned paths relative to GitOps repo root (config dotenv files + legacy bundle dirs + plain Secrets + secret env patches).
 k8s_env_render_owned_paths_relative_to_output_repo() {
   local env_name="$1"
   local oroot rel w
   oroot=$(overlay_root_for_env "$env_name")
   for w in "${K8S_ENV_RENDER_WORKLOADS[@]}"; do
-    rel=$(k8s_config_bundle_relpath_for_workload "$w")
+    rel=$(k8s_config_env_file_relpath_for_workload "$w")
     [[ -z "$rel" ]] && continue
     echo "${oroot}/${rel}"
+    legacy=$(k8s_legacy_config_bundle_relpath_for_workload "$w")
+    [[ -z "$legacy" ]] && continue
+    echo "${oroot}/${legacy}"
     odir=$(overlay_dir_for_workload "$w")
     [[ -z "$odir" ]] && continue
     echo "${oroot}/${odir}/deployment-secret-env.yaml"

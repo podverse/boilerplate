@@ -2,7 +2,7 @@
 
 **Start here** for deploying Boilerplate to a **remote** cluster with GitOps and Argo CD (thin overlays, env render, SOPS). For local k3d, see [K3D-ARGOCD-LOCAL.md](K3D-ARGOCD-LOCAL.md).
 
-End-to-end steps from a **clean slate** to a working Boilerplate stack on **your** cluster and **your** domains, using a **separate GitOps repository** for Kustomize overlays, Argo CD `Application` resources, and (after env render) generated **`boilerplate-*-config.bundle/`** directories (each with **`configMapGenerator`** **`files:`** → ConfigMaps) and Secret patches.
+End-to-end steps from a **clean slate** to a working Boilerplate stack on **your** cluster and **your** domains, using a **separate GitOps repository** for Kustomize overlays, Argo CD `Application` resources, and (after env render) generated **`source/boilerplate-*-config.env`** files (consumed by overlay **`configMapGenerator`** **`envs:`** → ConfigMaps) and Secret patches.
 
 This repository holds application source, [`infra/env/classification`](../../infra/env/classification/), and `make alpha_env_render`. The GitOps repo is yours: layout, namespace names, and hostnames are conventions you choose and keep consistent with Argo CD and ingress.
 
@@ -47,12 +47,12 @@ Throughout this doc, replace placeholders with your own names:
 
 ## What you are wiring
 
-| Piece                       | Role                                                                                                                                                                                                |
-| --------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Kubernetes cluster**      | Runs workloads; typically has **Argo CD**, **cert-manager**, and an **ingress controller** (Traefik, nginx, etc.).                                                                                  |
-| **GitOps repo**             | Kustomize overlays, Argo `Application` CRs, encrypted registry/pull secrets, and (after render) **`boilerplate-*-config.bundle/`** (sub-overlay ConfigMaps) + `deployment-secret-env.yaml` patches. |
-| **This (Boilerplate) repo** | Source code, env classification, `make alpha_env_*`, image build (CI or local), and `BOILERPLATE_K8S_OUTPUT_REPO` pointing at your GitOps clone.                                                    |
-| **Container registry**      | Hosts images (e.g. GitHub Container Registry); cluster needs an image pull secret if the registry is private.                                                                                       |
+| Piece                       | Role                                                                                                                                                                                                         |
+| --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Kubernetes cluster**      | Runs workloads; typically has **Argo CD**, **cert-manager**, and an **ingress controller** (Traefik, nginx, etc.).                                                                                           |
+| **GitOps repo**             | Kustomize overlays, Argo `Application` CRs, encrypted registry/pull secrets, and (after render) **`source/boilerplate-*-config.env`** + overlay `configMapGenerator` + `deployment-secret-env.yaml` patches. |
+| **This (Boilerplate) repo** | Source code, env classification, `make alpha_env_*`, image build (CI or local), and `BOILERPLATE_K8S_OUTPUT_REPO` pointing at your GitOps clone.                                                             |
+| **Container registry**      | Hosts images (e.g. GitHub Container Registry); cluster needs an image pull secret if the registry is private.                                                                                                |
 
 ### GitOps repo vs public domains (Podverse reference)
 
@@ -426,10 +426,10 @@ sops -d secrets/<path-to-encrypted-pull-secret>.yaml | kubectl apply -f -
 export BOILERPLATE_K8S_OUTPUT_REPO=/absolute/path/to/your/gitops-repo
 make alpha_env_render_dry_run   # always first: prints rendered .env + Secret YAML; does not write
 make alpha_env_validate         # classification + drift vs committed overlay (needs output repo)
-make alpha_env_render           # writes boilerplate-*-config.bundle/, deployment-secret-env.yaml, port/ingress patches, secrets/.../plain/
+make alpha_env_render           # writes source/boilerplate-*-config.env, deployment-secret-env.yaml, port/ingress patches, secrets/.../plain/
 ```
 
-**Why:** Keeps overlay **`boilerplate-*-config.bundle/`** (referenced from each component **`kustomization.yaml`**) and **`deployment-secret-env.yaml`** in sync with [`infra/env/classification`](../../infra/env/classification). Full reference: **[K8S-ENV-RENDER.md](K8S-ENV-RENDER.md)**.
+**Why:** Keeps rendered **`source/boilerplate-*-config.env`** (wired via **`configMapGenerator`** in each component **`kustomization.yaml`**) and **`deployment-secret-env.yaml`** in sync with [`infra/env/classification`](../../infra/env/classification). Full reference: **[K8S-ENV-RENDER.md](K8S-ENV-RENDER.md)**.
 
 ---
 
