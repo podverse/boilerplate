@@ -1,6 +1,6 @@
 {
   "name": "@boilerplate/web-sidecar",
-  "version": "0.1.7",
+  "version": "0.1.8",
   "private": true,
   "type": "module",
   "description": "Runtime-config sidecar for Boilerplate web",
