@@ -1,6 +1,6 @@
 #!/bin/bash
-# Creates management database and read / read-write roles. Schema loads from
-# z_load_management_schema.sql (entrypoint order); grants run in zz_management_grants.sh after tables exist.
+# Creates management database and read / read-write roles. Schema loads via
+# 0004_load_management_schema.sh + 0005_management_schema.sql.frag (entrypoint order); grants run in 0006_management_grants.sh after tables exist.
 set -e
 
 : "${DB_MANAGEMENT_READ_USER:?Missing DB_MANAGEMENT_READ_USER}"

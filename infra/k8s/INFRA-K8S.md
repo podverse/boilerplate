@@ -31,9 +31,18 @@ Local deployment is intentionally self-contained and does not depend on ansible:
 
 ## Base stack and postgres-init SQL
 
-The base stack (`base/stack/`) and GitOps **`base/db/`** build a ConfigMap for Postgres **`docker-entrypoint-initdb.d`**: shell scripts and combined schema SQL under `base/stack/postgres-init/`. Lexicographic order is **`create_app_db_users.sh`** (app roles + default privileges), **`setup_management_database.sh`** (management database + roles), **`z_load_app_schema.sql`**, **`z_load_management_schema.sql`**, **`zz_management_grants.sh`** (management GRANTs after tables exist).
+The base stack (`base/stack/`) and GitOps **`base/db/`** build a ConfigMap for Postgres **`docker-entrypoint-initdb.d`**: shell scripts and combined schema SQL under `base/stack/postgres-init/`. Files use a **`0001_`–`0006_` prefix** so lexicographic order matches bootstrap phase:
 
-The **committed** combined schema SQL for Postgres init (Docker + k8s) lives under **`infra/k8s/base/stack/postgres-init/`** as **`z_load_app_schema.sql`** and **`z_load_management_schema.sql`**, generated from **`infra/database/migrations/`** and **`infra/management-database/migrations/`** by **`scripts/database/combine-migrations.sh`** (do not edit the `z_load_*.sql` files by hand). The script also copies those SQL files plus shell scripts into **`base/db/postgres-init/`** (Kustomize’s load restrictor requires GitOps **`base/db`** to read files only under that directory). For a mechanical stack→db copy without regenerating, run **`make sync_k8s_postgres_init`**. **`local_k3d_up`** runs that sync automatically before apply. To verify stack/db copies and that migrations match the committed k8s SQL, run **`make check_k8s_postgres_init_sync`** (includes **`scripts/database/verify-migrations-combined.sh`**).
+| File                                    | Role                                                                                           |
+| --------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| **`0001_create_app_db_users.sh`**       | App read/RW roles + default privileges on app DB                                               |
+| **`0002_setup_management_database.sh`** | Management database + management roles                                                         |
+| **`0003_app_schema.sql`**               | Combined app migrations → **`POSTGRES_DB`** (official image runs `*.sql` only against that DB) |
+| **`0004_load_management_schema.sh`**    | Runs **`psql -f`** **`0005_management_schema.sql.frag`** into **`DB_MANAGEMENT_NAME`**         |
+| **`0005_management_schema.sql.frag`**   | Combined management SQL; **not** a `*.sql` suffix the entrypoint executes (consumed by `0004`) |
+| **`0006_management_grants.sh`**         | GRANTs on management DB after tables exist                                                     |
+
+**Numbering vs migrations:** The same `0001_` / `0002_` style appears under **`infra/database/migrations/`** and **`infra/management-database/migrations/`** for **individual** migration files. **`postgres-init/`** `000n_` names are **init phase order only** (six fixed steps), not the same sequence as migration filenames. Combined blobs **`0003_app_schema.sql`** and **`0005_management_schema.sql.frag`** are produced by **`scripts/database/combine-migrations.sh`** from those migration directories (do not edit generated files by hand). The script also copies SQL + shell scripts into **`base/db/postgres-init/`** (Kustomize’s load restrictor). For a mechanical stack→db copy without regenerating, run **`make sync_k8s_postgres_init`**. **`local_k3d_up`** runs that sync automatically before apply. To verify stack/db copies and that migrations match the committed k8s SQL, run **`make check_k8s_postgres_init_sync`** (includes **`scripts/database/verify-migrations-combined.sh`**).
 
 ## Non-local (remote cluster + GitOps)
 

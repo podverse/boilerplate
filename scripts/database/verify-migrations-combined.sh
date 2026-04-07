@@ -1,5 +1,5 @@
 #!/bin/bash
-# Verify that committed k8s postgres-init SQL (z_load_*.sql) matches migration directories.
+# Verify that committed k8s postgres-init combined SQL (0003_app_schema.sql, 0005_management_schema.sql.frag) matches migration directories.
 #
 # Used by CI and make check_k8s_postgres_init_sync. Canonical combined SQL lives under
 # infra/k8s/base/stack/postgres-init/ (see scripts/database/combine-migrations.sh).
@@ -63,11 +63,11 @@ ERRORS=0
 
 # Main database
 MAIN_MIGRATIONS="$REPO_ROOT/infra/database/migrations"
-MAIN_COMBINED="$REPO_ROOT/infra/k8s/base/stack/postgres-init/z_load_app_schema.sql"
-MAIN_TEMP="$TEMP_DIR/z_load_app_schema.sql"
+MAIN_COMBINED="$REPO_ROOT/infra/k8s/base/stack/postgres-init/0003_app_schema.sql"
+MAIN_TEMP="$TEMP_DIR/0003_app_schema.sql"
 
 combine_to_temp "$MAIN_MIGRATIONS" "$MAIN_TEMP"
-if ! compare_files "$MAIN_TEMP" "$MAIN_COMBINED" "Main database (z_load_app_schema.sql)"; then
+if ! compare_files "$MAIN_TEMP" "$MAIN_COMBINED" "Main database (0003_app_schema.sql)"; then
   ERRORS=$((ERRORS + 1))
 fi
 
@@ -75,11 +75,11 @@ echo ""
 
 # Management database
 MGMT_MIGRATIONS="$REPO_ROOT/infra/management-database/migrations"
-MGMT_COMBINED="$REPO_ROOT/infra/k8s/base/stack/postgres-init/z_load_management_schema.sql"
-MGMT_TEMP="$TEMP_DIR/z_load_management_schema.sql"
+MGMT_COMBINED="$REPO_ROOT/infra/k8s/base/stack/postgres-init/0005_management_schema.sql.frag"
+MGMT_TEMP="$TEMP_DIR/0005_management_schema.sql.frag"
 
 combine_to_temp "$MGMT_MIGRATIONS" "$MGMT_TEMP"
-if ! compare_files "$MGMT_TEMP" "$MGMT_COMBINED" "Management database (z_load_management_schema.sql)"; then
+if ! compare_files "$MGMT_TEMP" "$MGMT_COMBINED" "Management database (0005_management_schema.sql.frag)"; then
   ERRORS=$((ERRORS + 1))
 fi
 
@@ -93,7 +93,7 @@ if [ $ERRORS -gt 0 ]; then
   echo -e "${YELLOW}To fix, run:${NC}"
   echo "  bash scripts/database/combine-migrations.sh"
   echo ""
-  echo "Then commit the updated infra/k8s/base/stack/postgres-init/z_load_*.sql (and run combine-migrations.sh to sync base/db/postgres-init/)."
+  echo "Then commit the updated infra/k8s/base/stack/postgres-init/0003_app_schema.sql / 0005_management_schema.sql.frag (and run combine-migrations.sh to sync base/db/postgres-init/)."
   exit 1
 fi
 

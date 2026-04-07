@@ -64,7 +64,7 @@ kubectl -n boilerplate-alpha scale deployment/postgres --replicas=1
 
 Wait until **`kubectl -n boilerplate-alpha get pods`** shows **`postgres`** **Running**.
 
-On first start with an **empty** volume, the official image runs **`docker-entrypoint-initdb.d`** from the Boilerplate **`base/db`** ConfigMap (see **`infra/k8s/base/db/deployment-postgres.yaml`**): that creates the cluster superuser and app database from **`POSTGRES_*`**, runs shell/SQL init (management database, ORM roles, **`z_load_*`**, grants). **You do not need §4** if this completed successfully.
+On first start with an **empty** volume, the official image runs **`docker-entrypoint-initdb.d`** from the Boilerplate **`base/db`** ConfigMap (see **`infra/k8s/base/db/deployment-postgres.yaml`**): that creates the cluster superuser and app database from **`POSTGRES_*`**, runs shell/SQL init (management database, ORM roles, **`0003_app_schema.sql`**, **`0004`/`0005`** management load, **`0006`** grants). **You do not need §4** if this completed successfully.
 
 ---
 
@@ -99,8 +99,8 @@ psql -d postgres -c "CREATE DATABASE \"$MGMT_DB\";"
 Apply combined schema (main app DB, then management DB). Paths under **`infra/k8s/base/db/postgres-init/`** match **`stack`** (same assets):
 
 ```bash
-psql -d "$APP_DB" -f infra/k8s/base/db/postgres-init/z_load_app_schema.sql
-psql -d "$MGMT_DB" -f infra/k8s/base/db/postgres-init/z_load_management_schema.sql
+psql -d "$APP_DB" -f infra/k8s/base/db/postgres-init/0003_app_schema.sql
+psql -d "$MGMT_DB" -f infra/k8s/base/db/postgres-init/0005_management_schema.sql.frag
 ```
 
 Create **role** users with passwords **identical** to the Secrets the APIs use. Read passwords from Secrets (same `base64 -d` pattern as above) for:

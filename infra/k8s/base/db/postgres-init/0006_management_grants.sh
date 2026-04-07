@@ -1,5 +1,5 @@
 #!/bin/bash
-# Runs after z_load_management_schema.sql so tables exist. Aligned with makefiles/local/Makefile.local.test.mk (test_db_init_management).
+# Runs after 0004_load_management_schema.sh loads 0005_management_schema.sql.frag so tables exist. Aligned with makefiles/local/Makefile.local.test.mk (test_db_init_management).
 set -e
 
 : "${DB_MANAGEMENT_READ_USER:?Missing DB_MANAGEMENT_READ_USER}"

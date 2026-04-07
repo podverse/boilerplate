@@ -13,7 +13,7 @@ monorepo conventions). Includes Docker local infra and a k3d/k3s + ArgoCD deploy
   [docs/development/LOCAL-ENV-OVERRIDES.md](../docs/development/LOCAL-ENV-OVERRIDES.md).
 - **database/** – Postgres init: numbered migrations in `database/migrations/` (e.g.
   0000_init_helpers.sql, 0001_users.sql). Run `scripts/database/combine-migrations.sh` to generate
-  `infra/k8s/base/stack/postgres-init/z_load_app_schema.sql` (single committed combined SQL under k8s); do not edit that file by hand. Local Docker still uses `database/combined/01_create_users.sh` and `seed_local_user.sql` with that schema file. Combined schema runs on first Postgres start.
+  `infra/k8s/base/stack/postgres-init/0003_app_schema.sql` (single committed combined SQL under k8s); do not edit that file by hand. Local Docker still uses `database/combined/01_create_users.sh` and `seed_local_user.sql` with that schema file. Combined schema runs on first Postgres start.
 - **management-database/** – Same convention as database/; see [Management database](#management-database) below.
 - **docker/local/** – Dockerfiles and docker-compose for api, web, sidecar, postgres, and valkey.
   Combined stack (from repo root): `docker compose -f infra/docker/local/docker-compose.yml
@@ -32,9 +32,9 @@ monorepo conventions). Includes Docker local infra and a k3d/k3s + ArgoCD deploy
 
 Dedicated store for management identities, permissions, and audit events. The main app Postgres is not used for this; the management API uses this store for super admin, admins, permissions, and `management_events`, and uses the main DB only for main-system user CRUD.
 
-**Layout (same as database/):** Migrations in `management-database/migrations/`; run `scripts/database/combine-migrations.sh` to regenerate `infra/k8s/base/stack/postgres-init/z_load_management_schema.sql` (and the main-app `z_load_app_schema.sql`). Do not edit the `z_load_*.sql` files by hand.
+**Layout (same as database/):** Migrations in `management-database/migrations/`; run `scripts/database/combine-migrations.sh` to regenerate `infra/k8s/base/stack/postgres-init/0005_management_schema.sql.frag` (and the main-app `0003_app_schema.sql`). Do not edit the generated combined files by hand.
 
-**Postgres (second database):** Create a second database (e.g. `management_db`) on the same server as the main app. One-time: `psql -h HOST -p PORT -U USER -d postgres -c "CREATE DATABASE management_db;"` then run `psql ... -d management_db -f infra/k8s/base/stack/postgres-init/z_load_management_schema.sql`. Management-api connects with the same **`DB_HOST`** / **`DB_PORT`** as the main API plus **`DB_MANAGEMENT_NAME`** and **`DB_MANAGEMENT_READ_WRITE_USER`** / **`DB_MANAGEMENT_READ_WRITE_PASSWORD`** (see classification **`db.db-management`**). The same Postgres container can host both databases.
+**Postgres (second database):** Create a second database (e.g. `management_db`) on the same server as the main app. One-time: `psql -h HOST -p PORT -U USER -d postgres -c "CREATE DATABASE management_db;"` then run `psql ... -d management_db -f infra/k8s/base/stack/postgres-init/0005_management_schema.sql.frag`. Management-api connects with the same **`DB_HOST`** / **`DB_PORT`** as the main API plus **`DB_MANAGEMENT_NAME`** and **`DB_MANAGEMENT_READ_WRITE_USER`** / **`DB_MANAGEMENT_READ_WRITE_PASSWORD`** (see classification **`db.db-management`**). The same Postgres container can host both databases.
 
 **Schema:** `management_user` (super admin singleton + admins; no email/password on main table), `management_user_credentials` (1:1: email, password_hash), `management_user_bio` (1:1: display_name), `admin_permissions` (admins_crud and users_crud as 0–15 CRUD bitmasks; can_change_passwords, can_assign_permissions, event_visibility), `management_event` (audit log). Only the management API (and management-web via that API) use this store.
 
