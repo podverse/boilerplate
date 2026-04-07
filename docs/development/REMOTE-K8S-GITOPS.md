@@ -61,6 +61,12 @@ CRs. **Browser and API hostnames** for Boilerplate alpha are on **metaboost.cc**
 different DNS/TLS names). Keep **`alpha_env_render`** overrides, ingress rules, CORS, and cookie
 domains consistent with those public hosts. See also [ARGOCD-GITOPS-BOILERPLATE.md](ARGOCD-GITOPS-BOILERPLATE.md).
 
+### Browser: cross-origin requests and untrusted API TLS
+
+After deploy, **web** and **management-web** call **api** and **management-api** on different hostnames (cross-origin). If the browser shows **Cross-Origin Request Blocked** / **CORS request did not succeed** with **no HTTP status**, the failure is often **TLS trust**, not a missing **`API_CORS_ORIGINS`** / **`MANAGEMENT_API_CORS_ORIGINS`** value. That happens when the API hostname uses a certificate the browser does not accept (e.g. Let’s Encrypt **staging**, **self-signed** certs, **corporate TLS inspection**, or other **non-production** chains).
+
+**Workaround for testing:** In the same browser profile, open each public API base URL over HTTPS and proceed past the security warning so those origins are trusted; reload the app. On **Podverse** alpha (metaboost), that typically includes **`https://api.alpha.metaboost.cc`** and **`https://management-api.alpha.metaboost.cc`**. Longer runbook: **`docs/k8s/boilerplate/alpha/BOILERPLATE-REDEPLOY-FULL.md`** in your **GitOps** repository (e.g. **k.podcastdj.com**), section **Browser: “CORS” errors and TLS trust (alpha)**.
+
 ### Publish order after changing Boilerplate bases
 
 When you change manifests under **`infra/k8s/base/`** in this repo, or ship new images:
