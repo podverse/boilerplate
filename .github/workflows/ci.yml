@@ -61,7 +61,7 @@ jobs:
       API_JWT_SECRET: "ci-test-jwt-secret-min-32-chars-long-for-validation"
     steps:
       - name: Add reaction to comment
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         with:
           script: |
             await github.rest.reactions.createForIssueComment({
@@ -73,7 +73,7 @@ jobs:
 
       - name: Get PR details
         id: pr-comment
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         with:
           script: |
             const pr = await github.rest.pulls.get({
@@ -188,7 +188,7 @@ jobs:
 
       - name: Report success
         if: success()
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         env:
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
           PR_NUMBER: ${{ steps.pr-comment.outputs.pr_number }}
@@ -224,7 +224,7 @@ jobs:
 
       - name: Set success commit status
         if: success()
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         env:
           HEAD_SHA: ${{ steps.pr-comment.outputs.head_sha }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
@@ -242,7 +242,7 @@ jobs:
 
       - name: Report failure
         if: failure()
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         env:
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
           PR_NUMBER: ${{ steps.pr-comment.outputs.pr_number }}
@@ -293,7 +293,7 @@ jobs:
 
       - name: Set failure commit status
         if: failure()
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         env:
           HEAD_SHA: ${{ steps.pr-comment.outputs.head_sha }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
