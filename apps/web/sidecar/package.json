@@ -5,7 +5,10 @@
   "type": "module",
   "description": "Runtime-config sidecar for Boilerplate web",
   "dependencies": {
-    "@boilerplate/helpers": "*"
+    "@boilerplate/helpers": "*",
+    "next": "^16.2.6",
+    "next-intl": "^4.11.2",
+    "react-dom": "^19.2.6"
   },
   "scripts": {
     "build": "tsc",

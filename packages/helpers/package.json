@@ -14,7 +14,7 @@
     "clean": "rm -rf dist"
   },
   "dependencies": {
-    "nanoid": "^5.1.7"
+    "nanoid": "^5.1.11"
   },
   "devDependencies": {
     "@types/node": "^24.10.12",
