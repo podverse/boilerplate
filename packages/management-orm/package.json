@@ -15,7 +15,7 @@
   },
   "dependencies": {
     "@boilerplate/helpers": "*",
-    "pg": "^8.20.0",
+    "pg": "^8.21.0",
     "reflect-metadata": "^0.2.2",
     "typeorm": "^0.3.20",
     "uuid": "^13.0.0"
